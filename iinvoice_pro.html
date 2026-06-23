@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Invoice SaaS Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom dynamic style anchors */
+        :root { --primary-accent: #0f172a; }
+        .dynamic-bg { background-color: var(--primary-accent) !important; }
+        .dynamic-text { color: var(--primary-accent) !important; }
+        .dynamic-border { border-color: var(--primary-accent) !important; }
+        
+        input:focus, textarea:focus, select:focus { outline: none; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+        }
+        #sig-canvas { border: 2px dashed #475569; background: #1e293b; cursor: crosshair; }
+    </style>
+</head>
+<body id="master-body" class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-12">
+
+    <div class="no-print max-w-7xl mx-auto my-6 p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4 shadow-2xl">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-2">
+                <span class="h-3 w-3 rounded-full bg-blue-500 animate-ping"></span>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Design & Engine Controls</span>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <select id="currency-selector" onchange="changeCurrency()" class="bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2 py-1 text-xs">
+                    <option value="€">EUR (€)</option>
+                    <option value="$">USD ($)</option>
+                    <option value="£">GBP (£)</option>
+                </select>
+                <div class="flex bg-slate-800 p-0.5 rounded-lg border border-slate-700 text-xs">
+                    <button onclick="setLanguage('fr')" id="lang-fr-btn" class="px-2 py-1 font-bold rounded bg-blue-600 text-white">FR</button>
+                    <button onclick="setLanguage('en')" id="lang-en-btn" class="px-2 py-1 font-bold rounded text-slate-400">EN</button>
+                </div>
+                
+                <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition-all">Format PDF</button>
+                <button onclick="downloadJPG()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition-all">Format JPG Image</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+            <div>
+                <label class="block text-slate-400 mb-1 font-semibold">Theme Color / Box Style:</label>
+                <select onchange="updateThemeColor(this.value)" class="w-full bg-slate-800 border border-slate-700 text-slate-200 rounded-lg p-2">
+                    <option value="#0f172a">Dark Navy Corporate</option>
+                    <option value="#1e3a8a">Royal Blue Classic</option>
+                    <option value="#111827">Charcoal Black Minimalist</option>
+                    <option value="#065f46">Emerald Prestige</option>
+                    <option value="#7c2d12">Crimson Premium</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-slate-400 mb-1 font-semibold">Font Family / Style:</label>
+                <select onchange="updateFontFamily(this.value)" class="w-full bg-slate-800 border border-slate-700 text-slate-200 rounded-lg p-2">
+                    <option value="'Inter', sans-serif">Modern Sans (Inter)</option>
+                    <option value="'Roboto', sans-serif">Clean Tech (Roboto)</option>
+                    <option value="'Playfair Display', serif">Luxury Serif (Playfair)</option>
+                    <option value="'JetBrains Mono', monospace">Developer Code (Mono)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-slate-400 mb-1 font-semibold">Font Base Size Scaling:</label>
+                <select onchange="updateFontSize(this.value)" class="w-full bg-slate-800 border border-slate-700 text-slate-200 rounded-lg p-2">
+                    <option value="14px">Regular Compact</option>
+                    <option value="16px" selected>Standard Balanced</option>
+                    <option value="18px">Large Legible</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-slate-400 mb-1 font-semibold">Workspace Mode Layout:</label>
+                <div class="flex gap-2">
+                    <button onclick="toggleCanvasBackground('dark')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg p-2 font-medium">Dark Sheet</button>
+                    <button onclick="toggleCanvasBackground('light')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-lg p-2 font-medium">Classic Light Sheet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="invoice-card" class="max-w-5xl mx-auto bg-slate-900 p-10 rounded-2xl shadow-2xl border border-slate-800 text-slate-200 relative overflow-hidden transition-all" style="font-size: 16px;">
+        
+        <div id="theme-accent-bar" class="absolute top-0 left-0 right-0 h-2 dynamic-bg"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-slate-800 pb-8 mb-8">
+            <div class="space-y-4">
+                <div>
+                    <label class="no-print block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1" id="lbl-logo">Logo de l'entreprise</label>
+                    <input type="file" id="logo-input" accept="image/*" class="no-print text-xs text-slate-500 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-slate-300">
+                    <img id="logo-preview" class="h-16 object-contain hidden mt-2" src="" alt="Logo">
+                </div>
+                
+                <div class="space-y-1 max-w-sm">
+                    <input type="text" id="comp-name" value="Mon Entreprise EURL" oninput="syncFooter()" class="bg-transparent font-bold text-xl text-white border-b border-transparent hover:border-slate-700 focus:border-blue-500 w-full transition-all">
+                    <input type="text" id="comp-siret" value="SIRET: 123 456 789 00012" oninput="syncFooter()" class="bg-transparent text-sm text-slate-400 border-b border-transparent hover:border-slate-700 focus:border-blue-500 w-full">
+                    <textarea class="bg-transparent text-xs text-slate-400 border-b border-transparent hover:border-slate-700 focus:border-blue-500 w-full resize-none h-12">10 Rue de la Paix, 75002 Paris</textarea>
+                </div>
+            </div>
+            
+            <div class="text-right flex flex-col justify-between items-end">
+                <div class="w-full">
+                    <input type="text" value="FACTURE / INVOICE" class="text-right font-black text-3xl tracking-tight text-white bg-transparent border-b border-transparent hover:border-slate-700 w-full uppercase">
+                    <input type="text" value="INV-2026-001" class="text-right bg-transparent border-b border-transparent text-blue-400 mt-2 text-lg font-mono">
+                </div>
+                
+                <div class="w-full max-w-xs space-y-1 mt-4">
+                    <div class="flex items-center justify-between text-xs gap-4">
+                        <span class="text-slate-500 font-bold uppercase tracking-wider" id="lbl-inv-date">Date d'émission</span>
+                        <input type="date" value="2026-06-23" class="bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-right text-slate-200 font-mono">
+                    </div>
+                    <div class="flex items-center justify-between text-xs gap-4">
+                        <span class="text-slate-500 font-bold uppercase tracking-wider" id="lbl-due-date">Date d'échéance</span>
+                        <input type="date" value="2026-07-23" class="bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-right text-slate-200 font-mono">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8 bg-slate-800/30 border border-slate-800 p-5 rounded-xl">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2" id="lbl-bill-to">Facturer À (Détails Client)</h3>
+            <input type="text" placeholder="Nom du Client / Company" class="font-bold text-base text-white bg-transparent border-b border-transparent w-full">
+            <textarea placeholder="Adresse & Numéro de TVA" class="text-sm text-slate-300 bg-transparent border-b border-transparent w-full mt-1 resize-none" rows="2"></textarea>
+        </div>
+
+        <div class="overflow-x-auto mb-4">
+            <table class="w-full text-left border-collapse min-w-max">
+                <thead>
+                    <tr class="border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-800/20">
+                        <th class="p-3 pl-4" id="th-desc">Description</th>
+                        <th class="p-3 text-center w-20" id="th-qty">Qté</th>
+                        <th class="p-3 text-right w-32"><span id="th-price">Prix HT</span> (<span class="currency-label">€</span>)</th>
+                        <th class="p-3 text-center w-28" id="th-tva">Taux TVA</th>
+                        <th class="p-3 text-right w-36"><span id="th-total">Total TTC</span></th>
+                        <th class="p-3 text-center w-12 no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="invoice-items"></tbody>
+            </table>
+        </div>
+
+        <div class="no-print mb-8">
+            <button onclick="addRow()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold py-1.5 px-3 rounded-lg flex items-center gap-1.5">
+                <span>+</span> <span id="lbl-add-row">Ajouter une ligne</span>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-slate-800 pt-8">
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider" id="lbl-signature">Signature Numérique & Dessin Direct</label>
+                            <button onclick="clearSignature()" class="no-print text-[10px] text-red-400 hover:underline">Effacer / Clear</button>
+                        </div>
+                        <canvas id="sig-canvas" width="400" height="120" class="w-full rounded-lg shadow-inner"></canvas>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1" id="lbl-terms">Conditions de règlement & Mentions Légales</label>
+                    <textarea class="w-full bg-slate-800/20 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-400 h-16 resize-none">Paiement à réception. Aucun escompte consenti pour paiement anticipé. Pénalités de retard applicables au taux de 10%.</textarea>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/20 p-6 rounded-xl border border-slate-800 text-sm space-y-3 h-fit ml-auto w-full md:w-96">
+                <div class="flex justify-between items-center text-slate-400">
+                    <span id="lbl-tot-ht">Total Hors Taxes (HT):</span>
+                    <span id="summary-ht" class="font-mono font-semibold text-white">0.00 €</span>
+                </div>
+                
+                <div id="tva-breakdown-wrapper" class="border-y border-slate-800/80 py-2 my-2 space-y-1.5 text-xs text-slate-400"></div>
+
+                <div class="flex justify-between items-center text-base font-bold text-white pt-2">
+                    <span id="lbl-tot-ttc">Total Toutes Taxes Comprises (TTC):</span>
+                    <span id="summary-ttc" class="font-mono text-lg text-blue-400 bg-slate-950/60 px-3 py-1 border border-slate-800 rounded-lg">0.00 €</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 p-3 bg-slate-950/40 border border-slate-800/60 rounded-lg text-[9px] text-slate-500 leading-relaxed">
+            <span class="font-bold text-slate-400 uppercase tracking-wider block mb-0.5 text-[10px]">Privacy & Ad-Network Compliance Protocol Notice</span>
+            This application enforces zero structural data collection matrices. Document properties, layout states, configurations, and internal parameters are evaluated strictly in sandbox operations locally inside your terminal runtime. Advertising banners provided on peripheral components utilize programmatic contextual cookies compliant with international data governance safe harbors.
+        </div>
+
+        <div class="mt-8 pt-4 border-t border-slate-800/40 text-center text-[10px] text-slate-500 tracking-wider">
+            <span id="footer-comp-name">Mon Entreprise EURL</span> &nbsp;|&nbsp; <span id="footer-comp-siret">SIRET: 123 456 789 00012</span>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            fr: {
+                logo: "Logo de l'entreprise", invDate: "Date d'émission", dueDate: "Date d'échéance",
+                billTo: "Facturer À (Détails Client)", desc: "Description", qty: "Qté", price: "Prix HT",
+                tva: "Taux TVA", total: "Total TTC", addRow: "Ajouter une ligne", signature: "Signature Numérique & Dessin Direct",
+                terms: "Conditions de règlement & Mentions Légales", totHt: "Total Hors Taxes (HT):", totTtc: "Total Toutes Taxes Comprises (TTC):"
+            },
+            en: {
+                logo: "Company Logo", invDate: "Issue Date", dueDate: "Due Date",
+                billTo: "Bill To (Client Details)", desc: "Description", qty: "Qty", price: "Price Net",
+                tva: "VAT Rate", total: "Total Gross", addRow: "Add row item", signature: "Digital Signature & Direct Draw Pad",
+                terms: "Terms of Payment & Legal Notices", totHt: "Total Net Amount (HT):", totTtc: "Total Gross Amount (TTC):"
+            }
+        };
+
+        let currentLang = 'fr';
+
+        // Calculation Operations Engine
+        function calculateInvoice() {
+            const rows = document.querySelectorAll('.invoice-row');
+            let grandTotalHT = 0;
+            let tvaGroups = { '20': 0, '10': 0, '5.5': 0, '0': 0 };
+            const curr = document.getElementById('currency-selector').value;
+
+            rows.forEach(row => {
+                const qty = parseFloat(row.querySelector('.row-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.row-price').value) || 0;
+                const tvaRate = row.querySelector('.row-tva').value;
+
+                const rowHT = qty * price;
+                const rowTVA = rowHT * (parseFloat(tvaRate) / 100);
+                const rowTTC = rowHT + rowTVA;
+
+                grandTotalHT += rowHT;
+                if (tvaGroups[tvaRate] !== undefined) tvaGroups[tvaRate] += rowTVA;
+
+                row.querySelector('.row-total-ttc').innerText = formatCurrency(rowTTC, curr);
+            });
+
+            document.getElementById('summary-ht').innerText = formatCurrency(grandTotalHT, curr);
+
+            const breakdownWrapper = document.getElementById('tva-breakdown-wrapper');
+            breakdownWrapper.innerHTML = '';
+            
+            Object.keys(tvaGroups).sort((a,b) => b-a).forEach(rate => {
+                if(tvaGroups[rate] > 0) {
+                    const el = document.createElement('div');
+                    el.className = "flex justify-between items-center";
+                    el.innerHTML = `<span>TVA (${rate}%):</span> <span class="font-mono">${formatCurrency(tvaGroups[rate], curr)}</span>`;
+                    breakdownWrapper.appendChild(el);
+                }
+            });
+
+            let grandTotalTVA = Object.values(tvaGroups).reduce((a, b) => a + b, 0);
+            document.getElementById('summary-ttc').innerText = formatCurrency(grandTotalHT + grandTotalTVA, curr);
+        }
+
+        function formatCurrency(amount, currency) {
+            return currency === '€' ? `${amount.toFixed(2)} €` : `${currency}${amount.toFixed(2)}`;
+        }
+
+        function addRow() {
+            const tbody = document.getElementById('invoice-items');
+            const row = document.createElement('tr');
+            row.className = "border-b border-slate-800/40 transition-all invoice-row";
+            row.innerHTML = `
+                <td class="p-3 pl-4"><input type="text" value="Premium Service Contract" class="w-full bg-transparent text-white border-b border-transparent hover:border-slate-700 py-0.5"></td>
+                <td class="p-3 text-center"><input type="number" value="1" oninput="calculateInvoice()" class="row-qty w-14 text-center bg-slate-800 border border-slate-700 text-slate-200 rounded text-xs px-1 py-0.5"></td>
+                <td class="p-3 text-right"><input type="number" value="250.00" step="0.01" oninput="calculateInvoice()" class="row-price w-24 text-right bg-slate-800 border border-slate-700 text-slate-200 rounded text-xs px-1.5 py-0.5"></td>
+                <td class="p-3 text-center">
+                    <select onchange="calculateInvoice()" class="row-tva bg-slate-800 border border-slate-700 rounded p-0.5 text-xs text-slate-200">
+                        <option value="20" selected>20%</option> <option value="10">10%</option> <option value="5.5">5.5%</option> <option value="0">0%</option>
+                    </select>
+                </td>
+                <td class="row-total-ttc p-3 text-right font-mono font-medium text-slate-300">0.00 €</td>
+                <td class="p-3 text-center no-print"><button onclick="this.closest('tr').remove(); calculateInvoice();" class="text-slate-600 hover:text-red-400">✕</button></td>
+            `;
+            tbody.appendChild(row);
+            calculateInvoice();
+        }
+
+        // Live Drawing Signature Canvas Engine Setup
+        const canvas = document.getElementById('sig-canvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function setupSignaturePad() {
+            ctx.strokeStyle = "#60a5fa"; // Modern Electric Blue Ink
+            ctx.lineWidth = 3;
+            ctx.lineCap = "round";
+
+            const getPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: (e.clientX || e.touches[0].clientX) - rect.left,
+                    y: (e.clientY || e.touches[0].clientY) - rect.top
+                };
+            };
+
+            const startDrawing = (e) => { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); };
+            const draw = (e) => { if (!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); };
+            const stopDrawing = () => { drawing = false; };
+
+            canvas.addEventListener('mousedown', startDrawing); canvas.addEventListener('mousemove', draw); window.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('touchstart', startDrawing); canvas.addEventListener('touchmove', draw); window.addEventListener('touchend', stopDrawing);
+        }
+
+        function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        // Dynamic Studio Theme Stylers
+        function updateThemeColor(color) {
+            document.documentElement.style.setProperty('--primary-accent', color);
+        }
+        function updateFontFamily(fontStr) {
+            document.getElementById('invoice-card').style.fontFamily = fontStr;
+        }
+        function updateFontSize(sizeStr) {
+            document.getElementById('invoice-card').style.fontSize = sizeStr;
+        }
+        function toggleCanvasBackground(mode) {
+            const card = document.getElementById('invoice-card');
+            if (mode === 'light') {
+                card.className = "max-w-5xl mx-auto bg-white p-10 rounded-2xl shadow-2xl border border-gray-200 text-gray-800 relative overflow-hidden transition-all";
+                document.querySelectorAll('.invoice-row input, .invoice-row select').forEach(el => el.style.color = '#1f2937');
+            } else {
+                card.className = "max-w-5xl mx-auto bg-slate-900 p-10 rounded-2xl shadow-2xl border border-slate-800 text-slate-200 relative overflow-hidden transition-all";
+            }
+        }
+
+        function changeCurrency() {
+            const currentCurrency = document.getElementById('currency-selector').value;
+            document.querySelectorAll('.currency-label').forEach(el => el.innerText = currentCurrency);
+            calculateInvoice();
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('lang-fr-btn').className = lang === 'fr' ? 'px-2 py-1 font-bold rounded bg-blue-600 text-white' : 'px-2 py-1 font-bold rounded text-slate-400';
+            document.getElementById('lang-en-btn').className = lang === 'en' ? 'px-2 py-1 font-bold rounded bg-blue-600 text-white' : 'px-2 py-1 font-bold rounded text-slate-400';
+
+            const dict = dictionary[lang];
+            Object.keys(dict).forEach(id => {
+                const element = document.getElementById(`lbl-${id}`) || document.getElementById(`th-${id}`);
+                if (element) element.innerText = dict[id];
+            });
+        }
+
+        function syncFooter() {
+            document.getElementById('footer-comp-name').innerText = document.getElementById('comp-name').value || "---";
+            document.getElementById('footer-comp-siret').innerText = document.getElementById('comp-siret').value || "---";
+        }
+
+        // Export Engines (PDF & High Quality JPG Matrix)
+        function downloadPDF() {
+            const element = document.getElementById('invoice-card');
+            const opt = {
+                margin: 10, filename: 'Invoice_UltraHD.pdf', image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 3, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
+        }
+
+        function downloadJPG() {
+            const element = document.getElementById('invoice-card');
+            // Formulating high-fidelity canvas mapping snapshot
+            html2canvas(element, { scale: 3, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Invoice_DigitalSnapshot.jpg';
+                link.href = canvas.toDataURL('image/jpeg', 1.0);
+                link.click();
+            });
+        }
+
+        // Setup Image Persistence Pipeline
+        function setupImageUpload(inputId, previewId, storageKey) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            if(localStorage.getItem(storageKey)) {
+                preview.src = localStorage.getItem(storageKey);
+                preview.classList.remove('hidden');
+            }
+            input.addEventListener('change', function() {
+                const file = this.files[0];
+                if(file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result; preview.classList.remove('hidden');
+                        localStorage.setItem(storageKey, e.target.result);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setupImageUpload('logo-input', 'logo-preview', 'cached_v2_logo');
+            setupSignaturePad();
+            addRow();
+            syncFooter();
+        });
+    </script>
+</body>
+</html>
