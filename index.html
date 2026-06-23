@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facture Gratuite - Générateur de Facture En Ligne</title>
+    <!-- Tailwind CSS for Modern UI -->
+    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.js"></script>
+    <!-- html2pdf Library for Premium PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- 📥 GOOGLE ADSENSE CODE PLACEHOLDER -->
+    <!-- Jab aapko AdSense ka approval mil jaye, to apna main script code niche wali line ke upar paste karein: -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
+
+</head>
+<body class="bg-gray-50 text-gray-800 p-4 md:p-8">
+
+    <!-- Premium SaaS Subscription Header / Banner -->
+    <div class="max-w-5xl mx-auto bg-gradient-to-r text-white p-6 rounded-xl shadow-md mb-6 text-center" style="background: linear-gradient(135deg, #1e3a8a, #3b82f6);">
+        <h1 class="text-3xl font-extrabold mb-1">Facture Gratuite</h1>
+        <p class="mb-4 text-blue-100 text-sm md:text-base">100 Copies Gratuites | €5/mois Illimité | €100 Licence à Vie</p>
+        <div class="flex justify-center gap-4 text-xs md:text-sm">
+            <span class="bg-white text-blue-800 px-4 py-1.5 rounded-full font-bold shadow-sm">
+                Compteur Gratuit : 1 / 100 Téléchargements Utilisés
+            </span>
+        </div>
+    </div>
+
+    <!-- 📢 AD SLOT 1: TOP BANNER AD (Screen par dikhega, PDF mein nahi aayega) -->
+    <div class="max-w-5xl mx-auto mb-6 text-center hide-on-pdf">
+        <div class="bg-gray-200 border border-gray-300 text-gray-500 text-xs py-4 rounded-lg tracking-wider">
+            <!-- ADSENSE AD CODE HERE -->
+            --- ESPACE PUBLICITAIRE (TOP AD BANNER) ---
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="XXXXXXXXXX"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
+        </div>
+    </div>
+
+    <!-- Main Invoice Document Canvas -->
+    <div id="invoice-card" class="max-w-5xl mx-auto bg-white p-6 md:p-12 rounded-xl shadow-lg border border-gray-200">
+        
+        <!-- Header: Logo and Company Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-b pb-6 mb-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Logo de l'entreprise</label>
+                <input type="file" id="logo-input" accept="image/*" class="mb-2 text-xs text-gray-500 file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <img id="logo-preview" class="h-20 object-contain hidden mt-1" src="" alt="Logo">
+                
+                <input type="text" value="Mon Entreprise EURL" class="text-xl font-bold border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-full mt-3">
+                <input type="text" value="SIRET: 123 456 789 00012" class="text-sm text-gray-500 border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-full mt-1">
+                <input type="text" value="Adresse de la société, 75000 Paris" class="text-sm text-gray-500 border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-full mt-1">
+            </div>
+            <div class="text-left md:text-right flex flex-col justify-between items-start md:items-end">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-blue-900 tracking-wide uppercase">FACTURE</h2>
+                </div>
+                <div class="w-full md:w-64 space-y-1 mt-4 md:mt-0">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400 font-medium">Numéro :</span>
+                        <input type="text" value="FAC-2026-001" class="text-left md:text-right border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none font-semibold w-32">
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400 font-medium">Date :</span>
+                        <input type="date" value="2026-06-23" class="text-left md:text-right border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-32 text-gray-600 bg-transparent">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client & Billing Section -->
+        <div class="grid grid-cols-1 mb-6 bg-gray-50 p-5 rounded-lg border border-gray-100">
+            <h3 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Facturé à (Client) :</h3>
+            <input type="text" placeholder="Nom du Client / Nom de l'entreprise" class="font-bold bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-full text-lg">
+            <textarea placeholder="Adresse complète du client & Numéro de TVA Intracommunautaire" class="text-sm text-gray-600 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-full mt-2 resize-none" rows="2"></textarea>
+        </div>
+
+        <!-- Dynamic Items Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full mb-4 text-left border-collapse">
+                <thead>
+                    <tr class="border-b-2 border-gray-200 bg-gray-100 text-xs font-bold uppercase tracking-wider text-gray-600">
+                        <th class="p-3 w-5/12">Désignation / Description</th>
+                        <th class="p-3 text-center w-1/12">Qté</th>
+                        <th class="p-3 text-right w-2/12">Prix U. HT (€)</th>
+                        <th class="p-3 text-center w-2/12">Taux TVA</th>
+                        <th class="p-3 text-right w-2/12">Total TTC (€)</th>
+                        <th class="p-3 text-center w-1/12 hide-on-pdf"></th>
+                    </tr>
+                </thead>
+                <tbody id="invoice-items">
+                    <tr class="border-b border-gray-100 item-row">
+                        <td class="p-3"><input type="text" placeholder="Prestation de Service" class="w-full outline-none bg-transparent border-b border-transparent hover:border-gray-200 focus:border-blue-500"></td>
+                        <td class="p-3 text-center"><input type="number" value="1" min="1" oninput="calculateInvoice()" class="qty-field w-16 text-center border rounded py-0.5"></td>
+                        <td class="p-3 text-right"><input type="number" value="500.00" step="0.01" oninput="calculateInvoice()" class="price-field w-24 text-right border rounded px-1 py-0.5"></td>
+                        <td class="p-3 text-center">
+                            <select onchange="calculateInvoice()" class="tva-field border rounded p-1 text-sm bg-white">
+                                <option value="20" selected>20%</option>
+                                <option value="10">10%</option>
+                                <option value="5.5">5.5%</option>
+                                <option value="0">0%</option>
+                            </select>
+                        </td>
+                        <td class="row-total-ttc p-3 text-right font-semibold text-gray-700">€600.00</td>
+                        <td class="p-3 text-center hide-on-pdf">
+                            <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700 font-bold text-sm">✕</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add Item Button -->
+        <div class="mb-6 hide-on-pdf">
+            <button onclick="addRow()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1.5 px-4 rounded shadow-sm transition duration-150">
+                + Ajouter une ligne
+            </button>
+        </div>
+
+        <!-- Bottom: Branding Assets & Financial Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12 border-t pt-6">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Cachet de la Société (Stamp)</label>
+                    <input type="file" id="stamp-input" accept="image/*" class="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                    <img id="stamp-preview" class="h-20 object-contain hidden mt-2 border p-1 rounded bg-gray-50" src="" alt="Cachet">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Signature Numérique</label>
+                    <input type="file" id="sig-input" accept="image/*" class="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                    <img id="sig-preview" class="h-16 object-contain hidden mt-2 border p-1 rounded bg-gray-50" src="" alt="Signature">
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 ml-auto w-full md:w-80 text-sm space-y-3 shadow-sm h-fit">
+                <div class="flex justify-between">
+                    <span class="text-gray-500 font-medium">Total Hors Taxe (HT) :</span>
+                    <span id="summary-ht" class="font-semibold text-gray-800">€500.00</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500 font-medium">Montant TVA :</span>
+                    <span id="summary-tva" class="font-semibold text-gray-800">€100.00</span>
+                </div>
+                <div class="flex justify-between border-t pt-3 text-base font-bold text-blue-900">
+                    <span>Total TTC :</span>
+                    <span id="summary-ttc" class="text-lg">€600.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📢 AD SLOT 2: BOTTOM BANNER AD (Screen par dikhega, PDF mein nahi aayega) -->
+    <div class="max-w-5xl mx-auto my-6 text-center hide-on-pdf">
+        <div class="bg-gray-200 border border-gray-300 text-gray-500 text-xs py-4 rounded-lg tracking-wider">
+            <!-- ADSENSE AD CODE HERE -->
+            --- ESPACE PUBLICITAIRE (BOTTOM AD BANNER) ---
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="YYYYYYYYYY"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
+        </div>
+    </div>
+
+    <!-- Download CTA Button -->
+    <div class="max-w-5xl mx-auto text-center mb-12 hide-on-pdf">
+        <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-10 rounded-lg shadow-md transition duration-200 uppercase tracking-wider text-sm">
+            Télécharger la Facture (PDF)
+        </button>
+    </div>
+
+    <!-- Smart JavaScript Core Implementation Engine -->
+    <script>
+        function calculateInvoice() {
+            let totalHT = 0;
+            let totalTVA = 0;
+            let totalTTC = 0;
+            const rows = document.querySelectorAll('.item-row');
+            
+            rows.forEach(row => {
+                const qty = parseFloat(row.querySelector('.qty-field').value) || 0;
+                const price = parseFloat(row.querySelector('.price-field').value) || 0;
+                const tvaRate = parseFloat(row.querySelector('.tva-field').value) || 0;
+
+                const rowHT = qty * price;
+                const rowTVA = rowHT * (tvaRate / 100);
+                const rowTTC = rowHT + rowTVA;
+
+                row.querySelector('.row-total-ttc').innerText = '€' + rowTTC.toFixed(2);
+
+                totalHT += rowHT;
+                totalTVA += rowTVA;
+                totalTTC += rowTTC;
+            });
+
+            document.getElementById('summary-ht').innerText = '€' + totalHT.toFixed(2);
+            document.getElementById('summary-tva').innerText = '€' + totalTVA.toFixed(2);
+            document.getElementById('summary-ttc').innerText = '€' + totalTTC.toFixed(2);
+        }
+
+        function addRow() {
+            const tbody = document.getElementById('invoice-items');
+            const newRow = document.createElement('tr');
+            newRow.className = 'border-b border-gray-100 item-row';
+            newRow.innerHTML = `
+                <td class="p-3"><input type="text" placeholder="Autre prestation" class="w-full outline-none bg-transparent border-b border-transparent hover:border-gray-200 focus:border-blue-500"></td>
+                <td class="p-3 text-center"><input type="number" value="1" min="1" oninput="calculateInvoice()" class="qty-field w-16 text-center border rounded py-0.5"></td>
+                <td class="p-3 text-right"><input type="number" value="0.00" step="0.01" oninput="calculateInvoice()" class="price-field w-24 text-right border rounded px-1 py-0.5"></td>
+                <td class="p-3 text-center">
+                    <select onchange="calculateInvoice()" class="tva-field border rounded p-1 text-sm bg-white">
+                        <option value="20" selected>20%</option>
+                        <option value="10">10%</option>
+                        <option value="5.5">5.5%</option>
+                        <option value="0">0%</option>
+                    </select>
+                </td>
+                <td class="row-total-ttc p-3 text-right font-semibold text-gray-700">€0.00</td>
+                <td class="p-3 text-center hide-on-pdf">
+                    <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700 font-bold text-sm">✕</button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+            calculateInvoice();
+        }
+
+        function deleteRow(button) {
+            const rows = document.querySelectorAll('.item-row');
+            if(rows.length > 1) {
+                button.closest('tr').remove();
+                calculateInvoice();
+            } else {
+                alert("Vous devez laisser au moins une ligne !");
+            }
+        }
+
+        function setupImageUpload(inputId, previewId, storageKey) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+
+            if(localStorage.getItem(storageKey)) {
+                preview.src = localStorage.getItem(storageKey);
+                preview.classList.remove('hidden');
+            }
+
+            input.addEventListener('change', function() {
+                const file = this.files[0];
+                if(file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.classList.remove('hidden');
+                        localStorage.setItem(storageKey, e.target.result);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        setupImageUpload('logo-input', 'logo-preview', 'fg_saved_logo');
+        setupImageUpload('stamp-input', 'stamp-preview', 'fg_saved_stamp');
+        setupImageUpload('sig-input', 'sig-preview', 'fg_saved_sig');
+
+        // Render Clean PDF (Bina ads aur extra buttons ke)
+        function downloadPDF() {
+            const element = document.getElementById('invoice-card');
+            const hideElements = document.querySelectorAll('.hide-on-pdf');
+            
+            // Temporary hide for export
+            hideElements.forEach(el => el.style.display = 'none');
+
+            const opt = {
+                margin:       12,
+                filename:     'Facture_FactureGratuite.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                // Restore ads and actions after download completes
+                hideElements.forEach(el => el.style.display = '');
+            });
+        }
+    </script>
+</body>
+</html>
