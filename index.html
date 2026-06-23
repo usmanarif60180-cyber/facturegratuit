@@ -17,7 +17,7 @@
         <p class="text-slate-500 mt-3 text-sm md:text-base font-medium">Générez vos factures professionnelles au format PDF instantanément et 100% gratuitement.</p>
     </div>
 
-    <!-- 📢 AD SLOT 1: TOP BANNER AD (Centered & Modern Layout) -->
+    <!-- 📢 AD SLOT 1: TOP BANNER AD -->
     <div class="max-w-5xl mx-auto mb-10 text-center hide-on-pdf">
         <div class="bg-white border border-dashed border-slate-300 text-slate-400 text-xs py-6 rounded-2xl tracking-wider shadow-sm max-w-3xl mx-auto font-mono">
             --- PUBLICITÉ (TOP BANNER) ---
@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    <!-- Main Professional Invoice Document (Real A4 Paper feel with Shadow) -->
+    <!-- Main Professional Invoice Document -->
     <div id="invoice-card" class="max-w-5xl mx-auto bg-white p-8 md:p-16 rounded-2xl shadow-xl border border-slate-200 ring-1 ring-slate-900/5">
         
         <!-- Top Row: Logo upload and Company Profile vs Invoice Branding -->
@@ -43,9 +43,9 @@
                 <img id="logo-preview" class="h-20 object-contain hidden mt-2 rounded" src="" alt="Logo">
                 
                 <div class="mt-4 space-y-1">
-                    <input type="text" value="Mon Entreprise EURL" class="text-2xl font-black text-slate-900 border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-slate-50 outline-none w-full transition py-0.5 rounded px-1">
-                    <input type="text" value="SIRET: 123 456 789 00012" class="text-sm text-slate-500 border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-slate-50 outline-none w-full transition py-0.5 rounded px-1">
-                    <input type="text" value="Adresse de la société, 75000 Paris" class="text-sm text-slate-500 border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-slate-50 outline-none w-full transition py-0.5 rounded px-1">
+                    <input type="text" placeholder="Nom de votre entreprise" class="text-2xl font-black text-slate-900 border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-slate-50 outline-none w-full transition py-0.5 rounded px-1">
+                    <input type="text" placeholder="SIRET / Code d'entreprise" class="text-sm text-slate-500 border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-slate-50 outline-none w-full transition py-0.5 rounded px-1">
+                    <input type="text" placeholder="Adresse complète de votre société" class="text-sm text-slate-500 border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-slate-50 outline-none w-full transition py-0.5 rounded px-1">
                 </div>
             </div>
             <div class="text-left md:text-right flex flex-col justify-between items-start md:items-end">
@@ -89,7 +89,7 @@
                     <tr class="border-b border-slate-100 item-row hover:bg-slate-50/50 transition">
                         <td class="p-4"><input type="text" placeholder="Prestation de Service / Article" class="w-full font-medium text-slate-800 outline-none bg-transparent border-b border-transparent hover:border-slate-200 focus:border-blue-500 py-0.5 px-1"></td>
                         <td class="p-4 text-center"><input type="number" value="1" min="1" oninput="calculateInvoice()" class="qty-field w-16 text-center border border-slate-200 rounded-lg p-1 text-sm font-semibold text-slate-700 focus:border-blue-500 outline-none"></td>
-                        <td class="p-4 text-right"><input type="number" value="500.00" step="0.01" oninput="calculateInvoice()" class="price-field w-24 text-right border border-slate-200 rounded-lg p-1 text-sm font-semibold text-slate-700 focus:border-blue-500 outline-none"></td>
+                        <td class="p-4 text-right"><input type="number" value="0.00" step="0.01" oninput="calculateInvoice()" class="price-field w-24 text-right border border-slate-200 rounded-lg p-1 text-sm font-semibold text-slate-700 focus:border-blue-500 outline-none"></td>
                         <td class="p-4 text-center">
                             <select onchange="calculateInvoice()" class="tva-field border border-slate-200 rounded-lg p-1 text-sm bg-white font-medium text-slate-700 focus:border-blue-500 outline-none cursor-pointer">
                                 <option value="20" selected>20%</option>
@@ -98,7 +98,7 @@
                                 <option value="0">0%</option>
                             </select>
                         </td>
-                        <td class="row-total-ttc p-4 text-right font-bold text-slate-900">€600.00</td>
+                        <td class="row-total-ttc p-4 text-right font-bold text-slate-900">€0.00</td>
                         <td class="p-4 text-center hide-on-pdf">
                             <button onclick="deleteRow(this)" class="text-red-400 hover:text-red-600 font-bold text-base transition">✕</button>
                         </td>
@@ -110,12 +110,11 @@
         <!-- Add Item Interactive Button -->
         <div class="mb-8 hide-on-pdf">
             <button onclick="addRow()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-5 rounded-xl shadow-sm hover:shadow transition duration-150 flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="="M12 4.5v15m7.5-7.5h-15" /></svg>
-                Ajouter une ligne
+                + Ajouter une ligne
             </button>
         </div>
 
-        <!-- Summary Assets Panel (Stamp, Signature & Math Totals) -->
+        <!-- Summary Assets Panel -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 border-t border-slate-200 pt-8">
             <div class="space-y-4">
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 max-w-xs">
@@ -133,15 +132,15 @@
             <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 ml-auto w-full md:w-80 text-sm space-y-4 shadow-sm h-fit">
                 <div class="flex justify-between items-center">
                     <span class="text-slate-500 font-semibold">Total Hors Taxe (HT) :</span>
-                    <span id="summary-ht" class="font-bold text-slate-800">€500.00</span>
+                    <span id="summary-ht" class="font-bold text-slate-800">€0.00</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-slate-500 font-semibold">Montant TVA :</span>
-                    <span id="summary-tva" class="font-bold text-slate-800">€100.00</span>
+                    <span id="summary-tva" class="font-bold text-slate-800">€0.00</span>
                 </div>
                 <div class="flex justify-between items-center border-t border-slate-200 pt-4 text-base font-black text-blue-900">
                     <span>Total TTC :</span>
-                    <span id="summary-ttc" class="text-xl">€600.00</span>
+                    <span id="summary-ttc" class="text-xl">€0.00</span>
                 </div>
             </div>
         </div>
@@ -161,11 +160,18 @@
     </div>
 
     <!-- Action Center: Export PDF Controller -->
-    <div class="max-w-5xl mx-auto text-center mb-16 hide-on-pdf">
+    <div class="max-w-5xl mx-auto text-center mb-10 hide-on-pdf">
         <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-4 px-12 rounded-2xl shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all duration-150 uppercase tracking-wider text-sm ring-4 ring-blue-600/10">
             Télécharger la Facture (PDF)
         </button>
     </div>
+
+    <!-- 🔗 LEGAL FOOTER FOR GOOGLE ADSENSE APPROVAL (PDF mein nahi aayega) -->
+    <footer class="max-w-5xl mx-auto text-center py-6 border-t border-slate-200 text-xs text-slate-400 font-medium space-x-4 hide-on-pdf">
+        <span>© 2026 Facture Gratuite. Tous droits réservés.</span>
+        <a href="mentions-legales.html" class="hover:text-blue-600 hover:underline">Mentions Légales</a>
+        <a href="privacy.html" class="hover:text-blue-600 hover:underline">Politique de Confidentialité</a>
+    </footer>
 
     <!-- Smart Invoicing Execution Core Logic Script -->
     <script>
