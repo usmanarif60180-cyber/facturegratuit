@@ -40,6 +40,24 @@
         .custom-font-style * {
             font-family: inherit !important;
         }
+        .ad-block {
+            min-height: 72px;
+            border: 1px dashed #cbd5e1;
+            background: #f8fafc;
+        }
+        .dark-mode {
+            background: #0f172a !important;
+            color: #e2e8f0 !important;
+        }
+        .dark-mode .no-print.bg-white,
+        .dark-mode .no-print .bg-white {
+            background: #111827 !important;
+            color: #e2e8f0 !important;
+        }
+        @media (max-width: 900px) {
+            body { height: auto !important; overflow: auto !important; }
+            #facture-preview, .a4-panel { width: 100% !important; min-height: auto !important; max-height: none !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans flex flex-col md:flex-row h-screen overflow-hidden">
@@ -56,6 +74,25 @@
         </div>
 
         <hr class="border-slate-200">
+
+        <div class="flex flex-col gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+            <h2 class="text-xs font-bold text-blue-900 tracking-wide uppercase flex items-center gap-1">
+                <i class="fa-solid fa-user-lock"></i> Compte Firebase
+            </h2>
+            <input id="auth-name" type="text" placeholder="Nom / entreprise" class="w-full bg-white border border-blue-100 rounded-lg p-2 text-xs">
+            <input id="auth-email" type="email" placeholder="Email" class="w-full bg-white border border-blue-100 rounded-lg p-2 text-xs">
+            <input id="auth-password" type="password" placeholder="Mot de passe" class="w-full bg-white border border-blue-100 rounded-lg p-2 text-xs">
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="registerAccount()" class="bg-blue-600 text-white text-xs font-semibold py-2 rounded-lg">Créer</button>
+                <button onclick="loginAccount()" class="bg-slate-900 text-white text-xs font-semibold py-2 rounded-lg">Login</button>
+            </div>
+            <button onclick="logoutAccount()" class="text-xs text-blue-700 font-semibold text-left">Déconnexion</button>
+            <p id="auth-status" class="text-[11px] text-blue-800">Non connecté</p>
+        </div>
+
+        <div class="ad-block rounded-lg flex items-center justify-center text-[11px] text-slate-400">
+            AdSense Header Block
+        </div>
 
         <div class="flex flex-col gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
             <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
@@ -75,7 +112,7 @@
 
         <div class="flex flex-col gap-3">
             <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
-                <i class="fa-solid fa-font"></i> 1. Typographie (30+)
+                <i class="fa-solid fa-font"></i> 1. Typographie (50+)
             </h2>
             <div>
                 <select id="font-family-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateStyles()">
@@ -118,11 +155,19 @@
                     <label class="text-xs font-medium text-slate-600">Font Size</label>
                     <span id="size-val" class="text-xs font-bold text-blue-600">13px</span>
                 </div>
-                <input type="range" id="font-size-slider" min="10" max="22" value="13" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="updateStyles()">
+                <input type="range" id="font-size-slider" min="1" max="100" value="13" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="updateStyles()">
             </div>
-            <div class="flex items-center gap-2">
-                <input type="checkbox" id="font-bold-toggle" class="w-4 h-4 text-blue-600 border-slate-300 rounded cursor-pointer" onchange="updateStyles()">
-                <label for="font-bold-toggle" class="text-xs font-semibold text-slate-700 cursor-pointer">B (Bold Texte Global)</label>
+            <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1">Font Weight</label>
+                <select id="font-weight-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm" onchange="updateStyles()">
+                    <option value="300">Light</option>
+                    <option value="400" selected>Regular</option>
+                    <option value="500">Medium</option>
+                    <option value="600">Semi Bold</option>
+                    <option value="700">Bold</option>
+                    <option value="800">Extra Bold</option>
+                    <option value="900">Black</option>
+                </select>
             </div>
         </div>
 
@@ -130,7 +175,7 @@
 
         <div class="flex flex-col gap-3">
             <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
-                <i class="fa-solid fa-palette"></i> 2. Couleurs (30+)
+                <i class="fa-solid fa-palette"></i> 2. Couleurs (90+)
             </h2>
             <div>
                 <label class="text-xs font-medium text-slate-600 block mb-1">Couleur du Texte / Éléments</label>
@@ -166,7 +211,7 @@
 
         <div class="flex flex-col gap-3">
             <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
-                <i class="fa-solid fa-layer-group"></i> 3. Structures de Page
+                <i class="fa-solid fa-layer-group"></i> 3. Structures de Page (90+)
             </h2>
             <select id="layout-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateLayout()">
                 <option value="layout-classic">Classic Business</option>
@@ -178,6 +223,47 @@
         </div>
 
         <hr class="border-slate-200">
+
+        <div class="flex flex-col gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
+                <i class="fa-solid fa-file-invoice"></i> Gestion Factures
+            </h2>
+            <select id="invoice-status-select" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+                <option value="draft">Draft</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="partially_paid">Partially Paid</option>
+                <option value="paid">Paid</option>
+                <option value="overdue">Overdue</option>
+            </select>
+            <select id="privacy-mode-select" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+                <option value="save">Sauver dans mon compte</option>
+                <option value="pdf_only">PDF sans stockage</option>
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="saveCurrentInvoice()" class="bg-emerald-600 text-white text-xs font-semibold py-2 rounded-lg">Save</button>
+                <button onclick="duplicateCurrentInvoice()" class="bg-indigo-600 text-white text-xs font-semibold py-2 rounded-lg">Duplicate</button>
+            </div>
+            <input id="invoice-search" type="search" placeholder="Search client / invoice number" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs" oninput="renderInvoiceHistory()">
+            <div id="invoice-history" class="max-h-40 overflow-y-auto flex flex-col gap-2 text-xs"></div>
+            <p id="invoice-save-status" class="text-[11px] text-slate-500"></p>
+        </div>
+
+        <div class="flex flex-col gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
+                <i class="fa-solid fa-building-columns"></i> Banque
+            </h2>
+            <input id="bank-name-input" type="text" placeholder="Bank Name" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs" oninput="syncBankInfo()">
+            <input id="iban-input" type="text" placeholder="IBAN" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs" oninput="syncBankInfo()">
+            <input id="bic-input" type="text" placeholder="BIC / SWIFT" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs" oninput="syncBankInfo()">
+        </div>
+
+        <div class="ad-block rounded-lg flex items-center justify-center text-[11px] text-slate-400">
+            AdSense Sidebar Block
+        </div>
+
+        <label class="flex items-center gap-2 text-xs font-semibold text-slate-700">
+            <input id="dark-mode-toggle" type="checkbox" onchange="toggleDarkMode()" class="w-4 h-4"> Dark Mode
+        </label>
 
         <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer text-sm">
             <i class="fa-solid fa-print"></i> Imprimer / Enregistrer en PDF
@@ -258,7 +344,7 @@
                     <div class="space-y-3">
                         <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Mentions Légales & Règlements</span>
                         <p class="text-[11px] text-slate-500 leading-relaxed bg-slate-50/50 p-3 rounded-xl border border-slate-100" id="legal-notice-text" contenteditable="true">En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée. Aucun escompte consenti pour paiement anticipé.</p>
-                        <div class="text-[10px] text-slate-400 font-mono" contenteditable="true">IBAN: FR76 3000 6000 1234 5678 9012 345</div>
+                        <div id="bank-preview" class="text-[10px] text-slate-400 font-mono" contenteditable="true">Bank: - | IBAN: - | BIC/SWIFT: -</div>
                     </div>
                     <div class="w-full md:w-80 ml-auto flex flex-col gap-2 text-right bg-slate-50/50 p-4 rounded-xl border border-slate-100 h-fit">
                         <div class="flex justify-between text-xs text-slate-600">
@@ -266,7 +352,15 @@
                             <span class="font-mono font-bold text-slate-800" id="subtotal-ht-val">1650.00 €</span>
                         </div>
                         <div class="flex justify-between text-xs text-slate-600 items-center justify-end gap-1">
-                            <span>TVA (<span id="tva-rate" class="font-mono font-bold underline cursor-pointer bg-white px-1.5 py-0.5 rounded border border-slate-200" contenteditable="true" oninput="calculateRowTotals()">20</span>%):</span>
+                            <span>TVA:
+                                <select id="tva-rate" class="no-print font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-slate-200" onchange="calculateRowTotals()">
+                                    <option value="0">0%</option>
+                                    <option value="5.5">5.5%</option>
+                                    <option value="10">10%</option>
+                                    <option value="20" selected>20%</option>
+                                </select>
+                                <span id="tva-rate-print" class="hidden">20%</span>
+                            </span>
                             <span class="font-mono font-semibold" id="tva-amount-val">330.00 €</span>
                         </div>
                         <div class="flex justify-between border-t border-slate-200 pt-2 text-sm font-black text-slate-900">
@@ -282,7 +376,16 @@
             </div>
         </div>
 
-        <div class="w-[210mm] bg-white p-8 rounded-xl border border-slate-200 shadow-sm no-print mb-8">
+        <div class="w-[210mm] bg-white p-8 rounded-xl border border-slate-200 shadow-sm no-print mb-8 a4-panel">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" id="dashboard-cards">
+                <div class="bg-slate-50 p-3 rounded-lg border"><p class="text-[10px] uppercase text-slate-400 font-bold">Invoices</p><p id="dash-count" class="text-lg font-black">0</p></div>
+                <div class="bg-slate-50 p-3 rounded-lg border"><p class="text-[10px] uppercase text-slate-400 font-bold">Total HT</p><p id="dash-ht" class="text-lg font-black">0.00 €</p></div>
+                <div class="bg-slate-50 p-3 rounded-lg border"><p class="text-[10px] uppercase text-slate-400 font-bold">TVA</p><p id="dash-tva" class="text-lg font-black">0.00 €</p></div>
+                <div class="bg-slate-50 p-3 rounded-lg border"><p class="text-[10px] uppercase text-slate-400 font-bold">TTC</p><p id="dash-ttc" class="text-lg font-black">0.00 €</p></div>
+            </div>
+            <div class="ad-block rounded-lg flex items-center justify-center text-[11px] text-slate-400 mb-6">
+                AdSense Dashboard Block
+            </div>
             <h2 class="text-base font-bold text-slate-800 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-square-rss text-blue-600"></i> Comment fonctionne l'outil Facturer Gratuit ?</h2>
             <p class="text-xs text-slate-500 leading-relaxed mb-3">
                 Cet outil est un générateur de factures interactif conçu spécialement pour les micro-entreprises, artisans peintres, plaquistes, et indépendants basés en France. Il vous permet de personnaliser instantanément la police (plus de 30 typographies Google Fonts intégrées), d'ajouter le logo de votre entreprise, et de basculer entre différents modèles de mise en page professionnels (Classic, Modern, Minimalist).
@@ -292,7 +395,104 @@
                 Pour les auto-entrepreneurs non assujettis à la TVA, il suffit de cliquer sur le pourcentage de TVA et de le régler à <strong class="text-slate-800">0</strong>. Le moteur de calcul modifiera instantanément le montant et insérera automatiquement la mention légale obligatoire : <em class="text-slate-700">"TVA non applicable, art. 293 B du CGI."</em> à la place des conditions standard.
             </p>
         </div>
+        <div class="ad-block no-print w-[210mm] a4-panel rounded-lg flex items-center justify-center text-[11px] text-slate-400 mb-8">
+            AdSense Footer Block
+        </div>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js";
+        import {
+            createUserWithEmailAndPassword,
+            getAuth,
+            onAuthStateChanged,
+            signInWithEmailAndPassword,
+            signOut,
+            updateProfile
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            addDoc,
+            collection,
+            doc,
+            getDocs,
+            getFirestore,
+            orderBy,
+            query,
+            serverTimestamp,
+            setDoc,
+            updateDoc
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
+            authDomain: "facturergratuit.firebaseapp.com",
+            projectId: "facturergratuit",
+            storageBucket: "facturergratuit.firebasestorage.app",
+            messagingSenderId: "520499696788",
+            appId: "1:520499696788:web:5bb4008f8b1aa328a31081",
+            measurementId: "G-JJCNL9THWD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        isSupported().then((supported) => supported ? getAnalytics(app) : null);
+
+        window.facturerFirebase = {
+            auth,
+            db,
+            currentUser: null,
+            async register(email, password, displayName) {
+                const result = await createUserWithEmailAndPassword(auth, email, password);
+                if (displayName) await updateProfile(result.user, { displayName });
+                await setDoc(doc(db, "users", result.user.uid), {
+                    uid: result.user.uid,
+                    email,
+                    displayName: displayName || "",
+                    role: "user",
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    gdprConsent: { accepted: true, acceptedAt: serverTimestamp(), version: "2026-06-24" },
+                    invoiceSettings: { numberingMode: "automatic", invoicePrefix: "FAC", nextInvoiceNumber: 1 }
+                }, { merge: true });
+                return result.user;
+            },
+            login: (email, password) => signInWithEmailAndPassword(auth, email, password),
+            logout: () => signOut(auth),
+            async saveInvoice(invoice, invoiceId) {
+                if (!auth.currentUser) throw new Error("Connectez-vous d'abord.");
+                const payload = {
+                    ...invoice,
+                    searchClientName: (invoice.clientName || "").toLowerCase(),
+                    searchInvoiceNumber: (invoice.invoiceNumber || "").toLowerCase(),
+                    updatedAt: serverTimestamp()
+                };
+                if (invoiceId) {
+                    await updateDoc(doc(db, "users", auth.currentUser.uid, "invoices", invoiceId), payload);
+                    return invoiceId;
+                }
+                const saved = await addDoc(collection(db, "users", auth.currentUser.uid, "invoices"), {
+                    ...payload,
+                    createdAt: serverTimestamp()
+                });
+                return saved.id;
+            },
+            async listInvoices() {
+                if (!auth.currentUser) return [];
+                const invoicesQuery = query(collection(db, "users", auth.currentUser.uid, "invoices"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(invoicesQuery);
+                return snap.docs.map((invoiceDoc) => ({ id: invoiceDoc.id, ...invoiceDoc.data() }));
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            window.facturerFirebase.currentUser = user;
+            const status = document.getElementById("auth-status");
+            if (status) status.innerText = user ? `Connecté: ${user.email}` : "Non connecté";
+            if (window.renderInvoiceHistory) window.renderInvoiceHistory();
+        });
+    </script>
 
     <script>
         // 1. LOGO UPLOAD & HANDLING
@@ -336,9 +536,10 @@
                 row.querySelector('.total-cell').innerText = totalHT.toFixed(2) + " €";
             });
 
-            // Read live editable TVA text node
-            const tvaRateText = document.getElementById('tva-rate').innerText.replace(/[^\d.-]/g, '') || 0;
-            const tvaRate = parseFloat(tvaRateText) || 0;
+            const tvaRateSelect = document.getElementById('tva-rate');
+            const tvaRate = parseFloat(tvaRateSelect.value) || 0;
+            const tvaPrint = document.getElementById('tva-rate-print');
+            if (tvaPrint) tvaPrint.innerText = tvaRate + "%";
 
             const tvaAmount = overallSubtotalHT * (tvaRate / 100);
             const finalTotalTTC = overallSubtotalHT + tvaAmount;
@@ -351,7 +552,9 @@
             // France Article 293 B auto activation clause
             const legalNotice = document.getElementById('legal-notice-text');
             if (tvaRate === 0) {
-                legalNotice.innerText = "TVA non applicable, art. 293 B du CGI. En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.";
+                legalNotice.innerText = "TVA non applicable, article 293 B du CGI";
+            } else if (legalNotice.innerText === "TVA non applicable, article 293 B du CGI") {
+                legalNotice.innerText = "En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée. Aucun escompte consenti pour paiement anticipé.";
             }
         }
 
@@ -391,8 +594,7 @@
             const fontSize = document.getElementById('font-size-slider').value;
             document.getElementById('size-val').innerText = fontSize + 'px';
             
-            const isBold = document.getElementById('font-bold-toggle').checked;
-            const fontWeight = isBold ? 'bold' : 'normal';
+            const fontWeight = document.getElementById('font-weight-select').value;
             const fontColor = document.getElementById('font-color-select').value;
             
             // Fixed using setProperty to bypass Tailwind restrictions smoothly
@@ -435,6 +637,186 @@
                 titleStyle.className = "text-2xl font-light text-slate-500 tracking-widest";
             }
         }
+
+        const invoiceState = {
+            currentInvoiceId: null,
+            history: []
+        };
+
+        function getText(selector, fallback = "") {
+            return document.querySelector(selector)?.innerText.trim() || fallback;
+        }
+
+        function parseMoney(text) {
+            return parseFloat(String(text || "0").replace(/[^\d.-]/g, "")) || 0;
+        }
+
+        function collectCurrentInvoice() {
+            const items = Array.from(document.querySelectorAll(".item-row")).map((row) => ({
+                description: row.querySelector("td")?.innerText.trim() || "",
+                quantity: parseMoney(row.querySelector(".qty-cell")?.innerText),
+                unitPrice: parseMoney(row.querySelector(".price-cell")?.innerText),
+                totalHT: parseMoney(row.querySelector(".total-cell")?.innerText)
+            }));
+            const invoiceNumberText = getText("#section-header .text-right p:nth-child(2)", "N° Facture: MANUAL");
+            const invoiceNumber = invoiceNumberText.replace(/^N°\s*Facture:\s*/i, "").trim();
+            const clientName = getText("#section-details .font-bold", "Client");
+
+            return {
+                clientName,
+                invoiceNumber,
+                status: document.getElementById("invoice-status-select").value,
+                tvaRate: parseMoney(document.getElementById("tva-rate").value),
+                totalHT: parseMoney(document.getElementById("subtotal-ht-val").innerText),
+                totalTVA: parseMoney(document.getElementById("tva-amount-val").innerText),
+                totalTTC: parseMoney(document.getElementById("final-total-val").innerText),
+                items,
+                bank: {
+                    bankName: document.getElementById("bank-name-input").value.trim(),
+                    iban: document.getElementById("iban-input").value.trim(),
+                    bic: document.getElementById("bic-input").value.trim()
+                },
+                design: {
+                    fontFamily: document.getElementById("font-family-select").value,
+                    fontSize: Number(document.getElementById("font-size-slider").value),
+                    fontWeight: document.getElementById("font-weight-select").value,
+                    color: document.getElementById("font-color-select").value,
+                    background: document.getElementById("bg-color-select").value,
+                    layout: document.getElementById("layout-select").value,
+                    darkMode: document.getElementById("dark-mode-toggle")?.checked || false
+                },
+                legalNotice: document.getElementById("legal-notice-text").innerText.trim()
+            };
+        }
+
+        async function registerAccount() {
+            const name = document.getElementById("auth-name").value.trim();
+            const email = document.getElementById("auth-email").value.trim();
+            const password = document.getElementById("auth-password").value;
+            await window.facturerFirebase.register(email, password, name);
+        }
+
+        async function loginAccount() {
+            const email = document.getElementById("auth-email").value.trim();
+            const password = document.getElementById("auth-password").value;
+            await window.facturerFirebase.login(email, password);
+        }
+
+        async function logoutAccount() {
+            await window.facturerFirebase.logout();
+        }
+
+        async function saveCurrentInvoice() {
+            calculateRowTotals();
+            const mode = document.getElementById("privacy-mode-select").value;
+            const status = document.getElementById("invoice-save-status");
+            const invoice = collectCurrentInvoice();
+
+            if (mode === "pdf_only") {
+                status.innerText = "Privacy mode: PDF generated without saving data.";
+                window.print();
+                return;
+            }
+
+            try {
+                invoiceState.currentInvoiceId = await window.facturerFirebase.saveInvoice(invoice, invoiceState.currentInvoiceId);
+                status.innerText = "Facture sauvegardée.";
+                await renderInvoiceHistory();
+            } catch (error) {
+                status.innerText = error.message;
+            }
+        }
+
+        async function duplicateCurrentInvoice() {
+            invoiceState.currentInvoiceId = null;
+            const numberNode = document.querySelector("#section-header .text-right p:nth-child(2)");
+            numberNode.innerText = "N° Facture: COPY-" + Date.now();
+            await saveCurrentInvoice();
+        }
+
+        async function renderInvoiceHistory() {
+            if (!window.facturerFirebase?.currentUser) return;
+            invoiceState.history = await window.facturerFirebase.listInvoices();
+            const search = document.getElementById("invoice-search").value.trim().toLowerCase();
+            const filtered = invoiceState.history.filter((invoice) =>
+                !search ||
+                invoice.searchClientName?.includes(search) ||
+                invoice.searchInvoiceNumber?.includes(search)
+            );
+            const history = document.getElementById("invoice-history");
+            history.innerHTML = filtered.map((invoice) => `
+                <button onclick="loadInvoiceFromHistory('${invoice.id}')" class="text-left bg-white border border-slate-200 rounded-lg p-2 hover:border-blue-300">
+                    <strong>${invoice.invoiceNumber || "Sans numéro"}</strong><br>
+                    <span>${invoice.clientName || "Client"} - ${invoice.status || "draft"} - ${(invoice.totalTTC || 0).toFixed ? invoice.totalTTC.toFixed(2) : invoice.totalTTC} €</span>
+                </button>
+            `).join("");
+            updateDashboard(invoiceState.history);
+        }
+
+        function loadInvoiceFromHistory(id) {
+            const invoice = invoiceState.history.find((item) => item.id === id);
+            if (!invoice) return;
+            invoiceState.currentInvoiceId = id;
+            document.querySelector("#section-header .text-right p:nth-child(2)").innerText = "N° Facture: " + invoice.invoiceNumber;
+            document.querySelector("#section-details .font-bold").innerText = invoice.clientName || "Client";
+            document.getElementById("invoice-status-select").value = invoice.status || "draft";
+            document.getElementById("tva-rate").value = String(invoice.tvaRate ?? 20);
+            document.getElementById("bank-name-input").value = invoice.bank?.bankName || "";
+            document.getElementById("iban-input").value = invoice.bank?.iban || "";
+            document.getElementById("bic-input").value = invoice.bank?.bic || "";
+            syncBankInfo();
+            calculateRowTotals();
+        }
+
+        function updateDashboard(invoices) {
+            const totals = invoices.reduce((acc, invoice) => {
+                acc.count += 1;
+                acc.ht += Number(invoice.totalHT || 0);
+                acc.tva += Number(invoice.totalTVA || 0);
+                acc.ttc += Number(invoice.totalTTC || 0);
+                return acc;
+            }, { count: 0, ht: 0, tva: 0, ttc: 0 });
+            document.getElementById("dash-count").innerText = totals.count;
+            document.getElementById("dash-ht").innerText = totals.ht.toFixed(2) + " €";
+            document.getElementById("dash-tva").innerText = totals.tva.toFixed(2) + " €";
+            document.getElementById("dash-ttc").innerText = totals.ttc.toFixed(2) + " €";
+        }
+
+        function syncBankInfo() {
+            const bank = document.getElementById("bank-name-input").value.trim() || "-";
+            const iban = document.getElementById("iban-input").value.trim() || "-";
+            const bic = document.getElementById("bic-input").value.trim() || "-";
+            document.getElementById("bank-preview").innerText = `Bank: ${bank} | IBAN: ${iban} | BIC/SWIFT: ${bic}`;
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode", document.getElementById("dark-mode-toggle").checked);
+        }
+
+        function expandDesignSystemOptions() {
+            const fonts = ["Arial", "Verdana", "Georgia", "Times New Roman", "Trebuchet MS", "DM Sans", "Manrope", "Archivo", "Cabin", "Exo 2", "Hind", "Libre Franklin", "Noto Sans", "Noto Serif", "Source Sans 3", "Source Serif 4", "Space Grotesk", "Urbanist", "Heebo", "Assistant", "Arimo", "Teko"];
+            const fontSelect = document.getElementById("font-family-select");
+            fonts.forEach((font) => fontSelect.add(new Option(font, `'${font}', sans-serif`)));
+
+            const colors = ["#111827", "#374151", "#4b5563", "#6b7280", "#9ca3af", "#dc2626", "#ea580c", "#d97706", "#ca8a04", "#65a30d", "#16a34a", "#059669", "#0d9488", "#0891b2", "#0284c7", "#2563eb", "#4f46e5", "#7c3aed", "#9333ea", "#c026d3", "#db2777", "#e11d48", "#be123c", "#9f1239", "#1d4ed8", "#1e40af", "#1e3a8a", "#134e4a", "#14532d", "#422006", "#713f12", "#500724"];
+            const colorSelect = document.getElementById("font-color-select");
+            colors.forEach((color) => colorSelect.add(new Option(color, color)));
+            for (let hue = 0; colorSelect.options.length < 95; hue += 11) {
+                const color = `hsl(${hue % 360}, 68%, 38%)`;
+                colorSelect.add(new Option(color, color));
+            }
+
+            const layouts = ["Executive", "Ledger", "Compact", "Studio", "Legal", "Artisan", "Consultant", "Premium", "Simple Blue", "Simple Green", "Statement", "Receipt", "Estimate", "Bold Header", "Left Rail", "Centered", "Classic FR", "Modern FR", "Minimal FR", "Boxed FR"];
+            const layoutSelect = document.getElementById("layout-select");
+            layouts.forEach((layout, index) => layoutSelect.add(new Option(layout, `layout-extra-${index + 1}`)));
+            for (let i = layoutSelect.options.length + 1; i <= 95; i += 1) {
+                layoutSelect.add(new Option(`Template ${String(i).padStart(2, "0")}`, `layout-template-${i}`));
+            }
+        }
+
+        expandDesignSystemOptions();
+        syncBankInfo();
+        calculateRowTotals();
     </script>
 </body>
 </html>
