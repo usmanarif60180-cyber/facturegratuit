@@ -470,6 +470,139 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     console.log("Firebase Engine Successfully Loaded!");
+      // --- 1. USER AUTHENTICATION STATE CHECK ---
+let currentUser = null;
+
+auth.onAuthStateChanged(user => {
+  const authModal = document.getElementById('authModal');
+  const openSidebarBtn = document.getElementById('openSidebarBtn');
+  
+  if (user) {
+    currentUser = user;
+    authModal.classList.add('hidden'); // Login modal chhupao
+    openSidebarBtn.classList.remove('hidden'); // Dashboard button dikhao
+    document.getElementById('userEmailDisplay').innerText = user.email;
+    
+    // Default current month set karein aur data load karein
+    const today = new Date();
+    const currentMonthStr = today.toISOString().slice(0, 7); // YYYY-MM
+    document.getElementById('dashboardMonth').value = currentMonthStr;
+    
+    loadMonthlyStats(currentMonthStr);
+  } else {
+    currentUser = null;
+    authModal.classList.remove('hidden'); // Login modal dikhao
+    openSidebarBtn.classList.add('hidden'); // Dashboard button chhupao
+  }
+});
+
+// --- 2. LOGIN / SIGNUP TOGGLE & SUBMIT ---
+let isSignUpMode = false;
+const toggleBtn = document.getElementById('toggleAuthMode');
+const authTitle = document.getElementById('authTitle');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+
+toggleBtn.addEventListener('click', () => {
+  isSignUpMode = !isSignUpMode;
+  if (isSignUpMode) {
+    authTitle.innerText = "Créer un compte (Sign Up)";
+    authSubmitBtn.innerText = "S'inscrire";
+    toggleBtn.innerText = "Déjà un compte? Se connecter";
+  } else {
+    authTitle.innerText = "Connexion (Login)";
+    authSubmitBtn.innerText = "Se connecter";
+    toggleBtn.innerText = "Créer un compte (Sign Up)";
+  }
+});
+
+document.getElementById('authForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const email = document.getElementById('authEmail').value;
+  const password = document.getElementById('authPassword').value;
+  
+  if (isSignUpMode) {
+    auth.createUserWithEmailAndPassword(email, password)
+      .catch(err => alert("Erreur SignUp: " + err.message));
+  } else {
+    auth.signInWithEmailAndPassword(email, password)
+      .catch(err => alert("Erreur Login: " + err.message));
+  }
+});
+
+// --- 3. SIDEBAR OPEN/CLOSE ---
+const sidebar = document.getElementById('dashboardSidebar');
+document.getElementById('openSidebarBtn').addEventListener('click', () => sidebar.classList.remove('translate-x-full'));
+document.getElementById('closeSidebar').addEventListener('click', () => sidebar.classList.add('translate-x-full'));
+document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+
+// --- 4. DATA SAVE LOGIC (INTERCEPTING YOUR SAVE BUTTON) ---
+// Note: Aapke form ka jo bhi save button hai, hum us par click event attach kar rahe hain
+document.addEventListener('click', function(e) {
+  // Agar user aapki website ka main "Sauvegarder" ya "Générer" button dabaye
+  if (e.target && (e.target.id === 'btn-save' || e.target.innerText.includes('Sauvegarder'))) {
+    
+    if (!currentUser) return;
+
+    // Aapke UI elements se live values uthana (Aapke IDs ke mutabiq adjust ho sakta hai)
+    const dateInput = document.getElementById('invoice-date') || document.querySelector('input[type="date"]');
+    const invoiceDate = dateInput ? dateInput.value : new Date().toISOString().slice(0, 10);
+    const monthKey = invoiceDate.slice(0, 7); // Get YYYY-MM
+    
+    // Misaal ke taur par aapke table ka Total HT aur TVA Rate uthana
+    let totalHT = parseFloat(document.getElementById('total-ht-field')?.innerText || 1000); // Default example value agar ID na mile
+    let tvaRate = parseFloat(document.getElementById('tva-rate-select')?.value || 10); // Default 10% example
+    
+    let tvaAmount = (totalHT * tvaRate) / 100;
+    let totalTTC = totalHT + tvaAmount;
+
+    // Firestore mein data save karna
+    db.collection('users').doc(currentUser.uid).collection('factures').add({
+      date: invoiceDate,
+      month: monthKey,
+      totalHT: totalHT,
+      tvaRate: tvaRate,
+      tvaAmount: tvaAmount,
+      totalTTC: totalTTC,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      console.log("Facture saved successfully!");
+      loadMonthlyStats(document.getElementById('dashboardMonth').value);
+    }).catch(err => console.error("Error saving: ", err));
+  }
+});
+
+// --- 5. LIVE MONTHLY CALCULATION ENGINE ---
+function loadMonthlyStats(monthStr) {
+  if (!currentUser) return;
+
+  db.collection('users').doc(currentUser.uid).collection('factures')
+    .where('month', '==', monthStr)
+    .onSnapshot(snapshot => {
+      let count = 0;
+      let globalHT = 0;
+      let globalTVA = 0;
+      let globalTTC = 0;
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        count++;
+        globalHT += parseFloat(data.totalHT || 0);
+        globalTVA += parseFloat(data.tvaAmount || 0);
+        globalTTC += parseFloat(data.totalTTC || 0);
+      });
+
+      // UI par values live update karna
+      document.getElementById('statCount').innerText = count;
+      document.getElementById('statHT').innerText = globalHT.toFixed(2) + " €";
+      document.getElementById('statTVA').innerText = globalTVA.toFixed(2) + " €";
+      document.getElementById('statTTC').innerText = globalTTC.toFixed(2) + " €";
+    });
+}
+
+// Month change hone par live data badlein
+document.getElementById('dashboardMonth').addEventListener('change', (e) => {
+  loadMonthlyStats(e.target.value);
+});
   </script>
 
 </body>
