@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <meta name="google-site-verification" content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso" />
-    
     <title>Générateur de Facture Gratuit en Ligne - Facturer Gratuit</title>
     <meta name="description" content="Créez et téléchargez vos factures professionnelles gratuitement au format PDF ou Impression. Idéal pour auto-entrepreneurs, micro-entreprises, peintres, plaquistes et artisans.">
     <meta name="keywords" content="facture gratuite, générer facture pdf, outil facture en ligne, modèle facture peinture, facture plaquiste, tva non applicable art 293b cgi, facture artisan, micro-entreprise france">
@@ -37,6 +36,7 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
+        /* Fixed override to force runtime font changes over Tailwind */
         .custom-font-style * {
             font-family: inherit !important;
         }
@@ -45,19 +45,14 @@
 <body class="bg-slate-100 font-sans flex flex-col md:flex-row h-screen overflow-hidden">
 
     <div class="no-print w-full md:w-1/3 bg-white shadow-xl h-full p-6 overflow-y-auto flex flex-col gap-5 border-r border-slate-200">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="bg-blue-600 text-white p-2 rounded-lg">
-                    <i class="fa-solid fa-sliders text-sm"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-slate-800">Facture Customizer</h1>
-                    <p class="text-xs text-slate-500">Artisans & Indépendants</p>
-                </div>
+        <div class="flex items-center gap-2.5">
+            <div class="bg-blue-600 text-white p-2 rounded-lg">
+                <i class="fa-solid fa-sliders text-sm"></i>
             </div>
-            <button id="authBtn" onclick="toggleAuthAction()" class="text-xs font-semibold bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 cursor-pointer transition">
-                <i class="fa-solid fa-user mr-1"></i> Connexion
-            </button>
+            <div>
+                <h1 class="text-lg font-bold text-slate-800">Facture Customizer</h1>
+                <p class="text-xs text-slate-500">Générateur intelligent pour Artisans & Indépendants</p>
+            </div>
         </div>
 
         <hr class="border-slate-200">
@@ -90,6 +85,32 @@
                     <option value="'Montserrat', sans-serif">Montserrat (Professional)</option>
                     <option value="'Open Sans', sans-serif">Open Sans</option>
                     <option value="'Lato', sans-serif">Lato</option>
+                    <option value="'Oswald', sans-serif">Oswald</option>
+                    <option value="'Raleway', sans-serif">Raleway</option>
+                    <option value="'Merriweather', serif">Merriweather</option>
+                    <option value="'Playfair Display', serif">Playfair Display</option>
+                    <option value="'Courier Prime', monospace">Courier Prime</option>
+                    <option value="'PT Sans', sans-serif">PT Sans</option>
+                    <option value="'Ubuntu', sans-serif">Ubuntu</option>
+                    <option value="'Nunito', sans-serif">Nunito</option>
+                    <option value="'Lora', serif">Lora</option>
+                    <option value="'Quicksand', sans-serif">Quicksand</option>
+                    <option value="'Barlow', sans-serif">Barlow</option>
+                    <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
+                    <option value="'Caveat', cursive">Caveat</option>
+                    <option value="'Cinzel', serif">Cinzel</option>
+                    <option value="'Comfortaa', cursive">Comfortaa</option>
+                    <option value="'Crimson Text', serif">Crimson Text</option>
+                    <option value="'Fira Sans', sans-serif">Fira Sans</option>
+                    <option value="'Inconsolata', monospace">Inconsolata</option>
+                    <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
+                    <option value="'Kanit', sans-serif">Kanit</option>
+                    <option value="'Lobster', cursive">Lobster</option>
+                    <option value="'Mukta', sans-serif">Mukta</option>
+                    <option value="'Pacifico', cursive">Pacifico</option>
+                    <option value="'Rubik', sans-serif">Rubik</option>
+                    <option value="'Titan One', cursive">Titan One</option>
+                    <option value="'Work Sans', sans-serif">Work Sans</option>
                 </select>
             </div>
             <div>
@@ -112,16 +133,33 @@
                 <i class="fa-solid fa-palette"></i> 2. Couleurs (30+)
             </h2>
             <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1">Couleur du Texte / Éléments</label>
                 <select id="font-color-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateStyles()">
                     <option value="#1e293b">Slate (Charcoal Default)</option>
                     <option value="#000000">Pure Black</option>
                     <option value="#1e3a8a">Dark Blue</option>
+                    <option value="#0f766e">Teal</option>
+                    <option value="#15803d">Green</option>
+                    <option value="#b91c1c">Red</option>
+                    <option value="#6b21a8">Purple</option>
+                    <option value="#b45309">Amber</option>
+                    <option value="#4338ca">Indigo</option>
+                    <option value="#22d3ee">Cyan Dark</option><option value="#4d7c0f">Lime Dark</option><option value="#c2410c">Orange</option><option value="#0369a1">Sky Blue</option><option value="#db2777">Pink</option><option value="#57534e">Stone</option><option value="#3b82f6">Blue Light</option><option value="#10b981">Emerald</option><option value="#6366f1">Indigo Light</option><option value="#8b5cf6">Violet</option><option value="#ec4899">Pink Light</option><option value="#f43f5e">Rose</option><option value="#0284c7">Sky Light</option><option value="#047857">Emerald Dark</option><option value="#065f46">Deep Teal</option><option value="#701a75">Deep Purple</option><option value="#7c2d12">Deep Orange</option><option value="#581c87">Royal Violet</option><option value="#451a03">Wood Brown</option><option value="#052e16">Forest Green</option>
                 </select>
             </div>
             <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1">Fond de la Facture</label>
                 <select id="bg-color-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateStyles()">
                     <option value="#ffffff">Pure White</option>
                     <option value="#f8fafc">Off-White</option>
+                    <option value="#f4f4f5">Soft Gray</option>
+                    <option value="#fdf2f8">Soft Pink</option>
+                    <option value="#f0fdf4">Soft Green</option>
+                    <option value="#eff6ff">Soft Blue</option>
+                    <option value="linear-gradient(135deg, #ffffff, #f1f5f9)">Gradient: White to Slate</option>
+                    <option value="linear-gradient(135deg, #ffffff, #e0f2fe)">Gradient: White to Sky</option>
+                    <option value="linear-gradient(135deg, #ffffff, #dcfce7)">Gradient: White to Emerald</option>
+                    <option value="#f0fdfa">Mint Light</option><option value="#fff1f2">Rose Light</option><option value="#f0f9ff">Sky Soft</option><option value="#f5f5f4">Stone Soft</option><option value="#fef2f2">Red Soft</option><option value="#fffbfa">Warm Tint</option><option value="linear-gradient(to right, #ffffff, #f8fafc)">Linear Soft</option><option value="linear-gradient(to bottom, #ffffff, #f4f4f5)">Top-Down Gray</option><option value="#e0f7fa">Cyan Tint</option><option value="#e8f5e9">Green Tint</option><option value="#f3e5f5">Purple Tint</option><option value="#fff3e0">Orange Tint</option><option value="#efebe9">Brown Tint</option><option value="#eceff1">Blue-Gray Tint</option><option value="#f9fbe7">Lime Tint</option><option value="linear-gradient(135deg, #fff, #f5f5f4)">Stone Gradient</option>
                 </select>
             </div>
         </div>
@@ -134,6 +172,8 @@
                 <option value="layout-classic">Classic Business</option>
                 <option value="layout-modern">Modern Creative</option>
                 <option value="layout-minimal">Minimalist</option>
+                <option value="layout-bold">Bold Artistic</option>
+                <option value="layout-boxed">Boxed Container</option>
             </select>
         </div>
 
@@ -147,6 +187,7 @@
     <div class="w-full md:w-2/3 h-full p-4 md:p-6 overflow-y-auto flex flex-col justify-start items-center gap-8">
         
         <div id="facture-preview" class="w-[210mm] min-h-[297mm] max-h-[297mm] bg-white shadow-2xl p-10 border border-slate-200 flex flex-col justify-between transition-all duration-300 rounded-sm custom-font-style">
+            
             <div id="layout-wrapper" class="flex flex-col gap-6 h-full justify-between">
                 
                 <div id="section-header" class="flex justify-between items-start border-b border-slate-200 pb-4">
@@ -197,6 +238,15 @@
                                     <button onclick="deleteRow(this)" class="text-slate-300 hover:text-red-500 cursor-pointer transition"><i class="fa-regular fa-trash-can"></i></button>
                                 </td>
                             </tr>
+                            <tr class="item-row">
+                                <td class="py-3 pl-1 font-medium text-slate-800" contenteditable="true">Application d'enduit de lissage & Ponçage</td>
+                                <td class="py-3 text-center qty-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">1</td>
+                                <td class="py-3 text-right price-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">450.00</td>
+                                <td class="py-3 text-right font-bold total-cell font-mono text-slate-900">450.00 €</td>
+                                <td class="py-3 text-center no-print">
+                                    <button onclick="deleteRow(this)" class="text-slate-300 hover:text-red-500 cursor-pointer transition"><i class="fa-regular fa-trash-can"></i></button>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                     <button onclick="addNewRow()" class="no-print mt-4 text-xs bg-slate-50 text-slate-600 font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 hover:text-slate-800 transition cursor-pointer flex items-center gap-1">
@@ -207,168 +257,50 @@
                 <div id="section-totals" class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-200 pt-5 mt-auto">
                     <div class="space-y-3">
                         <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Mentions Légales & Règlements</span>
-                        <p class="text-[11px] text-slate-500 leading-relaxed bg-slate-50/50 p-3 rounded-xl border border-slate-100" id="legal-notice-text" contenteditable="true">En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.</p>
+                        <p class="text-[11px] text-slate-500 leading-relaxed bg-slate-50/50 p-3 rounded-xl border border-slate-100" id="legal-notice-text" contenteditable="true">En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée. Aucun escompte consenti pour paiement anticipé.</p>
                         <div class="text-[10px] text-slate-400 font-mono" contenteditable="true">IBAN: FR76 3000 6000 1234 5678 9012 345</div>
                     </div>
                     <div class="w-full md:w-80 ml-auto flex flex-col gap-2 text-right bg-slate-50/50 p-4 rounded-xl border border-slate-100 h-fit">
                         <div class="flex justify-between text-xs text-slate-600">
                             <span>Total HT:</span>
-                            <span class="font-mono font-bold text-slate-800" id="subtotal-ht-val">1200.00 €</span>
+                            <span class="font-mono font-bold text-slate-800" id="subtotal-ht-val">1650.00 €</span>
                         </div>
                         <div class="flex justify-between text-xs text-slate-600 items-center justify-end gap-1">
                             <span>TVA (<span id="tva-rate" class="font-mono font-bold underline cursor-pointer bg-white px-1.5 py-0.5 rounded border border-slate-200" contenteditable="true" oninput="calculateRowTotals()">20</span>%):</span>
-                            <span class="font-mono font-semibold" id="tva-amount-val">240.00 €</span>
+                            <span class="font-mono font-semibold" id="tva-amount-val">330.00 €</span>
                         </div>
                         <div class="flex justify-between border-t border-slate-200 pt-2 text-sm font-black text-slate-900">
                             <span>Net à Payer:</span>
-                            <span class="font-mono text-blue-600 text-base" id="final-total-val">1440.00 €</span>
+                            <span class="font-mono text-blue-600 text-base" id="final-total-val">1980.00 €</span>
                         </div>
                     </div>
                 </div>
 
                 <div id="section-footer" class="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-3 mt-2" contenteditable="true">
-                    Merci de votre confiance ! Document généré sur FacturerGratuit.com
+                    Merci de votre confiance ! Document généré gratuitement sur FacturerGratuit.com
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 relative border border-slate-100">
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition cursor-pointer text-lg">✕</button>
-            <h3 class="text-xl font-bold text-slate-800 mb-2 text-center flex items-center justify-center gap-2"><i class="fa-solid fa-shield-halved text-blue-600"></i> Espace Connexion</h3>
-            <p class="text-xs text-slate-500 text-center mb-6">Connectez-vous pour synchroniser vos factures en temps réel.</p>
-            <form id="loginForm" onsubmit="handleFirebaseLogin(event)" class="space-y-4">
-                <div>
-                    <label class="text-xs font-semibold text-slate-600 block mb-1">Adresse Email</label>
-                    <input type="email" id="authEmail" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition" placeholder="nom@entreprise.fr">
-                </div>
-                <div>
-                    <label class="text-xs font-semibold text-slate-600 block mb-1">Mot de passe</label>
-                    <input type="password" id="authPassword" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition" placeholder="••••••••">
-                </div>
-                <div id="authError" class="text-xs text-red-500 font-medium hidden"></div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow cursor-pointer transition">Se connecter</button>
-            </form>
+        <div class="w-[210mm] bg-white p-8 rounded-xl border border-slate-200 shadow-sm no-print mb-8">
+            <h2 class="text-base font-bold text-slate-800 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-square-rss text-blue-600"></i> Comment fonctionne l'outil Facturer Gratuit ?</h2>
+            <p class="text-xs text-slate-500 leading-relaxed mb-3">
+                Cet outil est un générateur de factures interactif conçu spécialement pour les micro-entreprises, artisans peintres, plaquistes, et indépendants basés en France. Il vous permet de personnaliser instantanément la police (plus de 30 typographies Google Fonts intégrées), d'ajouter le logo de votre entreprise, et de basculer entre différents modèles de mise en page professionnels (Classic, Modern, Minimalist).
+            </p>
+            <h3 class="text-xs font-bold text-slate-700 mb-1">✓ Franchise de TVA & Conformité Legale (Art. 293 B du CGI)</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Pour les auto-entrepreneurs non assujettis à la TVA, il suffit de cliquer sur le pourcentage de TVA et de le régler à <strong class="text-slate-800">0</strong>. Le moteur de calcul modifiera instantanément le montant et insérera automatiquement la mention légale obligatoire : <em class="text-slate-700">"TVA non applicable, art. 293 B du CGI."</em> à la place des conditions standard.
+            </p>
         </div>
     </div>
-
-    <div id="dashboardSidebar" class="fixed top-0 right-0 h-full w-80 bg-slate-900 text-white p-6 shadow-2xl z-40 transform translate-x-full transition-transform duration-300 flex flex-col justify-between">
-        <div>
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-base font-bold tracking-wide text-slate-200 flex items-center gap-1.5"><i class="fa-solid fa-chart-pie text-indigo-400"></i> Table de Bord</h3>
-                <button onclick="toggleSidebar(false)" class="text-slate-400 hover:text-white text-sm cursor-pointer">✕ Close</button>
-            </div>
-            <div class="space-y-4">
-                <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/50">
-                    <p class="text-xs text-slate-400">Utilisateur connecté :</p>
-                    <p id="userDisplayEmail" class="text-sm font-semibold text-indigo-300 truncate mt-0.5">Chargement...</p>
-                </div>
-                <div class="border-t border-slate-800 pt-4">
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Sauvegardes</p>
-                    <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1 cursor-pointer transition">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Sauvegarder la facture actuelle
-                    </button>
-                </div>
-            </div>
-        </div>
-        <button onclick="handleFirebaseLogout()" class="w-full bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white font-semibold py-2.5 rounded-lg text-xs transition border border-red-500/30 cursor-pointer">
-            <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Déconnexion
-        </button>
-    </div>
-
-    <button id="openSidebarBtn" onclick="toggleSidebar(true)" class="fixed bottom-5 right-5 bg-slate-900 hover:bg-slate-800 text-white p-3.5 rounded-full shadow-2xl z-30 cursor-pointer transition hidden border border-slate-700">
-        <i class="fa-solid fa-folder-open text-base"></i>
-    </button>
-
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <script>
-        // ======= FIREBASE INITIALIZATION CONFIGURATION =======
-        // Apne Firebase project credentials se ise badlein :
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        // Initialize Firebase app
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const auth = firebase.auth();
-
-        // ======= FIREBASE AUTH SERVICE HANDLERS =======
-        auth.onAuthStateChanged(user => {
-            const authBtn = document.getElementById('authBtn');
-            const openSidebarBtn = document.getElementById('openSidebarBtn');
-            const userDisplayEmail = document.getElementById('userDisplayEmail');
-
-            if (user) {
-                // User logged in state
-                authBtn.innerHTML = `<i class="fa-solid fa-user-check text-green-500 mr-1"></i> Dashboard`;
-                authBtn.setAttribute('onclick', 'toggleSidebar(true)');
-                userDisplayEmail.innerText = user.email;
-                openSidebarBtn.classList.remove('hidden');
-            } else {
-                // User logged out state
-                authBtn.innerHTML = `<i class="fa-solid fa-user mr-1"></i> Connexion`;
-                authBtn.setAttribute('onclick', 'openAuthModal()');
-                openSidebarBtn.classList.add('hidden');
-                toggleSidebar(false);
-            }
-        });
-
-        function openAuthModal() {
-            document.getElementById('authModal').classList.remove('hidden');
-            document.getElementById('authError').classList.add('hidden');
-        }
-
-        function closeAuthModal() {
-            document.getElementById('authModal').classList.add('hidden');
-        }
-
-        function toggleSidebar(open) {
-            const sidebar = document.getElementById('dashboardSidebar');
-            if (open) {
-                sidebar.classList.remove('translate-x-full');
-            } else {
-                sidebar.classList.add('translate-x-full');
-            }
-        }
-
-        function handleFirebaseLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-            const errorDiv = document.getElementById('authError');
-
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    closeAuthModal();
-                    document.getElementById('loginForm').reset();
-                })
-                .catch(error => {
-                    errorDiv.innerText = "Erreur: " + error.message;
-                    errorDiv.classList.remove('hidden');
-                });
-        }
-
-        function handleFirebaseLogout() {
-            auth.signOut().then(() => {
-                toggleSidebar(false);
-            });
-        }
-
-        // ======= CORE FACTURE SYSTEM OPERATIONS =======
+        // 1. LOGO UPLOAD & HANDLING
         function loadLogo(event) {
             const container = document.getElementById('logo-container');
             const logoImg = document.getElementById('facture-logo');
             const controls = document.getElementById('logo-controls');
+            
             logoImg.src = URL.createObjectURL(event.target.files[0]);
             container.classList.remove('hidden');
             controls.classList.remove('hidden');
@@ -386,6 +318,7 @@
             document.getElementById('logo-input').value = "";
         }
 
+        // 2. MATHEMATICAL CALCULATION ENGINE
         function calculateRowTotals() {
             const rows = document.querySelectorAll('.item-row');
             let overallSubtotalHT = 0;
@@ -403,28 +336,32 @@
                 row.querySelector('.total-cell').innerText = totalHT.toFixed(2) + " €";
             });
 
+            // Read live editable TVA text node
             const tvaRateText = document.getElementById('tva-rate').innerText.replace(/[^\d.-]/g, '') || 0;
             const tvaRate = parseFloat(tvaRateText) || 0;
 
             const tvaAmount = overallSubtotalHT * (tvaRate / 100);
             const finalTotalTTC = overallSubtotalHT + tvaAmount;
 
+            // Render Output values
             document.getElementById('subtotal-ht-val').innerText = overallSubtotalHT.toFixed(2) + " €";
             document.getElementById('tva-amount-val').innerText = tvaAmount.toFixed(2) + " €";
             document.getElementById('final-total-val').innerText = finalTotalTTC.toFixed(2) + " €";
 
+            // France Article 293 B auto activation clause
             const legalNotice = document.getElementById('legal-notice-text');
             if (tvaRate === 0) {
                 legalNotice.innerText = "TVA non applicable, art. 293 B du CGI. En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.";
             }
         }
 
+        // 3. TABLE ROW ADD & DELETE ACTIONS
         function addNewRow() {
             const tbody = document.querySelector('#invoice-items-table tbody');
             const tr = document.createElement('tr');
             tr.className = "item-row";
             tr.innerHTML = `
-                <td class="py-3 pl-1 font-medium text-slate-800" contenteditable="true">Nouvelle prestation...</td>
+                <td class="py-3 pl-1 font-medium text-slate-800" contenteditable="true">Nouvelle prestation / Description...</td>
                 <td class="py-3 text-center qty-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">1</td>
                 <td class="py-3 text-right price-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">0.00</td>
                 <td class="py-3 text-right font-bold total-cell font-mono text-slate-900">0.00 €</td>
@@ -443,10 +380,11 @@
                 row.remove();
                 calculateRowTotals();
             } else {
-                alert("Votre facture doit contenir au moins une ligne.");
+                alert("Votre facture doit contenir au moins une ligne de prestation.");
             }
         }
 
+        // 4. STYLE LIVE ADJUSTMENTS
         function updateStyles() {
             const preview = document.getElementById('facture-preview');
             const fontFamily = document.getElementById('font-family-select').value;
@@ -457,29 +395,44 @@
             const fontWeight = isBold ? 'bold' : 'normal';
             const fontColor = document.getElementById('font-color-select').value;
             
+            // Fixed using setProperty to bypass Tailwind restrictions smoothly
             preview.style.setProperty('font-family', fontFamily, 'important');
             preview.style.setProperty('font-size', fontSize + 'px', 'important');
             preview.style.setProperty('color', fontColor, 'important');
             preview.style.setProperty('font-weight', fontWeight, 'important');
             
             const bgStyle = document.getElementById('bg-color-select').value;
-            preview.style.setProperty('background', bgStyle, 'important');
+            if(bgStyle.includes('gradient')) {
+                preview.style.setProperty('background', bgStyle, 'important');
+            } else {
+                preview.style.setProperty('background', bgStyle, 'important');
+                preview.style.setProperty('background-color', bgStyle, 'important');
+            }
         }
 
+        // 5. STRUCTURE STYLES TEMPLATE SWITCHER
         function updateLayout() {
+            const wrapper = document.getElementById('layout-wrapper');
             const layout = document.getElementById('layout-select').value;
             const header = document.getElementById('section-header');
             const details = document.getElementById('section-details');
             const titleStyle = document.getElementById('layout-title-style');
+            const preview = document.getElementById('facture-preview');
             
+            // Reset Base Defaults
             header.className = "flex justify-between items-start border-b border-slate-200 pb-4 text-slate-800";
             details.className = "grid grid-cols-2 gap-4 my-1";
             titleStyle.className = "text-3xl font-black text-slate-400 tracking-wider";
+            preview.style.border = "1px solid #e2e8f0";
 
             if (layout === 'layout-modern') {
                 header.className = "flex justify-between items-start bg-slate-900 text-white p-6 -mx-10 -mt-10 mb-2";
                 details.className = "grid grid-cols-2 gap-6 my-2 border-l-4 border-slate-900 pl-4";
                 titleStyle.className = "text-3xl font-black text-slate-300 tracking-wider";
+            } else if (layout === 'layout-minimal') {
+                header.className = "flex justify-between items-start border-b border-slate-100 pb-2";
+                details.className = "grid grid-cols-2 gap-4 my-1 bg-white p-0 border-0";
+                titleStyle.className = "text-2xl font-light text-slate-500 tracking-widest";
             }
         }
     </script>
