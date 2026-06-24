@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <meta name="google-site-verification" content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso" />
+    
     <title>Générateur de Facture Gratuit en Ligne - Facturer Gratuit</title>
     <meta name="description" content="Créez et téléchargez vos factures professionnelles gratuitement au format PDF ou Impression. Idéal pour auto-entrepreneurs, micro-entreprises, peintres, plaquistes et artisans.">
     <meta name="keywords" content="facture gratuite, générer facture pdf, outil facture en ligne, modèle facture peinture, facture plaquiste, tva non applicable art 293b cgi, facture artisan, micro-entreprise france">
@@ -36,7 +37,6 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        /* Fixed override to force runtime font changes over Tailwind */
         .custom-font-style * {
             font-family: inherit !important;
         }
@@ -294,6 +294,18 @@
         </div>
     </div>
 
+    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        ... (poora login code) ...
+    </div>
+
+    <div id="dashboardSidebar" class="fixed top-0 right-0 h-full w-80 bg-gray-900 text-white p-6 shadow-2xl hidden">
+        ... (poora sidebar code) ...
+    </div>
+
+    <button id="openSidebarBtn" class="fixed bottom-5 right-5 bg-indigo-600 text-white p-3 rounded-full shadow-lg cursor-pointer">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
     <script>
         // 1. LOGO UPLOAD & HANDLING
         function loadLogo(event) {
@@ -336,19 +348,16 @@
                 row.querySelector('.total-cell').innerText = totalHT.toFixed(2) + " €";
             });
 
-            // Read live editable TVA text node
             const tvaRateText = document.getElementById('tva-rate').innerText.replace(/[^\d.-]/g, '') || 0;
             const tvaRate = parseFloat(tvaRateText) || 0;
 
             const tvaAmount = overallSubtotalHT * (tvaRate / 100);
             const finalTotalTTC = overallSubtotalHT + tvaAmount;
 
-            // Render Output values
             document.getElementById('subtotal-ht-val').innerText = overallSubtotalHT.toFixed(2) + " €";
             document.getElementById('tva-amount-val').innerText = tvaAmount.toFixed(2) + " €";
             document.getElementById('final-total-val').innerText = finalTotalTTC.toFixed(2) + " €";
 
-            // France Article 293 B auto activation clause
             const legalNotice = document.getElementById('legal-notice-text');
             if (tvaRate === 0) {
                 legalNotice.innerText = "TVA non applicable, art. 293 B du CGI. En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.";
@@ -395,7 +404,6 @@
             const fontWeight = isBold ? 'bold' : 'normal';
             const fontColor = document.getElementById('font-color-select').value;
             
-            // Fixed using setProperty to bypass Tailwind restrictions smoothly
             preview.style.setProperty('font-family', fontFamily, 'important');
             preview.style.setProperty('font-size', fontSize + 'px', 'important');
             preview.style.setProperty('color', fontColor, 'important');
@@ -419,7 +427,6 @@
             const titleStyle = document.getElementById('layout-title-style');
             const preview = document.getElementById('facture-preview');
             
-            // Reset Base Defaults
             header.className = "flex justify-between items-start border-b border-slate-200 pb-4 text-slate-800";
             details.className = "grid grid-cols-2 gap-4 my-1";
             titleStyle.className = "text-3xl font-black text-slate-400 tracking-wider";
@@ -436,174 +443,5 @@
             }
         }
     </script>
-</body>
-</html>
-<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    ... (poora login code) ...
-  </div>
-
-  <div id="dashboardSidebar" class="fixed top-0 right-0 h-full w-80 bg-gray-900 text-white p-6 shadow-2xl... ">
-    ... (poora sidebar code) ...
-  </div>
-
-  <button id="openSidebarBtn" class="fixed bottom-5 right-5 bg-indigo-600... ">
-    📊 Dashboard
-  </button>
-
-
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
-      authDomain: "facturergratuit.firebaseapp.com",
-      projectId: "facturergratuit",
-      storageBucket: "facturergratuit.firebasestorage.app",
-      messagingSenderId: "520499696788",
-      appId: "1:520499696788:web:5bb4008f8b1aa328a31081",
-      measurementId: "G-JJCNL9THWD"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    console.log("Firebase Engine Successfully Loaded!");
-      // --- 1. USER AUTHENTICATION STATE CHECK ---
-let currentUser = null;
-
-auth.onAuthStateChanged(user => {
-  const authModal = document.getElementById('authModal');
-  const openSidebarBtn = document.getElementById('openSidebarBtn');
-  
-  if (user) {
-    currentUser = user;
-    authModal.classList.add('hidden'); // Login modal chhupao
-    openSidebarBtn.classList.remove('hidden'); // Dashboard button dikhao
-    document.getElementById('userEmailDisplay').innerText = user.email;
-    
-    // Default current month set karein aur data load karein
-    const today = new Date();
-    const currentMonthStr = today.toISOString().slice(0, 7); // YYYY-MM
-    document.getElementById('dashboardMonth').value = currentMonthStr;
-    
-    loadMonthlyStats(currentMonthStr);
-  } else {
-    currentUser = null;
-    authModal.classList.remove('hidden'); // Login modal dikhao
-    openSidebarBtn.classList.add('hidden'); // Dashboard button chhupao
-  }
-});
-
-// --- 2. LOGIN / SIGNUP TOGGLE & SUBMIT ---
-let isSignUpMode = false;
-const toggleBtn = document.getElementById('toggleAuthMode');
-const authTitle = document.getElementById('authTitle');
-const authSubmitBtn = document.getElementById('authSubmitBtn');
-
-toggleBtn.addEventListener('click', () => {
-  isSignUpMode = !isSignUpMode;
-  if (isSignUpMode) {
-    authTitle.innerText = "Créer un compte (Sign Up)";
-    authSubmitBtn.innerText = "S'inscrire";
-    toggleBtn.innerText = "Déjà un compte? Se connecter";
-  } else {
-    authTitle.innerText = "Connexion (Login)";
-    authSubmitBtn.innerText = "Se connecter";
-    toggleBtn.innerText = "Créer un compte (Sign Up)";
-  }
-});
-
-document.getElementById('authForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const email = document.getElementById('authEmail').value;
-  const password = document.getElementById('authPassword').value;
-  
-  if (isSignUpMode) {
-    auth.createUserWithEmailAndPassword(email, password)
-      .catch(err => alert("Erreur SignUp: " + err.message));
-  } else {
-    auth.signInWithEmailAndPassword(email, password)
-      .catch(err => alert("Erreur Login: " + err.message));
-  }
-});
-
-// --- 3. SIDEBAR OPEN/CLOSE ---
-const sidebar = document.getElementById('dashboardSidebar');
-document.getElementById('openSidebarBtn').addEventListener('click', () => sidebar.classList.remove('translate-x-full'));
-document.getElementById('closeSidebar').addEventListener('click', () => sidebar.classList.add('translate-x-full'));
-document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
-
-// --- 4. DATA SAVE LOGIC (INTERCEPTING YOUR SAVE BUTTON) ---
-// Note: Aapke form ka jo bhi save button hai, hum us par click event attach kar rahe hain
-document.addEventListener('click', function(e) {
-  // Agar user aapki website ka main "Sauvegarder" ya "Générer" button dabaye
-  if (e.target && (e.target.id === 'btn-save' || e.target.innerText.includes('Sauvegarder'))) {
-    
-    if (!currentUser) return;
-
-    // Aapke UI elements se live values uthana (Aapke IDs ke mutabiq adjust ho sakta hai)
-    const dateInput = document.getElementById('invoice-date') || document.querySelector('input[type="date"]');
-    const invoiceDate = dateInput ? dateInput.value : new Date().toISOString().slice(0, 10);
-    const monthKey = invoiceDate.slice(0, 7); // Get YYYY-MM
-    
-    // Misaal ke taur par aapke table ka Total HT aur TVA Rate uthana
-    let totalHT = parseFloat(document.getElementById('total-ht-field')?.innerText || 1000); // Default example value agar ID na mile
-    let tvaRate = parseFloat(document.getElementById('tva-rate-select')?.value || 10); // Default 10% example
-    
-    let tvaAmount = (totalHT * tvaRate) / 100;
-    let totalTTC = totalHT + tvaAmount;
-
-    // Firestore mein data save karna
-    db.collection('users').doc(currentUser.uid).collection('factures').add({
-      date: invoiceDate,
-      month: monthKey,
-      totalHT: totalHT,
-      tvaRate: tvaRate,
-      tvaAmount: tvaAmount,
-      totalTTC: totalTTC,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-      console.log("Facture saved successfully!");
-      loadMonthlyStats(document.getElementById('dashboardMonth').value);
-    }).catch(err => console.error("Error saving: ", err));
-  }
-});
-
-// --- 5. LIVE MONTHLY CALCULATION ENGINE ---
-function loadMonthlyStats(monthStr) {
-  if (!currentUser) return;
-
-  db.collection('users').doc(currentUser.uid).collection('factures')
-    .where('month', '==', monthStr)
-    .onSnapshot(snapshot => {
-      let count = 0;
-      let globalHT = 0;
-      let globalTVA = 0;
-      let globalTTC = 0;
-
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        count++;
-        globalHT += parseFloat(data.totalHT || 0);
-        globalTVA += parseFloat(data.tvaAmount || 0);
-        globalTTC += parseFloat(data.totalTTC || 0);
-      });
-
-      // UI par values live update karna
-      document.getElementById('statCount').innerText = count;
-      document.getElementById('statHT').innerText = globalHT.toFixed(2) + " €";
-      document.getElementById('statTVA').innerText = globalTVA.toFixed(2) + " €";
-      document.getElementById('statTTC').innerText = globalTTC.toFixed(2) + " €";
-    });
-}
-
-// Month change hone par live data badlein
-document.getElementById('dashboardMonth').addEventListener('change', (e) => {
-  loadMonthlyStats(e.target.value);
-});
-  </script>
-
 </body>
 </html>
