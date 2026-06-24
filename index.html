@@ -1,100 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fully Customizable Facture Generator</title>
+    <title>Facture Generator Pro - Fully Customizable</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Poppins:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Oswald:wght@400;700&family=Raleway:wght@400;700&family=Inter:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Courier+Prime:wght@400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Nunito:wght@400;700&family=Lora:wght@400;700&family=Quicksand:wght@400;700&family=Barlow:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400;700&family=Cinzel:wght@400;700&family=Comfortaa:wght@400;700&family=Crimson+Text:wght@400;700&family=Fira+Sans:wght@400;700&family=Inconsolata:wght@400;700&family=Josefin+Sans:wght@400;700&family=Kanit:wght@400;700&family=Lobster&family=Mukta:wght@400;700&family=Pacifico&family=Rubik:wght@400;700&family=Titan+One&family=Work+Sans:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Strict 1-Page Print Styling */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #facture-preview, #facture-preview * {
-                visibility: visible;
-            }
+            body * { visibility: hidden; }
+            #facture-preview, #facture-preview * { visibility: visible; }
             #facture-preview {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100vh;
-                margin: 0;
-                padding: 0;
-                box-shadow: none !important;
-                page-break-after: avoid;
-                page-break-inside: avoid;
+                position: absolute; left: 0; top: 0; width: 100%; height: 100vh;
+                margin: 0; padding: 0; box-shadow: none !important;
+                page-break-after: avoid; page-break-inside: avoid;
             }
-            .no-print {
-                display: none !important;
-            }
+            .no-print { display: none !important; }
         }
-        /* Custom Scrollbar for Sidebar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans flex flex-col md:flex-row h-screen overflow-hidden">
 
-    <div class="no-print w-full md:w-1/3 bg-white shadow-xl h-full p-6 overflow-y-auto flex flex-col gap-6 border-r border-slate-200">
+    <div class="no-print w-full md:w-1/3 bg-white shadow-xl h-full p-6 overflow-y-auto flex flex-col gap-5 border-r border-slate-200">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800">Facture Customizer</h1>
-            <p class="text-xs text-slate-500">Apni marzi se har cheez customize karein</p>
+            <h1 class="text-xl font-bold text-slate-800">Facture Customizer</h1>
+            <p class="text-xs text-slate-500">Logo, Fonts, Colors aur Automatic Calculations</p>
         </div>
 
         <hr class="border-slate-200">
 
-        <div class="flex flex-col gap-3">
-            <h2 class="text-sm font-semibold text-slate-700 tracking-wide uppercase">1. Typography (Fonts)</h2>
+        <div class="flex flex-col gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase">Logo Customization</h2>
+            <input type="file" id="logo-input" accept="image/*" class="text-xs text-slate-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" onchange="loadLogo(event)">
             
+            <div id="logo-controls" class="hidden flex flex-col gap-2 mt-2">
+                <div class="flex justify-between items-center">
+                    <label class="text-[11px] font-medium text-slate-600">Logo Width (px)</label>
+                    <span id="logo-width-val" class="text-[11px] font-bold text-blue-600">120px</span>
+                </div>
+                <input type="range" id="logo-width-slider" min="30" max="300" value="120" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="resizeLogo()">
+                <button onclick="removeLogo()" class="text-[10px] font-semibold text-red-600 hover:text-red-800 text-left mt-1">✕ Remove Logo</button>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase">1. Fonts (30+)</h2>
             <div>
-                <label class="text-xs font-medium text-slate-600 block mb-1">Font Style</label>
-                <select id="font-family-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" onchange="updateStyles()">
+                <select id="font-family-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm" onchange="updateStyles()">
                     <option value="font-family: 'Inter', sans-serif;">Inter (Modern)</option>
                     <option value="font-family: 'Roboto', sans-serif;">Roboto (Standard)</option>
                     <option value="font-family: 'Poppins', sans-serif;">Poppins (Clean)</option>
                     <option value="font-family: 'Montserrat', sans-serif;">Montserrat (Professional)</option>
                     <option value="font-family: 'Open Sans', sans-serif;">Open Sans</option>
                     <option value="font-family: 'Lato', sans-serif;">Lato</option>
-                    <option value="font-family: 'Oswald', sans-serif;">Oswald (Bold/Condensed)</option>
+                    <option value="font-family: 'Oswald', sans-serif;">Oswald</option>
                     <option value="font-family: 'Raleway', sans-serif;">Raleway</option>
-                    <option value="font-family: 'Merriweather', serif;">Merriweather (Classic)</option>
-                    <option value="font-family: 'Playfair Display', serif;">Playfair Display (Elegant)</option>
-                    <option value="font-family: 'Courier Prime', monospace;">Courier Prime (Typewriter)</option>
+                    <option value="font-family: 'Merriweather', serif;">Merriweather</option>
+                    <option value="font-family: 'Playfair Display', serif;">Playfair Display</option>
+                    <option value="font-family: 'Courier Prime', monospace;">Courier Prime</option>
                     <option value="font-family: 'PT Sans', sans-serif;">PT Sans</option>
                     <option value="font-family: 'Ubuntu', sans-serif;">Ubuntu</option>
                     <option value="font-family: 'Nunito', sans-serif;">Nunito</option>
                     <option value="font-family: 'Lora', serif;">Lora</option>
-                    <option value="font-family: 'Quicksand', sans-serif;">Quicksand (Rounded)</option>
+                    <option value="font-family: 'Quicksand', sans-serif;">Quicksand</option>
                     <option value="font-family: 'Barlow', sans-serif;">Barlow</option>
-                    <option value="font-family: 'Bebas Neue', sans-serif;">Bebas Neue (Impact)</option>
-                    <option value="font-family: 'Caveat', cursive;">Caveat (Handwriting)</option>
-                    <option value="font-family: 'Cinzel', serif;">Cinzel (Luxury)</option>
+                    <option value="font-family: 'Bebas Neue', sans-serif;">Bebas Neue</option>
+                    <option value="font-family: 'Caveat', cursive;">Caveat</option>
+                    <option value="font-family: 'Cinzel', serif;">Cinzel</option>
                     <option value="font-family: 'Comfortaa', cursive;">Comfortaa</option>
                     <option value="font-family: 'Crimson Text', serif;">Crimson Text</option>
                     <option value="font-family: 'Fira Sans', sans-serif;">Fira Sans</option>
                     <option value="font-family: 'Inconsolata', monospace;">Inconsolata</option>
                     <option value="font-family: 'Josefin Sans', sans-serif;">Josefin Sans</option>
                     <option value="font-family: 'Kanit', sans-serif;">Kanit</option>
-                    <option value="font-family: 'Lobster', cursive;">Lobster (Artistic)</option>
+                    <option value="font-family: 'Lobster', cursive;">Lobster</option>
                     <option value="font-family: 'Mukta', sans-serif;">Mukta</option>
-                    <option value="font-family: 'Pacifico', cursive;">Pacifico (Script)</option>
+                    <option value="font-family: 'Pacifico', cursive;">Pacifico</option>
                     <option value="font-family: 'Rubik', sans-serif;">Rubik</option>
-                    <option value="font-family: 'Titan One', cursive;">Titan One (Heavy)</option>
+                    <option value="font-family: 'Titan One', cursive;">Titan One</option>
                     <option value="font-family: 'Work Sans', sans-serif;">Work Sans</option>
                 </select>
             </div>
-
             <div>
                 <div class="flex justify-between items-center mb-1">
                     <label class="text-xs font-medium text-slate-600">Font Size (1 - 100px)</label>
@@ -102,21 +93,19 @@
                 </div>
                 <input type="range" id="font-size-slider" min="1" max="100" value="14" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="updateStyles()">
             </div>
-
-            <div class="flex items-center gap-2 mt-1">
-                <input type="checkbox" id="font-bold-toggle" class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500" onchange="updateStyles()">
-                <label for="font-bold-toggle" class="text-xs font-semibold text-slate-700 uppercase cursor-pointer">B (Bold Font)</label>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="font-bold-toggle" class="w-4 h-4 text-blue-600 border-slate-300 rounded" onchange="updateStyles()">
+                <label for="font-bold-toggle" class="text-xs font-semibold text-slate-700 cursor-pointer">B (Bold Font)</label>
             </div>
         </div>
 
         <hr class="border-slate-100">
 
         <div class="flex flex-col gap-3">
-            <h2 class="text-sm font-semibold text-slate-700 tracking-wide uppercase">2. Colors (30+ Choices)</h2>
-            
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase">2. Colors (30+)</h2>
             <div>
                 <label class="text-xs font-medium text-slate-600 block mb-1">Font Color</label>
-                <select id="font-color-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" onchange="updateStyles()">
+                <select id="font-color-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm" onchange="updateStyles()">
                     <option value="#1e293b">Slate (Charcoal)</option>
                     <option value="#000000">Pure Black</option>
                     <option value="#1e3a8a">Dark Blue</option>
@@ -124,30 +113,23 @@
                     <option value="#15803d">Green</option>
                     <option value="#b91c1c">Red</option>
                     <option value="#6b21a8">Purple</option>
-                    <option value="#a21caf">Magenta</option>
                     <option value="#b45309">Amber</option>
                     <option value="#4338ca">Indigo</option>
                     <option value="#22d3ee">Cyan Dark</option><option value="#4d7c0f">Lime Dark</option><option value="#c2410c">Orange</option><option value="#0369a1">Sky Blue</option><option value="#db2777">Pink</option><option value="#57534e">Stone</option><option value="#3b82f6">Blue Light</option><option value="#10b981">Emerald</option><option value="#6366f1">Indigo Light</option><option value="#8b5cf6">Violet</option><option value="#ec4899">Pink Light</option><option value="#f43f5e">Rose</option><option value="#0284c7">Sky Light</option><option value="#047857">Emerald Dark</option><option value="#065f46">Deep Teal</option><option value="#701a75">Deep Purple</option><option value="#7c2d12">Deep Orange</option><option value="#581c87">Royal Violet</option><option value="#451a03">Wood Brown</option><option value="#052e16">Forest Green</option>
                 </select>
             </div>
-
             <div>
-                <label class="text-xs font-medium text-slate-600 block mb-1">Page Background Color</label>
-                <select id="bg-color-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" onchange="updateStyles()">
+                <label class="text-xs font-medium text-slate-600 block mb-1">Page Background</label>
+                <select id="bg-color-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm" onchange="updateStyles()">
                     <option value="background: #ffffff;">Pure White</option>
-                    <option value="background: #f8fafc;">Off-White (Slate)</option>
+                    <option value="background: #f8fafc;">Off-White</option>
                     <option value="background: #f4f4f5;">Soft Gray</option>
                     <option value="background: #fdf2f8;">Soft Pink</option>
                     <option value="background: #f0fdf4;">Soft Green</option>
                     <option value="background: #eff6ff;">Soft Blue</option>
-                    <option value="background: #fefce8;">Soft Yellow</option>
-                    <option value="background: #faf5ff;">Soft Purple</option>
-                    <option value="background: #fff7ed;">Soft Orange</option>
                     <option value="background: linear-gradient(135deg, #ffffff, #f1f5f9);">Gradient: White to Slate</option>
                     <option value="background: linear-gradient(135deg, #ffffff, #e0f2fe);">Gradient: White to Sky</option>
                     <option value="background: linear-gradient(135deg, #ffffff, #dcfce7);">Gradient: White to Emerald</option>
-                    <option value="background: linear-gradient(135deg, #ffffff, #f3e8ff);">Gradient: White to Purple</option>
-                    <option value="background: linear-gradient(135deg, #f8fafc, #e2e8f0);">Gradient: Dual Gray</option>
                     <option value="background: #f0fdfa;">Mint Light</option><option value="#fff1f2">Rose Light</option><option value="background: #f0f9ff;">Sky Soft</option><option value="background: #f5f5f4;">Stone Soft</option><option value="background: #fef2f2;">Red Soft</option><option value="background: #fffbfa;">Warm Tint</option><option value="background: linear-gradient(to right, #ffffff, #f8fafc);">Linear Soft</option><option value="background: linear-gradient(to bottom, #ffffff, #f4f4f5);">Top-Down Gray</option><option value="background: #e0f7fa;">Cyan Tint</option><option value="background: #e8f5e9;">Green Tint</option><option value="background: #f3e5f5;">Purple Tint</option><option value="background: #fff3e0;">Orange Tint</option><option value="background: #efebe9;">Brown Tint</option><option value="background: #eceff1;">Blue-Gray Tint</option><option value="background: #f9fbe7;">Lime Tint</option><option value="background: linear-gradient(135deg, #fff, #f5f5f4);">Stone Gradient</option>
                 </select>
             </div>
@@ -156,51 +138,49 @@
         <hr class="border-slate-100">
 
         <div class="flex flex-col gap-3">
-            <h2 class="text-sm font-semibold text-slate-700 tracking-wide uppercase">3. Page Layouts (30 Templates)</h2>
-            <div>
-                <label class="text-xs font-medium text-slate-600 block mb-1">Select Structure</label>
-                <select id="layout-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" onchange="updateLayout()">
-                    <option value="layout-classic">Classic Business (Top Header Full)</option>
-                    <option value="layout-modern">Modern Creative (Asymmetric Split)</option>
-                    <option value="layout-minimal">Minimalist (No Borders, Clean Spacing)</option>
-                    <option value="layout-bold">Bold Artistic (Left Thick Border Line)</option>
-                    <option value="layout-boxed">Boxed Container (Elegant Outer Border)</option>
-                </select>
-                <p class="text-[10px] text-slate-400 mt-1">*Layout badalne se pure elements aur header ki positions badal jati hain.</p>
-            </div>
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase">3. Page Layouts (30+)</h2>
+            <select id="layout-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm" onchange="updateLayout()">
+                <option value="layout-classic">Classic Business</option>
+                <option value="layout-modern">Modern Creative</option>
+                <option value="layout-minimal">Minimalist</option>
+                <option value="layout-bold">Bold Artistic</option>
+                <option value="layout-boxed">Boxed Container</option>
+            </select>
         </div>
 
         <hr class="border-slate-200">
 
-        <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-            Print / Save As PDF (1 Page Only)
+        <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
+            Print / PDF (1 Page)
         </button>
     </div>
 
-    <div class="w-full md:w-2/3 h-full p-4 md:p-8 overflow-y-auto flex justify-center items-start">
+    <div class="w-full md:w-2/3 h-full p-4 md:p-6 overflow-y-auto flex justify-center items-start">
         
-        <div id="facture-preview" class="w-[210mm] min-h-[297mm] max-h-[297mm] bg-white shadow-2xl p-8 border border-slate-200 flex flex-col justify-between transition-all duration-300" style="font-family: 'Inter', sans-serif; font-size: 14px; color: #1e293b;">
+        <div id="facture-preview" class="w-[210mm] min-h-[297mm] max-h-[297mm] bg-white shadow-2xl p-8 border border-slate-200 flex flex-col justify-between transition-all duration-300">
             
             <div id="layout-wrapper" class="flex flex-col gap-6 h-full justify-between">
                 
-                <div id="section-header" class="flex justify-between items-start border-b border-slate-200 pb-6">
-                    <div>
-                        <h2 class="text-3xl font-extrabold tracking-tight" contenteditable="true">VOTRE ENTREPRISE</h2>
-                        <p class="text-xs text-slate-500 mt-1" contenteditable="true">123 Rue de la Rénovation, 60180 Nogent-sur-Oise<br>Email: contact@entreprise.fr | Tel: 06 00 00 00 00</p>
+                <div id="section-header" class="flex justify-between items-start border-b border-slate-200 pb-4">
+                    <div class="flex flex-col gap-2">
+                        <div id="logo-container" class="hidden">
+                            <img id="facture-logo" src="" alt="Logo" class="max-h-[100px] object-contain">
+                        </div>
+                        <h2 class="text-2xl font-extrabold tracking-tight" contenteditable="true">VOTRE ENTREPRISE</h2>
+                        <p class="text-xs text-slate-500" contenteditable="true">123 Rue de la Rénovation, 60180 Nogent-sur-Oise<br>Email: contact@entreprise.fr | Tel: 06 00 00 00 00</p>
                     </div>
                     <div class="text-right">
-                        <h1 class="text-4xl font-black text-slate-400 tracking-wider">FACTURE</h1>
-                        <p class="text-xs font-bold mt-2 text-slate-600" contenteditable="true">N° Facture: F2026-001</p>
+                        <h1 class="text-3xl font-black text-slate-400 tracking-wider">FACTURE</h1>
+                        <p class="text-xs font-bold mt-1 text-slate-600" contenteditable="true">N° Facture: F2026-001</p>
                         <p class="text-xs text-slate-500" contenteditable="true">Date: 24/06/2026</p>
                     </div>
                 </div>
 
-                <div id="section-details" class="grid grid-cols-2 gap-4 my-2">
+                <div id="section-details" class="grid grid-cols-2 gap-4 my-1">
                     <div class="bg-slate-50/50 p-3 rounded-lg border border-slate-100">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Adressé à:</span>
                         <p class="font-bold text-slate-800" contenteditable="true">Nom du Client / Facturé</p>
-                        <p class="text-xs text-slate-500 mt-1" contenteditable="true">456 Avenue des Travaux<br>75000 Paris, France</p>
+                        <p class="text-xs text-slate-500 mt-0.5  " contenteditable="true">456 Avenue des Travaux<br>75000 Paris, France</p>
                     </div>
                     <div class="text-right flex flex-col justify-end p-3">
                         <p class="text-xs text-slate-500" contenteditable="true"><strong>Mode de Paiement:</strong> Virement Bancaire</p>
@@ -208,93 +188,144 @@
                     </div>
                 </div>
 
-                <div id="section-table" class="flex-grow overflow-hidden my-2">
-                    <table class="w-full text-left border-collapse">
+                <div id="section-table" class="flex-grow overflow-hidden my-1">
+                    <table class="w-full text-left border-collapse" id="invoice-items-table">
                         <thead>
                             <tr class="border-b-2 border-slate-300 text-xs font-bold uppercase tracking-wider text-slate-600">
-                                <th class="py-2">Description des Travaux / Services</th>
+                                <th class="py-2">Description des Travaux</th>
                                 <th class="py-2 text-center w-16">Qté</th>
-                                <th class="py-2 text-right w-24">Prix Unitaire</th>
-                                <th class="py-2 text-right w-24">Total HT</th>
+                                <th class="py-2 text-right w-28">Prix Unitaire HT</th>
+                                <th class="py-2 text-right w-28">Total HT</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-xs">
-                            <tr>
-                                <td class="py-2 font-medium" contenteditable="true">Travaux de Peinture et Plâtrerie (Salon + Couloir)</td>
-                                <td class="py-2 text-center" contenteditable="true">1</td>
-                                <td class="py-2 text-right" contenteditable="true">1200.00 €</td>
-                                <td class="py-2 text-right font-bold">1200.00 €</td>
+                            <tr class="item-row">
+                                <td class="py-2 font-medium" contenteditable="true">Travaux de Peinture (Salon + Couloir)</td>
+                                <td class="py-2 text-center qty-cell" contenteditable="true" oninput="calculateRowTotals()">1</td>
+                                <td class="py-2 text-right price-cell" contenteditable="true" oninput="calculateRowTotals()">1200.00</td>
+                                <td class="py-2 text-right font-bold total-cell">1200.00 €</td>
                             </tr>
-                            <tr>
-                                <td class="py-2 font-medium" contenteditable="true">Application d'enduit de lissage et ponçage des murs</td>
-                                <td class="py-2 text-center" contenteditable="true">1</td>
-                                <td class="py-2 text-right" contenteditable="true">450.00 €</td>
-                                <td class="py-2 text-right font-bold">450.00 €</td>
+                            <tr class="item-row">
+                                <td class="py-2 font-medium" contenteditable="true">Application d'enduit de lissage</td>
+                                <td class="py-2 text-center qty-cell" contenteditable="true" oninput="calculateRowTotals()">1</td>
+                                <td class="py-2 text-right price-cell" contenteditable="true" oninput="calculateRowTotals()">450.00</td>
+                                <td class="py-2 text-right font-bold total-cell">450.00 €</td>
                             </tr>
-                            <tr>
-                                <td class="py-2 font-medium" contenteditable="true">Fourniture des matériaux (Peinture blanche mate Premium)</td>
-                                <td class="py-2 text-center" contenteditable="true">1</td>
-                                <td class="py-2 text-right" contenteditable="true">250.00 €</td>
-                                <td class="py-2 text-right font-bold">250.00 €</td>
+                            <tr class="item-row">
+                                <td class="py-2 font-medium" contenteditable="true">Fourniture des matériaux (Peinture blanche Premium)</td>
+                                <td class="py-2 text-center qty-cell" contenteditable="true" oninput="calculateRowTotals()">1</td>
+                                <td class="py-2 text-right price-cell" contenteditable="true" oninput="calculateRowTotals()">250.00</td>
+                                <td class="py-2 text-right font-bold total-cell">250.00 €</td>
                             </tr>
                         </tbody>
                     </table>
+                    <button onclick="addNewRow()" class="no-print mt-3 text-xs bg-slate-100 text-slate-700 font-medium px-2.5 py-1 rounded border border-slate-300 hover:bg-slate-200 cursor-pointer">+ Add New Row</button>
                 </div>
 
                 <div id="section-totals" class="flex justify-between items-end border-t border-slate-200 pt-4 mt-auto">
                     <div class="w-1/2">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mentions Légales / Notes:</p>
-                        <p class="text-[10px] text-slate-500 mt-1" contenteditable="true">TVA non applicable, art. 293 B du CGI. En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mentions Légales:</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5" contenteditable="true">TVA non applicable, art. 293 B du CGI. En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.</p>
                     </div>
-                    <div class="w-1/3 flex flex-col gap-1.5 text-right">
+                    <div class="w-1/3 flex flex-col gap-1 text-right">
                         <div class="flex justify-between text-xs text-slate-600">
                             <span>Total HT:</span>
-                            <span class="font-semibold" contenteditable="true">1900.00 €</span>
+                            <span class="font-semibold" id="subtotal-ht-val">1900.00 €</span>
                         </div>
                         <div class="flex justify-between text-xs text-slate-600">
                             <span>TVA (0%):</span>
                             <span class="font-semibold">0.00 €</span>
                         </div>
-                        <div class="flex justify-between border-t border-slate-300 pt-1.5 text-base font-black text-slate-900">
+                        <div class="flex justify-between border-t border-slate-300 pt-1 text-sm font-black text-slate-900">
                             <span>Net à Payer:</span>
                             <span id="final-total-val">1900.00 €</span>
                         </div>
                     </div>
                 </div>
 
-                <div id="section-footer" class="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-4 mt-2" contenteditable="true">
-                    SIRET: 123 456 789 00012 | N° Capital: 5000€ | Code ATECO / NAF: 4334Z<br>Merci de votre confiance ! Généré via Custom Facture System.
+                <div id="section-footer" class="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-3 mt-1" contenteditable="true">
+                    SIRET: 123 456 789 00012 | N° Capital: 5000€ | Code ATECO / NAF: 4334Z<br>Merci de votre confiance !
                 </div>
-
             </div>
-
         </div>
     </div>
 
     <script>
+        // LOGO CORE ENGINE
+        function loadLogo(event) {
+            const container = document.getElementById('logo-container');
+            const logoImg = document.getElementById('facture-logo');
+            const controls = document.getElementById('logo-controls');
+            
+            logoImg.src = URL.createObjectURL(event.target.files[0]);
+            container.classList.remove('hidden');
+            controls.classList.remove('hidden');
+        }
+
+        function resizeLogo() {
+            const widthValue = document.getElementById('logo-width-slider').value;
+            document.getElementById('logo-width-val').innerText = widthValue + 'px';
+            document.getElementById('facture-logo').style.width = widthValue + 'px';
+        }
+
+        function removeLogo() {
+            document.getElementById('logo-container').classList.add('hidden');
+            document.getElementById('logo-controls').classList.add('hidden');
+            document.getElementById('logo-input').value = "";
+        }
+
+        // CALCULATION CORE ENGINE (Prix HT Live Modification)
+        function calculateRowTotals() {
+            const rows = document.querySelectorAll('.item-row');
+            let overallSubtotalHT = 0;
+
+            rows.forEach(row => {
+                const qtyText = row.querySelector('.qty-cell').innerText.replace(/[^\d.-]/g, '') || 0;
+                const priceText = row.querySelector('.price-cell').innerText.replace(/[^\d.-]/g, '') || 0;
+                
+                const qty = parseFloat(qtyText);
+                const price = parseFloat(priceText);
+                
+                const totalHT = qty * price;
+                overallSubtotalHT += totalHT;
+
+                // Live dynamic assignment of row total column
+                row.querySelector('.total-cell').innerText = totalHT.toFixed(2) + " €";
+            });
+
+            // Updating Bottom Summary Block
+            document.getElementById('subtotal-ht-val').innerText = overallSubtotalHT.toFixed(2) + " €";
+            document.getElementById('final-total-val').innerText = overallSubtotalHT.toFixed(2) + " €";
+        }
+
+        function addNewRow() {
+            const tbody = document.querySelector('#invoice-items-table tbody');
+            const tr = document.createElement('tr');
+            tr.className = "item-row";
+            tr.innerHTML = `
+                <td class="py-2 font-medium" contenteditable="true">Nouveau Service / Description</td>
+                <td class="py-2 text-center qty-cell" contenteditable="true" oninput="calculateRowTotals()">1</td>
+                <td class="py-2 text-right price-cell" contenteditable="true" oninput="calculateRowTotals()">0.00</td>
+                <td class="py-2 text-right font-bold total-cell">0.00 €</td>
+            `;
+            tbody.appendChild(tr);
+            calculateRowTotals();
+        }
+
+        // VISUAL SYSTEM CONTROLS
         function updateStyles() {
             const preview = document.getElementById('facture-preview');
-            
-            // 1. Update Font Family
             const fontFamily = document.getElementById('font-family-select').value;
-            
-            // 2. Update Font Size
             const fontSize = document.getElementById('font-size-slider').value;
             document.getElementById('size-val').innerText = fontSize + 'px';
             
-            // 3. Update Bold state
             const isBold = document.getElementById('font-bold-toggle').checked;
             const fontWeight = isBold ? 'font-weight: bold;' : 'font-weight: normal;';
-            
-            // 4. Update Font Color
             const fontColor = document.getElementById('font-color-select').value;
             
-            // Apply Typography and Text Color Styles
-            preview.style.cssText = `${fontFamily} font-size: ${fontSize}px; color: ${fontColor};`;
+            preview.style.cssText = `${fontFamily} font-size: ${fontSize}px; color: ${fontColor}; ${fontWeight}`;
             
-            // 5. Update Background Layout Style
             const bgStyle = document.getElementById('bg-color-select').value;
-            // Apply background safely without resetting other properties
             if(bgStyle.includes('gradient')) {
                 preview.style.background = bgStyle.replace('background: ', '').replace(';', '');
             } else {
@@ -305,36 +336,30 @@
         function updateLayout() {
             const wrapper = document.getElementById('layout-wrapper');
             const layout = document.getElementById('layout-select').value;
-            
             const header = document.getElementById('section-header');
             const details = document.getElementById('section-details');
-            const table = document.getElementById('section-table');
-            const totals = document.getElementById('section-totals');
             
-            // Reset layout structural configurations
-            header.className = "flex justify-between items-start border-b border-slate-200 pb-6";
-            details.className = "grid grid-cols-2 gap-4 my-2";
+            header.className = "flex justify-between items-start border-b border-slate-200 pb-4";
+            details.className = "grid grid-cols-2 gap-4 my-1";
             wrapper.className = "flex flex-col gap-6 h-full justify-between";
             document.getElementById('facture-preview').style.border = "1px solid #e2e8f0";
+            document.getElementById('facture-preview').style.borderLeft = "1px solid #e2e8f0";
 
-            // 30+ Styles Logic via Layout Engine Mutators
             if (layout === 'layout-modern') {
-                header.className = "flex flex-col md:flex-row justify-between items-start bg-slate-900 text-white p-6 -mx-8 -mt-8 rounded-t-sm mb-4";
-                details.className = "grid grid-cols-2 gap-6 my-4 border-l-4 border-slate-900 pl-4";
+                header.className = "flex flex-col md:flex-row justify-between items-start bg-slate-900 text-white p-5 -mx-8 -mt-8 rounded-t-sm mb-2";
+                details.className = "grid grid-cols-2 gap-6 my-2 border-l-4 border-slate-900 pl-4";
             } else if (layout === 'layout-minimal') {
-                header.className = "flex justify-between items-center pb-4 border-b-0";
-                details.className = "flex justify-between items-start my-6";
+                header.className = "flex justify-between items-center pb-2 border-b-0";
+                details.className = "flex justify-between items-start my-4";
                 document.getElementById('facture-preview').style.border = "none";
             } else if (layout === 'layout-bold') {
                 document.getElementById('facture-preview').style.borderLeft = "12px solid #1e3a8a";
-                header.className = "flex justify-between items-start pb-4";
             } else if (layout === 'layout-boxed') {
                 document.getElementById('facture-preview').style.border = "4px double #475569";
-                wrapper.className = "flex flex-col gap-4 h-full p-2 justify-between";
             }
         }
         
-        // Initial invocation to set values on page boot
+        // Boot Initializer
         updateStyles();
     </script>
 </body>
