@@ -4,128 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <!-- Google Search Console Verification -->
     <meta name="google-site-verification" content="Ufq2oRt5WVm6xRb1" />
 
+    <!-- SEO Meta Tags -->
     <title>Générateur de Facture Gratuit en Ligne - Facturer Gratuit</title>
     <meta name="description" content="Créez et téléchargez vos factures professionnelles gratuitement au format PDF. Idéal pour auto-entrepreneurs, micro-entreprises, peintres, plaquistes et artisans.">
     <meta name="keywords" content="facture gratuite, générer facture pdf, outil facture en ligne, modèle facture peinture, facture plaquiste, tva non applicable art 293b cgi, facture artisan, micro-entreprise france">
     <meta name="author" content="Facturer Gratuit">
     <meta name="robots" content="index, follow">
 
+    <!-- Open Graph (Social Media Sharing) -->
     <meta property="og:title" content="Générateur de Facture Gratuit - Créez vos factures en ligne">
     <meta property="og:description" content="Générez des factures conformes et professionnelles en quelques clics. Simple, rapide et 100% gratuit.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://facturergratuit.com">
 
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tailwind CSS with your previous configuration/styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
+        /* Aapki purani fonts aur specific styling */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
         @media print {
             .no-print { display: none !important; }
-            body { background: white; }
+            body { background: white; color: black; }
+            .invoice-box { box-shadow: none !important; border: none !important; padding: 0 !important; }
+        }
+
+        /* Input styling to look like a clean premium form */
+        input:focus, textarea:focus {
+            background-color: #f8fafc;
+            outline: none;
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 antialiased minimal-scrollbar">
+<body class="bg-[#f1f5f9] text-gray-900 antialiased min-h-screen pb-12">
 
-    <header class="bg-blue-600 text-white py-6 shadow-md no-print">
-        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
-                    <i class="fa-solid fa-file-invoice-dollar"></i> Facturer Gratuit
-                </h1>
-                <p class="text-sm text-blue-100 mt-1">Créez vos factures professionnelles en 1 clic</p>
-            </div>
-            <button onclick="generatePDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-6 py-2.5 rounded-lg shadow-md transition duration-200 flex items-center gap-2 cursor-pointer">
-                <i class="fa-solid fa-download"></i> Télécharger le PDF
-            </button>
-        </div>
-    </header>
-
-    <main class="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 gap-8">
-        
-        <div id="invoice-card" class="bg-white p-8 sm:p-12 rounded-xl shadow-xl border border-gray-200 relative overflow-hidden">
-            
-            <div class="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 text-xs font-semibold tracking-wider uppercase rounded-bl no-print">
-                Mode Édition
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-gray-200 pb-8">
-                <div class="space-y-3">
-                    <input type="text" placeholder="Votre Nom / Entreprise" class="text-2xl font-bold text-gray-900 border-b border-dashed border-gray-300 focus:border-blue-500 outline-none w-full pb-1">
-                    <div class="space-y-2 text-sm">
-                        <input type="text" placeholder="Adresse (ex: 12 Rue de la Paix)" class="border-b border-dashed border-gray-200 focus:border-blue-500 outline-none w-full">
-                        <input type="text" placeholder="Code Postal & Ville" class="border-b border-dashed border-gray-200 focus:border-blue-500 outline-none w-full">
-                        <input type="text" placeholder="Siret: 123 456 789 00012" class="border-b border-dashed border-gray-200 focus:border-blue-500 outline-none w-full font-mono text-xs">
-                        <input type="text" placeholder="Téléphone / Email" class="border-b border-dashed border-gray-200 focus:border-blue-500 outline-none w-full">
-                    </div>
+    <!-- Top Action Bar (No Print) -->
+    <div class="bg-white border-b border-gray-200 py-4 px-6 mb-8 no-print sticky top-0 z-50 shadow-sm">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md shadow-blue-200">
+                    <i class="fa-solid fa-file-invoice text-xl"></i>
                 </div>
-
-                <div class="md:text-right flex flex-col justify-between items-start md:items-end space-y-4">
-                    <div class="w-full sm:w-auto">
-                        <span class="text-xs uppercase font-bold text-gray-400 block tracking-wider">Document</span>
-                        <input type="text" value="FACTURE" class="text-3xl font-black text-blue-600 md:text-right border-b border-dashed border-gray-300 focus:border-blue-500 outline-none w-full font-mono">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 w-full sm:w-64 text-sm">
-                        <div>
-                            <label class="text-xs text-gray-400 font-bold block uppercase">N° Facture</label>
-                            <input type="text" value="F-2026-001" class="font-mono border-b border-dashed border-gray-200 focus:border-blue-500 outline-none w-full">
-                        </div>
-                        <div>
-                            <label class="text-xs text-gray-400 font-bold block uppercase">Date</label>
-                            <input type="date" id="invoice-date" class="border-b border-dashed border-gray-200 focus:border-blue-500 outline-none w-full">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-gray-50 p-6 rounded-lg my-8 grid grid-cols-1 md:grid-cols-2 gap-6 border border-gray-100">
                 <div>
-                    <span class="text-xs uppercase font-black text-gray-400 block tracking-wider mb-2">Facturer À (Client)</span>
-                    <input type="text" placeholder="Nom du Client / Société" class="font-bold text-gray-800 border-b border-dashed border-gray-300 focus:border-blue-500 outline-none w-full mb-2">
-                    <textarea placeholder="Adresse complète du client" rows="2" class="text-sm text-gray-600 border-b border-dashed border-gray-200 focus:border-blue-500 outline-none w-full resize-none"></textarea>
+                    <h1 class="text-xl font-extrabold tracking-tight text-gray-900">Facturer <span class="text-blue-600">Gratuit</span></h1>
+                    <p class="text-xs text-gray-500 font-medium">Générateur de facture professionnel</p>
                 </div>
-                <div class="flex flex-col justify-end md:items-end space-y-2">
-                    <div class="w-full sm:w-48 text-sm">
-                        <label class="text-xs text-gray-400 font-bold block uppercase">Échéance</label>
-                        <input type="text" value="À réception" class="border-b border-dashed border-gray-200 focus:border-blue-500 outline-none w-full">
+            </div>
+            
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <button onclick="addRow()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-4 py-2.5 rounded-xl text-sm transition flex items-center gap-2 cursor-pointer border border-gray-200">
+                    <i class="fa-solid fa-plus text-xs text-gray-500"></i> Ajouter Ligne
+                </button>
+                <button onclick="generatePDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-100">
+                    <i class="fa-solid fa-download"></i> Télécharger PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace Container -->
+    <div class="max-w-5xl mx-auto px-4">
+        
+        <!-- Editable Invoice Structure -->
+        <div id="invoice-card" class="invoice-box bg-white p-8 sm:p-12 rounded-2xl shadow-xl shadow-gray-200/80 border border-gray-100 relative">
+            
+            <!-- Company Header Details -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 border-b border-gray-100 pb-10">
+                <!-- Left Details (Issuer) -->
+                <div class="space-y-4">
+                    <input type="text" placeholder="Votre Nom / Entreprise" class="text-2xl font-extrabold text-gray-900 border-b border-dashed border-gray-200 hover:border-gray-400 focus:border-blue-500 w-full pb-1 transition placeholder-gray-300">
+                    <div class="space-y-2.5 text-sm">
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <i class="fa-solid fa-location-dot w-4 text-center text-gray-300 text-xs"></i>
+                            <input type="text" placeholder="Adresse complète" class="border-b border-dashed border-gray-100 hover:border-gray-300 focus:border-blue-500 w-full py-0.5 text-gray-700">
+                        </div>
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <i class="fa-solid fa-city w-4 text-center text-gray-300 text-xs"></i>
+                            <input type="text" placeholder="Code Postal & Ville" class="border-b border-dashed border-gray-100 hover:border-gray-300 focus:border-blue-500 w-full py-0.5 text-gray-700">
+                        </div>
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <i class="fa-solid fa-id-card w-4 text-center text-gray-300 text-xs"></i>
+                            <input type="text" placeholder="N° SIRET" class="border-b border-dashed border-gray-100 hover:border-gray-300 focus:border-blue-500 w-full py-0.5 text-gray-700 font-mono text-xs tracking-wide">
+                        </div>
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <i class="fa-solid fa-envelope w-4 text-center text-gray-300 text-xs"></i>
+                            <input type="text" placeholder="Téléphone / Email" class="border-b border-dashed border-gray-100 hover:border-gray-300 focus:border-blue-500 w-full py-0.5 text-gray-700">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Details (Metadata) -->
+                <div class="md:text-right flex flex-col justify-between items-start md:items-end space-y-6">
+                    <div class="w-full sm:w-auto">
+                        <input type="text" value="FACTURE" class="text-4xl font-black text-gray-900 md:text-right border-b border-dashed border-transparent hover:border-gray-300 focus:border-blue-500 w-full tracking-tight">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 w-full sm:w-72 text-sm bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <div>
+                            <span class="text-xs uppercase font-bold text-gray-400 block tracking-wider mb-1">N° Facture</span>
+                            <input type="text" value="F-2026-001" class="font-mono font-bold text-gray-800 border-b border-dashed border-gray-200 focus:border-blue-500 w-full bg-transparent">
+                        </div>
+                        <div>
+                            <span class="text-xs uppercase font-bold text-gray-400 block tracking-wider mb-1">Date</span>
+                            <input type="date" id="invoice-date" class="font-medium text-gray-800 border-b border-dashed border-gray-200 focus:border-blue-500 w-full bg-transparent">
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Client Information Block -->
+            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-6 sm:p-8 my-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <span class="text-xs uppercase font-extrabold text-blue-600 block tracking-widest mb-3">Facturer À (Client)</span>
+                    <input type="text" placeholder="Nom du Client / Société" class="font-bold text-gray-800 text-lg border-b border-dashed border-gray-300 focus:border-blue-500 w-full mb-3 bg-transparent placeholder-gray-400">
+                    <textarea placeholder="Adresse complète du destinataire" rows="2" class="text-sm text-gray-600 border-b border-dashed border-gray-200 focus:border-blue-500 w-full resize-none bg-transparent placeholder-gray-400"></textarea>
+                </div>
+                <div class="flex flex-col justify-end md:items-end">
+                    <div class="w-full sm:w-56 text-sm">
+                        <span class="text-xs uppercase font-bold text-gray-400 block tracking-wider mb-1">Conditions d'échéance</span>
+                        <input type="text" value="À réception" class="border-b border-dashed border-gray-200 focus:border-blue-500 w-full font-medium text-gray-700 bg-transparent">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table Dynamic UI -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="border-b-2 border-gray-300 text-xs font-bold uppercase tracking-wider text-gray-500 bg-gray-100">
-                            <th class="py-3 px-4 w-3/5">Description des prestations / travaux</th>
-                            <th class="py-3 px-2 text-center w-1/12">Qté</th>
-                            <th class="py-3 px-2 text-right w-2/12">Prix U. HT</th>
-                            <th class="py-3 px-4 text-right w-2/12">Total HT</th>
-                            <th class="py-3 px-2 text-center w-1/12 no-print"></th>
+                        <tr class="border-b border-gray-200 text-xs font-bold uppercase tracking-wider text-gray-400">
+                            <th class="pb-3 pl-2 w-7/12">Description des prestations</th>
+                            <th class="pb-3 text-center w-1/12">Qté</th>
+                            <th class="pb-3 text-right w-2/12">Prix U. HT</th>
+                            <th class="pb-3 text-right pr-2 w-2/12">Total HT</th>
+                            <th class="pb-3 text-center w-1/12 no-print"></th>
                         </tr>
                     </thead>
-                    <tbody id="invoice-rows">
-                        <tr class="border-b border-gray-200 group align-top">
-                            <td class="py-4 px-4">
-                                <textarea placeholder="Ex: Travaux de peinture intérieure et préparation des supports..." rows="1" class="w-full outline-none text-sm focus:bg-gray-50 p-1 rounded resize-none border-b border-transparent focus:border-blue-400"></textarea>
+                    <tbody id="invoice-rows" class="divide-y divide-gray-100">
+                        <!-- Default Blank / Editable Row template -->
+                        <tr class="group align-top">
+                            <td class="py-4 pl-2">
+                                <textarea placeholder="Détail de la prestation ou des travaux..." rows="1" class="w-full text-sm font-medium text-gray-800 border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded resize-none transition duration-150"></textarea>
                             </td>
-                            <td class="py-4 px-2">
-                                <input type="number" value="1" min="1" oninput="calculateRow(this)" class="w-full text-center font-mono text-sm outline-none bg-transparent focus:bg-gray-50 p-1 rounded">
+                            <td class="py-4 text-center">
+                                <input type="number" value="1" min="1" oninput="calculateRow(this)" class="w-full text-center font-mono text-sm font-semibold text-gray-700 border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded transition">
                             </td>
-                            <td class="py-4 px-2">
-                                <div class="flex items-center justify-end font-mono text-sm">
-                                    <input type="number" value="0.00" step="0.01" min="0" oninput="calculateRow(this)" class="w-full text-right outline-none bg-transparent focus:bg-gray-50 p-1 rounded pr-1">
-                                    <span>€</span>
+                            <td class="py-4 text-right">
+                                <div class="flex items-center justify-end font-mono text-sm font-semibold text-gray-700">
+                                    <input type="number" value="0.00" step="0.01" min="0" oninput="calculateRow(this)" class="w-full text-right border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded pr-1 transition">
+                                    <span class="text-gray-400">€</span>
                                 </div>
                             </td>
-                            <td class="py-4 px-4 text-right font-mono font-medium text-sm text-gray-900">
+                            <td class="py-4 text-right pr-2 font-mono font-bold text-sm text-gray-900">
                                 <span class="row-total">0.00</span> €
                             </td>
-                            <td class="py-4 px-2 text-center no-print">
-                                <button onclick="deleteRow(this)" class="text-gray-400 hover:text-red-500 transition duration-150 cursor-pointer">
-                                    <i class="fa-regular fa-trash-can"></i>
+                            <td class="py-4 text-center no-print">
+                                <button onclick="deleteRow(this)" class="text-gray-300 hover:text-red-500 p-1 transition cursor-pointer">
+                                    <i class="fa-regular fa-trash-can text-sm"></i>
                                 </button>
                             </td>
                         </tr>
@@ -133,85 +177,83 @@
                 </table>
             </div>
 
-            <div class="mt-4 no-print">
-                <button onclick="addRow()" class="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-1.5 cursor-pointer transition">
-                    <i class="fa-solid fa-circle-plus"></i> Ajouter une ligne
-                </button>
-            </div>
-
-            <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
-                <div class="space-y-4 text-xs text-gray-500">
-                    <div>
-                        <label class="font-bold text-gray-700 block mb-1">Informations de Paiement (IBAN / RIB)</label>
-                        <textarea placeholder="Titulaire du compte : &#10;IBAN : FR76 ...&#10;BIC : ..." rows="3" class="w-full p-2 border border-dashed border-gray-200 rounded font-mono focus:outline-none focus:border-blue-400 resize-none bg-gray-50/50"></textarea>
+            <!-- Totals and Financial/Legal Summary Footer -->
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-gray-100">
+                <!-- Left Side: Bank Details + Dynamic legal notice block -->
+                <div class="space-y-4">
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <label class="text-xs uppercase font-bold text-gray-400 block tracking-wider mb-2">Règlement / IBAN</label>
+                        <textarea placeholder="Mode de règlement : Virement bancaire&#10;Titulaire : &#10;IBAN : FR76 ...&#10;BIC : ..." rows="3" class="w-full p-2 text-xs font-mono text-gray-600 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-400 resize-none"></textarea>
                     </div>
-                    <div id="legal-notice" class="bg-blue-50/70 text-blue-800 p-3 rounded border border-blue-100 hidden">
-                        <i class="fa-solid fa-circle-info mr-1"></i> <span id="legal-text">TVA non applicable, art. 293 B du CGI.</span>
+                    
+                    <!-- Auto triggered Auto-entrepreneur 293B mention space -->
+                    <div id="legal-notice" class="bg-amber-50 text-amber-800 p-3.5 rounded-xl border border-amber-100 text-xs font-medium flex gap-2 items-start transition duration-200">
+                        <i class="fa-solid fa-scale-balanced mt-0.5 text-amber-500"></i>
+                        <span>TVA non applicable, art. 293 B du CGI. (Micro-entreprise)</span>
                     </div>
                 </div>
 
-                <div class="bg-gray-50 p-6 rounded-lg ml-auto w-full sm:w-80 space-y-3 border border-gray-100">
+                <!-- Right Side: Exact Financial Calculation Layout -->
+                <div class="bg-gray-50/80 rounded-2xl p-6 border border-gray-100 space-y-3.5 w-full sm:w-80 ml-auto h-fit">
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-500 font-medium">Total HT :</span>
+                        <span class="text-gray-500 font-medium">Total HT</span>
                         <span class="font-mono font-bold text-gray-900"><span id="total-ht">0.00</span> €</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm gap-2">
+                    <div class="flex justify-between items-center text-sm">
                         <span class="text-gray-500 font-medium flex items-center gap-1">
-                            TVA (<input type="number" id="tva-rate" value="0" min="0" max="100" oninput="calculateTotal()" class="w-10 text-center font-mono border-b border-dashed border-gray-400 text-blue-600 font-bold outline-none bg-transparent">%):
+                            TVA (<input type="number" id="tva-rate" value="0" min="0" max="100" oninput="calculateTotal()" class="w-12 text-center font-mono font-bold text-blue-600 bg-white border border-gray-200 rounded p-0.5 focus:outline-none focus:border-blue-500">%):
                         </span>
-                        <span class="font-mono text-gray-700"><span id="total-tva">0.00</span> €</span>
+                        <span class="font-mono font-semibold text-gray-700"><span id="total-tva">0.00</span> €</span>
                     </div>
-                    <div class="border-t border-gray-300 pt-3 flex justify-between items-center">
-                        <span class="text-base font-black uppercase text-gray-900 tracking-tight">Net à Payer :</span>
+                    <div class="border-t border-gray-200 pt-3.5 flex justify-between items-center">
+                        <span class="text-base font-extrabold tracking-tight text-gray-900">NET À PAYER</span>
                         <span class="font-mono text-xl font-black text-blue-600"><span id="net-a-payer">0.00</span> €</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <section class="bg-white p-8 rounded-xl shadow border border-gray-200 no-print mt-4 prose max-w-none">
-            <h2 class="text-xl font-bold text-gray-900 mb-3 border-b pb-2">Comment utiliser ce Générateur de Facture Gratuit ?</h2>
-            <p class="text-sm text-gray-600 leading-relaxed mb-4">
-                Ce mini-outil en ligne vous permet d'éditer instantanément des factures ou devis au format légal français sans aucune inscription. Remplissez simplement les coordonnées de votre entreprise (Siret, adresse), entrez les détails des prestations de services ou de vente de marchandises pour vos clients, puis cliquez sur <strong>Télécharger le PDF</strong>.
+        <!-- Google SEO Informative Marketing Content Block (No Print) -->
+        <div class="mt-8 bg-white p-8 rounded-2xl border border-gray-200 shadow-sm no-print">
+            <h2 class="text-lg font-bold text-gray-900 mb-2">Facturation Professionnelle Simplifiée</h2>
+            <p class="text-sm text-gray-500 leading-relaxed">
+                Générez des documents d'aspect professionnel conformes aux réglementations françaises. Remplissez simplement les détails requis à l'écran, ajustez le taux de TVA et exportez instantanément votre PDF propre. Idéal pour les artisans et auto-entrepreneurs à la recherche d'une interface rapide et efficace.
             </p>
-            <h3 class="text-base font-bold text-gray-800 mb-2">💡 Auto-entrepreneurs et Franchise de TVA (0%)</h3>
-            <p class="text-sm text-gray-600 leading-relaxed">
-                Si vous êtes sous le régime de la micro-entreprise avec une franchise en base de TVA (société sans TVA), réglez le champ <strong>TVA à 0%</strong>. Notre système affichera automatiquement la mention légale obligatoire : <em>"TVA non applicable, art. 293 B du CGI"</em> sur votre document final pour assurer une conformité fiscale absolue.
-            </p>
-        </section>
-    </main>
+        </div>
+    </div>
 
-    <footer class="text-center py-6 text-xs text-gray-400 no-print border-t mt-12 bg-white">
-        <p>&copy; 2026 Facturer Gratuit. Tous droits réservés. Outil optimisé pour les artisans du bâtiment et indépendants en France.</p>
+    <!-- Professional Footer (No Print) -->
+    <footer class="text-center mt-12 text-xs text-gray-400 no-print">
+        <p>&copy; 2026 Facturer Gratuit. Tous droits réservés. Vos données restent privées et ne quittent jamais votre navigateur.</p>
     </footer>
 
+    <!-- Core App Logic Javascript scripts -->
     <script>
-        // Set Default Date to Today
         document.getElementById('invoice-date').valueAsDate = new Date();
 
         function addRow() {
             const tbody = document.getElementById('invoice-rows');
             const tr = document.createElement('tr');
-            tr.className = "border-b border-gray-200 group align-top";
+            tr.className = "group align-top border-b border-gray-50";
             tr.innerHTML = `
-                <td class="py-4 px-4">
-                    <textarea placeholder="Description des prestations..." rows="1" class="w-full outline-none text-sm focus:bg-gray-50 p-1 rounded resize-none border-b border-transparent focus:border-blue-400"></textarea>
+                <td class="py-4 pl-2">
+                    <textarea placeholder="Détail de la prestation..." rows="1" class="w-full text-sm font-medium text-gray-800 border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded resize-none transition duration-150"></textarea>
                 </td>
-                <td class="py-4 px-2">
-                    <input type="number" value="1" min="1" oninput="calculateRow(this)" class="w-full text-center font-mono text-sm outline-none bg-transparent focus:bg-gray-50 p-1 rounded">
+                <td class="py-4 text-center">
+                    <input type="number" value="1" min="1" oninput="calculateRow(this)" class="w-full text-center font-mono text-sm font-semibold text-gray-700 border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded transition">
                 </td>
-                <td class="py-4 px-2">
-                    <div class="flex items-center justify-end font-mono text-sm">
-                        <input type="number" value="0.00" step="0.01" min="0" oninput="calculateRow(this)" class="w-full text-right outline-none bg-transparent focus:bg-gray-50 p-1 rounded pr-1">
-                        <span>€</span>
+                <td class="py-4 text-right">
+                    <div class="flex items-center justify-end font-mono text-sm font-semibold text-gray-700">
+                        <input type="number" value="0.00" step="0.01" min="0" oninput="calculateRow(this)" class="w-full text-right border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded pr-1 transition">
+                        <span class="text-gray-400">€</span>
                     </div>
                 </td>
-                <td class="py-4 px-4 text-right font-mono font-medium text-sm text-gray-900">
+                <td class="py-4 text-right pr-2 font-mono font-bold text-sm text-gray-900">
                     <span class="row-total">0.00</span> €
                 </td>
-                <td class="py-4 px-2 text-center no-print">
-                    <button onclick="deleteRow(this)" class="text-gray-400 hover:text-red-500 transition duration-150 cursor-pointer">
-                        <i class="fa-regular fa-trash-can"></i>
+                <td class="py-4 text-center no-print">
+                    <button onclick="deleteRow(this)" class="text-gray-300 hover:text-red-500 p-1 transition cursor-pointer">
+                        <i class="fa-regular fa-trash-can text-sm"></i>
                     </button>
                 </td>
             `;
@@ -224,8 +266,6 @@
             if (tbody.rows.length > 1) {
                 row.remove();
                 calculateTotal();
-            } else {
-                alert("La facture doit comporter au moins une ligne.");
             }
         }
 
@@ -252,37 +292,35 @@
             document.getElementById('total-tva').textContent = totalTVA.toFixed(2);
             document.getElementById('net-a-payer').textContent = netAPayer.toFixed(2);
 
-            // Auto Toggle France Legal Mention if TVA is 0%
             const legalNotice = document.getElementById('legal-notice');
             if (tvaRate === 0) {
-                legalNotice.classList.remove('hidden');
+                legalNotice.style.display = 'flex';
             } else {
-                legalNotice.classList.add('hidden');
+                legalNotice.style.display = 'none';
             }
         }
 
         function generatePDF() {
             const element = document.getElementById('invoice-card');
             
-            // Clean outlines temporarily for crisp PDF styling
             const style = document.createElement('style');
-            style.innerHTML = 'input, textarea { border-bottom: transparent !important; background: transparent !important; }';
+            style.innerHTML = 'input, textarea { border-bottom-color: transparent !important; background: transparent !important; } .invoice-box { box-shadow: none !important; border: none !important; }';
             document.head.appendChild(style);
 
             const opt = {
-                margin:       [0.5, 0.5, 0.5, 0.5],
-                filename:     `Facture_${document.querySelector('input[value="F-2026-001"]').value}.pdf`,
+                margin:       [0.4, 0.4, 0.4, 0.4],
+                filename:     'Facture.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
-                style.remove(); // restore dashed lines in preview window
+                style.remove();
             });
         }
 
-        // Initialize on setup
+        // Run initially
         calculateTotal();
     </script>
 </body>
