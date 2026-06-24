@@ -4,324 +4,421 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Google Search Console Verification -->
     <meta name="google-site-verification" content="Ufq2oRt5WVm6xRb1" />
 
-    <!-- SEO Meta Tags -->
     <title>Générateur de Facture Gratuit en Ligne - Facturer Gratuit</title>
-    <meta name="description" content="Créez et téléchargez vos factures professionnelles gratuitement au format PDF. Idéal pour auto-entrepreneurs, micro-entreprises, peintres, plaquistes et artisans.">
+    <meta name="description" content="Créez et téléchargez vos factures professionnelles gratuitement au format PDF ou Impression. Idéal pour auto-entrepreneurs, micro-entreprises, peintres, plaquistes et artisans.">
     <meta name="keywords" content="facture gratuite, générer facture pdf, outil facture en ligne, modèle facture peinture, facture plaquiste, tva non applicable art 293b cgi, facture artisan, micro-entreprise france">
     <meta name="author" content="Facturer Gratuit">
     <meta name="robots" content="index, follow">
 
-    <!-- Open Graph (Social Media Sharing) -->
     <meta property="og:title" content="Générateur de Facture Gratuit - Créez vos factures en ligne">
     <meta property="og:description" content="Générez des factures conformes et professionnelles en quelques clics. Simple, rapide et 100% gratuit.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://facturergratuit.com">
 
-    <!-- Tailwind CSS with your previous configuration/styles -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Poppins:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Oswald:wght@400;700&family=Raleway:wght@400;700&family=Inter:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Courier+Prime:wght@400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Nunito:wght@400;700&family=Lora:wght@400;700&family=Quicksand:wght@400;700&family=Barlow:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400;700&family=Cinzel:wght@400;700&family=Comfortaa:wght@400;700&family=Crimson+Text:wght@400;700&family=Fira+Sans:wght@400;700&family=Inconsolata:wght@400;700&family=Josefin+Sans:wght@400;700&family=Kanit:wght@400;700&family=Lobster&family=Mukta:wght@400;700&family=Pacifico&family=Rubik:wght@400;700&family=Titan+One&family=Work+Sans:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* Aapki purani fonts aur specific styling */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
         @media print {
+            body * { visibility: hidden; }
+            #facture-preview, #facture-preview * { visibility: visible; }
+            #facture-preview {
+                position: absolute; left: 0; top: 0; width: 210mm; height: 297mm;
+                margin: 0 !important; padding: 20mm !important; box-shadow: none !important; border: none !important;
+                page-break-after: avoid; page-break-inside: avoid;
+            }
             .no-print { display: none !important; }
-            body { background: white; color: black; }
-            .invoice-box { box-shadow: none !important; border: none !important; padding: 0 !important; }
         }
-
-        /* Input styling to look like a clean premium form */
-        input:focus, textarea:focus {
-            background-color: #f8fafc;
-            outline: none;
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-[#f1f5f9] text-gray-900 antialiased min-h-screen pb-12">
+<body class="bg-slate-100 font-sans flex flex-col md:flex-row h-screen overflow-hidden">
 
-    <!-- Top Action Bar (No Print) -->
-    <div class="bg-white border-b border-gray-200 py-4 px-6 mb-8 no-print sticky top-0 z-50 shadow-sm">
-        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md shadow-blue-200">
-                    <i class="fa-solid fa-file-invoice text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-extrabold tracking-tight text-gray-900">Facturer <span class="text-blue-600">Gratuit</span></h1>
-                    <p class="text-xs text-gray-500 font-medium">Générateur de facture professionnel</p>
-                </div>
+    <div class="no-print w-full md:w-1/3 bg-white shadow-xl h-full p-6 overflow-y-auto flex flex-col gap-5 border-r border-slate-200">
+        <div class="flex items-center gap-2.5">
+            <div class="bg-blue-600 text-white p-2 rounded-lg">
+                <i class="fa-solid fa-sliders text-sm"></i>
             </div>
-            
-            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <button onclick="addRow()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-4 py-2.5 rounded-xl text-sm transition flex items-center gap-2 cursor-pointer border border-gray-200">
-                    <i class="fa-solid fa-plus text-xs text-gray-500"></i> Ajouter Ligne
-                </button>
-                <button onclick="generatePDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-100">
-                    <i class="fa-solid fa-download"></i> Télécharger PDF
-                </button>
+            <div>
+                <h1 class="text-lg font-bold text-slate-800">Facture Customizer</h1>
+                <p class="text-xs text-slate-500">Générateur intelligent pour Artisans & Indépendants</p>
             </div>
         </div>
+
+        <hr class="border-slate-200">
+
+        <div class="flex flex-col gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
+                <i class="fa-regular fa-image"></i> Logo de l'entreprise
+            </h2>
+            <input type="file" id="logo-input" accept="image/*" class="text-xs text-slate-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" onchange="loadLogo(event)">
+            
+            <div id="logo-controls" class="hidden flex flex-col gap-2 mt-2">
+                <div class="flex justify-between items-center">
+                    <label class="text-[11px] font-medium text-slate-600">Logo Width (px)</label>
+                    <span id="logo-width-val" class="text-[11px] font-bold text-blue-600">120px</span>
+                </div>
+                <input type="range" id="logo-width-slider" min="30" max="300" value="120" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="resizeLogo()">
+                <button onclick="removeLogo()" class="text-[10px] font-semibold text-red-600 hover:text-red-800 text-left mt-1 cursor-pointer">✕ Remove Logo</button>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
+                <i class="fa-solid fa-font"></i> 1. Typographie (30+)
+            </h2>
+            <div>
+                <select id="font-family-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateStyles()">
+                    <option value="font-family: 'Inter', sans-serif;">Inter (Modern)</option>
+                    <option value="font-family: 'Roboto', sans-serif;">Roboto (Standard)</option>
+                    <option value="font-family: 'Poppins', sans-serif;">Poppins (Clean)</option>
+                    <option value="font-family: 'Montserrat', sans-serif;">Montserrat (Professional)</option>
+                    <option value="font-family: 'Open Sans', sans-serif;">Open Sans</option>
+                    <option value="font-family: 'Lato', sans-serif;">Lato</option>
+                    <option value="font-family: 'Oswald', sans-serif;">Oswald</option>
+                    <option value="font-family: 'Raleway', sans-serif;">Raleway</option>
+                    <option value="font-family: 'Merriweather', serif;">Merriweather</option>
+                    <option value="font-family: 'Playfair Display', serif;">Playfair Display</option>
+                    <option value="font-family: 'Courier Prime', monospace;">Courier Prime</option>
+                    <option value="font-family: 'PT Sans', sans-serif;">PT Sans</option>
+                    <option value="font-family: 'Ubuntu', sans-serif;">Ubuntu</option>
+                    <option value="font-family: 'Nunito', sans-serif;">Nunito</option>
+                    <option value="font-family: 'Lora', serif;">Lora</option>
+                    <option value="font-family: 'Quicksand', sans-serif;">Quicksand</option>
+                    <option value="font-family: 'Barlow', sans-serif;">Barlow</option>
+                    <option value="font-family: 'Bebas Neue', sans-serif;">Bebas Neue</option>
+                    <option value="font-family: 'Caveat', cursive;">Caveat</option>
+                    <option value="font-family: 'Cinzel', serif;">Cinzel</option>
+                    <option value="font-family: 'Comfortaa', cursive;">Comfortaa</option>
+                    <option value="font-family: 'Crimson Text', serif;">Crimson Text</option>
+                    <option value="font-family: 'Fira Sans', sans-serif;">Fira Sans</option>
+                    <option value="font-family: 'Inconsolata', monospace;">Inconsolata</option>
+                    <option value="font-family: 'Josefin Sans', sans-serif;">Josefin Sans</option>
+                    <option value="font-family: 'Kanit', sans-serif;">Kanit</option>
+                    <option value="font-family: 'Lobster', cursive;">Lobster</option>
+                    <option value="font-family: 'Mukta', sans-serif;">Mukta</option>
+                    <option value="font-family: 'Pacifico', cursive;">Pacifico</option>
+                    <option value="font-family: 'Rubik', sans-serif;">Rubik</option>
+                    <option value="font-family: 'Titan One', cursive;">Titan One</option>
+                    <option value="font-family: 'Work Sans', sans-serif;">Work Sans</option>
+                </select>
+            </div>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-xs font-medium text-slate-600">Font Size</label>
+                    <span id="size-val" class="text-xs font-bold text-blue-600">13px</span>
+                </div>
+                <input type="range" id="font-size-slider" min="10" max="22" value="13" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="updateStyles()">
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="font-bold-toggle" class="w-4 h-4 text-blue-600 border-slate-300 rounded cursor-pointer" onchange="updateStyles()">
+                <label for="font-bold-toggle" class="text-xs font-semibold text-slate-700 cursor-pointer">B (Bold Texte Global)</label>
+            </div>
+        </div>
+
+        <hr class="border-slate-100">
+
+        <div class="flex flex-col gap-3">
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
+                <i class="fa-solid fa-palette"></i> 2. Couleurs (30+)
+            </h2>
+            <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1">Couleur du Texte / Éléments</label>
+                <select id="font-color-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateStyles()">
+                    <option value="#1e293b">Slate (Charcoal Default)</option>
+                    <option value="#000000">Pure Black</option>
+                    <option value="#1e3a8a">Dark Blue</option>
+                    <option value="#0f766e">Teal</option>
+                    <option value="#15803d">Green</option>
+                    <option value="#b91c1c">Red</option>
+                    <option value="#6b21a8">Purple</option>
+                    <option value="#b45309">Amber</option>
+                    <option value="#4338ca">Indigo</option>
+                    <option value="#22d3ee">Cyan Dark</option><option value="#4d7c0f">Lime Dark</option><option value="#c2410c">Orange</option><option value="#0369a1">Sky Blue</option><option value="#db2777">Pink</option><option value="#57534e">Stone</option><option value="#3b82f6">Blue Light</option><option value="#10b981">Emerald</option><option value="#6366f1">Indigo Light</option><option value="#8b5cf6">Violet</option><option value="#ec4899">Pink Light</option><option value="#f43f5e">Rose</option><option value="#0284c7">Sky Light</option><option value="#047857">Emerald Dark</option><option value="#065f46">Deep Teal</option><option value="#701a75">Deep Purple</option><option value="#7c2d12">Deep Orange</option><option value="#581c87">Royal Violet</option><option value="#451a03">Wood Brown</option><option value="#052e16">Forest Green</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1">Fond de la Facture</label>
+                <select id="bg-color-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateStyles()">
+                    <option value="background: #ffffff;">Pure White</option>
+                    <option value="background: #f8fafc;">Off-White</option>
+                    <option value="background: #f4f4f5;">Soft Gray</option>
+                    <option value="background: #fdf2f8;">Soft Pink</option>
+                    <option value="background: #f0fdf4;">Soft Green</option>
+                    <option value="background: #eff6ff;">Soft Blue</option>
+                    <option value="background: linear-gradient(135deg, #ffffff, #f1f5f9);">Gradient: White to Slate</option>
+                    <option value="background: linear-gradient(135deg, #ffffff, #e0f2fe);">Gradient: White to Sky</option>
+                    <option value="background: linear-gradient(135deg, #ffffff, #dcfce7);">Gradient: White to Emerald</option>
+                    <option value="background: #f0fdfa;">Mint Light</option><option value="#fff1f2">Rose Light</option><option value="background: #f0f9ff;">Sky Soft</option><option value="background: #f5f5f4;">Stone Soft</option><option value="background: #fef2f2;">Red Soft</option><option value="background: #fffbfa;">Warm Tint</option><option value="background: linear-gradient(to right, #ffffff, #f8fafc);">Linear Soft</option><option value="background: linear-gradient(to bottom, #ffffff, #f4f4f5);">Top-Down Gray</option><option value="background: #e0f7fa;">Cyan Tint</option><option value="background: #e8f5e9;">Green Tint</option><option value="background: #f3e5f5;">Purple Tint</option><option value="background: #fff3e0;">Orange Tint</option><option value="background: #efebe9;">Brown Tint</option><option value="background: #eceff1;">Blue-Gray Tint</option><option value="background: #f9fbe7;">Lime Tint</option><option value="background: linear-gradient(135deg, #fff, #f5f5f4);">Stone Gradient</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1">
+                <i class="fa-solid fa-layer-group"></i> 3. Structures de Page
+            </h2>
+            <select id="layout-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateLayout()">
+                <option value="layout-classic">Classic Business</option>
+                <option value="layout-modern">Modern Creative</option>
+                <option value="layout-minimal">Minimalist</option>
+                <option value="layout-bold">Bold Artistic</option>
+                <option value="layout-boxed">Boxed Container</option>
+            </select>
+        </div>
+
+        <hr class="border-slate-200">
+
+        <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer text-sm">
+            <i class="fa-solid fa-print"></i> Imprimer / Enregistrer en PDF
+        </button>
     </div>
 
-    <!-- Main Workspace Container -->
-    <div class="max-w-5xl mx-auto px-4">
+    <div class="w-full md:w-2/3 h-full p-4 md:p-6 overflow-y-auto flex flex-col justify-start items-center gap-8">
         
-        <!-- Editable Invoice Structure -->
-        <div id="invoice-card" class="invoice-box bg-white p-8 sm:p-12 rounded-2xl shadow-xl shadow-gray-200/80 border border-gray-100 relative">
+        <div id="facture-preview" class="w-[210mm] min-h-[297mm] max-h-[297mm] bg-white shadow-2xl p-10 border border-slate-200 flex flex-col justify-between transition-all duration-300 rounded-sm">
             
-            <!-- Company Header Details -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 border-b border-gray-100 pb-10">
-                <!-- Left Details (Issuer) -->
-                <div class="space-y-4">
-                    <input type="text" placeholder="Votre Nom / Entreprise" class="text-2xl font-extrabold text-gray-900 border-b border-dashed border-gray-200 hover:border-gray-400 focus:border-blue-500 w-full pb-1 transition placeholder-gray-300">
-                    <div class="space-y-2.5 text-sm">
-                        <div class="flex items-center gap-2 text-gray-400">
-                            <i class="fa-solid fa-location-dot w-4 text-center text-gray-300 text-xs"></i>
-                            <input type="text" placeholder="Adresse complète" class="border-b border-dashed border-gray-100 hover:border-gray-300 focus:border-blue-500 w-full py-0.5 text-gray-700">
+            <div id="layout-wrapper" class="flex flex-col gap-6 h-full justify-between">
+                
+                <div id="section-header" class="flex justify-between items-start border-b border-slate-200 pb-4">
+                    <div class="flex flex-col gap-2">
+                        <div id="logo-container" class="hidden mb-1">
+                            <img id="facture-logo" src="" alt="Logo" class="max-h-[100px] object-contain">
                         </div>
-                        <div class="flex items-center gap-2 text-gray-400">
-                            <i class="fa-solid fa-city w-4 text-center text-gray-300 text-xs"></i>
-                            <input type="text" placeholder="Code Postal & Ville" class="border-b border-dashed border-gray-100 hover:border-gray-300 focus:border-blue-500 w-full py-0.5 text-gray-700">
+                        <h2 class="text-2xl font-extrabold tracking-tight" contenteditable="true">VOTRE ENTREPRISE</h2>
+                        <p class="text-xs text-slate-500 leading-relaxed" contenteditable="true">123 Rue de la Rénovation, 60180 Nogent-sur-Oise<br>SIRET: 123 456 789 00012 | Code NAF: 4334Z<br>Email: contact@entreprise.fr | Tel: 06 00 00 00 00</p>
+                    </div>
+                    <div class="text-right">
+                        <h1 id="layout-title-style" class="text-3xl font-black text-slate-400 tracking-wider">FACTURE</h1>
+                        <p class="text-xs font-bold mt-1 text-slate-600" contenteditable="true">N° Facture: F2026-001</p>
+                        <p class="text-xs text-slate-500" contenteditable="true">Date: 24/06/2026</p>
+                    </div>
+                </div>
+
+                <div id="section-details" class="grid grid-cols-2 gap-4 my-1">
+                    <div class="bg-slate-50/70 p-4 rounded-xl border border-slate-100">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Facturer À:</span>
+                        <p class="font-bold text-slate-800 text-sm" contenteditable="true">Nom du Client / Société</p>
+                        <p class="text-xs text-slate-500 mt-0.5 leading-relaxed" contenteditable="true">456 Avenue des Travaux<br>75000 Paris, France</p>
+                    </div>
+                    <div class="text-right flex flex-col justify-end p-2 space-y-1">
+                        <p class="text-xs text-slate-500" contenteditable="true"><strong>Mode de Paiement:</strong> Virement Bancaire</p>
+                        <p class="text-xs text-slate-500" contenteditable="true"><strong>Échéance:</strong> À réception</p>
+                    </div>
+                </div>
+
+                <div id="section-table" class="flex-grow overflow-hidden my-2">
+                    <table class="w-full text-left border-collapse" id="invoice-items-table">
+                        <thead>
+                            <tr class="border-b-2 border-slate-300 text-xs font-bold uppercase tracking-wider text-slate-600">
+                                <th class="py-2.5 pl-1">Description des Travaux / Prestations</th>
+                                <th class="py-2.5 text-center w-16">Qté</th>
+                                <th class="py-2.5 text-right w-28">Prix U. HT</th>
+                                <th class="py-2.5 text-right pr-1 w-28">Total HT</th>
+                                <th class="py-2.5 text-center w-10 no-print"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            <tr class="item-row">
+                                <td class="py-3 pl-1 font-medium text-slate-800" contenteditable="true">Travaux de Peinture (Salon + Couloir)</td>
+                                <td class="py-3 text-center qty-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">1</td>
+                                <td class="py-3 text-right price-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">1200.00</td>
+                                <td class="py-3 text-right font-bold total-cell font-mono text-slate-900">1200.00 €</td>
+                                <td class="py-3 text-center no-print">
+                                    <button onclick="deleteRow(this)" class="text-slate-300 hover:text-red-500 cursor-pointer transition"><i class="fa-regular fa-trash-can"></i></button>
+                                </td>
+                            </tr>
+                            <tr class="item-row">
+                                <td class="py-3 pl-1 font-medium text-slate-800" contenteditable="true">Application d'enduit de lissage & Ponçage</td>
+                                <td class="py-3 text-center qty-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">1</td>
+                                <td class="py-3 text-right price-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">450.00</td>
+                                <td class="py-3 text-right font-bold total-cell font-mono text-slate-900">450.00 €</td>
+                                <td class="py-3 text-center no-print">
+                                    <button onclick="deleteRow(this)" class="text-slate-300 hover:text-red-500 cursor-pointer transition"><i class="fa-regular fa-trash-can"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button onclick="addNewRow()" class="no-print mt-4 text-xs bg-slate-50 text-slate-600 font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 hover:text-slate-800 transition cursor-pointer flex items-center gap-1">
+                        <i class="fa-solid fa-plus text-[10px]"></i> Ajouter une ligne
+                    </button>
+                </div>
+
+                <div id="section-totals" class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-200 pt-5 mt-auto">
+                    <div class="space-y-3">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Mentions Légales & Règlements</span>
+                        <p class="text-[11px] text-slate-500 leading-relaxed bg-slate-50/50 p-3 rounded-xl border border-slate-100" id="legal-notice-text" contenteditable="true">En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée. Aucun escompte consenti pour paiement anticipé.</p>
+                        <div class="text-[10px] text-slate-400 font-mono" contenteditable="true">IBAN: FR76 3000 6000 1234 5678 9012 345</div>
+                    </div>
+                    <div class="w-full md:w-80 ml-auto flex flex-col gap-2 text-right bg-slate-50/50 p-4 rounded-xl border border-slate-100 h-fit">
+                        <div class="flex justify-between text-xs text-slate-600">
+                            <span>Total HT:</span>
+                            <span class="font-mono font-bold text-slate-800" id="subtotal-ht-val">1650.00 €</span>
                         </div>
-                        <div class="flex items-center gap-2 text-gray-400">
-                            <i class="fa-solid fa-id-card w-4 text-center text-gray-300 text-xs"></i>
-                            <input type="text" placeholder="N° SIRET" class="border-b border-dashed border-gray-100 hover:border-gray-300 focus:border-blue-500 w-full py-0.5 text-gray-700 font-mono text-xs tracking-wide">
+                        <div class="flex justify-between text-xs text-slate-600 items-center justify-end gap-1">
+                            <span>TVA (<span id="tva-rate" class="font-mono font-bold underline cursor-pointer bg-white px-1.5 py-0.5 rounded border border-slate-200" contenteditable="true" oninput="calculateRowTotals()">20</span>%):</span>
+                            <span class="font-mono font-semibold" id="tva-amount-val">330.00 €</span>
                         </div>
-                        <div class="flex items-center gap-2 text-gray-400">
-                            <i class="fa-solid fa-envelope w-4 text-center text-gray-300 text-xs"></i>
-                            <input type="text" placeholder="Téléphone / Email" class="border-b border-dashed border-gray-100 hover:border-gray-300 focus:border-blue-500 w-full py-0.5 text-gray-700">
+                        <div class="flex justify-between border-t border-slate-200 pt-2 text-sm font-black text-slate-900">
+                            <span>Net à Payer:</span>
+                            <span class="font-mono text-blue-600 text-base" id="final-total-val">1980.00 €</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Details (Metadata) -->
-                <div class="md:text-right flex flex-col justify-between items-start md:items-end space-y-6">
-                    <div class="w-full sm:w-auto">
-                        <input type="text" value="FACTURE" class="text-4xl font-black text-gray-900 md:text-right border-b border-dashed border-transparent hover:border-gray-300 focus:border-blue-500 w-full tracking-tight">
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4 w-full sm:w-72 text-sm bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-                        <div>
-                            <span class="text-xs uppercase font-bold text-gray-400 block tracking-wider mb-1">N° Facture</span>
-                            <input type="text" value="F-2026-001" class="font-mono font-bold text-gray-800 border-b border-dashed border-gray-200 focus:border-blue-500 w-full bg-transparent">
-                        </div>
-                        <div>
-                            <span class="text-xs uppercase font-bold text-gray-400 block tracking-wider mb-1">Date</span>
-                            <input type="date" id="invoice-date" class="font-medium text-gray-800 border-b border-dashed border-gray-200 focus:border-blue-500 w-full bg-transparent">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Client Information Block -->
-            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-6 sm:p-8 my-10 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <span class="text-xs uppercase font-extrabold text-blue-600 block tracking-widest mb-3">Facturer À (Client)</span>
-                    <input type="text" placeholder="Nom du Client / Société" class="font-bold text-gray-800 text-lg border-b border-dashed border-gray-300 focus:border-blue-500 w-full mb-3 bg-transparent placeholder-gray-400">
-                    <textarea placeholder="Adresse complète du destinataire" rows="2" class="text-sm text-gray-600 border-b border-dashed border-gray-200 focus:border-blue-500 w-full resize-none bg-transparent placeholder-gray-400"></textarea>
-                </div>
-                <div class="flex flex-col justify-end md:items-end">
-                    <div class="w-full sm:w-56 text-sm">
-                        <span class="text-xs uppercase font-bold text-gray-400 block tracking-wider mb-1">Conditions d'échéance</span>
-                        <input type="text" value="À réception" class="border-b border-dashed border-gray-200 focus:border-blue-500 w-full font-medium text-gray-700 bg-transparent">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Items Table Dynamic UI -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-gray-200 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            <th class="pb-3 pl-2 w-7/12">Description des prestations</th>
-                            <th class="pb-3 text-center w-1/12">Qté</th>
-                            <th class="pb-3 text-right w-2/12">Prix U. HT</th>
-                            <th class="pb-3 text-right pr-2 w-2/12">Total HT</th>
-                            <th class="pb-3 text-center w-1/12 no-print"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="invoice-rows" class="divide-y divide-gray-100">
-                        <!-- Default Blank / Editable Row template -->
-                        <tr class="group align-top">
-                            <td class="py-4 pl-2">
-                                <textarea placeholder="Détail de la prestation ou des travaux..." rows="1" class="w-full text-sm font-medium text-gray-800 border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded resize-none transition duration-150"></textarea>
-                            </td>
-                            <td class="py-4 text-center">
-                                <input type="number" value="1" min="1" oninput="calculateRow(this)" class="w-full text-center font-mono text-sm font-semibold text-gray-700 border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded transition">
-                            </td>
-                            <td class="py-4 text-right">
-                                <div class="flex items-center justify-end font-mono text-sm font-semibold text-gray-700">
-                                    <input type="number" value="0.00" step="0.01" min="0" oninput="calculateRow(this)" class="w-full text-right border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded pr-1 transition">
-                                    <span class="text-gray-400">€</span>
-                                </div>
-                            </td>
-                            <td class="py-4 text-right pr-2 font-mono font-bold text-sm text-gray-900">
-                                <span class="row-total">0.00</span> €
-                            </td>
-                            <td class="py-4 text-center no-print">
-                                <button onclick="deleteRow(this)" class="text-gray-300 hover:text-red-500 p-1 transition cursor-pointer">
-                                    <i class="fa-regular fa-trash-can text-sm"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Totals and Financial/Legal Summary Footer -->
-            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-gray-100">
-                <!-- Left Side: Bank Details + Dynamic legal notice block -->
-                <div class="space-y-4">
-                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-                        <label class="text-xs uppercase font-bold text-gray-400 block tracking-wider mb-2">Règlement / IBAN</label>
-                        <textarea placeholder="Mode de règlement : Virement bancaire&#10;Titulaire : &#10;IBAN : FR76 ...&#10;BIC : ..." rows="3" class="w-full p-2 text-xs font-mono text-gray-600 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-400 resize-none"></textarea>
-                    </div>
-                    
-                    <!-- Auto triggered Auto-entrepreneur 293B mention space -->
-                    <div id="legal-notice" class="bg-amber-50 text-amber-800 p-3.5 rounded-xl border border-amber-100 text-xs font-medium flex gap-2 items-start transition duration-200">
-                        <i class="fa-solid fa-scale-balanced mt-0.5 text-amber-500"></i>
-                        <span>TVA non applicable, art. 293 B du CGI. (Micro-entreprise)</span>
-                    </div>
-                </div>
-
-                <!-- Right Side: Exact Financial Calculation Layout -->
-                <div class="bg-gray-50/80 rounded-2xl p-6 border border-gray-100 space-y-3.5 w-full sm:w-80 ml-auto h-fit">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-500 font-medium">Total HT</span>
-                        <span class="font-mono font-bold text-gray-900"><span id="total-ht">0.00</span> €</span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500 font-medium flex items-center gap-1">
-                            TVA (<input type="number" id="tva-rate" value="0" min="0" max="100" oninput="calculateTotal()" class="w-12 text-center font-mono font-bold text-blue-600 bg-white border border-gray-200 rounded p-0.5 focus:outline-none focus:border-blue-500">%):
-                        </span>
-                        <span class="font-mono font-semibold text-gray-700"><span id="total-tva">0.00</span> €</span>
-                    </div>
-                    <div class="border-t border-gray-200 pt-3.5 flex justify-between items-center">
-                        <span class="text-base font-extrabold tracking-tight text-gray-900">NET À PAYER</span>
-                        <span class="font-mono text-xl font-black text-blue-600"><span id="net-a-payer">0.00</span> €</span>
-                    </div>
+                <div id="section-footer" class="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-3 mt-2" contenteditable="true">
+                    Merci de votre confiance ! Document généré gratuitement sur FacturerGratuit.com
                 </div>
             </div>
         </div>
 
-        <!-- Google SEO Informative Marketing Content Block (No Print) -->
-        <div class="mt-8 bg-white p-8 rounded-2xl border border-gray-200 shadow-sm no-print">
-            <h2 class="text-lg font-bold text-gray-900 mb-2">Facturation Professionnelle Simplifiée</h2>
-            <p class="text-sm text-gray-500 leading-relaxed">
-                Générez des documents d'aspect professionnel conformes aux réglementations françaises. Remplissez simplement les détails requis à l'écran, ajustez le taux de TVA et exportez instantanément votre PDF propre. Idéal pour les artisans et auto-entrepreneurs à la recherche d'une interface rapide et efficace.
+        <div class="w-[210mm] bg-white p-8 rounded-xl border border-slate-200 shadow-sm no-print mb-8">
+            <h2 class="text-base font-bold text-slate-800 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-square-rss text-blue-600"></i> Comment fonctionne l'outil Facturer Gratuit ?</h2>
+            <p class="text-xs text-slate-500 leading-relaxed mb-3">
+                Cet outil est un générateur de factures interactif conçu spécialement pour les micro-entreprises, artisans peintres, plaquistes, et indépendants basés en France. Il vous permet de personnaliser instantanément la police (plus de 30 typographies Google Fonts intégrées), d'ajouter le logo de votre entreprise, et de basculer entre différents modèles de mise en page professionnels (Classic, Modern, Minimalist).
+            </p>
+            <h3 class="text-xs font-bold text-slate-700 mb-1">✓ Franchise de TVA & Conformité Legale (Art. 293 B du CGI)</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Pour les auto-entrepreneurs non assujettis à la TVA, il suffit de cliquer sur le pourcentage de TVA et de le régler à <strong class="text-slate-800">0</strong>. Le moteur de calcul modifiera instantanément le montant et insérera automatiquement la mention légale obligatoire : <em class="text-slate-700">"TVA non applicable, art. 293 B du CGI."</em> à la place des conditions standard.
             </p>
         </div>
     </div>
 
-    <!-- Professional Footer (No Print) -->
-    <footer class="text-center mt-12 text-xs text-gray-400 no-print">
-        <p>&copy; 2026 Facturer Gratuit. Tous droits réservés. Vos données restent privées et ne quittent jamais votre navigateur.</p>
-    </footer>
-
-    <!-- Core App Logic Javascript scripts -->
     <script>
-        document.getElementById('invoice-date').valueAsDate = new Date();
+        // 1. LOGO UPLOAD & HANDLING
+        function loadLogo(event) {
+            const container = document.getElementById('logo-container');
+            const logoImg = document.getElementById('facture-logo');
+            const controls = document.getElementById('logo-controls');
+            
+            logoImg.src = URL.createObjectURL(event.target.files[0]);
+            container.classList.remove('hidden');
+            controls.classList.remove('hidden');
+        }
 
-        function addRow() {
-            const tbody = document.getElementById('invoice-rows');
+        function resizeLogo() {
+            const widthValue = document.getElementById('logo-width-slider').value;
+            document.getElementById('logo-width-val').innerText = widthValue + 'px';
+            document.getElementById('facture-logo').style.width = widthValue + 'px';
+        }
+
+        function removeLogo() {
+            document.getElementById('logo-container').classList.add('hidden');
+            document.getElementById('logo-controls').classList.add('hidden');
+            document.getElementById('logo-input').value = "";
+        }
+
+        // 2. MATHEMATICAL CALCULATION ENGINE
+        function calculateRowTotals() {
+            const rows = document.querySelectorAll('.item-row');
+            let overallSubtotalHT = 0;
+
+            rows.forEach(row => {
+                const qtyText = row.querySelector('.qty-cell').innerText.replace(/[^\d.-]/g, '') || 0;
+                const priceText = row.querySelector('.price-cell').innerText.replace(/[^\d.-]/g, '') || 0;
+                
+                const qty = parseFloat(qtyText);
+                const price = parseFloat(priceText);
+                
+                const totalHT = qty * price;
+                overallSubtotalHT += totalHT;
+
+                row.querySelector('.total-cell').innerText = totalHT.toFixed(2) + " €";
+            });
+
+            // Read live editable TVA text node
+            const tvaRateText = document.getElementById('tva-rate').innerText.replace(/[^\d.-]/g, '') || 0;
+            const tvaRate = parseFloat(tvaRateText);
+
+            const tvaAmount = overallSubtotalHT * (tvaRate / 100);
+            const finalTotalTTC = overallSubtotalHT + tvaAmount;
+
+            // Render Output values
+            document.getElementById('subtotal-ht-val').innerText = overallSubtotalHT.toFixed(2) + " €";
+            document.getElementById('tva-amount-val').innerText = tvaAmount.toFixed(2) + " €";
+            document.getElementById('final-total-val').innerText = finalTotalTTC.toFixed(2) + " €";
+
+            // France Article 293 B auto activation clause
+            const legalNotice = document.getElementById('legal-notice-text');
+            if (tvaRate === 0) {
+                legalNotice.innerText = "TVA non applicable, art. 293 B du CGI. En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.";
+            }
+        }
+
+        // 3. TABLE ROW ADD & DELETE ACTIONS
+        function addNewRow() {
+            const tbody = document.querySelector('#invoice-items-table tbody');
             const tr = document.createElement('tr');
-            tr.className = "group align-top border-b border-gray-50";
+            tr.className = "item-row";
             tr.innerHTML = `
-                <td class="py-4 pl-2">
-                    <textarea placeholder="Détail de la prestation..." rows="1" class="w-full text-sm font-medium text-gray-800 border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded resize-none transition duration-150"></textarea>
-                </td>
-                <td class="py-4 text-center">
-                    <input type="number" value="1" min="1" oninput="calculateRow(this)" class="w-full text-center font-mono text-sm font-semibold text-gray-700 border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded transition">
-                </td>
-                <td class="py-4 text-right">
-                    <div class="flex items-center justify-end font-mono text-sm font-semibold text-gray-700">
-                        <input type="number" value="0.00" step="0.01" min="0" oninput="calculateRow(this)" class="w-full text-right border-b border-transparent hover:border-gray-200 focus:border-blue-500 p-1 rounded pr-1 transition">
-                        <span class="text-gray-400">€</span>
-                    </div>
-                </td>
-                <td class="py-4 text-right pr-2 font-mono font-bold text-sm text-gray-900">
-                    <span class="row-total">0.00</span> €
-                </td>
-                <td class="py-4 text-center no-print">
-                    <button onclick="deleteRow(this)" class="text-gray-300 hover:text-red-500 p-1 transition cursor-pointer">
-                        <i class="fa-regular fa-trash-can text-sm"></i>
-                    </button>
+                <td class="py-3 pl-1 font-medium text-slate-800" contenteditable="true">Nouvelle prestation / Description...</td>
+                <td class="py-3 text-center qty-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">1</td>
+                <td class="py-3 text-right price-cell font-mono" contenteditable="true" oninput="calculateRowTotals()">0.00</td>
+                <td class="py-3 text-right font-bold total-cell font-mono text-slate-900">0.00 €</td>
+                <td class="py-3 text-center no-print">
+                    <button onclick="deleteRow(this)" class="text-slate-300 hover:text-red-500 cursor-pointer transition"><i class="fa-regular fa-trash-can"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
+            calculateRowTotals();
         }
 
         function deleteRow(button) {
             const row = button.closest('tr');
-            const tbody = document.getElementById('invoice-rows');
-            if (tbody.rows.length > 1) {
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length > 1) {
                 row.remove();
-                calculateTotal();
-            }
-        }
-
-        function calculateRow(input) {
-            const row = input.closest('tr');
-            const qty = parseFloat(row.cells[1].querySelector('input').value) || 0;
-            const price = parseFloat(row.cells[2].querySelector('input').value) || 0;
-            const total = qty * price;
-            row.cells[3].querySelector('.row-total').textContent = total.toFixed(2);
-            calculateTotal();
-        }
-
-        function calculateTotal() {
-            let totalHT = 0;
-            document.querySelectorAll('.row-total').forEach(span => {
-                totalHT += parseFloat(span.textContent) || 0;
-            });
-
-            const tvaRate = parseFloat(document.getElementById('tva-rate').value) || 0;
-            const totalTVA = totalHT * (tvaRate / 100);
-            const netAPayer = totalHT + totalTVA;
-
-            document.getElementById('total-ht').textContent = totalHT.toFixed(2);
-            document.getElementById('total-tva').textContent = totalTVA.toFixed(2);
-            document.getElementById('net-a-payer').textContent = netAPayer.toFixed(2);
-
-            const legalNotice = document.getElementById('legal-notice');
-            if (tvaRate === 0) {
-                legalNotice.style.display = 'flex';
+                calculateRowTotals();
             } else {
-                legalNotice.style.display = 'none';
+                alert("Votre facture doit contenir au moins une ligne de prestation.");
             }
         }
 
-        function generatePDF() {
-            const element = document.getElementById('invoice-card');
+        // 4. STYLE LIVE ADJUSTMENTS
+        function updateStyles() {
+            const preview = document.getElementById('facture-preview');
+            const fontFamily = document.getElementById('font-family-select').value;
+            const fontSize = document.getElementById('font-size-slider').value;
+            document.getElementById('size-val').innerText = fontSize + 'px';
             
-            const style = document.createElement('style');
-            style.innerHTML = 'input, textarea { border-bottom-color: transparent !important; background: transparent !important; } .invoice-box { box-shadow: none !important; border: none !important; }';
-            document.head.appendChild(style);
-
-            const opt = {
-                margin:       [0.4, 0.4, 0.4, 0.4],
-                filename:     'Facture.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save().then(() => {
-                style.remove();
-            });
+            const isBold = document.getElementById('font-bold-toggle').checked;
+            const fontWeight = isBold ? 'font-weight: bold;' : 'font-weight: normal;';
+            const fontColor = document.getElementById('font-color-select').value;
+            
+            preview.style.cssText = `${fontFamily} font-size: ${fontSize}px; color: ${fontColor}; ${fontWeight}`;
+            
+            const bgStyle = document.getElementById('bg-color-select').value;
+            if(bgStyle.includes('gradient')) {
+                preview.style.background = bgStyle.replace('background: ', '').replace(';', '');
+            } else {
+                preview.style.backgroundColor = bgStyle.replace('background: ', '').replace(';', '');
+            }
         }
 
-        // Run initially
-        calculateTotal();
-    </script>
-</body>
-</html>
+        // 5. STRUCTURE STYLES TEMPLATE SWITCHER
+        function updateLayout() {
+            const wrapper = document.getElementById('layout-wrapper');
+            const layout = document.getElementById('layout-select').value;
+            const header = document.getElementById('section-header');
+            const details = document.getElementById('section-details');
+            const titleStyle = document.getElementById('layout-title-style');
+            const preview = document.getElementById('facture-preview');
+            
+            // Reset Base Defaults
+            header.className = "flex justify-between items-start border-b border-slate-200 pb-4 text-slate-800";
+            details.className = "grid grid-cols-2 gap-4 my-1";
+            titleStyle.className = "text-3xl font-black text-slate-400 tracking-wider";
+            preview.style.border = "1px solid #e2e8f0";
+            preview.style.borderLeft = "none";
+
+            if (layout === 'layout-modern') {
+                header.className = "flex justify-between items-start bg-slate-900 text-white p-6 -mx-10 -mt-10 mb-2";
+                details.className = "grid grid-cols-2 gap-6 my-2 border-l-4 border-slate-900 pl-4";
+                titleStyle.className = "text-3xl font-black text-slate-300 tracking-wider";
+            } else if (layout === 'layout-minimal') {
