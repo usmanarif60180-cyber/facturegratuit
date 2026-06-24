@@ -29,7 +29,7 @@
     <div class="no-print w-full md:w-1/3 bg-white shadow-xl h-full p-6 overflow-y-auto flex flex-col gap-5 border-r border-slate-200">
         <div>
             <h1 class="text-xl font-bold text-slate-800">Facture Customizer</h1>
-            <p class="text-xs text-slate-500">Logo, Fonts, Colors aur Automatic Calculations</p>
+            <p class="text-xs text-slate-500">Logo, Layouts, Prices aur Dynamic TVA Engine</p>
         </div>
 
         <hr class="border-slate-200">
@@ -135,8 +135,6 @@
             </div>
         </div>
 
-        <hr class="border-slate-100">
-
         <div class="flex flex-col gap-3">
             <h2 class="text-xs font-bold text-slate-700 tracking-wide uppercase">3. Page Layouts (30+)</h2>
             <select id="layout-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm" onchange="updateLayout()">
@@ -180,7 +178,7 @@
                     <div class="bg-slate-50/50 p-3 rounded-lg border border-slate-100">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Adressé à:</span>
                         <p class="font-bold text-slate-800" contenteditable="true">Nom du Client / Facturé</p>
-                        <p class="text-xs text-slate-500 mt-0.5  " contenteditable="true">456 Avenue des Travaux<br>75000 Paris, France</p>
+                        <p class="text-xs text-slate-500 mt-0.5" contenteditable="true">456 Avenue des Travaux<br>75000 Paris, France</p>
                     </div>
                     <div class="text-right flex flex-col justify-end p-3">
                         <p class="text-xs text-slate-500" contenteditable="true"><strong>Mode de Paiement:</strong> Virement Bancaire</p>
@@ -211,12 +209,6 @@
                                 <td class="py-2 text-right price-cell" contenteditable="true" oninput="calculateRowTotals()">450.00</td>
                                 <td class="py-2 text-right font-bold total-cell">450.00 €</td>
                             </tr>
-                            <tr class="item-row">
-                                <td class="py-2 font-medium" contenteditable="true">Fourniture des matériaux (Peinture blanche Premium)</td>
-                                <td class="py-2 text-center qty-cell" contenteditable="true" oninput="calculateRowTotals()">1</td>
-                                <td class="py-2 text-right price-cell" contenteditable="true" oninput="calculateRowTotals()">250.00</td>
-                                <td class="py-2 text-right font-bold total-cell">250.00 €</td>
-                            </tr>
                         </tbody>
                     </table>
                     <button onclick="addNewRow()" class="no-print mt-3 text-xs bg-slate-100 text-slate-700 font-medium px-2.5 py-1 rounded border border-slate-300 hover:bg-slate-200 cursor-pointer">+ Add New Row</button>
@@ -225,33 +217,33 @@
                 <div id="section-totals" class="flex justify-between items-end border-t border-slate-200 pt-4 mt-auto">
                     <div class="w-1/2">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mentions Légales:</p>
-                        <p class="text-[10px] text-slate-500 mt-0.5" contenteditable="true">TVA non applicable, art. 293 B du CGI. En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5" id="legal-notice-text" contenteditable="true">En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.</p>
                     </div>
                     <div class="w-1/3 flex flex-col gap-1 text-right">
                         <div class="flex justify-between text-xs text-slate-600">
                             <span>Total HT:</span>
-                            <span class="font-semibold" id="subtotal-ht-val">1900.00 €</span>
+                            <span class="font-semibold" id="subtotal-ht-val">1650.00 €</span>
                         </div>
-                        <div class="flex justify-between text-xs text-slate-600">
-                            <span>TVA (0%):</span>
-                            <span class="font-semibold">0.00 €</span>
+                        <div class="flex justify-between text-xs text-slate-600 items-center justify-end gap-1">
+                            <span>TVA (<span id="tva-rate" class="font-bold underline cursor-pointer bg-slate-50 px-1 rounded border border-slate-200" contenteditable="true" oninput="calculateRowTotals()">20</span>%):</span>
+                            <span class="font-semibold" id="tva-amount-val">330.00 €</span>
                         </div>
                         <div class="flex justify-between border-t border-slate-300 pt-1 text-sm font-black text-slate-900">
                             <span>Net à Payer:</span>
-                            <span id="final-total-val">1900.00 €</span>
+                            <span id="final-total-val">1980.00 €</span>
                         </div>
                     </div>
                 </div>
 
                 <div id="section-footer" class="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-3 mt-1" contenteditable="true">
-                    SIRET: 123 456 789 00012 | N° Capital: 5000€ | Code ATECO / NAF: 4334Z<br>Merci de votre confiance !
+                    SIRET: 123 456 789 00012 | Code NAF: 4334Z | Merci de votre confiance !
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // LOGO CORE ENGINE
+        // LOGO ENGINE
         function loadLogo(event) {
             const container = document.getElementById('logo-container');
             const logoImg = document.getElementById('facture-logo');
@@ -274,7 +266,7 @@
             document.getElementById('logo-input').value = "";
         }
 
-        // CALCULATION CORE ENGINE (Prix HT Live Modification)
+        // ADVANCED MATH ENGINE (HT, Dynamic TVA & TTC Calculations)
         function calculateRowTotals() {
             const rows = document.querySelectorAll('.item-row');
             let overallSubtotalHT = 0;
@@ -289,13 +281,27 @@
                 const totalHT = qty * price;
                 overallSubtotalHT += totalHT;
 
-                // Live dynamic assignment of row total column
                 row.querySelector('.total-cell').innerText = totalHT.toFixed(2) + " €";
             });
 
-            // Updating Bottom Summary Block
+            // Get live TVA rate from the editable content block
+            const tvaRateText = document.getElementById('tva-rate').innerText.replace(/[^\d.-]/g, '') || 0;
+            const tvaRate = parseFloat(tvaRateText);
+
+            // Calculate Math Blocks
+            const tvaAmount = overallSubtotalHT * (tvaRate / 100);
+            const finalTotalTTC = overallSubtotalHT + tvaAmount;
+
+            // Updating Auto Fields
             document.getElementById('subtotal-ht-val').innerText = overallSubtotalHT.toFixed(2) + " €";
-            document.getElementById('final-total-val').innerText = overallSubtotalHT.toFixed(2) + " €";
+            document.getElementById('tva-amount-val').innerText = tvaAmount.toFixed(2) + " €";
+            document.getElementById('final-total-val').innerText = finalTotalTTC.toFixed(2) + " €";
+
+            // Update legal notice if auto text based on 0% is required
+            const legalNotice = document.getElementById('legal-notice-text');
+            if (tvaRate === 0) {
+                legalNotice.innerText = "TVA non applicable, art. 293 B du CGI. En cas de retard de paiement, une indemnité forfaitaire de 40€ sera appliquée.";
+            }
         }
 
         function addNewRow() {
@@ -312,7 +318,7 @@
             calculateRowTotals();
         }
 
-        // VISUAL SYSTEM CONTROLS
+        // STYLE CONTROLS
         function updateStyles() {
             const preview = document.getElementById('facture-preview');
             const fontFamily = document.getElementById('font-family-select').value;
@@ -343,7 +349,6 @@
             details.className = "grid grid-cols-2 gap-4 my-1";
             wrapper.className = "flex flex-col gap-6 h-full justify-between";
             document.getElementById('facture-preview').style.border = "1px solid #e2e8f0";
-            document.getElementById('facture-preview').style.borderLeft = "1px solid #e2e8f0";
 
             if (layout === 'layout-modern') {
                 header.className = "flex flex-col md:flex-row justify-between items-start bg-slate-900 text-white p-5 -mx-8 -mt-8 rounded-t-sm mb-2";
@@ -361,6 +366,7 @@
         
         // Boot Initializer
         updateStyles();
+        calculateRowTotals();
     </script>
 </body>
 </html>
