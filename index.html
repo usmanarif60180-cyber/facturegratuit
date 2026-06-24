@@ -438,3 +438,39 @@
     </script>
 </body>
 </html>
+<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    ... (poora login code) ...
+  </div>
+
+  <div id="dashboardSidebar" class="fixed top-0 right-0 h-full w-80 bg-gray-900 text-white p-6 shadow-2xl... ">
+    ... (poora sidebar code) ...
+  </div>
+
+  <button id="openSidebarBtn" class="fixed bottom-5 right-5 bg-indigo-600... ">
+    📊 Dashboard
+  </button>
+
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
+      authDomain: "facturergratuit.firebaseapp.com",
+      projectId: "facturergratuit",
+      storageBucket: "facturergratuit.firebasestorage.app",
+      messagingSenderId: "520499696788",
+      appId: "1:520499696788:web:5bb4008f8b1aa328a31081",
+      measurementId: "G-JJCNL9THWD"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    console.log("Firebase Engine Successfully Loaded!");
+  </script>
+
+</body>
+</html>
