@@ -1,18 +1,2122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FacturePro — Générateur de Facture & Devis Gratuit</title>
+<meta name="description" content="Créez gratuitement des factures et devis professionnels pour bâtiment et automobile. PDF A4, TVA, IBAN/RIB, VIN, plaque, 30 thèmes, logo, signature et compte Firebase.">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta name="keywords" content="facture gratuit, devis gratuit, générateur facture, facture bâtiment, devis bâtiment, facture automobile, devis automobile, facture PDF, facture auto entrepreneur, modèle facture, modèle devis">
+<meta name="author" content="FacturePro">
+<meta name="application-name" content="FacturePro">
+<meta name="theme-color" content="#6366f1">
+<meta name="google-site-verification" content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso">
+<link rel="canonical" href="https://facturergratuit.firebaseapp.com/">
+<link rel="alternate" hreflang="fr" href="https://facturergratuit.firebaseapp.com/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="FacturePro">
+<meta property="og:title" content="FacturePro — Générateur de Facture & Devis Gratuit">
+<meta property="og:description" content="Générez des factures et devis PDF pour bâtiment et automobile avec TVA, IBAN/RIB, VIN, plaque, logo et 30 thèmes.">
+<meta property="og:url" content="https://facturergratuit.firebaseapp.com/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FacturePro — Générateur de Facture & Devis Gratuit">
+<meta name="twitter:description" content="Créez des factures et devis PDF professionnels gratuitement pour bâtiment et automobile.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "FacturePro",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "fr-FR",
+  "url": "https://facturergratuit.firebaseapp.com/",
+  "description": "Générateur gratuit de factures et devis PDF pour bâtiment et automobile avec TVA, IBAN/RIB, VIN, plaque, logo, signature et thèmes personnalisables.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  },
+  "featureList": [
+    "Facture bâtiment",
+    "Facture automobile",
+    "Devis bâtiment",
+    "Devis automobile",
+    "PDF A4",
+    "TVA",
+    "IBAN et RIB",
+    "VIN et plaque d'immatriculation",
+    "Compte Firebase"
+  ]
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Roboto:ital,wght@0,400;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,700;1,400&family=Poppins:ital,wght@0,400;0,700;1,400&family=Montserrat:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;700&family=Lato:wght@400;700&family=Raleway:wght@400;700&family=Oswald:wght@400;700&family=Bebas+Neue&family=Anton&family=Teko:wght@400;700&family=Exo+2:wght@400;700&family=Russo+One&family=Righteous&family=Audiowide&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700&family=Ubuntu:wght@400;700&family=Noto+Sans:wght@400;700&family=PT+Sans:wght@400;700&family=Mulish:wght@400;700&family=Karla:wght@400;700&family=Barlow:wght@400;700&family=Work+Sans:wght@400;700&family=DM+Sans:wght@400;700&family=Manrope:wght@400;700&family=Sora:wght@400;700&family=Outfit:wght@400;700&family=Figtree:wght@400;700&family=Jost:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700&family=Spectral:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;700&family=Fjalla+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @media print {
+    @page { size: A4 portrait; margin: 10mm; }
+    html, body { width: auto !important; min-height: auto !important; background: #fff !important; }
+    *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body * { visibility: hidden; }
+    #invoice-preview, #invoice-preview * { visibility: visible; }
+    #invoice-preview { position: absolute; left: 0; top: 0; width: 190mm !important; min-height: 277mm; margin: 0 !important; padding: 0 !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; overflow: visible !important; }
+    .no-print { display: none !important; }
+  }
+  :root {
+    --app-bg: #0a0e1a;
+    --surface: rgba(255,255,255,0.03);
+    --surface-hover: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.12);
+    --ink: #e2e8f0;
+    --ink-muted: #94a3b8;
+    --ink-dim: #475569;
+    --ink-faint: #334155;
+    --brand: #6366f1;
+    --brand-2: #8b5cf6;
+    --brand-glow: rgba(99,102,241,0.3);
+    --success: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--app-bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body.light {
+    --app-bg: #f6f8fb;
+    --surface: rgba(15,23,42,0.03);
+    --surface-hover: rgba(15,23,42,0.06);
+    --border: rgba(15,23,42,0.09);
+    --border-strong: rgba(15,23,42,0.16);
+    --ink: #0f172a;
+    --ink-muted: #475569;
+    --ink-dim: #64748b;
+    --ink-faint: #94a3b8;
+    --brand-glow: rgba(99,102,241,0.18);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+
+  /* Animated bg */
+  body::before {
+    content: "";
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse 80% 50% at 10% 0%, rgba(99,102,241,0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 90% 100%, rgba(139,92,246,0.06), transparent);
+  }
+  body.light::before {
+    background: radial-gradient(ellipse 80% 50% at 8% 0%, rgba(99,102,241,0.09), transparent),
+                radial-gradient(ellipse 60% 40% at 92% 100%, rgba(14,165,233,0.08), transparent);
+  }
+
+  /* Animations */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse-glow { 0%,100% { box-shadow:0 0 0 0 var(--brand-glow); } 50% { box-shadow:0 0 0 8px transparent; } }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .fade-up { animation: fadeUp .4s ease both; }
+
+  /* App layout */
+  #app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 56px;
+    background: rgba(10,14,26,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    animation: slideDown .35s ease both;
+  }
+  body.light .topbar { background: rgba(248,250,252,0.9); }
+  .topbar-logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,var(--brand),var(--brand-2)); display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 0 20px var(--brand-glow); }
+  .logo-text { font-size: 15px; font-weight: 800; color: #f1f5f9; letter-spacing: -0.02em; }
+  body.light .logo-text, body.light .hero-title, body.light .stat-val { color: #0f172a; }
+  .logo-badge { font-size: 9px; font-weight: 700; color: var(--brand); background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25); border-radius: 4px; padding: 1px 5px; letter-spacing: 0.06em; }
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+  .auth-actions { position: relative; display: flex; align-items: center; gap: 8px; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--border); }
+  .account-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; }
+  .account-menu { position: absolute; top: 40px; right: 0; min-width: 210px; background: rgba(15,23,42,.98); border: 1px solid var(--border-strong); border-radius: 10px; padding: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.45); display: none; z-index: 80; }
+  body.light .account-menu, body.light .auth-modal { background: rgba(255,255,255,.98); }
+  .account-menu.open { display: block; animation: fadeUp .16s ease both; }
+  .account-name { font-size: 12px; font-weight: 700; color: var(--ink); padding: 8px 9px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .account-email { font-size: 10px; color: var(--ink-dim); padding: 0 9px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+  .menu-item { width: 100%; justify-content: flex-start; border-radius: 8px; }
+  @media(max-width:760px) {
+    .topbar { height: auto; min-height: 56px; padding: 8px 12px; align-items: flex-start; gap: 10px; }
+    .topbar-actions { justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+    .auth-text { display: none; }
+  }
+
+  /* ── BUTTONS ── */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; border-radius: 10px; font-family: inherit; font-weight: 600; cursor: pointer; transition: all .15s ease; white-space: nowrap; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: translateY(0) scale(.98); }
+  .btn-sm { height: 32px; padding: 0 12px; font-size: 12px; }
+  .btn-md { height: 38px; padding: 0 16px; font-size: 13px; }
+  .btn-lg { height: 44px; padding: 0 22px; font-size: 14px; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border-strong); color: var(--ink-muted); }
+  .btn-ghost:hover { background: var(--surface-hover); color: var(--ink); border-color: rgba(255,255,255,0.2); }
+  .btn-primary { background: linear-gradient(135deg,var(--brand),var(--brand-2)); color: #fff; box-shadow: 0 4px 20px var(--brand-glow); }
+  .btn-primary:hover { box-shadow: 0 6px 28px var(--brand-glow); }
+  .btn-success { background: linear-gradient(135deg,#059669,#10b981); color:#fff; box-shadow:0 4px 16px rgba(16,185,129,.3); }
+  .btn-danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); color: #f87171; }
+  .btn-danger:hover { background: rgba(239,68,68,.18); }
+
+  /* Auth modal */
+  .modal-backdrop { position: fixed; inset: 0; z-index: 10000; background: rgba(2,6,23,.72); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop.open { display: flex; animation: fadeUp .18s ease both; }
+  .auth-modal { width: min(420px, 100%); background: rgba(15,23,42,.98); border: 1px solid var(--border-strong); border-radius: 14px; box-shadow: 0 30px 100px rgba(0,0,0,.55); overflow: hidden; }
+  .auth-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .auth-modal-title { font-size: 15px; font-weight: 800; color: #f8fafc; }
+  .auth-modal-sub { font-size: 11px; color: var(--ink-dim); margin-top: 2px; }
+  .auth-modal-body { padding: 16px 18px 18px; }
+  .auth-close { width: 30px; height: 30px; padding: 0; border-radius: 8px; }
+  .auth-switch { margin-top: 12px; font-size: 12px; color: var(--ink-dim); text-align: center; }
+  .auth-link { color: #a5b4fc; font-weight: 700; cursor: pointer; }
+
+  /* ── HERO ── */
+  .hero { padding: 24px 24px 18px; text-align: left; max-width: 1600px; width: 100%; margin: 0 auto; }
+  .hero-kicker { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 999px; background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.2); color: #a5b4fc; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 20px; }
+  .hero-title { font-size: clamp(24px,3vw,34px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.08; color: #f1f5f9; margin-bottom: 10px; }
+  .hero-title span { background: linear-gradient(135deg,var(--brand),var(--brand-2),#06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-sub { font-size: 13px; color: var(--ink-muted); max-width: 760px; margin: 0 0 14px; line-height: 1.6; }
+  .hero-ctas { display: flex; gap: 10px; justify-content: flex-start; flex-wrap: wrap; }
+
+  /* ── DOC TYPE SWITCH ── */
+  .doc-switcher { display: inline-flex; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 12px; padding: 4px; gap: 4px; }
+  .doc-tab { padding: 8px 24px; border-radius: 9px; border: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; transition: all .15s ease; }
+  .doc-tab.active { background: linear-gradient(135deg,var(--brand),var(--brand-2)); color: #fff; box-shadow: 0 4px 16px var(--brand-glow); }
+  .doc-tab:not(.active) { background: transparent; color: var(--ink-dim); }
+  .doc-tab:not(.active):hover { color: var(--ink-muted); }
+
+  /* ── MAIN LAYOUT ── */
+  .main-layout { display: grid; grid-template-columns: minmax(480px, 540px) minmax(0, 1fr); gap: 0; flex: 1; max-width: 1600px; width: 100%; margin: 0 auto; padding: 0 0 40px; border-top: 1px solid var(--border); }
+  @media(max-width:1100px) { .main-layout { grid-template-columns: 1fr; } }
+
+  /* ── SIDEBAR FORM ── */
+  .sidebar { padding: 0 18px 24px; border-right: 1px solid var(--border); background: rgba(8,13,25,.55); }
+  body.light .sidebar { background: rgba(255,255,255,.68); }
+  @media(max-width:1100px) { .sidebar { border-right: none; border-bottom: 1px solid var(--border); } }
+
+  /* Tabs */
+  .section-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); padding: 0; margin-bottom: 16px; overflow-x: auto; }
+  .section-tab { padding: 10px 14px; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .06em; transition: all .12s; white-space: nowrap; margin-bottom: -1px; }
+  .section-tab.active { color: #a5b4fc; border-bottom-color: var(--brand); }
+  .section-tab:hover:not(.active) { color: var(--ink-muted); }
+
+  /* Form groups */
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 10px; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+  .form-input { width: 100%; background: rgba(255,255,255,.04); border: 1px solid var(--border-strong); border-radius: 9px; padding: 9px 12px; font-size: 12px; color: var(--ink); font-family: inherit; transition: border-color .15s, box-shadow .15s; }
+  body.light .form-input { background: rgba(255,255,255,.9); }
+  .form-input:focus { outline: none; border-color: rgba(99,102,241,.6); box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+  .form-input::placeholder { color: var(--ink-faint); }
+  textarea.form-input { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .form-select { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; cursor: pointer; }
+
+  /* Cards */
+  .card { background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 14px; transition: border-color .15s; }
+  body.light .card, body.light .stat-card, body.light .ad-slot, body.light .theme-card, body.light .layout-card, body.light .page-color-item { background: rgba(255,255,255,.82); }
+  .card:hover { border-color: rgba(255,255,255,.12); }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+  /* Grid helpers */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+
+  /* Toggle */
+  .toggle-wrap { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; }
+  .toggle-label { font-size: 12px; color: var(--ink-muted); }
+  .toggle { position: relative; width: 36px; height: 20px; border-radius: 10px; border: none; cursor: pointer; transition: background .2s; flex-shrink: 0; }
+  .toggle.on { background: linear-gradient(135deg,var(--brand),var(--brand-2)); }
+  .toggle.off { background: rgba(255,255,255,.1); }
+  .toggle-thumb { position: absolute; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left .18s ease; }
+  .toggle.on .toggle-thumb { left: 19px; }
+  .toggle.off .toggle-thumb { left: 3px; }
+
+  /* Logo upload */
+  .logo-drop { width: 100%; height: 90px; border-radius: 12px; border: 2px dashed rgba(99,102,241,.4); background: rgba(99,102,241,.04); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; transition: all .15s; overflow: hidden; }
+  .logo-drop:hover { border-color: rgba(99,102,241,.65); background: rgba(99,102,241,.08); }
+  .logo-drop img { max-height: 72px; max-width: 100%; object-fit: contain; }
+
+  /* Line items */
+  .items-table { width: 100%; border-collapse: collapse; }
+  .items-table th { font-size: 9px; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .07em; padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+  .items-table td { padding: 6px 4px; vertical-align: middle; }
+  .items-table td input { background: rgba(255,255,255,.04); border: 1px solid transparent; border-radius: 7px; padding: 6px 8px; font-size: 11px; color: var(--ink); font-family: inherit; width: 100%; }
+  .items-table td input:focus { outline: none; border-color: rgba(99,102,241,.5); }
+  .item-row:hover td input { border-color: var(--border); }
+  .delete-row { background: transparent; border: none; color: var(--ink-faint); cursor: pointer; padding: 4px 6px; border-radius: 6px; font-size: 12px; }
+  .delete-row:hover { color: #f87171; background: rgba(239,68,68,.1); }
+
+  /* Font picker */
+  .font-cat-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+  .font-cat-btn { padding: 4px 9px; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-strong); background: rgba(255,255,255,.03); color: var(--ink-dim); transition: all .12s; }
+  .font-cat-btn.active { border-color: rgba(99,102,241,.5); background: rgba(99,102,241,.12); color: #a5b4fc; }
+  .font-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+  .font-item { padding: 8px 11px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; background: rgba(255,255,255,.02); transition: all .1s; display: flex; justify-content: space-between; align-items: center; }
+  .font-item:hover { background: rgba(255,255,255,.04); border-color: var(--border); }
+  .font-item.active { border-color: rgba(99,102,241,.4); background: rgba(99,102,241,.1); }
+  .font-name { font-size: 13px; color: var(--ink-muted); }
+  .font-item.active .font-name { color: #a5b4fc; }
+  .font-tag { font-size: 9px; background: rgba(255,255,255,.05); color: var(--ink-dim); padding: 2px 6px; border-radius: 4px; }
+
+  /* Color swatches */
+  .color-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 5px; }
+  .color-swatch { width: 100%; aspect-ratio: 1; border-radius: 7px; cursor: pointer; border: 2px solid transparent; transition: all .12s; }
+  .color-swatch.active { border-color: #a5b4fc; box-shadow: 0 0 0 2px rgba(165,180,252,.3); }
+  .theme-card { padding: 9px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); background: rgba(255,255,255,.02); transition: all .12s; }
+  .theme-card.active { border-color: var(--brand); background: rgba(99,102,241,.08); }
+  .theme-bars { display: flex; gap: 3px; margin-bottom: 5px; }
+  .theme-bar { flex: 1; height: 7px; border-radius: 3px; }
+  .theme-name { font-size: 10px; font-weight: 600; color: var(--ink-dim); }
+  .theme-card.active .theme-name { color: #a5b4fc; }
+
+  /* Page color */
+  .page-color-item { padding: 8px 10px; border-radius: 9px; cursor: pointer; border: 1px solid var(--border); background: rgba(255,255,255,.02); display: flex; align-items: center; gap: 9px; transition: all .12s; }
+  .page-color-item.active { border-color: var(--brand); }
+  .page-color-dot { width: 26px; height: 26px; border-radius: 6px; border: 1px solid rgba(255,255,255,.1); flex-shrink: 0; }
+
+  /* Page style picker */
+  .layout-card { padding: 10px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); background: rgba(255,255,255,.02); text-align: center; transition: all .12s; }
+  .layout-card.active { border-color: var(--brand); background: rgba(99,102,241,.1); }
+  .layout-icon { font-size: 18px; margin-bottom: 4px; }
+  .layout-name { font-size: 10px; font-weight: 600; color: var(--ink-dim); }
+  .layout-card.active .layout-name { color: #a5b4fc; }
+  .layout-desc { font-size: 9px; color: var(--ink-faint); margin-top: 2px; }
+
+  /* Preview panel */
+  .preview-panel { display: flex; flex-direction: column; }
+  .preview-topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.02); position: sticky; top: 56px; z-index: 20; backdrop-filter: blur(10px); }
+  body.light .preview-topbar { background: rgba(255,255,255,.72); }
+  .preview-status { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse-glow 2s ease-in-out infinite; }
+  .preview-wrap { flex: 1; padding: 32px; background: rgba(0,0,0,.26); display: flex; justify-content: center; overflow-y: auto; }
+  body.light .preview-wrap { background: rgba(15,23,42,.06); }
+
+  /* Invoice document */
+  #invoice-preview {
+    width: 595px;
+    min-height: 842px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 40px 100px rgba(0,0,0,.6);
+    position: relative;
+    overflow: visible;
+    transition: font-family .2s;
+  }
+  .inv-body { padding: 32px 36px; }
+
+  /* Stamps */
+  .stamp {
+    position: absolute; z-index: 10; border-radius: 6px; padding: 5px 14px;
+    font-size: 18px; font-weight: 900; letter-spacing: .08em; opacity: .75;
+    transform: rotate(-15deg); border: 3px solid;
+    top: 36px; right: 36px; pointer-events: none;
+  }
+  .stamp-paid { color: #059669; border-color: #059669; }
+  .stamp-draft { color: #d97706; border-color: #d97706; }
+  .stamp-conf { color: #7c3aed; border-color: #7c3aed; }
+
+  /* Watermark */
+  .watermark {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    transform: rotate(-35deg); font-size: 64px; font-weight: 900; letter-spacing: .04em;
+    text-transform: uppercase; pointer-events: none; z-index: 10; opacity: .06;
+  }
+
+  /* Sidebar accent */
+  .sidebar-accent { position: absolute; left: 0; top: 0; width: 14px; height: 100%; }
+
+  /* Summaries */
+  .totals-row { display: flex; justify-content: space-between; padding: 5px 8px; font-size: 11px; border-bottom: 1px solid rgba(0,0,0,.06); }
+  .totals-total { display: flex; justify-content: space-between; padding: 9px 10px; border-radius: 0 0 7px 7px; }
+
+  /* Status badges */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 6px; font-size: 10px; font-weight: 700; }
+
+  /* Stats row */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; padding: 12px 24px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.01); }
+  .stat-card { padding: 12px; border-radius: 11px; background: rgba(255,255,255,.03); border: 1px solid var(--border); }
+  .stat-val { font-size: 17px; font-weight: 800; color: #f1f5f9; letter-spacing: -0.03em; }
+  .stat-label { font-size: 10px; color: var(--ink-dim); margin-top: 2px; }
+  .stat-change { font-size: 10px; font-weight: 600; margin-top: 4px; }
+  .stat-up { color: var(--success); }
+  .stat-down { color: var(--danger); }
+
+  /* Ad placeholders */
+  .ad-band { padding: 14px 24px; border-bottom: 1px solid var(--border); }
+  .ad-slot {
+    min-height: 90px;
+    max-width: 970px;
+    margin: 0 auto;
+    border: 1px dashed rgba(148,163,184,.35);
+    border-radius: 8px;
+    background: rgba(255,255,255,.025);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-dim);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .ad-slot-sm { min-height: 72px; max-width: 728px; }
+  @media(max-width:640px) {
+    .ad-band { padding: 10px 14px; }
+    .ad-slot { min-height: 72px; }
+  }
+
+  /* Loading spinner */
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+
+  /* Notification */
+  .notif { position: fixed; top: 70px; right: 20px; z-index: 9999; display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; box-shadow: 0 20px 60px rgba(0,0,0,.4); animation: fadeUp .3s ease both; backdrop-filter: blur(12px); }
+  .notif-success { background: rgba(16,185,129,.15); border: 1px solid rgba(16,185,129,.3); color: #34d399; }
+  .notif-info { background: rgba(99,102,241,.15); border: 1px solid rgba(99,102,241,.3); color: #a5b4fc; }
+
+  /* Range slider */
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); cursor: pointer; box-shadow: 0 0 8px var(--brand-glow); }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOPBAR -->
+<nav class="topbar no-print">
+  <div class="topbar-logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">FacturePro</span>
+    <span class="logo-badge">GRATUIT</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost btn-sm" onclick="setDocType('facture')" id="tab-facture">📄 Facture</button>
+    <button class="btn btn-ghost btn-sm" onclick="setDocType('devis')" id="tab-devis">📋 Devis</button>
+    <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Imprimer</button>
+    <button class="btn btn-primary btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> <span id="pdf-btn-text">Télécharger PDF</span></button>
+    <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleAppTheme()" title="Changer le mode"><i class="fa fa-moon" id="theme-icon"></i> <span class="auth-text" id="theme-label">Dark</span></button>
+    <div class="auth-actions">
+      <button class="btn btn-ghost btn-sm" id="login-btn" onclick="openAuth('login')"><i class="fa fa-right-to-bracket"></i> <span class="auth-text">Login</span></button>
+      <button class="btn btn-primary btn-sm" id="signup-btn" onclick="openAuth('signup')"><i class="fa fa-user-plus"></i> <span class="auth-text">Signup</span></button>
+      <button class="btn btn-ghost btn-sm account-btn" id="account-btn" onclick="toggleAccountMenu()" title="Compte" style="display:none"><i class="fa fa-user"></i></button>
+      <div class="account-menu" id="account-menu">
+        <div class="account-name" id="account-name">Compte</div>
+        <div class="account-email" id="account-email">email@example.com</div>
+        <button class="btn btn-ghost btn-sm menu-item" onclick="showNotif('Espace compte bientôt disponible', 'info')"><i class="fa fa-id-card"></i> Mon compte</button>
+        <button class="btn btn-danger btn-sm menu-item" style="margin-top:6px" onclick="logoutUser()"><i class="fa fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero no-print">
+  <div class="hero-kicker">⚡ Outil professionnel — 100% gratuit</div>
+  <h1 class="hero-title">Créez vos <span>Factures & Devis</span><br>en quelques secondes</h1>
+  <p class="hero-sub">50+ polices · 30 thèmes · Logo · PDF haute qualité · Filigrane · Signature · Tampon</p>
+  <div class="hero-ctas">
+    <div class="doc-switcher">
+      <button class="doc-tab active" id="hero-tab-facture" onclick="setDocType('facture')">📄 Facture</button>
+      <button class="doc-tab" id="hero-tab-devis" onclick="setDocType('devis')">📋 Devis</button>
+    </div>
+  </div>
+</section>
+
+<!-- HERO BANNER AD -->
+<div class="ad-band no-print" data-ad-position="hero-banner">
+  <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">Publicité</div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row no-print">
+  <div class="stat-card"><div class="stat-val">50+</div><div class="stat-label">Polices disponibles</div></div>
+  <div class="stat-card"><div class="stat-val">8</div><div class="stat-label">Styles de page</div></div>
+  <div class="stat-card"><div class="stat-val">30</div><div class="stat-label">Thèmes de couleurs</div></div>
+  <div class="stat-card"><div class="stat-val">100%</div><div class="stat-label">Gratuit · Aucun compte</div></div>
+</div>
+
+<!-- TOP BANNER AD -->
+<div class="ad-band no-print" data-ad-position="top-banner">
+  <div class="ad-slot" data-ad-format="leaderboard">Publicité</div>
+</div>
+
+<!-- MAIN -->
+<div class="main-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar no-print">
+    <!-- Section tabs -->
+    <div class="section-tabs" id="section-tabs">
+      <button class="section-tab active" onclick="showSection('infos')">📝 Infos</button>
+      <button class="section-tab" onclick="showSection('articles')">📦 Articles</button>
+      <button class="section-tab" onclick="showSection('style')">🎨 Style</button>
+      <button class="section-tab" onclick="showSection('polices')">✍️ Polices</button>
+      <button class="section-tab" onclick="showSection('couleurs')">🖌️ Couleurs</button>
+      <button class="section-tab" onclick="showSection('logo')">🏢 Logo</button>
+      <button class="section-tab" onclick="showSection('extras')">⚙️ Extras</button>
+    </div>
+
+    <!-- ── INFOS ── -->
+    <div id="sec-infos" class="fade-up">
+      <div class="card">
+        <div class="card-title"><i class="fa fa-file-invoice" style="color:#6366f1"></i> Document</div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" style="height:38px" id="variant-facture-batiment" onclick="setDocVariant('facture','batiment')"><i class="fa fa-hammer"></i> Facture bâtiment</button>
+          <button class="btn btn-ghost btn-sm" style="height:38px" id="variant-facture-automobile" onclick="setDocVariant('facture','automobile')"><i class="fa fa-car"></i> Facture automobile</button>
+          <button class="btn btn-ghost btn-sm" style="height:38px" id="variant-devis-batiment" onclick="setDocVariant('devis','batiment')"><i class="fa fa-helmet-safety"></i> Devis bâtiment</button>
+          <button class="btn btn-ghost btn-sm" style="height:38px" id="variant-devis-automobile" onclick="setDocVariant('devis','automobile')"><i class="fa fa-car-side"></i> Devis automobile</button>
+        </div>
+        <div class="grid-3" style="margin-bottom:12px">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">N° Document</label>
+            <input class="form-input" id="f-number" value="FAC-2024-001" oninput="updatePreview()">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Date émission</label>
+            <input class="form-input" id="f-date" type="date" oninput="updatePreview()">
+          </div>
+          <div class="form-group" style="margin:0" id="due-date-group">
+            <label class="form-label">Date échéance</label>
+            <input class="form-input" id="f-due" type="date" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Objet / Description</label>
+          <input class="form-input" id="f-object" placeholder="ex: Travaux de peinture — Salon" oninput="updatePreview()">
+        </div>
+      </div>
+
+      <div class="card" id="vehicle-card" style="display:none">
+        <div class="card-title"><i class="fa fa-car" style="color:#10b981"></i> Automobile achat / vente (optionnel)</div>
+        <div class="grid-2">
+          <div class="form-group" style="margin:0"><label class="form-label">Type</label><input class="form-input" id="v-transaction" placeholder="Achat, vente, reprise..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">VIN / N° châssis</label><input class="form-input" id="v-vin" placeholder="VF1XXXXXXXXXXXXXX" oninput="updatePreview()"></div>
+        </div>
+        <div class="grid-2" style="margin-top:12px">
+          <div class="form-group" style="margin:0"><label class="form-label">Plaque / Immatriculation</label><input class="form-input" id="v-plate" placeholder="AB-123-CD" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">Marque</label><input class="form-input" id="v-make" placeholder="Renault, Peugeot, BMW..." oninput="updatePreview()"></div>
+        </div>
+        <div class="grid-3" style="margin-top:12px">
+          <div class="form-group" style="margin:0"><label class="form-label">Modèle</label><input class="form-input" id="v-model" placeholder="Clio, 308..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">Année</label><input class="form-input" id="v-year" type="number" min="1900" max="2100" placeholder="2020" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">Kilométrage</label><input class="form-input" id="v-mileage" placeholder="85000 km" oninput="updatePreview()"></div>
+        </div>
+        <div class="grid-2" style="margin-top:12px">
+          <div class="form-group" style="margin:0"><label class="form-label">Mise en circulation</label><input class="form-input" id="v-first-reg" type="date" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">Couleur</label><input class="form-input" id="v-color" placeholder="Noir, blanc, gris..." oninput="updatePreview()"></div>
+        </div>
+        <div class="form-group" style="margin-top:12px;margin-bottom:0">
+          <label class="form-label">Détails véhicule</label>
+          <textarea class="form-input" id="v-details" rows="3" placeholder="Motorisation, finition, options, état, contrôle technique, accessoires inclus..." oninput="updatePreview()"></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa fa-user-tie" style="color:#6366f1"></i> Émetteur (Vous)</div>
+        <div class="grid-2">
+          <div class="form-group" style="margin:0"><label class="form-label">Nom / Raison sociale</label><input class="form-input" id="e-name" placeholder="Jean Martin" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">Statut</label><input class="form-input" id="e-status" placeholder="Auto-entrepreneur" oninput="updatePreview()"></div>
+        </div>
+        <div class="form-group"><label class="form-label">SIRET / SIREN</label><input class="form-input" id="e-siret" placeholder="852 XXX XXX 00012" oninput="updatePreview()"></div>
+        <div class="form-group"><label class="form-label">Adresse</label><input class="form-input" id="e-addr" placeholder="42 rue des Artisans, 75011 Paris" oninput="updatePreview()"></div>
+        <div class="grid-2">
+          <div class="form-group" style="margin:0"><label class="form-label">Email</label><input class="form-input" id="e-email" placeholder="contact@vous.fr" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">Téléphone</label><input class="form-input" id="e-tel" placeholder="06 00 00 00 00" oninput="updatePreview()"></div>
+        </div>
+        <div class="grid-2" style="margin-top:12px">
+          <div class="form-group" style="margin:0"><label class="form-label">IBAN (optionnel)</label><input class="form-input" id="e-iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">BIC / SWIFT (optionnel)</label><input class="form-input" id="e-bic" placeholder="AGRIFRPPXXX" oninput="updatePreview()"></div>
+        </div>
+        <div class="form-group" style="margin-top:12px;margin-bottom:0"><label class="form-label">RIB / Banque (optionnel)</label><input class="form-input" id="e-rib" placeholder="Nom de la banque, titulaire du compte..." oninput="updatePreview()"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa fa-building" style="color:#8b5cf6"></i> Client</div>
+        <div class="grid-2">
+          <div class="form-group" style="margin:0"><label class="form-label">Nom / Société</label><input class="form-input" id="c-name" placeholder="Studio Moreau" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">SIREN</label><input class="form-input" id="c-siret" placeholder="789 XXX XXX" oninput="updatePreview()"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Adresse</label><input class="form-input" id="c-addr" placeholder="15 avenue Montaigne, 75008 Paris" oninput="updatePreview()"></div>
+        <div class="grid-2">
+          <div class="form-group" style="margin:0"><label class="form-label">Email</label><input class="form-input" id="c-email" placeholder="client@email.fr" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">Téléphone</label><input class="form-input" id="c-tel" placeholder="01 00 00 00 00" oninput="updatePreview()"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa fa-sticky-note" style="color:#f59e0b"></i> Notes & Mentions légales</div>
+        <textarea class="form-input" id="f-notes" rows="3" placeholder="Paiement sous 30 jours par virement. En cas de retard, pénalités au taux légal + 40€." oninput="updatePreview()"></textarea>
+        <div class="toggle-wrap" style="margin-top:8px">
+          <span class="toggle-label">TVA applicable</span>
+          <button class="toggle on" id="tva-toggle" onclick="toggleTVA()"><div class="toggle-thumb"></div></button>
+        </div>
+        <div id="tva-exempt-msg" style="display:none;font-size:10px;color:var(--ink-dim);margin-top:4px;padding:6px 9px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:7px">
+          Mention légale : <em>TVA non applicable — art. 293 B du CGI</em>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ARTICLES ── -->
+    <div id="sec-articles" style="display:none" class="fade-up">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="card-title" style="margin:0"><i class="fa fa-list" style="color:#6366f1"></i> Lignes de prestations</div>
+          <button class="btn btn-primary btn-sm" onclick="addRow()"><i class="fa fa-plus"></i> Ajouter</button>
+        </div>
+        <div style="padding:12px;border-radius:12px;background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.18);margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:10px"><i class="fa fa-wand-magic-sparkles" style="color:#a5b4fc"></i> Appliquer à toutes les lignes</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div>
+              <label class="form-label">TVA %</label>
+              <div style="display:flex;gap:6px">
+                <input class="form-input" id="bulk-tva" type="number" min="0" max="100" step="1" placeholder="0, 10, 20">
+                <button class="btn btn-ghost btn-sm" onclick="applyBulkItemValue('tva')">OK</button>
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Prix unit. HT</label>
+              <div style="display:flex;gap:6px">
+                <input class="form-input" id="bulk-price" type="number" min="0" step="0.01" placeholder="€">
+                <button class="btn btn-ghost btn-sm" onclick="applyBulkItemValue('price')">OK</button>
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Total HT / ligne</label>
+              <div style="display:flex;gap:6px">
+                <input class="form-input" id="bulk-total" type="number" min="0" step="0.01" placeholder="€">
+                <button class="btn btn-ghost btn-sm" onclick="applyBulkItemValue('total')">OK</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="items-body" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
+      <div class="card" id="totals-card">
+        <div class="card-title"><i class="fa fa-calculator" style="color:#10b981"></i> Récapitulatif</div>
+        <div id="totals-display"></div>
+      </div>
+    </div>
+
+    <!-- ── STYLE ── -->
+    <div id="sec-style" style="display:none" class="fade-up">
+      <div class="card">
+        <div class="card-title"><i class="fa fa-layer-group" style="color:#6366f1"></i> Mise en page — 8 styles</div>
+        <div class="grid-4" id="layout-grid"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-palette" style="color:#8b5cf6"></i> Thème de couleurs — 30 thèmes</div>
+        <div class="grid-3" id="theme-grid"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-ruler" style="color:#f59e0b"></i> Marges (mm)</div>
+        <div class="grid-2">
+          <div><label class="form-label">Haut</label><input class="form-input" type="number" id="m-top" value="5" min="5" max="50" oninput="updatePreview()"></div>
+          <div><label class="form-label">Droite</label><input class="form-input" type="number" id="m-right" value="15" min="5" max="50" oninput="updatePreview()"></div>
+          <div><label class="form-label">Bas</label><input class="form-input" type="number" id="m-bottom" value="5" min="5" max="50" oninput="updatePreview()"></div>
+          <div><label class="form-label">Gauche</label><input class="form-input" type="number" id="m-left" value="15" min="5" max="50" oninput="updatePreview()"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── POLICES ── -->
+    <div id="sec-polices" style="display:none" class="fade-up">
+      <div class="card">
+        <div class="card-title"><i class="fa fa-font" style="color:#6366f1"></i> Police de caractères — 50+ polices</div>
+        <div class="font-cat-tabs" id="font-cats"></div>
+        <div class="font-list" id="font-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-text-height" style="color:#8b5cf6"></i> Taille & Style</div>
+        <div class="form-group">
+          <label class="form-label">Taille de police — <span id="font-size-val">12</span>px</label>
+          <input type="range" id="font-size-range" min="9" max="18" value="12" oninput="document.getElementById('font-size-val').textContent=this.value;updatePreview()">
+        </div>
+        <div class="toggle-wrap"><span class="toggle-label"><b>Titre en gras</b></span><button class="toggle on" id="bold-title-toggle" onclick="toggleBold('title')"><div class="toggle-thumb"></div></button></div>
+        <div class="toggle-wrap"><span class="toggle-label">Étiquettes en gras</span><button class="toggle off" id="bold-labels-toggle" onclick="toggleBold('labels')"><div class="toggle-thumb"></div></button></div>
+        <div class="toggle-wrap"><span class="toggle-label"><b>Montants en gras</b></span><button class="toggle on" id="bold-amounts-toggle" onclick="toggleBold('amounts')"><div class="toggle-thumb"></div></button></div>
+        <div class="toggle-wrap"><span class="toggle-label"><i>Italique pour les notes</i></span><button class="toggle off" id="italic-toggle" onclick="toggleBold('italic')"><div class="toggle-thumb"></div></button></div>
+      </div>
+    </div>
+
+    <!-- ── COULEURS ── -->
+    <div id="sec-couleurs" style="display:none" class="fade-up">
+      <div class="card">
+        <div class="card-title"><i class="fa fa-fill-drip" style="color:#6366f1"></i> Couleur de fond — 12 options</div>
+        <div class="grid-2" id="page-color-grid"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-tint" style="color:#8b5cf6"></i> Couleur du texte — 20 options</div>
+        <div class="color-grid" id="font-color-grid"></div>
+        <div style="margin-top:10px;padding:9px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:8px">
+          <div id="font-color-dot" style="width:20px;height:20px;border-radius:4px;background:#0f172a"></div>
+          <div>
+            <div id="font-color-name" style="font-size:11px;font-weight:600;color:var(--ink-muted)">Noir profond</div>
+            <div id="font-color-hex" style="font-size:10px;color:var(--ink-dim);font-family:monospace">#0f172a</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LOGO ── -->
+    <div id="sec-logo" style="display:none" class="fade-up">
+      <div class="card">
+        <div class="card-title"><i class="fa fa-image" style="color:#6366f1"></i> Logo de l'entreprise</div>
+        <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="handleLogo(event)">
+        <div class="logo-drop" id="logo-drop" onclick="document.getElementById('logo-file').click()">
+          <img id="logo-preview" src="" style="display:none">
+          <div id="logo-placeholder">
+            <div style="text-align:center">
+              <div style="font-size:24px;margin-bottom:4px">⬆</div>
+              <div style="font-size:11px;color:#6366f1;font-weight:600">Cliquer ou glisser votre logo</div>
+              <div style="font-size:10px;color:var(--ink-dim);margin-top:2px">PNG · JPG · SVG · Transparent · Max 2MB</div>
+            </div>
+          </div>
+        </div>
+        <div id="logo-actions" style="display:none;margin-top:8px;display:none">
+          <div class="grid-2">
+            <button class="btn btn-danger btn-sm" onclick="removeLogo()">🗑 Supprimer</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('logo-file').click()">↺ Remplacer</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:14px">
+          <label class="form-label">Position du logo</label>
+          <div class="grid-3">
+            <button class="btn btn-primary btn-sm" id="lpos-left" onclick="setLogoPos('left')">⬅ Gauche</button>
+            <button class="btn btn-ghost btn-sm" id="lpos-center" onclick="setLogoPos('center')">⬆ Centre</button>
+            <button class="btn btn-ghost btn-sm" id="lpos-right" onclick="setLogoPos('right')">Droite ➡</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Taille du logo — <span id="logo-size-val">80</span>px</label>
+          <input type="range" id="logo-size-range" min="30" max="180" value="80" oninput="document.getElementById('logo-size-val').textContent=this.value;updatePreview()">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EXTRAS ── -->
+    <div id="sec-extras" style="display:none" class="fade-up">
+      <div class="card">
+        <div class="card-title"><i class="fa fa-water" style="color:#6366f1"></i> Filigrane (Watermark)</div>
+        <input class="form-input" id="watermark-text" placeholder="ex: CONFIDENTIEL, BROUILLON, COPIE…" oninput="updatePreview()">
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="wm-presets">
+          <button class="btn btn-ghost" style="font-size:10px;padding:4px 9px;height:auto" onclick="setWatermark('')">Aucun</button>
+          <button class="btn btn-ghost" style="font-size:10px;padding:4px 9px;height:auto" onclick="setWatermark('CONFIDENTIEL')">CONFIDENTIEL</button>
+          <button class="btn btn-ghost" style="font-size:10px;padding:4px 9px;height:auto" onclick="setWatermark('BROUILLON')">BROUILLON</button>
+          <button class="btn btn-ghost" style="font-size:10px;padding:4px 9px;height:auto" onclick="setWatermark('COPIE')">COPIE</button>
+          <button class="btn btn-ghost" style="font-size:10px;padding:4px 9px;height:auto" onclick="setWatermark('ANNULÉ')">ANNULÉ</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-stamp" style="color:#8b5cf6"></i> Tampon / Cachet</div>
+        <div class="grid-2" id="stamp-grid">
+          <button class="btn btn-primary btn-sm" id="stamp-none" onclick="setStamp('none')">Aucun</button>
+          <button class="btn btn-ghost btn-sm" id="stamp-paid" onclick="setStamp('paid')" style="color:#059669;border-color:rgba(5,150,105,.4)">✅ PAYÉ</button>
+          <button class="btn btn-ghost btn-sm" id="stamp-draft" onclick="setStamp('draft')" style="color:#d97706;border-color:rgba(217,119,6,.4)">📋 BROUILLON</button>
+          <button class="btn btn-ghost btn-sm" id="stamp-conf" onclick="setStamp('conf')" style="color:#7c3aed;border-color:rgba(124,58,237,.4)">🔒 CONFIDENTIEL</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-sliders" style="color:#f59e0b"></i> Options supplémentaires</div>
+        <div class="toggle-wrap"><span class="toggle-label">Numéros de page</span><button class="toggle on" id="pn-toggle" onclick="toggleExtra('pagenum')"><div class="toggle-thumb"></div></button></div>
+        <div class="toggle-wrap"><span class="toggle-label">Zone de signature et cachet</span><button class="toggle off" id="sig-toggle" onclick="toggleExtra('signature')"><div class="toggle-thumb"></div></button></div>
+        <div class="toggle-wrap"><span class="toggle-label">QR code paiement (démo)</span><button class="toggle off" id="qr-toggle" onclick="toggleExtra('qrcode')"><div class="toggle-thumb"></div></button></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-toolbox" style="color:#10b981"></i> Actions rapides</div>
+        <div class="grid-2">
+          <button class="btn btn-ghost btn-sm" onclick="saveDraft()"><i class="fa fa-floppy-disk"></i> Sauver</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadDraft()"><i class="fa fa-folder-open"></i> Charger</button>
+          <button class="btn btn-ghost btn-sm" onclick="duplicateDocument()"><i class="fa fa-copy"></i> Dupliquer</button>
+          <button class="btn btn-ghost btn-sm" onclick="emailDraft()"><i class="fa fa-envelope"></i> Email</button>
+          <button class="btn btn-ghost btn-sm" onclick="copyTotal()"><i class="fa fa-calculator"></i> Copier total</button>
+          <button class="btn btn-danger btn-sm" onclick="resetDocument()"><i class="fa fa-rotate-left"></i> Reset</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── PREVIEW PANEL ── -->
+  <section class="preview-panel">
+    <div class="preview-topbar no-print">
+      <div class="preview-status">
+        <div class="status-dot"></div>
+        Aperçu en temps réel
+        <span id="preview-info" style="padding:3px 8px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;font-size:10px;color:var(--ink-dim)">Inter · Modern · Indigo</span>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Imprimer</button>
+        <button class="btn btn-ghost btn-sm" onclick="generatePDF()"><i class="fa fa-file-pdf"></i> PDF</button>
+        <button class="btn btn-success btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> Télécharger</button>
+      </div>
+    </div>
+    <div class="ad-band no-print" data-ad-position="preview-banner">
+      <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">Publicité</div>
+    </div>
+    <div class="preview-wrap">
+      <div id="invoice-preview">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+    <div class="ad-band no-print" data-ad-position="bottom-banner">
+      <div class="ad-slot" data-ad-format="leaderboard">Publicité</div>
+    </div>
+  </section>
+
+</div><!-- /main-layout -->
+
+<!-- NOTIFICATION -->
+<div id="notif" style="display:none"></div>
+
+<!-- AUTH MODAL -->
+<div class="modal-backdrop no-print" id="auth-modal" onclick="handleAuthBackdrop(event)">
+  <div class="auth-modal">
+    <div class="auth-modal-head">
+      <div>
+        <div class="auth-modal-title" id="auth-title">Login</div>
+        <div class="auth-modal-sub" id="auth-subtitle">Accédez à votre espace FacturePro</div>
+      </div>
+      <button class="btn btn-ghost auth-close" onclick="closeAuth()" title="Fermer"><i class="fa fa-xmark"></i></button>
+    </div>
+    <form class="auth-modal-body" onsubmit="submitAuth(event)">
+      <div class="form-group" id="auth-name-group">
+        <label class="form-label">Nom</label>
+        <input class="form-input" id="auth-name" autocomplete="name" placeholder="Votre nom">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="auth-email-input" type="email" autocomplete="email" placeholder="vous@email.com" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input class="form-input" id="auth-password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+      </div>
+      <button class="btn btn-primary btn-lg" id="auth-submit" style="width:100%" type="submit"><i class="fa fa-right-to-bracket"></i> Login</button>
+      <div class="auth-switch">
+        <span id="auth-switch-text">Pas encore de compte ?</span>
+        <span class="auth-link" id="auth-switch-link" onclick="switchAuthMode()">Créer un compte</span>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
+  authDomain: "facturergratuit.firebaseapp.com",
+  projectId: "facturergratuit",
+  storageBucket: "facturergratuit.firebasestorage.app",
+  messagingSenderId: "520499696788",
+  appId: "1:520499696788:web:5bb4008f8b1aa328a31081",
+  measurementId: "G-JJCNL9THWD"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const firebaseAuth = getAuth(firebaseApp);
+
+isSupported()
+  .then(ok => { if (ok) window.firebaseAnalytics = getAnalytics(firebaseApp); })
+  .catch(() => {});
+
+window.firebaseServices = {
+  app: firebaseApp,
+  auth: firebaseAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile
+};
+
+onAuthStateChanged(firebaseAuth, user => {
+  if (typeof saveAuthUser !== "function") return;
+  if (user) {
+    saveAuthUser({
+      name: user.displayName || user.email?.split("@")[0] || "Compte",
+      email: user.email || "",
+      uid: user.uid,
+      signedInAt: new Date().toISOString(),
+      provider: "firebase"
+    });
+  } else if (window.__firebaseLogoutDone) {
+    saveAuthUser(null);
+  }
+});
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const FONTS = [
+  { name:'Inter', cat:'Sans-serif' },{ name:'Roboto', cat:'Sans-serif' },{ name:'Open Sans', cat:'Sans-serif' },
+  { name:'Poppins', cat:'Sans-serif' },{ name:'Montserrat', cat:'Sans-serif' },{ name:'Nunito', cat:'Sans-serif' },
+  { name:'Lato', cat:'Sans-serif' },{ name:'Raleway', cat:'Sans-serif' },{ name:'Outfit', cat:'Sans-serif' },
+  { name:'DM Sans', cat:'Sans-serif' },{ name:'Plus Jakarta Sans', cat:'Sans-serif' },{ name:'Figtree', cat:'Sans-serif' },
+  { name:'Manrope', cat:'Sans-serif' },{ name:'Sora', cat:'Sans-serif' },{ name:'Work Sans', cat:'Sans-serif' },
+  { name:'Mulish', cat:'Sans-serif' },{ name:'Karla', cat:'Sans-serif' },{ name:'Barlow', cat:'Sans-serif' },
+  { name:'Jost', cat:'Sans-serif' },
+  { name:'Oswald', cat:'Display' },{ name:'Bebas Neue', cat:'Display' },{ name:'Anton', cat:'Display' },
+  { name:'Teko', cat:'Display' },{ name:'Exo 2', cat:'Display' },{ name:'Russo One', cat:'Display' },
+  { name:'Righteous', cat:'Display' },{ name:'Audiowide', cat:'Display' },{ name:'Fjalla One', cat:'Display' },
+  { name:'Playfair Display', cat:'Serif' },{ name:'Merriweather', cat:'Serif' },{ name:'Lora', cat:'Serif' },
+  { name:'PT Serif', cat:'Serif' },{ name:'EB Garamond', cat:'Serif' },{ name:'Cormorant Garamond', cat:'Serif' },
+  { name:'Libre Baskerville', cat:'Serif' },{ name:'Crimson Text', cat:'Serif' },{ name:'Spectral', cat:'Serif' },
+  { name:'Courier Prime', cat:'Mono' },{ name:'Source Code Pro', cat:'Mono' },{ name:'Space Mono', cat:'Mono' },
+  { name:'IBM Plex Mono', cat:'Mono' },
+  { name:'Ubuntu', cat:'Humaniste' },{ name:'Noto Sans', cat:'Humaniste' },{ name:'PT Sans', cat:'Humaniste' },
+  { name:'Oxygen', cat:'Humaniste' },
+];
+
+const THEMES = [
+  { name:'Indigo Pro',     p:'#4f46e5', a:'#818cf8', preview:['#4f46e5','#818cf8','#e0e7ff'] },
+  { name:'Ocean Blue',     p:'#0369a1', a:'#38bdf8', preview:['#0369a1','#38bdf8','#e0f2fe'] },
+  { name:'Emerald',        p:'#065f46', a:'#34d399', preview:['#065f46','#34d399','#d1fae5'] },
+  { name:'Slate Dark',     p:'#1e293b', a:'#64748b', preview:['#1e293b','#64748b','#f1f5f9'] },
+  { name:'Rose Business',  p:'#9f1239', a:'#fb7185', preview:['#9f1239','#fb7185','#ffe4e6'] },
+  { name:'Amber Pro',      p:'#92400e', a:'#fbbf24', preview:['#92400e','#fbbf24','#fef3c7'] },
+  { name:'Violet Elite',   p:'#5b21b6', a:'#a78bfa', preview:['#5b21b6','#a78bfa','#ede9fe'] },
+  { name:'Teal Modern',    p:'#0f766e', a:'#2dd4bf', preview:['#0f766e','#2dd4bf','#ccfbf1'] },
+  { name:'Crimson',        p:'#7f1d1d', a:'#f87171', preview:['#7f1d1d','#f87171','#fee2e2'] },
+  { name:'Night Tech',     p:'#1e3a5f', a:'#60a5fa', preview:['#1e3a5f','#60a5fa','#dbeafe'] },
+  { name:'Gold Premium',   p:'#78350f', a:'#fbbf24', preview:['#78350f','#fbbf24','#fef3c7'] },
+  { name:'Forest Green',   p:'#14532d', a:'#4ade80', preview:['#14532d','#4ade80','#dcfce7'] },
+  { name:'Royal Blue',     p:'#1d4ed8', a:'#93c5fd', preview:['#1d4ed8','#93c5fd','#eff6ff'] },
+  { name:'Sky Clean',      p:'#0284c7', a:'#7dd3fc', preview:['#0284c7','#7dd3fc','#e0f2fe'] },
+  { name:'Cyan Studio',    p:'#0e7490', a:'#67e8f9', preview:['#0e7490','#67e8f9','#cffafe'] },
+  { name:'Mint Pro',       p:'#047857', a:'#6ee7b7', preview:['#047857','#6ee7b7','#ecfdf5'] },
+  { name:'Lime Fresh',     p:'#4d7c0f', a:'#bef264', preview:['#4d7c0f','#bef264','#f7fee7'] },
+  { name:'Olive Classic',  p:'#3f6212', a:'#a3e635', preview:['#3f6212','#a3e635','#ecfccb'] },
+  { name:'Orange Energy',  p:'#c2410c', a:'#fb923c', preview:['#c2410c','#fb923c','#ffedd5'] },
+  { name:'Copper',         p:'#9a3412', a:'#fdba74', preview:['#9a3412','#fdba74','#fff7ed'] },
+  { name:'Ruby',           p:'#be123c', a:'#fda4af', preview:['#be123c','#fda4af','#fff1f2'] },
+  { name:'Pink Studio',    p:'#be185d', a:'#f9a8d4', preview:['#be185d','#f9a8d4','#fdf2f8'] },
+  { name:'Fuchsia Pop',    p:'#a21caf', a:'#f0abfc', preview:['#a21caf','#f0abfc','#fae8ff'] },
+  { name:'Purple Pro',     p:'#6d28d9', a:'#c4b5fd', preview:['#6d28d9','#c4b5fd','#f5f3ff'] },
+  { name:'Lavender Soft',  p:'#7c3aed', a:'#ddd6fe', preview:['#7c3aed','#ddd6fe','#faf5ff'] },
+  { name:'Graphite',       p:'#111827', a:'#9ca3af', preview:['#111827','#9ca3af','#f9fafb'] },
+  { name:'Zinc Minimal',   p:'#27272a', a:'#a1a1aa', preview:['#27272a','#a1a1aa','#fafafa'] },
+  { name:'Stone Paper',    p:'#44403c', a:'#a8a29e', preview:['#44403c','#a8a29e','#fafaf9'] },
+  { name:'Navy Gold',      p:'#172554', a:'#facc15', preview:['#172554','#facc15','#fefce8'] },
+  { name:'Black Diamond',  p:'#020617', a:'#38bdf8', preview:['#020617','#38bdf8','#f8fafc'] },
+];
+
+const PAGE_COLORS = [
+  { name:'Blanc pur',       bg:'#ffffff', text:'#0f172a' },
+  { name:'Crème douce',     bg:'#fffef5', text:'#1c1a0e' },
+  { name:'Gris perle',      bg:'#f8f9fa', text:'#1a1a2e' },
+  { name:'Bleu glacier',    bg:'#f0f7ff', text:'#0c2340' },
+  { name:'Menthe fraîche',  bg:'#f0fdf7', text:'#052e16' },
+  { name:'Lavande',         bg:'#f5f3ff', text:'#1e0a3c' },
+  { name:'Saumon doux',     bg:'#fff8f6', text:'#2d0a00' },
+  { name:'Miel ambré',      bg:'#fffbeb', text:'#1c0f00' },
+  { name:'Gris ardoise',    bg:'#0f172a', text:'#f1f5f9' },
+  { name:'Bleu nuit',       bg:'#0a0e1a', text:'#e2e8f0' },
+  { name:'Forêt sombre',    bg:'#052e16', text:'#f0fdf4' },
+  { name:'Bordeaux foncé',  bg:'#1a0a0a', text:'#fef2f2' },
+];
+
+const FONT_COLORS = [
+  { name:'Noir profond',    val:'#0f172a' },{ name:'Gris graphite',  val:'#1e293b' },
+  { name:'Gris ardoise',    val:'#374151' },{ name:'Indigo foncé',   val:'#1e1b4b' },
+  { name:'Bleu marine',     val:'#0c2340' },{ name:'Bleu profond',   val:'#1d4ed8' },
+  { name:'Bleu ciel',       val:'#0369a1' },{ name:'Cyan vif',       val:'#0891b2' },
+  { name:'Vert foncé',      val:'#064e3b' },{ name:'Émeraude',       val:'#065f46' },
+  { name:'Vert sauge',      val:'#3d6b4f' },{ name:'Bordeaux',       val:'#7f1d1d' },
+  { name:'Rose foncé',      val:'#9d174d' },{ name:'Violet foncé',   val:'#4c1d95' },
+  { name:'Violet moyen',    val:'#6d28d9' },{ name:'Prune',          val:'#701a75' },
+  { name:'Brun chaud',      val:'#78350f' },{ name:'Ocre',           val:'#92400e' },
+  { name:'Olive',           val:'#3f3f00' },{ name:'Blanc cassé',    val:'#f8fafc' },
+];
+
+const LAYOUTS = [
+  { id:'modern',  label:'Modern',   icon:'▦', desc:'Banner dégradé' },
+  { id:'classic', label:'Classic',  icon:'◻', desc:'Deux colonnes' },
+  { id:'minimal', label:'Minimal',  icon:'○', desc:'Ultra épuré' },
+  { id:'bold',    label:'Bold',     icon:'◈', desc:'Typo XXL' },
+  { id:'sidebar', label:'Sidebar',  icon:'▌', desc:'Bande latérale' },
+  { id:'split',   label:'Split',    icon:'⊞', desc:'En-tête divisé' },
+  { id:'card',    label:'Card',     icon:'⬜', desc:'Blocs encadrés' },
+  { id:'elegant', label:'Élégant',  icon:'✦', desc:'Lignes fines' },
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const S = {
+  docType: 'facture',
+  docSector: 'batiment',
+  themeIdx: 0,
+  fontIdx: 0,
+  fontCat: 'Tous',
+  fontColorIdx: 0,
+  pageColorIdx: 0,
+  layoutIdx: 0,
+  fontSize: 12,
+  boldTitle: true,
+  boldLabels: false,
+  boldAmounts: true,
+  italic: false,
+  tva: true,
+  logoSrc: null,
+  logoPos: 'left',
+  logoSize: 80,
+  watermark: '',
+  stamp: 'none',
+  pageNumbers: true,
+  signature: false,
+  qrCode: false,
+  items: [],
+  authMode: 'login',
+  authUser: null,
+  appTheme: 'dark',
+};
+
+let itemId = 0;
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today's dates
+  const today = new Date();
+  const fmt = d => d.toISOString().split('T')[0];
+  const due = new Date(today); due.setDate(due.getDate() + 30);
+  document.getElementById('f-date').value = fmt(today);
+  document.getElementById('f-due').value = fmt(due);
+  document.getElementById('f-number').value = getDefaultDocNumber('facture', 'batiment');
+  const dueGroup = document.getElementById('due-date-group');
+  if (dueGroup) dueGroup.style.display = 'none';
+  const vehicleCard = document.getElementById('vehicle-card');
+  if (vehicleCard) vehicleCard.style.display = 'none';
+
+  buildLayoutGrid();
+  buildThemeGrid();
+  buildFontCats();
+  buildFontList();
+  buildPageColorGrid();
+  buildFontColorGrid();
+  loadAppTheme();
+  applyAppTheme();
+  loadAuthUser();
+  renderAuth();
+  renderDocVariant();
+
+  addRow();
+  addRow();
+  updatePreview();
+});
+
+function loadAppTheme() {
+  try {
+    S.appTheme = localStorage.getItem('facturepro-theme') || 'dark';
+  } catch {
+    S.appTheme = 'dark';
+  }
+}
+
+function applyAppTheme() {
+  const isLight = S.appTheme === 'light';
+  document.body.classList.toggle('light', isLight);
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  if (icon) icon.className = isLight ? 'fa fa-sun' : 'fa fa-moon';
+  if (label) label.textContent = isLight ? 'Light' : 'Dark';
+}
+
+function toggleAppTheme() {
+  S.appTheme = S.appTheme === 'light' ? 'dark' : 'light';
+  try { localStorage.setItem('facturepro-theme', S.appTheme); } catch {}
+  applyAppTheme();
+}
+
+document.addEventListener('click', e => {
+  const menu = document.getElementById('account-menu');
+  const wrap = document.querySelector('.auth-actions');
+  if (menu && wrap && !wrap.contains(e.target)) menu.classList.remove('open');
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeAuth();
+    document.getElementById('account-menu')?.classList.remove('open');
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+// AUTH UI
+// ═══════════════════════════════════════════════════════
+function loadAuthUser() {
+  try {
+    S.authUser = JSON.parse(localStorage.getItem('facturepro-user') || 'null');
+  } catch {
+    S.authUser = null;
+  }
+}
+
+function saveAuthUser(user) {
+  S.authUser = user;
+  try {
+    if (user) localStorage.setItem('facturepro-user', JSON.stringify(user));
+    else localStorage.removeItem('facturepro-user');
+  } catch {}
+  renderAuth();
+}
+
+function renderAuth() {
+  const loggedIn = Boolean(S.authUser);
+  const loginBtn = document.getElementById('login-btn');
+  const signupBtn = document.getElementById('signup-btn');
+  const accountBtn = document.getElementById('account-btn');
+  const accountName = document.getElementById('account-name');
+  const accountEmail = document.getElementById('account-email');
+
+  if (loginBtn) loginBtn.style.display = loggedIn ? 'none' : '';
+  if (signupBtn) signupBtn.style.display = loggedIn ? 'none' : '';
+  if (accountBtn) accountBtn.style.display = loggedIn ? '' : 'none';
+  if (accountName) accountName.textContent = S.authUser?.name || 'Compte';
+  if (accountEmail) accountEmail.textContent = S.authUser?.email || '';
+}
+
+function openAuth(mode='login') {
+  S.authMode = mode;
+  const modal = document.getElementById('auth-modal');
+  const title = document.getElementById('auth-title');
+  const subtitle = document.getElementById('auth-subtitle');
+  const nameGroup = document.getElementById('auth-name-group');
+  const submit = document.getElementById('auth-submit');
+  const switchText = document.getElementById('auth-switch-text');
+  const switchLink = document.getElementById('auth-switch-link');
+  const isSignup = mode === 'signup';
+
+  if (title) title.textContent = isSignup ? 'Signup' : 'Login';
+  if (subtitle) subtitle.textContent = isSignup ? 'Créez votre compte FacturePro' : 'Accédez à votre espace FacturePro';
+  if (nameGroup) nameGroup.style.display = isSignup ? '' : 'none';
+  if (submit) submit.innerHTML = isSignup ? '<i class="fa fa-user-plus"></i> Signup' : '<i class="fa fa-right-to-bracket"></i> Login';
+  if (switchText) switchText.textContent = isSignup ? 'Déjà un compte ?' : 'Pas encore de compte ?';
+  if (switchLink) switchLink.textContent = isSignup ? 'Se connecter' : 'Créer un compte';
+  if (modal) modal.classList.add('open');
+  setTimeout(() => document.getElementById(isSignup ? 'auth-name' : 'auth-email-input')?.focus(), 0);
+}
+
+function closeAuth() {
+  document.getElementById('auth-modal')?.classList.remove('open');
+}
+
+function switchAuthMode() {
+  openAuth(S.authMode === 'login' ? 'signup' : 'login');
+}
+
+function handleAuthBackdrop(e) {
+  if (e.target?.id === 'auth-modal') closeAuth();
+}
+
+async function submitAuth(e) {
+  e.preventDefault();
+  const email = document.getElementById('auth-email-input')?.value.trim();
+  const password = document.getElementById('auth-password')?.value || '';
+  const typedName = document.getElementById('auth-name')?.value.trim();
+  if (!email || !password) return;
+
+  const name = S.authMode === 'signup'
+    ? (typedName || email.split('@')[0])
+    : (S.authUser?.name || email.split('@')[0]);
+
+  const submit = document.getElementById('auth-submit');
+  const original = submit?.innerHTML;
+  if (submit) submit.innerHTML = '<div class="spinner" style="display:inline-block"></div> Connexion...';
+
+  try {
+    const fb = window.firebaseServices;
+    if (fb?.auth) {
+      let credential;
+      if (S.authMode === 'signup') {
+        credential = await fb.createUserWithEmailAndPassword(fb.auth, email, password);
+        if (name) await fb.updateProfile(credential.user, { displayName: name });
+      } else {
+        credential = await fb.signInWithEmailAndPassword(fb.auth, email, password);
+      }
+      saveAuthUser({
+        name: credential.user.displayName || name,
+        email: credential.user.email || email,
+        uid: credential.user.uid,
+        signedInAt: new Date().toISOString(),
+        provider: 'firebase'
+      });
+    } else {
+      saveAuthUser({ name, email, signedInAt: new Date().toISOString(), provider: 'local-fallback' });
+    }
+    closeAuth();
+    e.target.reset();
+    showNotif(S.authMode === 'signup' ? 'Compte créé avec succès' : 'Connecté avec succès', 'success');
+  } catch (err) {
+    showNotif(firebaseAuthMessage(err), 'info');
+  } finally {
+    if (submit && original) submit.innerHTML = original;
+  }
+}
+
+function toggleAccountMenu() {
+  document.getElementById('account-menu')?.classList.toggle('open');
+}
+
+async function logoutUser() {
+  try {
+    window.__firebaseLogoutDone = true;
+    const fb = window.firebaseServices;
+    if (fb?.auth) await fb.signOut(fb.auth);
+  } catch {}
+  saveAuthUser(null);
+  document.getElementById('account-menu')?.classList.remove('open');
+  showNotif('Déconnecté', 'info');
+}
+
+function firebaseAuthMessage(err) {
+  const code = err?.code || '';
+  if (code.includes('email-already-in-use')) return 'Cet email est déjà utilisé';
+  if (code.includes('invalid-email')) return 'Email invalide';
+  if (code.includes('weak-password')) return 'Mot de passe trop court';
+  if (code.includes('wrong-password') || code.includes('invalid-credential')) return 'Email ou mot de passe incorrect';
+  if (code.includes('user-not-found')) return 'Compte introuvable';
+  return 'Connexion impossible pour le moment';
+}
+
+// ═══════════════════════════════════════════════════════
+// SECTION NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showSection(id) {
+  ['infos','articles','style','polices','couleurs','logo','extras'].forEach(s => {
+    document.getElementById('sec-'+s).style.display = s === id ? '' : 'none';
+  });
+  document.querySelectorAll('.section-tab').forEach((btn,i) => {
+    const sections = ['infos','articles','style','polices','couleurs','logo','extras'];
+    btn.classList.toggle('active', sections[i] === id);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// DOC TYPE
+// ═══════════════════════════════════════════════════════
+function setDocType(type) {
+  setDocVariant(type, S.docSector || 'batiment');
+}
+
+function setDocVariant(type, sector='batiment') {
+  S.docType = type;
+  S.docSector = sector;
+  ['facture','devis'].forEach(t => {
+    const heroBtn = document.getElementById('hero-tab-'+t);
+    const topBtn = document.getElementById('tab-'+t);
+    if (heroBtn) heroBtn.classList.toggle('active', t === type);
+    if (topBtn) {
+      topBtn.classList.toggle('btn-primary', t === type);
+      topBtn.classList.toggle('btn-ghost', t !== type);
+    }
+  });
+  const num = document.getElementById('f-number');
+  if (num) num.value = getDefaultDocNumber(type, sector);
+  const dueGroup = document.getElementById('due-date-group');
+  if (dueGroup) dueGroup.style.display = type === 'devis' ? '' : 'none';
+  renderDocVariant();
+  updatePreview();
+}
+
+function getDefaultDocNumber(type, sector) {
+  const prefix = type === 'facture' ? 'FAC' : 'DEV';
+  const suffix = sector === 'automobile' ? 'AUTO' : 'BAT';
+  return `${prefix}-${suffix}-2024-001`;
+}
+
+function renderDocVariant() {
+  ['facture-batiment','facture-automobile','devis-batiment','devis-automobile'].forEach(key => {
+    const btn = document.getElementById('variant-'+key);
+    if (!btn) return;
+    const [type, sector] = key.split('-');
+    const active = S.docType === type && S.docSector === sector;
+    btn.classList.toggle('btn-primary', active);
+    btn.classList.toggle('btn-ghost', !active);
+  });
+  const vehicleCard = document.getElementById('vehicle-card');
+  if (vehicleCard) vehicleCard.style.display = S.docSector === 'automobile' ? '' : 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// LAYOUT GRID
+// ═══════════════════════════════════════════════════════
+function buildLayoutGrid() {
+  const grid = document.getElementById('layout-grid');
+  grid.innerHTML = LAYOUTS.map((l,i) => `
+    <div class="layout-card${i===0?' active':''}" onclick="selectLayout(${i})">
+      <div class="layout-icon">${l.icon}</div>
+      <div class="layout-name">${l.label}</div>
+      <div class="layout-desc">${l.desc}</div>
+    </div>
+  `).join('');
+}
+
+function selectLayout(i) {
+  S.layoutIdx = i;
+  document.querySelectorAll('.layout-card').forEach((c,j) => c.classList.toggle('active', j===i));
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// THEME GRID
+// ═══════════════════════════════════════════════════════
+function buildThemeGrid() {
+  const grid = document.getElementById('theme-grid');
+  grid.innerHTML = THEMES.map((t,i) => `
+    <div class="theme-card${i===0?' active':''}" onclick="selectTheme(${i})">
+      <div class="theme-bars">${t.preview.map(c=>`<div class="theme-bar" style="background:${c}"></div>`).join('')}</div>
+      <div class="theme-name">${t.name}</div>
+    </div>
+  `).join('');
+}
+
+function selectTheme(i) {
+  S.themeIdx = i;
+  document.querySelectorAll('.theme-card').forEach((c,j) => c.classList.toggle('active', j===i));
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// FONT LIST
+// ═══════════════════════════════════════════════════════
+function buildFontCats() {
+  const cats = ['Tous', ...new Set(FONTS.map(f=>f.cat))];
+  const el = document.getElementById('font-cats');
+  el.innerHTML = cats.map(c=>`<button class="font-cat-btn${c==='Tous'?' active':''}" onclick="setFontCat('${c}')">${c}</button>`).join('');
+}
+
+function setFontCat(cat) {
+  S.fontCat = cat;
+  document.querySelectorAll('.font-cat-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === cat || (cat === 'Tous' && b.textContent === 'Tous')));
+  buildFontList();
+}
+
+function buildFontList() {
+  const visible = S.fontCat === 'Tous' ? FONTS : FONTS.filter(f=>f.cat===S.fontCat);
+  const el = document.getElementById('font-list');
+  el.innerHTML = visible.map(f => {
+    const gi = FONTS.findIndex(x=>x.name===f.name);
+    return `
+      <div class="font-item${S.fontIdx===gi?' active':''}" onclick="selectFont(${gi})">
+        <span class="font-name" style="font-family:'${f.name}',system-ui;font-weight:${S.boldTitle?700:400}">${f.name}</span>
+        <span class="font-tag">${f.cat}</span>
+      </div>`;
+  }).join('');
+}
+
+function selectFont(i) {
+  S.fontIdx = i;
+  buildFontList();
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// PAGE COLOR GRID
+// ═══════════════════════════════════════════════════════
+function buildPageColorGrid() {
+  const grid = document.getElementById('page-color-grid');
+  grid.innerHTML = PAGE_COLORS.map((c,i) => `
+    <div class="page-color-item${i===0?' active':''}" onclick="selectPageColor(${i})">
+      <div class="page-color-dot" style="background:${c.bg}"></div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:${i===S.pageColorIdx?'#a5b4fc':'#64748b'}">${c.name}</div>
+        <div style="font-size:9px;color:#475569;font-family:monospace">${c.bg}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectPageColor(i) {
+  S.pageColorIdx = i;
+  document.querySelectorAll('.page-color-item').forEach((c,j) => c.classList.toggle('active', j===i));
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// FONT COLOR GRID
+// ═══════════════════════════════════════════════════════
+function buildFontColorGrid() {
+  const grid = document.getElementById('font-color-grid');
+  grid.innerHTML = FONT_COLORS.map((c,i) => `
+    <div class="color-swatch${i===0?' active':''}" style="background:${c.val};border:${i===0?'3px solid #a5b4fc':'2px solid rgba(255,255,255,0.1)'}" title="${c.name}" onclick="selectFontColor(${i})"></div>
+  `).join('');
+}
+
+function selectFontColor(i) {
+  S.fontColorIdx = i;
+  document.querySelectorAll('.color-swatch').forEach((c,j) => {
+    c.classList.toggle('active', j===i);
+    c.style.border = j===i ? '3px solid #a5b4fc' : '2px solid rgba(255,255,255,0.1)';
+  });
+  const fc = FONT_COLORS[i];
+  document.getElementById('font-color-dot').style.background = fc.val;
+  document.getElementById('font-color-name').textContent = fc.name;
+  document.getElementById('font-color-hex').textContent = fc.val;
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// TOGGLES
+// ═══════════════════════════════════════════════════════
+function toggleTVA() {
+  S.tva = !S.tva;
+  const btn = document.getElementById('tva-toggle');
+  btn.className = 'toggle ' + (S.tva ? 'on' : 'off');
+  document.getElementById('tva-exempt-msg').style.display = S.tva ? 'none' : 'block';
+  updateTotals(); updatePreview();
+}
+
+function toggleBold(which) {
+  const map = { title:'boldTitle', labels:'boldLabels', amounts:'boldAmounts', italic:'italic' };
+  const idMap = { title:'bold-title-toggle', labels:'bold-labels-toggle', amounts:'bold-amounts-toggle', italic:'italic-toggle' };
+  S[map[which]] = !S[map[which]];
+  const btn = document.getElementById(idMap[which]);
+  btn.className = 'toggle ' + (S[map[which]] ? 'on' : 'off');
+  buildFontList();
+  updatePreview();
+}
+
+function toggleExtra(which) {
+  const map = { pagenum:'pageNumbers', signature:'signature', qrcode:'qrCode' };
+  const idMap = { pagenum:'pn-toggle', signature:'sig-toggle', qrcode:'qr-toggle' };
+  S[map[which]] = !S[map[which]];
+  const btn = document.getElementById(idMap[which]);
+  btn.className = 'toggle ' + (S[map[which]] ? 'on' : 'off');
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// QUICK ACTIONS
+// ═══════════════════════════════════════════════════════
+function collectDraft() {
+  syncItemsFromForm();
+  const fields = {};
+  document.querySelectorAll('.sidebar input[id], .sidebar textarea[id]').forEach(el => {
+    if (el.type === 'file') return;
+    fields[el.id] = el.value;
+  });
+  return {
+    savedAt: new Date().toISOString(),
+    fields,
+    state: {
+      docType: S.docType,
+      docSector: S.docSector,
+      themeIdx: S.themeIdx,
+      fontIdx: S.fontIdx,
+      fontCat: S.fontCat,
+      fontColorIdx: S.fontColorIdx,
+      pageColorIdx: S.pageColorIdx,
+      layoutIdx: S.layoutIdx,
+      boldTitle: S.boldTitle,
+      boldLabels: S.boldLabels,
+      boldAmounts: S.boldAmounts,
+      italic: S.italic,
+      tva: S.tva,
+      logoSrc: S.logoSrc,
+      logoPos: S.logoPos,
+      watermark: S.watermark,
+      stamp: S.stamp,
+      pageNumbers: S.pageNumbers,
+      signature: S.signature,
+      qrCode: S.qrCode,
+      items: S.items,
+    }
+  };
+}
+
+function saveDraft() {
+  try {
+    localStorage.setItem('facturepro-draft', JSON.stringify(collectDraft()));
+    showNotif('Brouillon sauvegardé', 'success');
+  } catch {
+    showNotif('Impossible de sauvegarder ce brouillon', 'info');
+  }
+}
+
+function loadDraft() {
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem('facturepro-draft') || 'null'); } catch {}
+  if (!draft) { showNotif('Aucun brouillon sauvegardé', 'info'); return; }
+  Object.entries(draft.fields || {}).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el && el.type !== 'file') el.value = value;
+  });
+  Object.assign(S, draft.state || {});
+  S.items = (draft.state?.items || []).map(item => ({ ...item }));
+  itemId = S.items.reduce((max, item) => Math.max(max, item.id || 0), 0);
+  buildLayoutGrid();
+  selectLayout(S.layoutIdx);
+  buildThemeGrid();
+  selectTheme(S.themeIdx);
+  buildFontCats();
+  buildFontList();
+  buildPageColorGrid();
+  buildFontColorGrid();
+  renderItems();
+  renderToggleStates();
+  renderLogoState();
+  renderDocVariant();
+  updatePreview();
+  showNotif('Brouillon chargé', 'success');
+}
+
+function renderToggleStates() {
+  const toggles = {
+    'tva-toggle': S.tva,
+    'bold-title-toggle': S.boldTitle,
+    'bold-labels-toggle': S.boldLabels,
+    'bold-amounts-toggle': S.boldAmounts,
+    'italic-toggle': S.italic,
+    'pn-toggle': S.pageNumbers,
+    'sig-toggle': S.signature,
+    'qr-toggle': S.qrCode,
+  };
+  Object.entries(toggles).forEach(([id, on]) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.className = 'toggle ' + (on ? 'on' : 'off');
+  });
+  const exempt = document.getElementById('tva-exempt-msg');
+  if (exempt) exempt.style.display = S.tva ? 'none' : 'block';
+}
+
+function renderLogoState() {
+  const img = document.getElementById('logo-preview');
+  const placeholder = document.getElementById('logo-placeholder');
+  const actions = document.getElementById('logo-actions');
+  if (img) {
+    img.src = S.logoSrc || '';
+    img.style.display = S.logoSrc ? 'block' : 'none';
+  }
+  if (placeholder) placeholder.style.display = S.logoSrc ? 'none' : '';
+  if (actions) actions.style.display = S.logoSrc ? 'block' : 'none';
+  setLogoPos(S.logoPos || 'left');
+}
+
+function duplicateDocument() {
+  const num = document.getElementById('f-number');
+  if (num) num.value = `${num.value || 'DOCUMENT'}-COPIE`;
+  setWatermark('COPIE');
+  updatePreview();
+  showNotif('Document dupliqué', 'success');
+}
+
+function resetDocument() {
+  localStorage.removeItem('facturepro-draft');
+  document.querySelectorAll('.sidebar input[id], .sidebar textarea[id]').forEach(el => {
+    if (el.type !== 'file') el.value = '';
+  });
+  S.items = [];
+  itemId = 0;
+  addRow();
+  setDocVariant('facture', 'batiment');
+  setWatermark('');
+  setStamp('none');
+  updatePreview();
+  showNotif('Document réinitialisé', 'info');
+}
+
+function emailDraft() {
+  syncItemsFromForm();
+  const docNum = document.getElementById('f-number')?.value || 'document';
+  const clientEmail = document.getElementById('c-email')?.value || '';
+  const body = encodeURIComponent(`Bonjour,\n\nVeuillez trouver ci-joint le document ${docNum}.\nTotal TTC : ${fmtEur(getGrandTotal())}\n\nCordialement`);
+  window.location.href = `mailto:${encodeURIComponent(clientEmail)}?subject=${encodeURIComponent(docNum)}&body=${body}`;
+}
+
+async function copyTotal() {
+  const text = fmtEur(getGrandTotal());
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+  showNotif(`Total copié : ${text}`, 'success');
+}
+
+function getGrandTotal() {
+  const subtotal = S.items.reduce((s,i) => s + cleanNumber(i.qty) * cleanNumber(i.price), 0);
+  const tvaAmt = S.tva ? S.items.reduce((s,i) => s + cleanNumber(i.qty) * cleanNumber(i.price) * (cleanNumber(i.tvaRate) / 100), 0) : 0;
+  return subtotal + tvaAmt;
+}
+
+// ═══════════════════════════════════════════════════════
+// LOGO
+// ═══════════════════════════════════════════════════════
+function handleLogo(e) {
+  const file = e.target.files[0]; if (!file) return;
+  if (file.size > 2*1024*1024) { showNotif('Le fichier est trop lourd (max 2MB)', 'info'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    S.logoSrc = ev.target.result;
+    document.getElementById('logo-preview').src = S.logoSrc;
+    document.getElementById('logo-preview').style.display = 'block';
+    document.getElementById('logo-placeholder').style.display = 'none';
+    document.getElementById('logo-actions').style.display = 'block';
+    updatePreview();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeLogo() {
+  S.logoSrc = null;
+  document.getElementById('logo-preview').src = '';
+  document.getElementById('logo-preview').style.display = 'none';
+  document.getElementById('logo-placeholder').style.display = '';
+  document.getElementById('logo-actions').style.display = 'none';
+  document.getElementById('logo-file').value = '';
+  updatePreview();
+}
+
+function setLogoPos(pos) {
+  S.logoPos = pos;
+  ['left','center','right'].forEach(p => {
+    const btn = document.getElementById('lpos-'+p);
+    btn.className = 'btn btn-sm ' + (p===pos ? 'btn-primary' : 'btn-ghost');
+  });
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// WATERMARK & STAMP
+// ═══════════════════════════════════════════════════════
+function setWatermark(val) {
+  S.watermark = val;
+  document.getElementById('watermark-text').value = val;
+  updatePreview();
+}
+
+function setStamp(val) {
+  S.stamp = val;
+  ['none','paid','draft','conf'].forEach(s => {
+    const btn = document.getElementById('stamp-'+s);
+    if (btn) btn.className = 'btn btn-sm ' + (s===val ? 'btn-primary' : 'btn-ghost');
+  });
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// LINE ITEMS
+// ═══════════════════════════════════════════════════════
+function addRow(desc='', qty=1, unit='forfait', price=0, tvaRate=10) {
+  const id = ++itemId;
+  S.items.push({ id, desc, qty, unit, price, tvaRate });
+  renderItems();
+}
+
+function removeRow(id) {
+  S.items = S.items.filter(i=>i.id!==id);
+  renderItems();
+}
+
+function renderItems() {
+  const container = document.getElementById('items-body');
+  container.innerHTML = S.items.map((item, idx) => `
+    <div style="border-radius:13px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.08);overflow:hidden">
+
+      <!-- Card header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.06)">
+        <span style="font-size:10px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:6px">
+          <span style="background:rgba(99,102,241,.15);color:#a5b4fc;border-radius:5px;padding:2px 8px;font-size:10px">${idx+1}</span>
+          Article
+        </span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="item-total-pill-${item.id}" style="font-size:13px;font-weight:700;color:#f1f5f9">${fmtEur(item.qty*item.price)}</span>
+          <button class="delete-row" onclick="removeRow(${item.id})" style="padding:3px 10px;border-radius:7px;font-size:11px;font-weight:600;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.08);color:#f87171">✕ Supprimer</button>
+        </div>
+      </div>
+
+      <!-- Description — large textarea -->
+      <div style="padding:13px 14px 0">
+        <label style="font-size:9px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px">Description de la prestation</label>
+        <textarea
+          rows="3"
+          oninput="updateItem(${item.id},'desc',this.value)"
+          data-item-id="${item.id}"
+          data-field="desc"
+          placeholder="Décrivez en détail votre prestation, matériaux utilisés, conditions d'exécution…"
+          style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;resize:vertical;min-height:76px;line-height:1.6;letter-spacing:.01em;transition:border-color .15s"
+          onfocus="this.style.borderColor='rgba(99,102,241,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'"
+        >${escHtml(item.desc)}</textarea>
+      </div>
+
+      <!-- Numeric fields row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;padding:10px 14px 14px">
+        ${[
+          { label:'Quantité', val:item.qty, type:'number', field:'qty', step:'0.01', suffix:'' },
+          { label:'Unité', val:item.unit, type:'text', field:'unit', step:'', suffix:'' },
+          { label:'Prix unit. HT', val:item.price, type:'number', field:'price', step:'0.01', suffix:'€' },
+          { label:'TVA', val:item.tvaRate, type:'number', field:'tvaRate', step:'1', suffix:'%' },
+        ].map(f => `
+          <div>
+            <label style="font-size:9px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">${f.label}</label>
+            <div style="position:relative">
+              <input type="${f.type}" value="${escHtml(String(f.val))}" ${f.step?'step="'+f.step+'"':''} ${f.type==='number'?'min="0"':''}
+                data-item-id="${item.id}"
+                data-field="${f.field}"
+                oninput="updateItem(${item.id},'${f.field}',this.value)"
+                style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px ${f.suffix?'24px':'10px'} 8px 10px;font-size:13px;font-weight:500;color:var(--ink);font-family:inherit;outline:none"
+              >
+              ${f.suffix?`<span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--ink-dim);font-weight:600">${f.suffix}</span>`:''}
+            </div>
+          </div>`).join('')}
+        <div>
+          <label style="font-size:9px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">Total HT</label>
+          <div style="position:relative">
+            <input id="item-total-box-${item.id}" type="number" min="0" step="0.01" value="${Number(item.qty*item.price).toFixed(2)}"
+              data-item-id="${item.id}"
+              data-field="lineTotal"
+              oninput="updateItem(${item.id},'lineTotal',this.value)"
+              style="width:100%;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:8px;padding:8px 24px 8px 10px;font-size:13px;font-weight:700;color:#a5b4fc;font-family:inherit;outline:none"
+            >
+            <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--ink-dim);font-weight:600">€</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  updateTotals();
+  updatePreview();
+}
+
+function updateItem(id, field, val) {
+  const item = S.items.find(i=>i.id===id);
+  if (!item) return;
+  if (field === 'lineTotal') {
+    const lineTotal = cleanNumber(val);
+    if (cleanNumber(item.qty) <= 0) item.qty = 1;
+    item.price = lineTotal / cleanNumber(item.qty);
+    updateLinePriceInput(id);
+  } else {
+    item[field] = ['qty','price','tvaRate'].includes(field) ? cleanNumber(val) : val;
+  }
+  updateRowTotal(id);
+  updateTotals();
+  updatePreview();
+}
+
+function cleanNumber(val) {
+  if (val === '' || val === null || Number.isNaN(Number(val))) return 0;
+  return Math.max(0, Number(val));
+}
+
+function updateRowTotal(id) {
+  const item = S.items.find(i=>i.id===id);
+  if (!item) return;
+  const total = fmtEur(item.qty * item.price);
+  const rawTotal = Number(item.qty * item.price).toFixed(2);
+  const pill = document.getElementById(`item-total-pill-${id}`);
+  const box = document.getElementById(`item-total-box-${id}`);
+  if (pill) pill.textContent = total;
+  if (box && document.activeElement !== box) box.value = rawTotal;
+}
+
+function updateLinePriceInput(id) {
+  const input = document.querySelector(`#items-body [data-item-id="${id}"][data-field="price"]`);
+  const item = S.items.find(i=>i.id===id);
+  if (input && item && document.activeElement !== input) input.value = formatPlainNumber(item.price);
+}
+
+function formatPlainNumber(n) {
+  const value = cleanNumber(n);
+  return Number.isInteger(value) ? String(value) : value.toFixed(2);
+}
+
+function syncItemsFromForm() {
+  document.querySelectorAll('#items-body [data-item-id][data-field]').forEach(input => {
+    const id = Number(input.dataset.itemId);
+    const field = input.dataset.field;
+    const item = S.items.find(i => i.id === id);
+    if (!item) return;
+    if (field === 'lineTotal') {
+      const total = cleanNumber(input.value);
+      if (cleanNumber(item.qty) <= 0) item.qty = 1;
+      item.price = total / cleanNumber(item.qty);
+    } else {
+      item[field] = ['qty','price','tvaRate'].includes(field) ? cleanNumber(input.value) : input.value;
+    }
+  });
+}
+
+function applyBulkItemValue(type) {
+  const idMap = { tva:'bulk-tva', price:'bulk-price', total:'bulk-total' };
+  const input = document.getElementById(idMap[type]);
+  const value = cleanNumber(input?.value);
+  if (!input || input.value === '') {
+    showNotif('Valeur manquante', 'info');
+    return;
+  }
+
+  if (type === 'tva') {
+    S.tva = true;
+    S.items.forEach(item => { item.tvaRate = value; });
+    renderToggleStates();
+    showNotif(`TVA ${value}% appliquée à toutes les lignes`, 'success');
+  }
+  if (type === 'price') {
+    S.items.forEach(item => { item.price = value; });
+    showNotif(`Prix unitaire ${fmtEur(value)} appliqué à toutes les lignes`, 'success');
+  }
+  if (type === 'total') {
+    S.items.forEach(item => {
+      if (cleanNumber(item.qty) <= 0) item.qty = 1;
+      item.price = value / cleanNumber(item.qty);
+    });
+    showNotif(`Total HT ${fmtEur(value)} appliqué à chaque ligne`, 'success');
+  }
+
+  renderItems();
+  updateTotals();
+  updatePreview();
+}
+
+function updateTotals() {
+  const subtotal = S.items.reduce((s,i) => s + i.qty*i.price, 0);
+  const tvaAmt   = S.tva ? S.items.reduce((s,i) => s + i.qty*i.price*(i.tvaRate/100), 0) : 0;
+  const total    = subtotal + tvaAmt;
+  const el = document.getElementById('totals-display');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="max-width:220px;margin-left:auto">
+      <div class="totals-row"><span>Sous-total HT</span><span>${fmtEur(subtotal)}</span></div>
+      ${S.tva ? `<div class="totals-row"><span>TVA</span><span>${fmtEur(tvaAmt)}</span></div>` : ''}
+      <div class="totals-total" style="background:${THEMES[S.themeIdx].p};border-radius:7px;color:#fff;margin-top:4px">
+        <span style="font-weight:700">Total TTC</span>
+        <span style="font-size:15px;font-weight:800">${fmtEur(total)}</span>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+// PREVIEW RENDER
+// ═══════════════════════════════════════════════════════
+function updatePreview() {
+  const theme     = THEMES[S.themeIdx];
+  const font      = FONTS[S.fontIdx];
+  const pageColor = PAGE_COLORS[S.pageColorIdx];
+  const fontColor = FONT_COLORS[S.fontColorIdx];
+  const layout    = LAYOUTS[S.layoutIdx];
+  const mt        = +( document.getElementById('m-top')?.value||5);
+  const mr        = +( document.getElementById('m-right')?.value||15);
+  const mb        = +( document.getElementById('m-bottom')?.value||5);
+  const ml        = +( document.getElementById('m-left')?.value||15);
+  const fs        = +( document.getElementById('font-size-range')?.value||12);
+  const logoSz    = +( document.getElementById('logo-size-range')?.value||80);
+  const wm        = document.getElementById('watermark-text')?.value || S.watermark;
+
+  const docSectorLabel = S.docSector === 'automobile' ? 'AUTOMOBILE' : 'BÂTIMENT';
+  const docLabel  = `${S.docType === 'facture' ? 'FACTURE' : 'DEVIS'} ${docSectorLabel}`;
+  const docNum    = document.getElementById('f-number')?.value || '';
+  const fDate     = fmtDate(document.getElementById('f-date')?.value);
+  const fDue      = fmtDate(document.getElementById('f-due')?.value);
+  const fObj      = document.getElementById('f-object')?.value || '';
+  const vTransaction = document.getElementById('v-transaction')?.value || '';
+  const vVin      = document.getElementById('v-vin')?.value || '';
+  const vPlate    = document.getElementById('v-plate')?.value || '';
+  const vMake     = document.getElementById('v-make')?.value || '';
+  const vModel    = document.getElementById('v-model')?.value || '';
+  const vYear     = document.getElementById('v-year')?.value || '';
+  const vMileage  = document.getElementById('v-mileage')?.value || '';
+  const vFirstReg = fmtDate(document.getElementById('v-first-reg')?.value);
+  const vColor    = document.getElementById('v-color')?.value || '';
+  const vDetails  = document.getElementById('v-details')?.value || '';
+
+  const eName     = document.getElementById('e-name')?.value || '';
+  const eStatus   = document.getElementById('e-status')?.value || '';
+  const eSiret    = document.getElementById('e-siret')?.value || '';
+  const eAddr     = document.getElementById('e-addr')?.value || '';
+  const eEmail    = document.getElementById('e-email')?.value || '';
+  const eTel      = document.getElementById('e-tel')?.value || '';
+  const eIban     = document.getElementById('e-iban')?.value || '';
+  const eBic      = document.getElementById('e-bic')?.value || '';
+  const eRib      = document.getElementById('e-rib')?.value || '';
+
+  const cName     = document.getElementById('c-name')?.value || '';
+  const cSiret    = document.getElementById('c-siret')?.value || '';
+  const cAddr     = document.getElementById('c-addr')?.value || '';
+  const cEmail    = document.getElementById('c-email')?.value || '';
+  const cTel      = document.getElementById('c-tel')?.value || '';
+
+  const fNotes    = document.getElementById('f-notes')?.value || '';
+
+  const subtotal  = S.items.reduce((s,i) => s+i.qty*i.price, 0);
+  const tvaAmt    = S.tva ? S.items.reduce((s,i) => s+i.qty*i.price*(i.tvaRate/100), 0) : 0;
+  const total     = subtotal + tvaAmt;
+
+  // Update info bar
+  const infoBar = document.getElementById('preview-info');
+  if (infoBar) infoBar.textContent = `${font.name} · ${layout.label} · ${theme.name}`;
+
+  // Build logo HTML
+  const logoHtml = S.logoSrc
+    ? `<img src="${S.logoSrc}" style="height:${logoSz*0.42}px;max-width:140px;object-fit:contain" alt="Logo">`
+    : '';
+
+  // Header by layout
+  let headerHtml = '';
+  const titleStyle = `font-size:${fs+8}px;font-weight:${S.boldTitle?900:700};color:${layout.id==='modern'?'rgba(255,255,255,0.95)':theme.p};letter-spacing:-0.02em`;
+  const numStyle   = `font-size:${fs-1}px;color:${layout.id==='modern'?'rgba(255,255,255,0.6)':'#94a3b8'}`;
+
+  if (layout.id === 'modern') {
+    const logoLeft  = S.logoPos !== 'right' && logoHtml ? logoHtml : '';
+    const logoRight = S.logoPos === 'right' && logoHtml ? logoHtml : '';
+    headerHtml = `
+      <div style="margin:-${mt}mm -${mr}mm 20px -${ml}mm;padding:18px 24px;background:linear-gradient(135deg,${theme.p},${theme.a})">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px">${logoLeft}<div><div style="${titleStyle}">${docLabel}</div><div style="${numStyle}">${docNum}</div></div></div>
+          <div style="text-align:right">${logoRight}<div style="font-size:${fs+3}px;font-weight:${S.boldAmounts?800:600};color:rgba(255,255,255,0.95);letter-spacing:-0.02em">${fmtEur(total)}</div><div style="font-size:${fs-2}px;color:rgba(255,255,255,0.6)">TTC · ${fDate}</div></div>
+        </div>
+      </div>`;
+  } else if (layout.id === 'sidebar') {
+    headerHtml = `<div style="position:absolute;left:0;top:0;width:12px;height:100%;background:linear-gradient(180deg,${theme.p},${theme.a})"></div>`;
+    headerHtml += `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-left:20px">
+      <div style="display:flex;align-items:center;gap:10px">${logoHtml}<div><div style="${titleStyle}">${docLabel}</div><div style="${numStyle}">${docNum}</div></div></div>
+      <div style="text-align:right"><div style="font-size:${fs+4}px;font-weight:${S.boldAmounts?800:600};color:${fontColor.val};letter-spacing:-0.02em">${fmtEur(total)}</div><div style="font-size:${fs-2}px;color:${fontColor.val};opacity:0.5">TTC · ${fDate}</div></div>
+    </div>`;
+  } else if (layout.id === 'bold') {
+    headerHtml = `<div style="margin-bottom:20px">
+      <div style="font-size:${fs+22}px;font-weight:900;color:${theme.p};letter-spacing:-0.04em;line-height:1">${docLabel}</div>
+      ${logoHtml ? `<div style="margin-top:8px">${logoHtml}</div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <div style="font-size:${fs-1}px;color:${fontColor.val};opacity:0.5">${docNum} · ${fDate}</div>
+        <div style="font-size:${fs+6}px;font-weight:800;color:${fontColor.val};letter-spacing:-0.03em">${fmtEur(total)}</div>
+      </div>
+    </div>`;
+  } else if (layout.id === 'split') {
+    headerHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;margin:-${mt}mm -${mr}mm 20px -${ml}mm">
+      <div style="padding:18px 24px;background:${theme.p}">
+        ${logoHtml ? `<div style="margin-bottom:8px">${logoHtml}</div>` : ''}
+        <div style="font-size:${fs+8}px;font-weight:${S.boldTitle?900:700};color:rgba(255,255,255,0.95);letter-spacing:-0.02em">${docLabel}</div>
+        <div style="font-size:${fs-1}px;color:rgba(255,255,255,0.6);margin-top:2px">${docNum}</div>
+      </div>
+      <div style="padding:18px 24px;background:${theme.a};display:flex;flex-direction:column;justify-content:center;align-items:flex-end">
+        <div style="font-size:${fs+6}px;font-weight:800;color:#fff;letter-spacing:-0.02em">${fmtEur(total)}</div>
+        <div style="font-size:${fs-1}px;color:rgba(255,255,255,0.7);margin-top:2px">TTC · Émis le ${fDate}</div>
+      </div>
+    </div>`;
+  } else if (layout.id === 'elegant') {
+    headerHtml = `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid ${theme.p}">
+      <div>${logoHtml ? `<div style="margin-bottom:8px">${logoHtml}</div>` : ''}<div style="font-size:${fs+6}px;font-weight:${S.boldTitle?700:400};color:${theme.p};letter-spacing:0.02em;font-variant:small-caps">${docLabel}</div><div style="width:40px;height:2px;background:${theme.p};margin:6px 0"></div><div style="font-size:${fs-1}px;color:${fontColor.val};opacity:0.5">${docNum}</div></div>
+      <div style="text-align:right">${logoHtml && S.logoPos==='right' ? logoHtml : ''}<div style="font-size:${fs+4}px;font-weight:${S.boldAmounts?700:500};color:${fontColor.val}">${fmtEur(total)}</div><div style="font-size:${fs-2}px;color:${fontColor.val};opacity:0.4;margin-top:2px">TTC · ${fDate}</div></div>
+    </div>`;
+  } else {
+    // classic, minimal, card
+    const titleClr = layout.id==='minimal' ? fontColor.val : theme.p;
+    headerHtml = `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:10px">
+        ${S.logoPos!=='right' && logoHtml ? logoHtml : ''}
+        <div><div style="font-size:${fs+6}px;font-weight:${S.boldTitle?900:700};color:${titleClr};letter-spacing:-0.01em">${docLabel}</div><div style="font-size:${fs-1}px;color:${fontColor.val};opacity:0.5;margin-top:2px">${docNum}</div></div>
+      </div>
+      <div style="text-align:right">
+        ${S.logoPos==='right' && logoHtml ? `<div style="margin-bottom:6px">${logoHtml}</div>` : ''}
+        <div style="font-size:${fs+4}px;font-weight:${S.boldAmounts?800:600};color:${fontColor.val};letter-spacing:-0.02em">${fmtEur(total)}</div>
+        <div style="font-size:${fs-2}px;color:${fontColor.val};opacity:0.5;margin-top:2px">TTC · ${fDate}</div>
+      </div>
+    </div>`;
+  }
+
+  const padLeft = layout.id==='sidebar' ? '20px' : '0';
+
+  // Parties
+  const partyStyle = layout.id==='card'
+    ? `padding:12px;border-radius:8px;background:rgba(0,0,0,0.04);border:1px solid ${theme.p}25`
+    : `padding:12px;border-radius:8px;background:rgba(0,0,0,0.03)`;
+  const partyMetaStyle = `font-size:${fs-2}px;color:${fontColor.val};opacity:0.58;line-height:1.55;overflow-wrap:anywhere;word-break:break-word`;
+  const detailLine = (label, value) => value
+    ? `<div><span style="font-weight:${S.boldLabels?700:600};opacity:0.8">${label} :</span> ${escHtml(value)}</div>`
+    : '';
+
+  const partiesHtml = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;padding-left:${padLeft}">
+      <div style="${partyStyle}">
+        <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.a};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">DE</div>
+        ${eName ? `<div style="font-size:${fs}px;font-weight:${S.boldTitle?700:600};color:${fontColor.val};margin-bottom:3px;overflow-wrap:anywhere;word-break:break-word">${escHtml(eName)}</div>` : ''}
+        <div style="${partyMetaStyle}">
+          ${[
+            detailLine('Statut', eStatus),
+            detailLine('SIRET/SIREN', eSiret),
+            detailLine('Adresse', eAddr),
+            detailLine('Email', eEmail),
+            detailLine('Tél.', eTel)
+          ].filter(Boolean).join('')}
+        </div>
+      </div>
+      <div style="${partyStyle}">
+        <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.a};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">${S.docType==='facture'?'FACTURÉ À':'DEVIS POUR'}</div>
+        ${cName ? `<div style="font-size:${fs}px;font-weight:${S.boldTitle?700:600};color:${fontColor.val};margin-bottom:3px;overflow-wrap:anywhere;word-break:break-word">${escHtml(cName)}</div>` : ''}
+        <div style="${partyMetaStyle}">
+          ${[
+            detailLine('SIREN', cSiret),
+            detailLine('Adresse', cAddr),
+            detailLine('Email', cEmail),
+            detailLine('Tél.', cTel)
+          ].filter(Boolean).join('')}
+        </div>
+      </div>
+    </div>`;
+
+  // Object line
+  const objectHtml = fObj ? `
+    <div style="margin-bottom:18px;padding:9px 14px;border-radius:8px;background:${theme.p}12;border:1px solid ${theme.p}25;padding-left:${padLeft?'calc('+padLeft+' + 14px)':'14px'}">
+      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.p};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Objet</div>
+      <div style="font-size:${fs}px;color:${fontColor.val};font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word">${escHtml(fObj)}</div>
+    </div>` : '';
+
+  // Vehicle details
+  const hasVehicle = S.docSector === 'automobile' && [vTransaction,vVin,vPlate,vMake,vModel,vYear,vMileage,vFirstReg,vColor,vDetails].some(Boolean);
+  const vehicleLine = (label, value) => value
+    ? `<div><span style="font-weight:${S.boldLabels?800:700};opacity:.72">${label} :</span> ${escHtml(value)}</div>`
+    : '';
+  const vehicleHtml = hasVehicle ? `
+    <div style="margin-bottom:18px;padding:11px 14px;border-radius:8px;background:${theme.a}10;border:1px solid ${theme.a}30;padding-left:${padLeft?'calc('+padLeft+' + 14px)':'14px'};break-inside:avoid;page-break-inside:avoid">
+      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.p};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px">Véhicule - achat / vente</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:${fs-2}px;color:${fontColor.val};opacity:.68;line-height:1.55;overflow-wrap:anywhere;word-break:break-word">
+        ${vehicleLine('Type', vTransaction)}
+        ${vehicleLine('VIN / N° châssis', vVin)}
+        ${vehicleLine('Plaque', vPlate)}
+        ${vehicleLine('Marque', vMake)}
+        ${vehicleLine('Modèle', vModel)}
+        ${vehicleLine('Année', vYear)}
+        ${vehicleLine('Kilométrage', vMileage)}
+        ${vehicleLine('Mise en circulation', vFirstReg)}
+        ${vehicleLine('Couleur', vColor)}
+      </div>
+      ${vDetails ? `<div style="font-size:${fs-2}px;color:${fontColor.val};opacity:.62;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin-top:8px">${escHtml(vDetails)}</div>` : ''}
+    </div>` : '';
+
+  // Items table
+  const itemRows = S.items.map((item,i) => `
+    <tr style="background:${i%2===0?pageColor.bg:'rgba(128,128,128,0.04)'};break-inside:avoid;page-break-inside:avoid">
+      <td style="padding:8px 10px;font-size:${fs-1}px;color:${fontColor.val};line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;vertical-align:top">${escHtml(item.desc)}</td>
+      <td style="padding:8px 6px;font-size:${fs-1}px;color:${fontColor.val};opacity:0.65;text-align:center;vertical-align:top">${item.qty}</td>
+      <td style="padding:8px 6px;font-size:${fs-1}px;color:${fontColor.val};opacity:0.55;text-align:center;white-space:normal;overflow-wrap:anywhere;word-break:break-word;vertical-align:top">${escHtml(item.unit)}</td>
+      <td style="padding:8px 6px;font-size:${fs-1}px;color:${fontColor.val};text-align:right;vertical-align:top">${fmtEur(item.price)}</td>
+      ${S.tva?`<td style="padding:8px 6px;font-size:${fs-2}px;text-align:center"><span style="background:rgba(245,158,11,0.12);color:#d97706;padding:2px 6px;border-radius:4px;font-weight:700">${item.tvaRate}%</span></td>`:''}
+      <td style="padding:8px 10px;font-size:${fs}px;font-weight:${S.boldAmounts?700:600};color:${fontColor.val};text-align:right;vertical-align:top">${fmtEur(item.qty*item.price)}</td>
+    </tr>`).join('');
+
+  const colCount = S.tva ? 6 : 5;
+  const tableHtml = `
+    <div style="margin-bottom:16px;padding-left:${padLeft}">
+      <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+        <colgroup>
+          <col style="width:${S.tva?'38%':'46%'}">
+          <col style="width:10%">
+          <col style="width:12%">
+          <col style="width:${S.tva?'14%':'16%'}">
+          ${S.tva?'<col style="width:10%">':''}
+          <col style="width:${S.tva?'16%':'16%'}">
+        </colgroup>
+        <thead>
+          <tr style="background:${theme.p}">
+            <th style="padding:8px 10px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:left">Désignation</th>
+            <th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:center">Qté</th>
+            <th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:center">Unité</th>
+            <th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:right">P.U. HT</th>
+            ${S.tva?`<th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:center">TVA</th>`:''}
+            <th style="padding:8px 10px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:right">Total HT</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+    </div>`;
+
+  // Totals
+  const totalsHtml = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:18px;padding-left:${padLeft}">
+      <div style="width:200px">
+        <div class="totals-row" style="color:${fontColor.val}"><span style="font-size:${fs-1}px">Sous-total HT</span><span style="font-size:${fs-1}px;font-weight:${S.boldAmounts?700:500}">${fmtEur(subtotal)}</span></div>
+        ${S.tva?`<div class="totals-row" style="color:${fontColor.val}"><span style="font-size:${fs-1}px">TVA</span><span style="font-size:${fs-1}px;font-weight:${S.boldAmounts?700:500}">${fmtEur(tvaAmt)}</span></div>`:''}
+        <div class="totals-total" style="background:${theme.p}">
+          <span style="font-size:${fs-1}px;font-weight:700;color:rgba(255,255,255,0.85)">Total TTC</span>
+          <span style="font-size:${fs+2}px;font-weight:${S.boldAmounts?800:700};color:#fff">${fmtEur(total)}</span>
+        </div>
+        ${!S.tva?`<div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45;margin-top:6px;font-style:italic">TVA non applicable — art. 293 B du CGI</div>`:''}
+      </div>
+    </div>`;
+
+  // Signature
+  const sigHtml = S.signature ? `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;padding-left:${padLeft}">
+      <div style="width:170px;padding:9px;border:1px dashed ${theme.p}60;border-radius:8px;text-align:center">
+        <div style="height:44px;border-bottom:1px solid ${theme.p}40;margin-bottom:5px"></div>
+        <div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45">Signature et cachet</div>
+      </div>
+    </div>` : '';
+
+  // QR code (demo)
+  const qrHtml = S.qrCode ? `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;padding-left:${padLeft}">
+      <div style="width:60px;height:60px;border:1px solid ${fontColor.val};opacity:.3;display:flex;align-items:center;justify-content:center;font-size:9px;color:${fontColor.val};text-align:center;border-radius:4px">QR<br>Paiement</div>
+    </div>` : '';
+
+  // Payment details
+  const paymentHtml = (eIban || eBic || eRib) ? `
+    <div style="margin-bottom:14px;padding:10px 12px;border-radius:8px;background:${theme.p}0f;border:1px solid ${theme.p}25;padding-left:${padLeft?'calc('+padLeft+' + 12px)':'12px'}">
+      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.p};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Coordonnées bancaires</div>
+      <div style="font-size:${fs-2}px;color:${fontColor.val};opacity:0.62;line-height:1.65;overflow-wrap:anywhere;word-break:break-word">
+        ${eIban ? `<div><span style="font-weight:700;opacity:0.8">IBAN :</span> ${escHtml(eIban)}</div>` : ''}
+        ${eBic ? `<div><span style="font-weight:700;opacity:0.8">BIC/SWIFT :</span> ${escHtml(eBic)}</div>` : ''}
+        ${eRib ? `<div><span style="font-weight:700;opacity:0.8">RIB/Banque :</span> ${escHtml(eRib)}</div>` : ''}
+      </div>
+    </div>` : '';
+
+  // Notes
+  const notesHtml = `
+    <div style="border-top:1px solid ${theme.p}25;padding-top:12px;padding-left:${padLeft}">
+      ${fNotes ? `<div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45;line-height:1.7;font-style:${S.italic?'italic':'normal'}">${escHtml(fNotes).replace(/\n/g,'<br>')}</div>` : ''}
       ${!S.tva ? `<div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45;margin-top:4px;font-style:italic">TVA non applicable — art. 293 B du CGI</div>` : ''}
       <div style="margin-top:8px;display:flex;gap:16px;font-size:${fs-3}px;color:${fontColor.val};opacity:0.35">
         ${fDate?`<span>Émis le ${fDate}</span>`:''}
         ${S.docType==='devis' && fDue?`<span>Échéance ${fDue}</span>`:''}
       </div>
     </div>`;
+
   // Page number
   const pageNumHtml = S.pageNumbers ? `<div style="position:absolute;bottom:8px;right:14px;font-size:${fs-4}px;color:${fontColor.val};opacity:0.3">Page 1 / 1</div>` : '';
+
   // Watermark
   const wmHtml = wm ? `<div class="watermark" style="color:${fontColor.val}">${escHtml(wm)}</div>` : '';
+
   // Stamp
   let stampHtml = '';
   if (S.stamp === 'paid')  stampHtml = '<div class="stamp stamp-paid">PAYÉ</div>';
   if (S.stamp === 'draft') stampHtml = '<div class="stamp stamp-draft">BROUILLON</div>';
   if (S.stamp === 'conf')  stampHtml = '<div class="stamp stamp-conf">CONFIDENTIEL</div>';
+
   // Assemble
   const preview = document.getElementById('invoice-preview');
   preview.style.fontFamily = `'${font.name}', system-ui, sans-serif`;
@@ -36,23 +2140,28 @@
   `;
   updateTotals();
 }
+
 // ═══════════════════════════════════════════════════════
 // PDF GENERATION
 // ═══════════════════════════════════════════════════════
 async function generatePDF() {
   const btnText = document.getElementById('pdf-btn-text');
   if (btnText) btnText.innerHTML = '<div class="spinner" style="display:inline-block"></div> Génération…';
+
   syncItemsFromForm();
   updatePreview();
   await new Promise(resolve => requestAnimationFrame(resolve));
+
   if (typeof html2pdf === 'undefined') {
     showNotif('⚠️ Générateur PDF non chargé. Utilisez Imprimer > Enregistrer en PDF.', 'info');
     if (btnText) btnText.textContent = 'Télécharger PDF';
     return;
   }
+
   const source = document.getElementById('invoice-preview');
   const el = buildPdfClone(source);
   const docNum = document.getElementById('f-number')?.value || 'document';
+
   try {
     await saveInvoicePdf(el, docNum);
     showNotif('✅ PDF généré avec succès !', 'success');
@@ -61,8 +2170,10 @@ async function generatePDF() {
   } finally {
     el.parentElement?.remove();
   }
+
   if (btnText) btnText.textContent = 'Télécharger PDF';
 }
+
 async function saveInvoicePdf(el, docNum) {
   if (typeof html2canvas === 'undefined' || !window.jspdf?.jsPDF) {
     await html2pdf().set({
@@ -74,6 +2185,7 @@ async function saveInvoicePdf(el, docNum) {
     }).from(el).save();
     return;
   }
+
   const canvas = await html2canvas(el, {
     scale: 2,
     useCORS: true,
@@ -85,6 +2197,7 @@ async function saveInvoicePdf(el, docNum) {
     scrollX: 0,
     scrollY: 0,
   });
+
   const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
   const pageW = 210;
   const pageH = 297;
@@ -93,6 +2206,7 @@ async function saveInvoicePdf(el, docNum) {
   const imgH = canvas.height * imgW / canvas.width;
   const pageContentH = pageH - margin * 2;
   const imgData = canvas.toDataURL('image/jpeg', 1);
+
   let page = 0;
   let remaining = imgH;
   while (remaining > 0) {
@@ -103,6 +2217,7 @@ async function saveInvoicePdf(el, docNum) {
   }
   pdf.save(`${docNum}.pdf`);
 }
+
 function buildPdfClone(source) {
   const holder = document.createElement('div');
   holder.id = 'pdf-render-holder';
@@ -119,6 +2234,7 @@ function buildPdfClone(source) {
     '-webkit-print-color-adjust:exact',
     'print-color-adjust:exact'
   ].join(';');
+
   const clone = source.cloneNode(true);
   clone.id = 'invoice-pdf-render';
   clone.style.width = '794px';
@@ -133,28 +2249,34 @@ function buildPdfClone(source) {
   clone.style.background = getComputedStyle(source).backgroundColor || PAGE_COLORS[S.pageColorIdx].bg;
   clone.style.webkitPrintColorAdjust = 'exact';
   clone.style.printColorAdjust = 'exact';
+
   holder.appendChild(clone);
   document.body.appendChild(holder);
   return clone;
 }
+
 window.addEventListener('beforeprint', () => {
   syncItemsFromForm();
   updatePreview();
 });
+
 // ═══════════════════════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════════════════════
 function fmtEur(n) {
   return new Intl.NumberFormat('fr-FR',{ style:'currency', currency:'EUR' }).format(n||0);
 }
+
 function fmtDate(iso) {
   if (!iso) return '';
   const [y,m,d] = iso.split('-');
   return `${d}/${m}/${y}`;
 }
+
 function escHtml(str) {
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
 function showNotif(msg, type='success') {
   const el = document.getElementById('notif');
   el.className = `notif notif-${type}`;
