@@ -52,6 +52,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4956341710070686" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Roboto:ital,wght@0,400;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,700;1,400&family=Poppins:ital,wght@0,400;0,700;1,400&family=Montserrat:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;700&family=Lato:wght@400;700&family=Raleway:wght@400;700&family=Oswald:wght@400;700&family=Bebas+Neue&family=Anton&family=Teko:wght@400;700&family=Exo+2:wght@400;700&family=Russo+One&family=Righteous&family=Audiowide&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700&family=Ubuntu:wght@400;700&family=Noto+Sans:wght@400;700&family=PT+Sans:wght@400;700&family=Mulish:wght@400;700&family=Karla:wght@400;700&family=Barlow:wght@400;700&family=Work+Sans:wght@400;700&family=DM+Sans:wght@400;700&family=Manrope:wght@400;700&family=Sora:wght@400;700&family=Outfit:wght@400;700&family=Figtree:wght@400;700&family=Jost:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700&family=Spectral:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;700&family=Fjalla+One&display=swap" rel="stylesheet">
@@ -387,6 +388,21 @@
   .notif-success { background: rgba(16,185,129,.15); border: 1px solid rgba(16,185,129,.3); color: #34d399; }
   .notif-info { background: rgba(99,102,241,.15); border: 1px solid rgba(99,102,241,.3); color: #a5b4fc; }
 
+  /* Legal footer and consent */
+  .legal-footer { border-top: 1px solid var(--border); padding: 18px 24px 26px; color: var(--ink-dim); font-size: 11px; background: rgba(255,255,255,.015); }
+  .legal-footer-inner { max-width: 1600px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .legal-links { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .legal-link { color: var(--ink-muted); background: transparent; border: 0; cursor: pointer; font-family: inherit; font-size: 11px; padding: 0; }
+  .legal-link:hover { color: #a5b4fc; }
+  .legal-content { max-height: 70vh; overflow-y: auto; color: var(--ink-muted); font-size: 12px; line-height: 1.65; }
+  .legal-content h3 { color: var(--ink); font-size: 14px; margin: 14px 0 6px; }
+  .legal-content p { margin-bottom: 8px; }
+  .legal-content ul { margin: 8px 0 12px 18px; }
+  .cookie-banner { position: fixed; left: 20px; right: 20px; bottom: 18px; z-index: 10001; display: none; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: 12px; background: rgba(15,23,42,.96); box-shadow: 0 24px 80px rgba(0,0,0,.45); color: var(--ink-muted); font-size: 12px; }
+  .cookie-banner.open { display: flex; animation: fadeUp .2s ease both; }
+  body.light .cookie-banner { background: rgba(255,255,255,.98); }
+  @media(max-width:720px) { .cookie-banner { flex-direction: column; align-items: flex-start; } }
+
   /* Range slider */
   input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; outline: none; }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); cursor: pointer; box-shadow: 0 0 8px var(--brand-glow); }
@@ -437,7 +453,14 @@
 
 <!-- HERO BANNER AD -->
 <div class="ad-band no-print" data-ad-position="hero-banner">
-  <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">Publicité</div>
+  <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-4956341710070686"
+      data-ad-slot="REPLACE_HERO_SLOT"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+  </div>
 </div>
 
 <!-- STATS -->
@@ -450,7 +473,14 @@
 
 <!-- TOP BANNER AD -->
 <div class="ad-band no-print" data-ad-position="top-banner">
-  <div class="ad-slot" data-ad-format="leaderboard">Publicité</div>
+  <div class="ad-slot" data-ad-format="leaderboard">
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-4956341710070686"
+      data-ad-slot="REPLACE_TOP_SLOT"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -764,7 +794,14 @@
       </div>
     </div>
     <div class="ad-band no-print" data-ad-position="preview-banner">
-      <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">Publicité</div>
+      <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">
+        <ins class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-4956341710070686"
+          data-ad-slot="REPLACE_PREVIEW_SLOT"
+          data-ad-format="auto"
+          data-full-width-responsive="true"></ins>
+      </div>
     </div>
     <div class="preview-wrap">
       <div id="invoice-preview">
@@ -772,11 +809,35 @@
       </div>
     </div>
     <div class="ad-band no-print" data-ad-position="bottom-banner">
-      <div class="ad-slot" data-ad-format="leaderboard">Publicité</div>
+      <div class="ad-slot" data-ad-format="leaderboard">
+        <ins class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-4956341710070686"
+          data-ad-slot="REPLACE_BOTTOM_SLOT"
+          data-ad-format="auto"
+          data-full-width-responsive="true"></ins>
+      </div>
     </div>
   </section>
 
 </div><!-- /main-layout -->
+
+<footer class="legal-footer no-print">
+  <div class="legal-footer-inner">
+    <div>
+      <strong style="color:var(--ink)">FacturePro</strong>
+      <span> - générateur gratuit de factures et devis PDF pour bâtiment et automobile.</span>
+    </div>
+    <div class="legal-links">
+      <button class="legal-link" onclick="openLegal('about')">À propos</button>
+      <button class="legal-link" onclick="openLegal('legal')">Mentions légales</button>
+      <button class="legal-link" onclick="openLegal('privacy')">Confidentialité</button>
+      <button class="legal-link" onclick="openLegal('terms')">CGU</button>
+      <button class="legal-link" onclick="openLegal('cookies')">Cookies</button>
+      <button class="legal-link" onclick="openLegal('contact')">Contact</button>
+    </div>
+  </div>
+</footer>
 
 <!-- NOTIFICATION -->
 <div id="notif" style="display:none"></div>
@@ -810,6 +871,32 @@
         <span class="auth-link" id="auth-switch-link" onclick="switchAuthMode()">Créer un compte</span>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- LEGAL MODAL -->
+<div class="modal-backdrop no-print" id="legal-modal" onclick="handleLegalBackdrop(event)">
+  <div class="auth-modal" style="width:min(760px,100%)">
+    <div class="auth-modal-head">
+      <div>
+        <div class="auth-modal-title" id="legal-title">Mentions légales</div>
+        <div class="auth-modal-sub">Informations légales, confidentialité et conditions d'utilisation</div>
+      </div>
+      <button class="btn btn-ghost auth-close" onclick="closeLegal()" title="Fermer"><i class="fa fa-xmark"></i></button>
+    </div>
+    <div class="auth-modal-body legal-content" id="legal-content"></div>
+  </div>
+</div>
+
+<!-- COOKIE CONSENT -->
+<div class="cookie-banner no-print" id="cookie-banner">
+  <div>
+    <strong style="color:var(--ink)">Cookies et publicité</strong><br>
+    Nous utilisons Firebase/Google Analytics et pouvons utiliser Google AdSense pour mesurer l'audience et afficher des annonces. Les données saisies dans vos factures restent dans votre navigateur sauf connexion Firebase.
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-ghost btn-sm" onclick="openLegal('privacy')">En savoir plus</button>
+    <button class="btn btn-primary btn-sm" onclick="acceptCookies()">Accepter</button>
   </div>
 </div>
 
@@ -1026,11 +1113,140 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAuthUser();
   renderAuth();
   renderDocVariant();
+  renderCookieBanner();
+  initAdsenseSlots();
 
   addRow();
   addRow();
   updatePreview();
 });
+
+const LEGAL_PAGES = {
+  about: {
+    title: 'À propos',
+    html: `
+      <p><strong>FacturePro</strong> est un outil web gratuit destiné aux indépendants, artisans, auto-entrepreneurs et professionnels de l'automobile qui souhaitent créer rapidement des factures et devis PDF.</p>
+      <p>L'application permet de générer des documents pour le bâtiment et l'automobile, avec TVA, IBAN/RIB, informations véhicule, logo, signature, thèmes et export PDF A4.</p>
+      <p>FacturePro est un outil d'aide à la création de documents. L'utilisateur reste responsable de vérifier les informations légales, fiscales et comptables avant utilisation ou envoi.</p>
+    `
+  },
+  legal: {
+    title: 'Mentions légales',
+    html: `
+      <h3>Éditeur / Propriétaire du site</h3>
+      <p><strong>Nom ou raison sociale :</strong> À compléter avec votre nom ou votre société</p>
+      <p><strong>Adresse :</strong> À compléter avec votre adresse professionnelle</p>
+      <p><strong>Email professionnel :</strong> contact@facturergratuit.com</p>
+      <h3>Hébergement</h3>
+      <p><strong>Hébergeur :</strong> Firebase Hosting / Google Cloud</p>
+      <p><strong>Adresse :</strong> Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irlande.</p>
+      <h3>Responsabilité</h3>
+      <p>Le site fournit un générateur de documents. Les informations saisies, les calculs, les mentions légales, la TVA, les SIRET/SIREN, les VIN, les immatriculations et les coordonnées bancaires doivent être vérifiés par l'utilisateur avant toute utilisation officielle.</p>
+      <p><strong>Important :</strong> remplacez les champs "À compléter" par vos informations réelles avant publication et demande AdSense.</p>
+    `
+  },
+  privacy: {
+    title: 'Politique de confidentialité',
+    html: `
+      <h3>Données saisies dans les factures et devis</h3>
+      <p>Les informations que vous saisissez dans l'outil, comme nom, prénom, client, adresse, SIRET/SIREN, IBAN/RIB, VIN, plaque d'immatriculation, détails de véhicule, prix et prestations, sont utilisées pour afficher l'aperçu et générer le PDF.</p>
+      <p>Ces données ne sont pas vendues à des tiers. Elles sont principalement traitées dans votre navigateur. Les brouillons peuvent être enregistrés localement dans votre navigateur via localStorage lorsque vous utilisez la fonction de sauvegarde.</p>
+      <h3>Compte utilisateur Firebase</h3>
+      <p>Si vous utilisez signup/login, Firebase Authentication peut traiter votre email, identifiant utilisateur et informations de connexion pour permettre l'accès au compte.</p>
+      <h3>Google Analytics et Google AdSense</h3>
+      <p>Nous utilisons Google Analytics pour mesurer l'audience et pouvons utiliser Google AdSense pour afficher des annonces. Google et ses partenaires peuvent utiliser des cookies ou technologies similaires pour diffuser, mesurer et personnaliser les annonces selon leurs propres règles.</p>
+      <h3>Vos choix</h3>
+      <p>Vous pouvez refuser ou supprimer les cookies dans les paramètres de votre navigateur. Vous pouvez aussi supprimer vos brouillons locaux en utilisant le bouton Reset ou en vidant les données du navigateur.</p>
+      <h3>Contact confidentialité</h3>
+      <p>Pour toute demande liée à vos données, contactez : contact@facturergratuit.com</p>
+    `
+  },
+  terms: {
+    title: "Conditions générales d'utilisation",
+    html: `
+      <h3>Utilisation du service</h3>
+      <p>FacturePro est fourni gratuitement pour aider à créer des factures et devis. L'utilisateur s'engage à utiliser le service conformément aux lois applicables.</p>
+      <ul>
+        <li>Ne pas utiliser le site pour créer de faux documents.</li>
+        <li>Vérifier les montants, taux de TVA, mentions légales et informations client avant envoi.</li>
+        <li>Ne pas saisir de données illicites ou appartenant à une personne sans autorisation.</li>
+        <li>Utiliser les informations véhicule uniquement pour des transactions légitimes.</li>
+      </ul>
+      <h3>Limitation de responsabilité</h3>
+      <p>Le site ne remplace pas un expert-comptable, avocat ou conseiller fiscal. L'utilisateur reste responsable de la conformité de ses documents.</p>
+      <h3>Disponibilité</h3>
+      <p>Le service peut évoluer, être interrompu temporairement ou modifié pour maintenance ou amélioration.</p>
+    `
+  },
+  cookies: {
+    title: 'Politique cookies',
+    html: `
+      <h3>Cookies utilisés</h3>
+      <p>Le site peut utiliser des cookies ou stockages locaux pour :</p>
+      <ul>
+        <li>mémoriser le mode clair/sombre ;</li>
+        <li>conserver un brouillon local dans votre navigateur ;</li>
+        <li>permettre la connexion Firebase ;</li>
+        <li>mesurer l'audience via Google Analytics ;</li>
+        <li>afficher et mesurer des annonces via Google AdSense lorsque les annonces sont activées.</li>
+      </ul>
+      <h3>Gestion</h3>
+      <p>Vous pouvez gérer ou supprimer les cookies depuis votre navigateur. Le refus de certains cookies peut limiter certaines fonctions comme la connexion ou les statistiques.</p>
+    `
+  },
+  contact: {
+    title: 'Contact',
+    html: `
+      <h3>Contact professionnel</h3>
+      <p><strong>Email :</strong> contact@facturergratuit.com</p>
+      <p><strong>Propriétaire / Éditeur :</strong> À compléter avec votre nom ou société</p>
+      <p><strong>Adresse :</strong> À compléter avec votre adresse professionnelle</p>
+      <h3>Demandes possibles</h3>
+      <p>Vous pouvez nous contacter pour une question sur l'outil, une demande de suppression de données de compte Firebase, un problème technique, ou une remarque liée aux annonces.</p>
+    `
+  }
+};
+
+function openLegal(page='legal') {
+  const data = LEGAL_PAGES[page] || LEGAL_PAGES.legal;
+  const title = document.getElementById('legal-title');
+  const content = document.getElementById('legal-content');
+  if (title) title.textContent = data.title;
+  if (content) content.innerHTML = data.html;
+  document.getElementById('legal-modal')?.classList.add('open');
+}
+
+function closeLegal() {
+  document.getElementById('legal-modal')?.classList.remove('open');
+}
+
+function handleLegalBackdrop(e) {
+  if (e.target?.id === 'legal-modal') closeLegal();
+}
+
+function renderCookieBanner() {
+  let accepted = false;
+  try { accepted = localStorage.getItem('facturepro-cookie-consent') === 'accepted'; } catch {}
+  const banner = document.getElementById('cookie-banner');
+  if (banner && !accepted) banner.classList.add('open');
+}
+
+function acceptCookies() {
+  try { localStorage.setItem('facturepro-cookie-consent', 'accepted'); } catch {}
+  document.getElementById('cookie-banner')?.classList.remove('open');
+}
+
+function initAdsenseSlots() {
+  if (!window.adsbygoogle) return;
+  document.querySelectorAll('ins.adsbygoogle').forEach(slot => {
+    const adSlot = slot.getAttribute('data-ad-slot') || '';
+    if (!adSlot || adSlot.startsWith('REPLACE_') || slot.dataset.loaded === 'true') return;
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      slot.dataset.loaded = 'true';
+    } catch {}
+  });
+}
 
 function loadAppTheme() {
   try {
@@ -1064,6 +1280,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeAuth();
+    closeLegal();
     document.getElementById('account-menu')?.classList.remove('open');
   }
 });
