@@ -168,7 +168,7 @@
   .account-panel.active { display: block; }
   .history-month { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; background: rgba(255,255,255,.025); }
   .history-head { display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; background: rgba(99,102,241,.1); color: var(--ink); font-size: 12px; font-weight: 800; }
-  .history-row { display: grid; grid-template-columns: 80px 1fr 90px; gap: 8px; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--ink-muted); align-items: center; }
+  .history-row { display: grid; grid-template-columns: 80px 1fr 90px 84px; gap: 8px; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--ink-muted); align-items: center; }
   .history-row strong { color: var(--ink); overflow-wrap: anywhere; }
   .history-total { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); background: rgba(16,185,129,.08); font-size: 11px; color: var(--ink-muted); }
   .history-total strong { display: block; color: var(--ink); font-size: 12px; margin-top: 2px; }
@@ -2014,6 +2014,7 @@ function getCurrentDocumentSummary(action='PDF') {
 function recordDocumentHistory(action='PDF') {
   if (!S.authUser) return;
   const record = getCurrentDocumentSummary(action);
+  record.snapshot = collectDraft();
   const list = loadAccountHistory();
   const next = [record, ...list.filter(item => item.id !== record.id)].slice(0, 300);
   saveAccountHistory(next);
@@ -2048,7 +2049,8 @@ function renderAccountHistory() {
             <span>${fmtDate(item.date)}</span>
             <strong>${escHtml(item.clientName || 'Client')}</strong>
             <span style="text-align:right">${fmtEur(item.total)}</span>
-            <span style="grid-column:2 / 4;font-size:10px;opacity:.65">${escHtml((item.docType || '').toUpperCase())} · ${escHtml(item.docNum || '')}</span>
+            <button class="btn btn-ghost btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="editHistoryRecord(this.dataset.historyId)"><i class="fa fa-pen"></i> Modifier</button>
+            <span style="grid-column:2 / 5;font-size:10px;opacity:.65">${escHtml((item.docType || '').toUpperCase())} · ${escHtml(item.docNum || '')}</span>
           </div>
         `).join('')}
         <div class="history-total">
@@ -2058,6 +2060,55 @@ function renderAccountHistory() {
         </div>
       </div>`;
   }).join('');
+}
+
+function editHistoryRecord(id) {
+  const item = loadAccountHistory().find(entry => entry.id === id);
+  if (!item) {
+    showNotif('Historique introuvable', 'info');
+    return;
+  }
+  if (item.snapshot) {
+    applyDraftSnapshot(item.snapshot);
+  } else {
+    document.getElementById('f-number').value = item.docNum || '';
+    document.getElementById('f-date').value = item.date || '';
+    document.getElementById('c-name').value = item.clientName || '';
+    setDocVariant(item.docType || 'facture', item.sector || 'batiment');
+    updatePreview();
+  }
+  closeAccount();
+  scrollToEditor();
+  showSection('infos');
+  showNotif('Facture chargée depuis l’historique', 'success');
+}
+
+function applyDraftSnapshot(draft) {
+  Object.entries(draft.fields || {}).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el && el.type !== 'file') el.value = value;
+  });
+  Object.assign(S, draft.state || {});
+  S.country = COUNTRY_PROFILES[S.country] ? S.country : 'FR';
+  S.lang = I18N[S.lang] ? S.lang : getCountryProfile().lang;
+  syncLocaleControls();
+  S.items = (draft.state?.items || []).map(item => ({ ...item }));
+  itemId = S.items.reduce((max, item) => Math.max(max, item.id || 0), 0);
+  buildLayoutGrid();
+  selectLayout(S.layoutIdx);
+  buildThemeGrid();
+  selectTheme(S.themeIdx);
+  buildFontCats();
+  buildFontList();
+  buildPageColorGrid();
+  buildFontColorGrid();
+  renderItems();
+  renderToggleStates();
+  renderLogoState();
+  renderCompanyStampState();
+  renderSignatureImageState();
+  renderDocVariant();
+  updatePreview();
 }
 
 function formatMonthLabel(key) {
@@ -3451,20 +3502,29 @@ async function createInvoicePdfBlob(el) {
   const imgW = pageW - margin * 2;
   const rawImgH = canvas.height * imgW / canvas.width;
   const pageContentH = pageH - margin * 2;
-  const imgData = canvas.toDataURL('image/jpeg', 1);
 
-  if (rawImgH <= pageContentH + 18) {
+  if (rawImgH <= pageContentH * 1.28) {
+    const imgData = canvas.toDataURL('image/jpeg', 1);
     pdf.addImage(imgData, 'JPEG', margin, margin, imgW, Math.min(rawImgH, pageContentH));
     return pdf.output('blob');
   }
 
-  const imgH = rawImgH;
+  const pxPerMm = canvas.width / imgW;
+  const sliceHeightPx = Math.floor(pageContentH * pxPerMm);
   let page = 0;
-  let remaining = imgH;
-  while (remaining > 2) {
+  for (let y = 0; y < canvas.height - 4; y += sliceHeightPx) {
+    const currentSliceHeight = Math.min(sliceHeightPx, canvas.height - y);
+    if (currentSliceHeight < 8) break;
+    const pageCanvas = document.createElement('canvas');
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = currentSliceHeight;
+    const ctx = pageCanvas.getContext('2d');
+    ctx.fillStyle = PAGE_COLORS[S.pageColorIdx].bg || '#ffffff';
+    ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+    ctx.drawImage(canvas, 0, y, canvas.width, currentSliceHeight, 0, 0, canvas.width, currentSliceHeight);
+    const sliceImgH = currentSliceHeight / pxPerMm;
     if (page > 0) pdf.addPage();
-    pdf.addImage(imgData, 'JPEG', margin, margin - (page * pageContentH), imgW, imgH);
-    remaining -= pageContentH;
+    pdf.addImage(pageCanvas.toDataURL('image/jpeg', 1), 'JPEG', margin, margin, imgW, sliceImgH);
     page++;
   }
   return pdf.output('blob');
