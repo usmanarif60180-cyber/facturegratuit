@@ -11,14 +11,14 @@
 <meta name="application-name" content="FacturePro">
 <meta name="theme-color" content="#6366f1">
 <meta name="google-site-verification" content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso">
-<link rel="canonical" href="https://facturergratuit.firebaseapp.com/">
-<link rel="alternate" hreflang="fr" href="https://facturergratuit.firebaseapp.com/">
+<link rel="canonical" href="https://facturergratuit.com/">
+<link rel="alternate" hreflang="fr" href="https://facturergratuit.com/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:site_name" content="FacturePro">
 <meta property="og:title" content="FacturePro — Générateur de Facture & Devis Gratuit">
 <meta property="og:description" content="Générez des factures et devis PDF pour bâtiment et automobile avec TVA, IBAN/RIB, VIN, plaque, logo et 30 thèmes.">
-<meta property="og:url" content="https://facturergratuit.firebaseapp.com/">
+<meta property="og:url" content="https://facturergratuit.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="FacturePro — Générateur de Facture & Devis Gratuit">
 <meta name="twitter:description" content="Créez des factures et devis PDF professionnels gratuitement pour bâtiment et automobile.">
@@ -30,7 +30,7 @@
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
   "inLanguage": "fr-FR",
-  "url": "https://facturergratuit.firebaseapp.com/",
+  "url": "https://facturergratuit.com/",
   "description": "Générateur gratuit de factures et devis PDF pour bâtiment et automobile avec TVA, IBAN/RIB, VIN, plaque, logo, signature et thèmes personnalisables.",
   "offers": {
     "@type": "Offer",
@@ -509,6 +509,29 @@
           <button class="btn btn-ghost btn-sm" style="height:38px" id="variant-devis-batiment" onclick="setDocVariant('devis','batiment')"><i class="fa fa-helmet-safety"></i> Devis bâtiment</button>
           <button class="btn btn-ghost btn-sm" style="height:38px" id="variant-devis-automobile" onclick="setDocVariant('devis','automobile')"><i class="fa fa-car-side"></i> Devis automobile</button>
         </div>
+        <div class="grid-2" style="margin-bottom:12px">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Pays / Format</label>
+            <select class="form-input form-select" id="country-select" onchange="setCountry(this.value)">
+              <option value="FR">France - Facture / Devis</option>
+              <option value="DE">Germany - Rechnung / Angebot</option>
+              <option value="ES">Spain - Factura / Presupuesto</option>
+              <option value="IT">Italy - Fattura / Preventivo</option>
+              <option value="UK">United Kingdom - Invoice / Quote</option>
+              <option value="US">USA - Invoice / Estimate</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Langue</label>
+            <select class="form-input form-select" id="language-select" onchange="setLanguage(this.value)">
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="es">Español</option>
+              <option value="it">Italiano</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
         <div class="grid-3" style="margin-bottom:12px">
           <div class="form-group" style="margin:0">
             <label class="form-label">N° Document</label>
@@ -866,6 +889,9 @@
         <input class="form-input" id="auth-password" type="password" autocomplete="current-password" placeholder="••••••••" required>
       </div>
       <button class="btn btn-primary btn-lg" id="auth-submit" style="width:100%" type="submit"><i class="fa fa-right-to-bracket"></i> Login</button>
+      <button class="btn btn-ghost btn-sm" id="forgot-password-btn" style="width:100%;margin-top:10px" type="button" onclick="sendPasswordReset()">
+        <i class="fa fa-key"></i> Mot de passe oublié / Recover account
+      </button>
       <div class="auth-switch">
         <span id="auth-switch-text">Pas encore de compte ?</span>
         <span class="auth-link" id="auth-switch-link" onclick="switchAuthMode()">Créer un compte</span>
@@ -909,6 +935,7 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   onAuthStateChanged,
   updateProfile
@@ -936,6 +963,7 @@ window.firebaseServices = {
   auth: firebaseAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   updateProfile
 };
@@ -1052,12 +1080,106 @@ const LAYOUTS = [
   { id:'elegant', label:'Élégant',  icon:'✦', desc:'Lignes fines' },
 ];
 
+const COUNTRY_PROFILES = {
+  FR: {
+    name:'France', lang:'fr', locale:'fr-FR', currency:'EUR', symbol:'€', taxName:'TVA', taxRate:20,
+    docPrefix:{ facture:'FAC', devis:'DEV' }, sector:{ batiment:'BÂTIMENT', automobile:'AUTOMOBILE' },
+    businessId:'SIRET/SIREN', clientId:'SIREN', dateOrder:'dmy',
+    exempt:'TVA non applicable — art. 293 B du CGI'
+  },
+  DE: {
+    name:'Germany', lang:'de', locale:'de-DE', currency:'EUR', symbol:'€', taxName:'USt.', taxRate:19,
+    docPrefix:{ facture:'RE', devis:'ANG' }, sector:{ batiment:'BAU', automobile:'AUTOMOBIL' },
+    businessId:'USt-IdNr. / Steuernummer', clientId:'USt-IdNr.', dateOrder:'dmy',
+    exempt:'Umsatzsteuerbefreit nach § 19 UStG'
+  },
+  ES: {
+    name:'Spain', lang:'es', locale:'es-ES', currency:'EUR', symbol:'€', taxName:'IVA', taxRate:21,
+    docPrefix:{ facture:'FAC', devis:'PRE' }, sector:{ batiment:'CONSTRUCCIÓN', automobile:'AUTOMÓVIL' },
+    businessId:'NIF / CIF', clientId:'NIF / CIF', dateOrder:'dmy',
+    exempt:'IVA no aplicable / exento según normativa vigente'
+  },
+  IT: {
+    name:'Italy', lang:'it', locale:'it-IT', currency:'EUR', symbol:'€', taxName:'IVA', taxRate:22,
+    docPrefix:{ facture:'FAT', devis:'PREV' }, sector:{ batiment:'EDILIZIA', automobile:'AUTOMOBILE' },
+    businessId:'P. IVA / Codice fiscale', clientId:'P. IVA / C.F.', dateOrder:'dmy',
+    exempt:'IVA non applicabile / regime agevolato se previsto'
+  },
+  UK: {
+    name:'United Kingdom', lang:'en', locale:'en-GB', currency:'GBP', symbol:'£', taxName:'VAT', taxRate:20,
+    docPrefix:{ facture:'INV', devis:'QUO' }, sector:{ batiment:'BUILDING', automobile:'AUTOMOTIVE' },
+    businessId:'Company No. / VAT No.', clientId:'Company No. / VAT No.', dateOrder:'dmy',
+    exempt:'VAT not applicable'
+  },
+  US: {
+    name:'United States', lang:'en', locale:'en-US', currency:'USD', symbol:'$', taxName:'Sales tax', taxRate:0,
+    docPrefix:{ facture:'INV', devis:'EST' }, sector:{ batiment:'CONSTRUCTION', automobile:'AUTOMOTIVE' },
+    businessId:'EIN / Tax ID', clientId:'EIN / Tax ID', dateOrder:'mdy',
+    exempt:'Sales tax not applied'
+  },
+};
+
+const I18N = {
+  fr: {
+    invoice:'FACTURE', quote:'DEVIS', from:'DE', billedTo:'FACTURÉ À', quoteFor:'DEVIS POUR', object:'Objet',
+    status:'Statut', address:'Adresse', email:'Email', phone:'Tél.', vehicle:'Véhicule - achat / vente',
+    type:'Type', vin:'VIN / N° châssis', plate:'Plaque', make:'Marque', model:'Modèle', year:'Année',
+    mileage:'Kilométrage', firstReg:'Mise en circulation', color:'Couleur', description:'Désignation',
+    qty:'Qté', unit:'Unité', unitPrice:'P.U. HT', lineTotal:'Total HT', subtotal:'Sous-total HT',
+    total:'Total TTC', issued:'Émis le', due:'Échéance', payment:'Coordonnées bancaires',
+    signature:'Signature et cachet', page:'Page', paymentQr:'QR Paiement', copied:'Total copié',
+    emailBody:'Bonjour,\n\nVeuillez trouver ci-joint le document {doc}.\nTotal TTC : {total}\n\nCordialement'
+  },
+  de: {
+    invoice:'RECHNUNG', quote:'ANGEBOT', from:'VON', billedTo:'RECHNUNG AN', quoteFor:'ANGEBOT FÜR', object:'Betreff',
+    status:'Status', address:'Adresse', email:'E-Mail', phone:'Tel.', vehicle:'Fahrzeug - Kauf / Verkauf',
+    type:'Typ', vin:'FIN / Fahrgestellnummer', plate:'Kennzeichen', make:'Marke', model:'Modell', year:'Jahr',
+    mileage:'Kilometerstand', firstReg:'Erstzulassung', color:'Farbe', description:'Beschreibung',
+    qty:'Menge', unit:'Einheit', unitPrice:'Einzelpreis netto', lineTotal:'Gesamt netto', subtotal:'Zwischensumme netto',
+    total:'Gesamt brutto', issued:'Ausgestellt am', due:'Gültig bis', payment:'Bankverbindung',
+    signature:'Unterschrift und Stempel', page:'Seite', paymentQr:'QR Zahlung', copied:'Gesamt kopiert',
+    emailBody:'Guten Tag,\n\nanbei finden Sie das Dokument {doc}.\nGesamtbetrag: {total}\n\nMit freundlichen Grüßen'
+  },
+  es: {
+    invoice:'FACTURA', quote:'PRESUPUESTO', from:'DE', billedTo:'FACTURADO A', quoteFor:'PRESUPUESTO PARA', object:'Objeto',
+    status:'Estado', address:'Dirección', email:'Email', phone:'Tel.', vehicle:'Vehículo - compra / venta',
+    type:'Tipo', vin:'VIN / N° bastidor', plate:'Matrícula', make:'Marca', model:'Modelo', year:'Año',
+    mileage:'Kilometraje', firstReg:'Primera matriculación', color:'Color', description:'Descripción',
+    qty:'Cant.', unit:'Unidad', unitPrice:'Precio unit. neto', lineTotal:'Total neto', subtotal:'Subtotal neto',
+    total:'Total', issued:'Emitido el', due:'Validez', payment:'Datos bancarios',
+    signature:'Firma y sello', page:'Página', paymentQr:'QR Pago', copied:'Total copiado',
+    emailBody:'Hola,\n\nAdjunto encontrará el documento {doc}.\nTotal: {total}\n\nSaludos'
+  },
+  it: {
+    invoice:'FATTURA', quote:'PREVENTIVO', from:'DA', billedTo:'FATTURATO A', quoteFor:'PREVENTIVO PER', object:'Oggetto',
+    status:'Stato', address:'Indirizzo', email:'Email', phone:'Tel.', vehicle:'Veicolo - acquisto / vendita',
+    type:'Tipo', vin:'VIN / N° telaio', plate:'Targa', make:'Marca', model:'Modello', year:'Anno',
+    mileage:'Chilometraggio', firstReg:'Prima immatricolazione', color:'Colore', description:'Descrizione',
+    qty:'Qtà', unit:'Unità', unitPrice:'Prezzo unit. netto', lineTotal:'Totale netto', subtotal:'Subtotale netto',
+    total:'Totale', issued:'Emessa il', due:'Scadenza', payment:'Coordinate bancarie',
+    signature:'Firma e timbro', page:'Pagina', paymentQr:'QR Pagamento', copied:'Totale copiato',
+    emailBody:'Buongiorno,\n\nIn allegato trova il documento {doc}.\nTotale: {total}\n\nCordiali saluti'
+  },
+  en: {
+    invoice:'INVOICE', quote:'QUOTE', from:'FROM', billedTo:'BILL TO', quoteFor:'QUOTE FOR', object:'Subject',
+    status:'Status', address:'Address', email:'Email', phone:'Phone', vehicle:'Vehicle - purchase / sale',
+    type:'Type', vin:'VIN / chassis no.', plate:'Plate / registration', make:'Make', model:'Model', year:'Year',
+    mileage:'Mileage', firstReg:'First registration', color:'Color', description:'Description',
+    qty:'Qty', unit:'Unit', unitPrice:'Unit price', lineTotal:'Line total', subtotal:'Subtotal',
+    total:'Total', issued:'Issued on', due:'Valid until', payment:'Bank details',
+    signature:'Signature and stamp', page:'Page', paymentQr:'Payment QR', copied:'Total copied',
+    emailBody:'Hello,\n\nPlease find attached the document {doc}.\nTotal: {total}\n\nRegards'
+  }
+};
+
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
 const S = {
   docType: 'facture',
   docSector: 'batiment',
+  country: 'FR',
+  lang: 'fr',
   themeIdx: 0,
   fontIdx: 0,
   fontCat: 'Tous',
@@ -1326,7 +1448,9 @@ function openAuth(mode='login') {
   const title = document.getElementById('auth-title');
   const subtitle = document.getElementById('auth-subtitle');
   const nameGroup = document.getElementById('auth-name-group');
+  const password = document.getElementById('auth-password');
   const submit = document.getElementById('auth-submit');
+  const forgot = document.getElementById('forgot-password-btn');
   const switchText = document.getElementById('auth-switch-text');
   const switchLink = document.getElementById('auth-switch-link');
   const isSignup = mode === 'signup';
@@ -1334,7 +1458,9 @@ function openAuth(mode='login') {
   if (title) title.textContent = isSignup ? 'Signup' : 'Login';
   if (subtitle) subtitle.textContent = isSignup ? 'Créez votre compte FacturePro' : 'Accédez à votre espace FacturePro';
   if (nameGroup) nameGroup.style.display = isSignup ? '' : 'none';
+  if (password) password.autocomplete = isSignup ? 'new-password' : 'current-password';
   if (submit) submit.innerHTML = isSignup ? '<i class="fa fa-user-plus"></i> Signup' : '<i class="fa fa-right-to-bracket"></i> Login';
+  if (forgot) forgot.style.display = isSignup ? 'none' : '';
   if (switchText) switchText.textContent = isSignup ? 'Déjà un compte ?' : 'Pas encore de compte ?';
   if (switchLink) switchLink.textContent = isSignup ? 'Se connecter' : 'Créer un compte';
   if (modal) modal.classList.add('open');
@@ -1398,6 +1524,34 @@ async function submitAuth(e) {
   }
 }
 
+async function sendPasswordReset() {
+  const emailInput = document.getElementById('auth-email-input');
+  const email = emailInput?.value.trim();
+  if (!email) {
+    showNotif('Email likhein, phir recover account dabayein', 'info');
+    emailInput?.focus();
+    return;
+  }
+
+  const btn = document.getElementById('forgot-password-btn');
+  const original = btn?.innerHTML;
+  if (btn) btn.innerHTML = '<div class="spinner" style="display:inline-block"></div> Envoi...';
+
+  try {
+    const fb = window.firebaseServices;
+    if (!fb?.auth || !fb?.sendPasswordResetEmail) {
+      showNotif('Password reset Firebase se available nahi hai', 'info');
+      return;
+    }
+    await fb.sendPasswordResetEmail(fb.auth, email);
+    showNotif('Password reset email bhej di gayi hai', 'success');
+  } catch (err) {
+    showNotif(firebaseAuthMessage(err), 'info');
+  } finally {
+    if (btn && original) btn.innerHTML = original;
+  }
+}
+
 function toggleAccountMenu() {
   document.getElementById('account-menu')?.classList.toggle('open');
 }
@@ -1439,6 +1593,38 @@ function showSection(id) {
 // ═══════════════════════════════════════════════════════
 // DOC TYPE
 // ═══════════════════════════════════════════════════════
+function getCountryProfile() {
+  return COUNTRY_PROFILES[S.country] || COUNTRY_PROFILES.FR;
+}
+
+function getLangPack() {
+  return I18N[S.lang] || I18N[getCountryProfile().lang] || I18N.fr;
+}
+
+function setCountry(country) {
+  S.country = COUNTRY_PROFILES[country] ? country : 'FR';
+  const profile = getCountryProfile();
+  S.lang = profile.lang;
+
+  const langSelect = document.getElementById('language-select');
+  if (langSelect) langSelect.value = S.lang;
+
+  S.tva = profile.taxRate > 0;
+  S.items.forEach(item => { item.tvaRate = profile.taxRate; });
+  const num = document.getElementById('f-number');
+  if (num) num.value = getDefaultDocNumber(S.docType, S.docSector);
+
+  renderToggleStates();
+  renderItems();
+  updatePreview();
+  showNotif(`${profile.name} format applied`, 'success');
+}
+
+function setLanguage(lang) {
+  S.lang = I18N[lang] ? lang : getCountryProfile().lang;
+  updatePreview();
+}
+
 function setDocType(type) {
   setDocVariant(type, S.docSector || 'batiment');
 }
@@ -1464,9 +1650,10 @@ function setDocVariant(type, sector='batiment') {
 }
 
 function getDefaultDocNumber(type, sector) {
-  const prefix = type === 'facture' ? 'FAC' : 'DEV';
+  const profile = getCountryProfile();
+  const prefix = profile.docPrefix[type] || (type === 'facture' ? 'FAC' : 'DEV');
   const suffix = sector === 'automobile' ? 'AUTO' : 'BAT';
-  return `${prefix}-${suffix}-2024-001`;
+  return `${prefix}-${suffix}-${new Date().getFullYear()}-001`;
 }
 
 function renderDocVariant() {
@@ -1646,6 +1833,8 @@ function collectDraft() {
     state: {
       docType: S.docType,
       docSector: S.docSector,
+      country: S.country,
+      lang: S.lang,
       themeIdx: S.themeIdx,
       fontIdx: S.fontIdx,
       fontCat: S.fontCat,
@@ -1687,6 +1876,10 @@ function loadDraft() {
     if (el && el.type !== 'file') el.value = value;
   });
   Object.assign(S, draft.state || {});
+  const countrySelect = document.getElementById('country-select');
+  const languageSelect = document.getElementById('language-select');
+  if (countrySelect) countrySelect.value = S.country || 'FR';
+  if (languageSelect) languageSelect.value = S.lang || getCountryProfile().lang;
   S.items = (draft.state?.items || []).map(item => ({ ...item }));
   itemId = S.items.reduce((max, item) => Math.max(max, item.id || 0), 0);
   buildLayoutGrid();
@@ -1764,7 +1957,10 @@ function emailDraft() {
   syncItemsFromForm();
   const docNum = document.getElementById('f-number')?.value || 'document';
   const clientEmail = document.getElementById('c-email')?.value || '';
-  const body = encodeURIComponent(`Bonjour,\n\nVeuillez trouver ci-joint le document ${docNum}.\nTotal TTC : ${fmtEur(getGrandTotal())}\n\nCordialement`);
+  const bodyText = getLangPack().emailBody
+    .replace('{doc}', docNum)
+    .replace('{total}', fmtEur(getGrandTotal()));
+  const body = encodeURIComponent(bodyText);
   window.location.href = `mailto:${encodeURIComponent(clientEmail)}?subject=${encodeURIComponent(docNum)}&body=${body}`;
 }
 
@@ -1847,7 +2043,7 @@ function setStamp(val) {
 // ═══════════════════════════════════════════════════════
 // LINE ITEMS
 // ═══════════════════════════════════════════════════════
-function addRow(desc='', qty=1, unit='forfait', price=0, tvaRate=10) {
+function addRow(desc='', qty=1, unit='forfait', price=0, tvaRate=getCountryProfile().taxRate) {
   const id = ++itemId;
   S.items.push({ id, desc, qty, unit, price, tvaRate });
   renderItems();
@@ -1860,6 +2056,8 @@ function removeRow(id) {
 
 function renderItems() {
   const container = document.getElementById('items-body');
+  const profile = getCountryProfile();
+  const L = getLangPack();
   container.innerHTML = S.items.map((item, idx) => `
     <div style="border-radius:13px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.08);overflow:hidden">
 
@@ -1892,10 +2090,10 @@ function renderItems() {
       <!-- Numeric fields row -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;padding:10px 14px 14px">
         ${[
-          { label:'Quantité', val:item.qty, type:'number', field:'qty', step:'0.01', suffix:'' },
-          { label:'Unité', val:item.unit, type:'text', field:'unit', step:'', suffix:'' },
-          { label:'Prix unit. HT', val:item.price, type:'number', field:'price', step:'0.01', suffix:'€' },
-          { label:'TVA', val:item.tvaRate, type:'number', field:'tvaRate', step:'1', suffix:'%' },
+          { label:L.qty, val:item.qty, type:'number', field:'qty', step:'0.01', suffix:'' },
+          { label:L.unit, val:item.unit, type:'text', field:'unit', step:'', suffix:'' },
+          { label:L.unitPrice, val:item.price, type:'number', field:'price', step:'0.01', suffix:profile.symbol },
+          { label:profile.taxName, val:item.tvaRate, type:'number', field:'tvaRate', step:'1', suffix:'%' },
         ].map(f => `
           <div>
             <label style="font-size:9px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">${f.label}</label>
@@ -1910,7 +2108,7 @@ function renderItems() {
             </div>
           </div>`).join('')}
         <div>
-          <label style="font-size:9px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">Total HT</label>
+          <label style="font-size:9px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">${L.lineTotal}</label>
           <div style="position:relative">
             <input id="item-total-box-${item.id}" type="number" min="0" step="0.01" value="${Number(item.qty*item.price).toFixed(2)}"
               data-item-id="${item.id}"
@@ -1918,7 +2116,7 @@ function renderItems() {
               oninput="updateItem(${item.id},'lineTotal',this.value)"
               style="width:100%;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:8px;padding:8px 24px 8px 10px;font-size:13px;font-weight:700;color:#a5b4fc;font-family:inherit;outline:none"
             >
-            <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--ink-dim);font-weight:600">€</span>
+            <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--ink-dim);font-weight:600">${profile.symbol}</span>
           </div>
         </div>
       </div>
@@ -2020,6 +2218,8 @@ function applyBulkItemValue(type) {
 }
 
 function updateTotals() {
+  const profile = getCountryProfile();
+  const L = getLangPack();
   const subtotal = S.items.reduce((s,i) => s + i.qty*i.price, 0);
   const tvaAmt   = S.tva ? S.items.reduce((s,i) => s + i.qty*i.price*(i.tvaRate/100), 0) : 0;
   const total    = subtotal + tvaAmt;
@@ -2027,10 +2227,10 @@ function updateTotals() {
   if (!el) return;
   el.innerHTML = `
     <div style="max-width:220px;margin-left:auto">
-      <div class="totals-row"><span>Sous-total HT</span><span>${fmtEur(subtotal)}</span></div>
-      ${S.tva ? `<div class="totals-row"><span>TVA</span><span>${fmtEur(tvaAmt)}</span></div>` : ''}
+      <div class="totals-row"><span>${L.subtotal}</span><span>${fmtEur(subtotal)}</span></div>
+      ${S.tva ? `<div class="totals-row"><span>${profile.taxName}</span><span>${fmtEur(tvaAmt)}</span></div>` : ''}
       <div class="totals-total" style="background:${THEMES[S.themeIdx].p};border-radius:7px;color:#fff;margin-top:4px">
-        <span style="font-weight:700">Total TTC</span>
+        <span style="font-weight:700">${L.total}</span>
         <span style="font-size:15px;font-weight:800">${fmtEur(total)}</span>
       </div>
     </div>
@@ -2041,6 +2241,8 @@ function updateTotals() {
 // PREVIEW RENDER
 // ═══════════════════════════════════════════════════════
 function updatePreview() {
+  const profile   = getCountryProfile();
+  const L         = getLangPack();
   const theme     = THEMES[S.themeIdx];
   const font      = FONTS[S.fontIdx];
   const pageColor = PAGE_COLORS[S.pageColorIdx];
@@ -2054,8 +2256,8 @@ function updatePreview() {
   const logoSz    = +( document.getElementById('logo-size-range')?.value||80);
   const wm        = document.getElementById('watermark-text')?.value || S.watermark;
 
-  const docSectorLabel = S.docSector === 'automobile' ? 'AUTOMOBILE' : 'BÂTIMENT';
-  const docLabel  = `${S.docType === 'facture' ? 'FACTURE' : 'DEVIS'} ${docSectorLabel}`;
+  const docSectorLabel = profile.sector[S.docSector] || (S.docSector === 'automobile' ? 'AUTOMOTIVE' : 'BUILDING');
+  const docLabel  = `${S.docType === 'facture' ? L.invoice : L.quote} ${docSectorLabel}`;
   const docNum    = document.getElementById('f-number')?.value || '';
   const fDate     = fmtDate(document.getElementById('f-date')?.value);
   const fDue      = fmtDate(document.getElementById('f-due')?.value);
@@ -2179,27 +2381,27 @@ function updatePreview() {
   const partiesHtml = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;padding-left:${padLeft}">
       <div style="${partyStyle}">
-        <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.a};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">DE</div>
+        <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.a};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">${L.from}</div>
         ${eName ? `<div style="font-size:${fs}px;font-weight:${S.boldTitle?700:600};color:${fontColor.val};margin-bottom:3px;overflow-wrap:anywhere;word-break:break-word">${escHtml(eName)}</div>` : ''}
         <div style="${partyMetaStyle}">
           ${[
-            detailLine('Statut', eStatus),
-            detailLine('SIRET/SIREN', eSiret),
-            detailLine('Adresse', eAddr),
-            detailLine('Email', eEmail),
-            detailLine('Tél.', eTel)
+            detailLine(L.status, eStatus),
+            detailLine(profile.businessId, eSiret),
+            detailLine(L.address, eAddr),
+            detailLine(L.email, eEmail),
+            detailLine(L.phone, eTel)
           ].filter(Boolean).join('')}
         </div>
       </div>
       <div style="${partyStyle}">
-        <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.a};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">${S.docType==='facture'?'FACTURÉ À':'DEVIS POUR'}</div>
+        <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.a};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">${S.docType==='facture'?L.billedTo:L.quoteFor}</div>
         ${cName ? `<div style="font-size:${fs}px;font-weight:${S.boldTitle?700:600};color:${fontColor.val};margin-bottom:3px;overflow-wrap:anywhere;word-break:break-word">${escHtml(cName)}</div>` : ''}
         <div style="${partyMetaStyle}">
           ${[
-            detailLine('SIREN', cSiret),
-            detailLine('Adresse', cAddr),
-            detailLine('Email', cEmail),
-            detailLine('Tél.', cTel)
+            detailLine(profile.clientId, cSiret),
+            detailLine(L.address, cAddr),
+            detailLine(L.email, cEmail),
+            detailLine(L.phone, cTel)
           ].filter(Boolean).join('')}
         </div>
       </div>
@@ -2208,7 +2410,7 @@ function updatePreview() {
   // Object line
   const objectHtml = fObj ? `
     <div style="margin-bottom:18px;padding:9px 14px;border-radius:8px;background:${theme.p}12;border:1px solid ${theme.p}25;padding-left:${padLeft?'calc('+padLeft+' + 14px)':'14px'}">
-      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.p};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Objet</div>
+      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.p};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">${L.object}</div>
       <div style="font-size:${fs}px;color:${fontColor.val};font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word">${escHtml(fObj)}</div>
     </div>` : '';
 
@@ -2219,17 +2421,17 @@ function updatePreview() {
     : '';
   const vehicleHtml = hasVehicle ? `
     <div style="margin-bottom:18px;padding:11px 14px;border-radius:8px;background:${theme.a}10;border:1px solid ${theme.a}30;padding-left:${padLeft?'calc('+padLeft+' + 14px)':'14px'};break-inside:avoid;page-break-inside:avoid">
-      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.p};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px">Véhicule - achat / vente</div>
+      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.p};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px">${L.vehicle}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:${fs-2}px;color:${fontColor.val};opacity:.68;line-height:1.55;overflow-wrap:anywhere;word-break:break-word">
-        ${vehicleLine('Type', vTransaction)}
-        ${vehicleLine('VIN / N° châssis', vVin)}
-        ${vehicleLine('Plaque', vPlate)}
-        ${vehicleLine('Marque', vMake)}
-        ${vehicleLine('Modèle', vModel)}
-        ${vehicleLine('Année', vYear)}
-        ${vehicleLine('Kilométrage', vMileage)}
-        ${vehicleLine('Mise en circulation', vFirstReg)}
-        ${vehicleLine('Couleur', vColor)}
+        ${vehicleLine(L.type, vTransaction)}
+        ${vehicleLine(L.vin, vVin)}
+        ${vehicleLine(L.plate, vPlate)}
+        ${vehicleLine(L.make, vMake)}
+        ${vehicleLine(L.model, vModel)}
+        ${vehicleLine(L.year, vYear)}
+        ${vehicleLine(L.mileage, vMileage)}
+        ${vehicleLine(L.firstReg, vFirstReg)}
+        ${vehicleLine(L.color, vColor)}
       </div>
       ${vDetails ? `<div style="font-size:${fs-2}px;color:${fontColor.val};opacity:.62;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin-top:8px">${escHtml(vDetails)}</div>` : ''}
     </div>` : '';
@@ -2259,12 +2461,12 @@ function updatePreview() {
         </colgroup>
         <thead>
           <tr style="background:${theme.p}">
-            <th style="padding:8px 10px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:left">Désignation</th>
-            <th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:center">Qté</th>
-            <th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:center">Unité</th>
-            <th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:right">P.U. HT</th>
-            ${S.tva?`<th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:center">TVA</th>`:''}
-            <th style="padding:8px 10px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:right">Total HT</th>
+            <th style="padding:8px 10px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:left">${L.description}</th>
+            <th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:center">${L.qty}</th>
+            <th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:center">${L.unit}</th>
+            <th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:right">${L.unitPrice}</th>
+            ${S.tva?`<th style="padding:8px 6px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:center">${profile.taxName}</th>`:''}
+            <th style="padding:8px 10px;font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.06em;text-align:right">${L.lineTotal}</th>
           </tr>
         </thead>
         <tbody>${itemRows}</tbody>
@@ -2275,13 +2477,13 @@ function updatePreview() {
   const totalsHtml = `
     <div style="display:flex;justify-content:flex-end;margin-bottom:18px;padding-left:${padLeft}">
       <div style="width:200px">
-        <div class="totals-row" style="color:${fontColor.val}"><span style="font-size:${fs-1}px">Sous-total HT</span><span style="font-size:${fs-1}px;font-weight:${S.boldAmounts?700:500}">${fmtEur(subtotal)}</span></div>
-        ${S.tva?`<div class="totals-row" style="color:${fontColor.val}"><span style="font-size:${fs-1}px">TVA</span><span style="font-size:${fs-1}px;font-weight:${S.boldAmounts?700:500}">${fmtEur(tvaAmt)}</span></div>`:''}
+        <div class="totals-row" style="color:${fontColor.val}"><span style="font-size:${fs-1}px">${L.subtotal}</span><span style="font-size:${fs-1}px;font-weight:${S.boldAmounts?700:500}">${fmtEur(subtotal)}</span></div>
+        ${S.tva?`<div class="totals-row" style="color:${fontColor.val}"><span style="font-size:${fs-1}px">${profile.taxName}</span><span style="font-size:${fs-1}px;font-weight:${S.boldAmounts?700:500}">${fmtEur(tvaAmt)}</span></div>`:''}
         <div class="totals-total" style="background:${theme.p}">
-          <span style="font-size:${fs-1}px;font-weight:700;color:rgba(255,255,255,0.85)">Total TTC</span>
+          <span style="font-size:${fs-1}px;font-weight:700;color:rgba(255,255,255,0.85)">${L.total}</span>
           <span style="font-size:${fs+2}px;font-weight:${S.boldAmounts?800:700};color:#fff">${fmtEur(total)}</span>
         </div>
-        ${!S.tva?`<div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45;margin-top:6px;font-style:italic">TVA non applicable — art. 293 B du CGI</div>`:''}
+        ${!S.tva?`<div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45;margin-top:6px;font-style:italic">${escHtml(profile.exempt)}</div>`:''}
       </div>
     </div>`;
 
@@ -2290,20 +2492,20 @@ function updatePreview() {
     <div style="display:flex;justify-content:flex-end;margin-bottom:14px;padding-left:${padLeft}">
       <div style="width:170px;padding:9px;border:1px dashed ${theme.p}60;border-radius:8px;text-align:center">
         <div style="height:44px;border-bottom:1px solid ${theme.p}40;margin-bottom:5px"></div>
-        <div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45">Signature et cachet</div>
+        <div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45">${L.signature}</div>
       </div>
     </div>` : '';
 
   // QR code (demo)
   const qrHtml = S.qrCode ? `
     <div style="display:flex;justify-content:flex-end;margin-bottom:14px;padding-left:${padLeft}">
-      <div style="width:60px;height:60px;border:1px solid ${fontColor.val};opacity:.3;display:flex;align-items:center;justify-content:center;font-size:9px;color:${fontColor.val};text-align:center;border-radius:4px">QR<br>Paiement</div>
+      <div style="width:60px;height:60px;border:1px solid ${fontColor.val};opacity:.3;display:flex;align-items:center;justify-content:center;font-size:9px;color:${fontColor.val};text-align:center;border-radius:4px">${L.paymentQr}</div>
     </div>` : '';
 
   // Payment details
   const paymentHtml = (eIban || eBic || eRib) ? `
     <div style="margin-bottom:14px;padding:10px 12px;border-radius:8px;background:${theme.p}0f;border:1px solid ${theme.p}25;padding-left:${padLeft?'calc('+padLeft+' + 12px)':'12px'}">
-      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.p};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Coordonnées bancaires</div>
+      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:${theme.p};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">${L.payment}</div>
       <div style="font-size:${fs-2}px;color:${fontColor.val};opacity:0.62;line-height:1.65;overflow-wrap:anywhere;word-break:break-word">
         ${eIban ? `<div><span style="font-weight:700;opacity:0.8">IBAN :</span> ${escHtml(eIban)}</div>` : ''}
         ${eBic ? `<div><span style="font-weight:700;opacity:0.8">BIC/SWIFT :</span> ${escHtml(eBic)}</div>` : ''}
@@ -2315,15 +2517,15 @@ function updatePreview() {
   const notesHtml = `
     <div style="border-top:1px solid ${theme.p}25;padding-top:12px;padding-left:${padLeft}">
       ${fNotes ? `<div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45;line-height:1.7;font-style:${S.italic?'italic':'normal'}">${escHtml(fNotes).replace(/\n/g,'<br>')}</div>` : ''}
-      ${!S.tva ? `<div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45;margin-top:4px;font-style:italic">TVA non applicable — art. 293 B du CGI</div>` : ''}
+      ${!S.tva ? `<div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45;margin-top:4px;font-style:italic">${escHtml(profile.exempt)}</div>` : ''}
       <div style="margin-top:8px;display:flex;gap:16px;font-size:${fs-3}px;color:${fontColor.val};opacity:0.35">
-        ${fDate?`<span>Émis le ${fDate}</span>`:''}
-        ${S.docType==='devis' && fDue?`<span>Échéance ${fDue}</span>`:''}
+        ${fDate?`<span>${L.issued} ${fDate}</span>`:''}
+        ${S.docType==='devis' && fDue?`<span>${L.due} ${fDue}</span>`:''}
       </div>
     </div>`;
 
   // Page number
-  const pageNumHtml = S.pageNumbers ? `<div style="position:absolute;bottom:8px;right:14px;font-size:${fs-4}px;color:${fontColor.val};opacity:0.3">Page 1 / 1</div>` : '';
+  const pageNumHtml = S.pageNumbers ? `<div style="position:absolute;bottom:8px;right:14px;font-size:${fs-4}px;color:${fontColor.val};opacity:0.3">${L.page} 1 / 1</div>` : '';
 
   // Watermark
   const wmHtml = wm ? `<div class="watermark" style="color:${fontColor.val}">${escHtml(wm)}</div>` : '';
@@ -2481,12 +2683,14 @@ window.addEventListener('beforeprint', () => {
 // UTILS
 // ═══════════════════════════════════════════════════════
 function fmtEur(n) {
-  return new Intl.NumberFormat('fr-FR',{ style:'currency', currency:'EUR' }).format(n||0);
+  const profile = getCountryProfile();
+  return new Intl.NumberFormat(profile.locale, { style:'currency', currency:profile.currency }).format(n||0);
 }
 
 function fmtDate(iso) {
   if (!iso) return '';
   const [y,m,d] = iso.split('-');
+  if (getCountryProfile().dateOrder === 'mdy') return `${m}/${d}/${y}`;
   return `${d}/${m}/${y}`;
 }
 
