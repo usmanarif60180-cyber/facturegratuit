@@ -144,6 +144,12 @@
   body.light .logo-text, body.light .hero-title, body.light .stat-val { color: #0f172a; }
   .logo-badge { font-size: 9px; font-weight: 700; color: var(--brand); background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25); border-radius: 4px; padding: 1px 5px; letter-spacing: 0.06em; }
   .topbar-actions { display: flex; align-items: center; gap: 8px; }
+  .top-select-wrap { position: relative; display: inline-flex; align-items: center; height: 32px; min-width: 92px; border: 1px solid var(--border-strong); border-radius: 10px; background: transparent; color: var(--ink-muted); overflow: hidden; transition: all .15s ease; }
+  .top-select-wrap:hover { background: var(--surface-hover); color: var(--ink); border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
+  .top-select-icon { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; pointer-events: none; }
+  .top-select { width: 100%; height: 30px; min-width: 58px; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; appearance: none; padding: 0 20px 0 0; }
+  .top-select option { color: #0f172a; background: #fff; }
+  .top-select-caret { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 9px; color: var(--ink-dim); pointer-events: none; }
   .auth-actions { position: relative; display: flex; align-items: center; gap: 8px; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--border); }
   .account-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; }
   .account-menu { position: absolute; top: 40px; right: 0; min-width: 210px; background: rgba(15,23,42,.98); border: 1px solid var(--border-strong); border-radius: 10px; padding: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.45); display: none; z-index: 80; }
@@ -156,6 +162,8 @@
     .topbar { height: auto; min-height: 56px; padding: 8px 12px; align-items: flex-start; gap: 10px; }
     .topbar-actions { justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
     .auth-text { display: none; }
+    .top-select-wrap { min-width: 76px; }
+    .top-select { min-width: 44px; font-size: 11px; }
   }
 
   /* ── BUTTONS ── */
@@ -423,6 +431,29 @@
     <button class="btn btn-ghost btn-sm" onclick="setDocType('devis')" id="tab-devis">📋 Devis</button>
     <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Imprimer</button>
     <button class="btn btn-primary btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> <span id="pdf-btn-text">Télécharger PDF</span></button>
+    <label class="top-select-wrap" title="Pays / format">
+      <span class="top-select-icon"><i class="fa fa-globe"></i></span>
+      <select class="top-select" id="top-country-select" onchange="setCountry(this.value)" aria-label="Pays / format">
+        <option value="FR">FR</option>
+        <option value="DE">DE</option>
+        <option value="ES">ES</option>
+        <option value="IT">IT</option>
+        <option value="UK">UK</option>
+        <option value="US">US</option>
+      </select>
+      <i class="fa fa-chevron-down top-select-caret"></i>
+    </label>
+    <label class="top-select-wrap" title="Langue">
+      <span class="top-select-icon"><i class="fa fa-language"></i></span>
+      <select class="top-select" id="top-language-select" onchange="setLanguage(this.value)" aria-label="Langue">
+        <option value="fr">FR</option>
+        <option value="de">DE</option>
+        <option value="es">ES</option>
+        <option value="it">IT</option>
+        <option value="en">EN</option>
+      </select>
+      <i class="fa fa-chevron-down top-select-caret"></i>
+    </label>
     <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleAppTheme()" title="Changer le mode"><i class="fa fa-moon" id="theme-icon"></i> <span class="auth-text" id="theme-label">Dark</span></button>
     <div class="auth-actions">
       <button class="btn btn-ghost btn-sm" id="login-btn" onclick="openAuth('login')"><i class="fa fa-right-to-bracket"></i> <span class="auth-text">Login</span></button>
@@ -1234,6 +1265,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyAppTheme();
   loadAuthUser();
   renderAuth();
+  syncLocaleControls();
   renderDocVariant();
   renderCookieBanner();
   initAdsenseSlots();
@@ -1601,13 +1633,25 @@ function getLangPack() {
   return I18N[S.lang] || I18N[getCountryProfile().lang] || I18N.fr;
 }
 
+function syncLocaleControls() {
+  const countryIds = ['country-select', 'top-country-select'];
+  const langIds = ['language-select', 'top-language-select'];
+  countryIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = S.country;
+  });
+  langIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = S.lang;
+  });
+}
+
 function setCountry(country) {
   S.country = COUNTRY_PROFILES[country] ? country : 'FR';
   const profile = getCountryProfile();
   S.lang = profile.lang;
 
-  const langSelect = document.getElementById('language-select');
-  if (langSelect) langSelect.value = S.lang;
+  syncLocaleControls();
 
   S.tva = profile.taxRate > 0;
   S.items.forEach(item => { item.tvaRate = profile.taxRate; });
@@ -1622,6 +1666,7 @@ function setCountry(country) {
 
 function setLanguage(lang) {
   S.lang = I18N[lang] ? lang : getCountryProfile().lang;
+  syncLocaleControls();
   updatePreview();
 }
 
@@ -1876,10 +1921,9 @@ function loadDraft() {
     if (el && el.type !== 'file') el.value = value;
   });
   Object.assign(S, draft.state || {});
-  const countrySelect = document.getElementById('country-select');
-  const languageSelect = document.getElementById('language-select');
-  if (countrySelect) countrySelect.value = S.country || 'FR';
-  if (languageSelect) languageSelect.value = S.lang || getCountryProfile().lang;
+  S.country = COUNTRY_PROFILES[S.country] ? S.country : 'FR';
+  S.lang = I18N[S.lang] ? S.lang : getCountryProfile().lang;
+  syncLocaleControls();
   S.items = (draft.state?.items || []).map(item => ({ ...item }));
   itemId = S.items.reduce((max, item) => Math.max(max, item.id || 0), 0);
   buildLayoutGrid();
