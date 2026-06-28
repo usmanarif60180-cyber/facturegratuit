@@ -721,7 +721,6 @@
             <option value="conf">CONFIDENTIEL</option>
           </select>
         </div>
-        <div id="country-format-note" style="margin-top:12px;padding:9px 11px;border-radius:9px;background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.22);font-size:10px;color:var(--ink-dim);line-height:1.55"></div>
       </div>
 
       <div class="card" id="vehicle-card" style="display:none">
@@ -2469,10 +2468,6 @@ function applyCountryDocumentFormat() {
 }
 
 function renderFormatNote() {
-  const el = document.getElementById('country-format-note');
-  if (!el) return;
-  const format = getDocumentFormat();
-  el.innerHTML = `<strong style="color:#7dd3fc">Format appliqué :</strong> ${escHtml(format.note)}`;
 }
 
 function getDefaultDocNumber(type, sector) {
@@ -3413,13 +3408,6 @@ function updatePreview() {
       <div style="font-size:${fs}px;color:${fontColor.val};font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word">${escHtml(fObj)}</div>
     </div>` : '';
 
-  const formatInfo = getDocumentFormat();
-  const formatHtml = formatInfo?.note ? `
-    <div style="margin-bottom:14px;padding:8px 12px;border-radius:8px;background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.22);padding-left:${padLeft?'calc('+padLeft+' + 12px)':'12px'};break-inside:avoid;page-break-inside:avoid">
-      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:#0284c7;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Format pays / standard</div>
-      <div style="font-size:${fs-3}px;color:${fontColor.val};opacity:.56;line-height:1.55">${escHtml(formatInfo.note)}</div>
-    </div>` : '';
-
   // Vehicle details
   const hasVehicle = S.docSector === 'automobile' && [vTransaction,vVin,vPlate,vMake,vModel,vYear,vMileage,vFirstReg,vColor,vDetails].some(Boolean);
   const vehicleLine = (label, value) => value
@@ -3581,7 +3569,6 @@ function updatePreview() {
       ${headerHtml}
       ${partiesHtml}
       ${objectHtml}
-      ${formatHtml}
       ${onlineHtml}
       ${vehicleHtml}
       ${tableHtml}
