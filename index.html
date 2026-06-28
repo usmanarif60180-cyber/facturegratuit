@@ -157,6 +157,11 @@
   .account-menu.open { display: block; animation: fadeUp .16s ease both; }
   .account-name { font-size: 12px; font-weight: 700; color: var(--ink); padding: 8px 9px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .account-email { font-size: 10px; color: var(--ink-dim); padding: 0 9px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+  .account-status { margin: 0 9px 8px; display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; background: rgba(16,185,129,.13); color: #34d399; border: 1px solid rgba(16,185,129,.26); }
+  .account-status.warn { background: rgba(245,158,11,.13); color: #fbbf24; border-color: rgba(245,158,11,.3); }
+  .account-details { display: grid; gap: 8px; }
+  .account-detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,.03); font-size: 11px; color: var(--ink-muted); }
+  .account-detail-row strong { color: var(--ink); font-weight: 800; text-align: right; overflow-wrap: anywhere; }
   .menu-item { width: 100%; justify-content: flex-start; border-radius: 8px; }
   @media(max-width:760px) {
     .topbar { height: auto; min-height: 56px; padding: 8px 12px; align-items: flex-start; gap: 10px; }
@@ -534,7 +539,8 @@
       <div class="account-menu" id="account-menu">
         <div class="account-name" id="account-name">Compte</div>
         <div class="account-email" id="account-email">email@example.com</div>
-        <button class="btn btn-ghost btn-sm menu-item" onclick="showNotif('Espace compte bientôt disponible', 'info')"><i class="fa fa-id-card"></i> Mon compte</button>
+        <div class="account-status" id="account-status"><i class="fa fa-circle-check"></i> Connecté</div>
+        <button class="btn btn-ghost btn-sm menu-item" onclick="openAccount()"><i class="fa fa-id-card"></i> Mon compte</button>
         <button class="btn btn-danger btn-sm menu-item" style="margin-top:6px" onclick="logoutUser()"><i class="fa fa-right-from-bracket"></i> Logout</button>
       </div>
     </div>
@@ -1100,6 +1106,35 @@
   </div>
 </div>
 
+<!-- ACCOUNT MODAL -->
+<div class="modal-backdrop no-print" id="account-modal" onclick="handleAccountBackdrop(event)">
+  <div class="auth-modal" style="width:min(520px,100%)">
+    <div class="auth-modal-head">
+      <div>
+        <div class="auth-modal-title">Mon compte</div>
+        <div class="auth-modal-sub" id="account-modal-sub">Compte FacturePro connecté</div>
+      </div>
+      <button class="btn btn-ghost auth-close" onclick="closeAccount()" title="Fermer"><i class="fa fa-xmark"></i></button>
+    </div>
+    <div class="auth-modal-body">
+      <div class="account-status" id="account-modal-status" style="margin:0 0 12px"><i class="fa fa-circle-check"></i> Connecté</div>
+      <div class="account-details">
+        <div class="account-detail-row"><span>Nom</span><strong id="account-modal-name">Compte</strong></div>
+        <div class="account-detail-row"><span>Email</span><strong id="account-modal-email">email@example.com</strong></div>
+        <div class="account-detail-row"><span>Statut email</span><strong id="account-modal-verified">Connecté</strong></div>
+        <div class="account-detail-row"><span>Provider</span><strong id="account-modal-provider">Firebase</strong></div>
+        <div class="account-detail-row"><span>UID</span><strong id="account-modal-uid">-</strong></div>
+      </div>
+      <div class="grid-2" style="margin-top:14px">
+        <button class="btn btn-ghost btn-sm" id="verify-email-btn" onclick="sendVerificationEmail()"><i class="fa fa-envelope-circle-check"></i> Vérifier email</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeAccount();openAuth('login')"><i class="fa fa-key"></i> Recover</button>
+        <button class="btn btn-danger btn-sm" onclick="logoutUser();closeAccount()"><i class="fa fa-right-from-bracket"></i> Logout</button>
+        <button class="btn btn-primary btn-sm" onclick="closeAccount()"><i class="fa fa-check"></i> OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- LEGAL MODAL -->
 <div class="modal-backdrop no-print" id="legal-modal" onclick="handleLegalBackdrop(event)">
   <div class="auth-modal" style="width:min(760px,100%)">
@@ -1136,6 +1171,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   signOut,
   onAuthStateChanged,
   updateProfile
@@ -1164,6 +1200,7 @@ window.firebaseServices = {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   signOut,
   updateProfile
 };
@@ -1176,7 +1213,8 @@ onAuthStateChanged(firebaseAuth, user => {
       email: user.email || "",
       uid: user.uid,
       signedInAt: new Date().toISOString(),
-      provider: "firebase"
+      provider: "firebase",
+      emailVerified: user.emailVerified
     });
   } else if (window.__firebaseLogoutDone) {
     saveAuthUser(null);
@@ -1618,6 +1656,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeAuth();
+    closeAccount();
     closeLegal();
     document.getElementById('account-menu')?.classList.remove('open');
   }
@@ -1650,12 +1689,19 @@ function renderAuth() {
   const accountBtn = document.getElementById('account-btn');
   const accountName = document.getElementById('account-name');
   const accountEmail = document.getElementById('account-email');
+  const accountStatus = document.getElementById('account-status');
+  const verified = S.authUser?.emailVerified !== false;
 
   if (loginBtn) loginBtn.style.display = loggedIn ? 'none' : '';
   if (signupBtn) signupBtn.style.display = loggedIn ? 'none' : '';
   if (accountBtn) accountBtn.style.display = loggedIn ? '' : 'none';
   if (accountName) accountName.textContent = S.authUser?.name || 'Compte';
   if (accountEmail) accountEmail.textContent = S.authUser?.email || '';
+  if (accountStatus) {
+    accountStatus.className = 'account-status ' + (verified ? '' : 'warn');
+    accountStatus.innerHTML = verified ? '<i class="fa fa-circle-check"></i> Connecté' : '<i class="fa fa-clock"></i> Email non vérifié';
+  }
+  renderAccountModal();
 }
 
 function openAuth(mode='login') {
@@ -1685,6 +1731,45 @@ function openAuth(mode='login') {
 
 function closeAuth() {
   document.getElementById('auth-modal')?.classList.remove('open');
+}
+
+function openAccount() {
+  renderAccountModal();
+  document.getElementById('account-menu')?.classList.remove('open');
+  document.getElementById('account-modal')?.classList.add('open');
+}
+
+function closeAccount() {
+  document.getElementById('account-modal')?.classList.remove('open');
+}
+
+function handleAccountBackdrop(e) {
+  if (e.target?.id === 'account-modal') closeAccount();
+}
+
+function renderAccountModal() {
+  const user = S.authUser;
+  const verified = user?.emailVerified !== false;
+  const status = document.getElementById('account-modal-status');
+  const sub = document.getElementById('account-modal-sub');
+  const verifyBtn = document.getElementById('verify-email-btn');
+  const fields = {
+    'account-modal-name': user?.name || 'Compte',
+    'account-modal-email': user?.email || '',
+    'account-modal-verified': verified ? 'Connecté' : 'Email non vérifié',
+    'account-modal-provider': user?.provider || 'firebase',
+    'account-modal-uid': user?.uid || '-',
+  };
+  Object.entries(fields).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  });
+  if (status) {
+    status.className = 'account-status ' + (verified ? '' : 'warn');
+    status.innerHTML = verified ? '<i class="fa fa-circle-check"></i> Compte actif' : '<i class="fa fa-envelope"></i> Vérification email requise';
+  }
+  if (sub) sub.textContent = verified ? 'Votre compte est connecté.' : 'Votre compte est connecté, email à vérifier.';
+  if (verifyBtn) verifyBtn.style.display = user && user.provider === 'firebase' && !verified ? '' : 'none';
 }
 
 function switchAuthMode() {
@@ -1717,6 +1802,7 @@ async function submitAuth(e) {
       if (S.authMode === 'signup') {
         credential = await fb.createUserWithEmailAndPassword(fb.auth, email, password);
         if (name) await fb.updateProfile(credential.user, { displayName: name });
+        try { await fb.sendEmailVerification?.(credential.user); } catch {}
       } else {
         credential = await fb.signInWithEmailAndPassword(fb.auth, email, password);
       }
@@ -1725,7 +1811,8 @@ async function submitAuth(e) {
         email: credential.user.email || email,
         uid: credential.user.uid,
         signedInAt: new Date().toISOString(),
-        provider: 'firebase'
+        provider: 'firebase',
+        emailVerified: credential.user.emailVerified
       });
     } else {
       saveAuthUser({ name, email, signedInAt: new Date().toISOString(), provider: 'local-fallback' });
@@ -1765,6 +1852,21 @@ async function sendPasswordReset() {
     showNotif(firebaseAuthMessage(err), 'info');
   } finally {
     if (btn && original) btn.innerHTML = original;
+  }
+}
+
+async function sendVerificationEmail() {
+  const fb = window.firebaseServices;
+  const user = fb?.auth?.currentUser;
+  if (!fb?.sendEmailVerification || !user) {
+    showNotif('Login karein, phir verification email bhejein', 'info');
+    return;
+  }
+  try {
+    await fb.sendEmailVerification(user);
+    showNotif('Verification email bhej di gayi hai', 'success');
+  } catch (err) {
+    showNotif(firebaseAuthMessage(err), 'info');
   }
 }
 
