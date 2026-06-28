@@ -260,6 +260,9 @@
   .logo-drop { width: 100%; height: 90px; border-radius: 12px; border: 2px dashed rgba(99,102,241,.4); background: rgba(99,102,241,.04); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; transition: all .15s; overflow: hidden; }
   .logo-drop:hover { border-color: rgba(99,102,241,.65); background: rgba(99,102,241,.08); }
   .logo-drop img { max-height: 72px; max-width: 100%; object-fit: contain; }
+  .asset-drop { min-height: 112px; height: auto; padding: 12px; }
+  .asset-drop img { max-height: 86px; }
+  .asset-help { font-size: 10px; color: var(--ink-dim); line-height: 1.5; margin-top: 8px; }
 
   /* Line items */
   .items-table { width: 100%; border-collapse: collapse; }
@@ -544,7 +547,7 @@
     <div>
       <div class="home-kicker"><i class="fa fa-bolt"></i> 100% gratuit · Aucun compte requis</div>
       <h1 class="home-title">Créez vos <span>Factures & Devis</span> en quelques clics</h1>
-      <p class="home-copy">L'outil professionnel pour artisans, auto-entrepreneurs et PME. Bâtiment · Automobile · PDF A4 · TVA · Logo · Signature.</p>
+      <p class="home-copy">L'outil professionnel pour artisans, auto-entrepreneurs et PME. Bâtiment · Automobile · PDF A4 · TVA · Logo · Signature & cachet PNG en ligne.</p>
       <div class="home-actions">
         <button class="btn btn-primary btn-lg" onclick="openEditor('facture')"><i class="fa fa-bolt"></i> Commencer gratuitement</button>
         <button class="btn btn-ghost btn-lg" onclick="selectHomeTool('devis','batiment')"><i class="fa fa-clipboard"></i> Créer un devis</button>
@@ -572,8 +575,8 @@
 
   <div class="home-feature-strip">
     <div class="home-feature-track">
-      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Logo upload</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Zone signature</span><span class="home-feature">Tampon / Cachet</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
-      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Logo upload</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Zone signature</span><span class="home-feature">Tampon / Cachet</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
+      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Logo upload</span><span class="home-feature">Signature PNG online</span><span class="home-feature">Cachet société PNG</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Email PDF</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
+      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Logo upload</span><span class="home-feature">Signature PNG online</span><span class="home-feature">Cachet société PNG</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Email PDF</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
     </div>
   </div>
 
@@ -597,7 +600,7 @@
   <div class="home-stat-grid">
     <div class="home-stat"><div><div class="home-stat-num">50+</div><div class="home-stat-label">Polices disponibles</div></div></div>
     <div class="home-stat"><div><div class="home-stat-num">30</div><div class="home-stat-label">Thèmes de couleurs</div></div></div>
-    <div class="home-stat"><div><div class="home-stat-num">8</div><div class="home-stat-label">Styles de mise en page</div></div></div>
+    <div class="home-stat"><div><div class="home-stat-num">PNG</div><div class="home-stat-label">Signature & cachet</div></div></div>
     <div class="home-stat"><div><div class="home-stat-num">100%</div><div class="home-stat-label">Gratuit · Aucun compte</div></div></div>
   </div>
 
@@ -899,7 +902,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Taille du logo — <span id="logo-size-val">80</span>px</label>
-          <input type="range" id="logo-size-range" min="30" max="180" value="80" oninput="document.getElementById('logo-size-val').textContent=this.value;updatePreview()">
+          <input type="range" id="logo-size-range" min="30" max="180" value="80" oninput="S.logoSize=+this.value;document.getElementById('logo-size-val').textContent=this.value;updatePreview()">
         </div>
       </div>
     </div>
@@ -927,6 +930,59 @@
         </div>
       </div>
       <div class="card">
+        <div class="card-title"><i class="fa fa-certificate" style="color:#06b6d4"></i> Cachet société PNG</div>
+        <input type="file" id="company-stamp-file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/*" style="display:none" onchange="handleCompanyStamp(event)">
+        <div class="logo-drop asset-drop" id="company-stamp-drop" onclick="document.getElementById('company-stamp-file').click()">
+          <img id="company-stamp-preview" src="" style="display:none">
+          <div id="company-stamp-placeholder">
+            <div style="text-align:center">
+              <div style="font-size:24px;margin-bottom:4px">⬆</div>
+              <div style="font-size:11px;color:#06b6d4;font-weight:600">Ajouter le cachet de votre société</div>
+              <div style="font-size:10px;color:var(--ink-dim);margin-top:2px">PNG transparent recommandé · Max 2MB</div>
+            </div>
+          </div>
+        </div>
+        <div id="company-stamp-actions" style="display:none;margin-top:8px">
+          <div class="grid-2">
+            <button class="btn btn-danger btn-sm" onclick="removeCompanyStamp()">🗑 Supprimer</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('company-stamp-file').click()">↺ Remplacer</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:14px">
+          <label class="form-label">Taille du cachet — <span id="company-stamp-size-val">115</span>px</label>
+          <input type="range" id="company-stamp-size-range" min="60" max="220" value="115" oninput="S.companyStampSize=+this.value;document.getElementById('company-stamp-size-val').textContent=this.value;updatePreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Opacité du cachet — <span id="company-stamp-opacity-val">90</span>%</label>
+          <input type="range" id="company-stamp-opacity-range" min="35" max="100" value="90" oninput="S.companyStampOpacity=+this.value;document.getElementById('company-stamp-opacity-val').textContent=this.value;updatePreview()">
+        </div>
+        <div class="asset-help">Le cachet sera placé près de la signature dans la facture/devis et inclus dans le PDF.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-pen-nib" style="color:#10b981"></i> Signature image</div>
+        <input type="file" id="signature-file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/*" style="display:none" onchange="handleSignatureImage(event)">
+        <div class="logo-drop asset-drop" id="signature-drop" onclick="document.getElementById('signature-file').click()">
+          <img id="signature-preview" src="" style="display:none">
+          <div id="signature-placeholder">
+            <div style="text-align:center">
+              <div style="font-size:24px;margin-bottom:4px">✍</div>
+              <div style="font-size:11px;color:#10b981;font-weight:600">Ajouter votre signature</div>
+              <div style="font-size:10px;color:var(--ink-dim);margin-top:2px">PNG transparent recommandé · Max 2MB</div>
+            </div>
+          </div>
+        </div>
+        <div id="signature-actions" style="display:none;margin-top:8px">
+          <div class="grid-2">
+            <button class="btn btn-danger btn-sm" onclick="removeSignatureImage()">🗑 Supprimer</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('signature-file').click()">↺ Remplacer</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:14px">
+          <label class="form-label">Taille signature — <span id="signature-size-val">135</span>px</label>
+          <input type="range" id="signature-size-range" min="70" max="240" value="135" oninput="S.signatureSize=+this.value;document.getElementById('signature-size-val').textContent=this.value;S.signature=true;renderToggleStates();updatePreview()">
+        </div>
+      </div>
+      <div class="card">
         <div class="card-title"><i class="fa fa-sliders" style="color:#f59e0b"></i> Options supplémentaires</div>
         <div class="toggle-wrap"><span class="toggle-label">Numéros de page</span><button class="toggle on" id="pn-toggle" onclick="toggleExtra('pagenum')"><div class="toggle-thumb"></div></button></div>
         <div class="toggle-wrap"><span class="toggle-label">Zone de signature et cachet</span><button class="toggle off" id="sig-toggle" onclick="toggleExtra('signature')"><div class="toggle-thumb"></div></button></div>
@@ -938,7 +994,7 @@
           <button class="btn btn-ghost btn-sm" onclick="saveDraft()"><i class="fa fa-floppy-disk"></i> Sauver</button>
           <button class="btn btn-ghost btn-sm" onclick="loadDraft()"><i class="fa fa-folder-open"></i> Charger</button>
           <button class="btn btn-ghost btn-sm" onclick="duplicateDocument()"><i class="fa fa-copy"></i> Dupliquer</button>
-          <button class="btn btn-ghost btn-sm" onclick="emailDraft()"><i class="fa fa-envelope"></i> Email</button>
+          <button class="btn btn-ghost btn-sm" onclick="emailPdf()"><i class="fa fa-envelope"></i> Email PDF</button>
           <button class="btn btn-ghost btn-sm" onclick="copyTotal()"><i class="fa fa-calculator"></i> Copier total</button>
           <button class="btn btn-danger btn-sm" onclick="resetDocument()"><i class="fa fa-rotate-left"></i> Reset</button>
         </div>
@@ -1341,8 +1397,13 @@ const S = {
   logoSize: 80,
   watermark: '',
   stamp: 'none',
+  companyStampSrc: null,
+  companyStampSize: 115,
+  companyStampOpacity: 90,
   pageNumbers: true,
   signature: false,
+  signatureSrc: null,
+  signatureSize: 135,
   qrCode: false,
   items: [],
   authMode: 'login',
@@ -1380,6 +1441,9 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAuth();
   syncLocaleControls();
   renderDocVariant();
+  renderLogoState();
+  renderCompanyStampState();
+  renderSignatureImageState();
   renderCookieBanner();
   initAdsenseSlots();
 
@@ -2036,10 +2100,16 @@ function collectDraft() {
       tva: S.tva,
       logoSrc: S.logoSrc,
       logoPos: S.logoPos,
+      logoSize: S.logoSize,
       watermark: S.watermark,
       stamp: S.stamp,
+      companyStampSrc: S.companyStampSrc,
+      companyStampSize: S.companyStampSize,
+      companyStampOpacity: S.companyStampOpacity,
       pageNumbers: S.pageNumbers,
       signature: S.signature,
+      signatureSrc: S.signatureSrc,
+      signatureSize: S.signatureSize,
       qrCode: S.qrCode,
       items: S.items,
     }
@@ -2080,6 +2150,8 @@ function loadDraft() {
   renderItems();
   renderToggleStates();
   renderLogoState();
+  renderCompanyStampState();
+  renderSignatureImageState();
   renderDocVariant();
   updatePreview();
   showNotif('Brouillon chargé', 'success');
@@ -2110,13 +2182,53 @@ function renderLogoState() {
   const img = document.getElementById('logo-preview');
   const placeholder = document.getElementById('logo-placeholder');
   const actions = document.getElementById('logo-actions');
+  const size = document.getElementById('logo-size-range');
+  const label = document.getElementById('logo-size-val');
   if (img) {
     img.src = S.logoSrc || '';
     img.style.display = S.logoSrc ? 'block' : 'none';
   }
   if (placeholder) placeholder.style.display = S.logoSrc ? 'none' : '';
   if (actions) actions.style.display = S.logoSrc ? 'block' : 'none';
+  if (size) size.value = S.logoSize || 80;
+  if (label) label.textContent = S.logoSize || 80;
   setLogoPos(S.logoPos || 'left');
+}
+
+function renderCompanyStampState() {
+  const img = document.getElementById('company-stamp-preview');
+  const placeholder = document.getElementById('company-stamp-placeholder');
+  const actions = document.getElementById('company-stamp-actions');
+  const size = document.getElementById('company-stamp-size-range');
+  const sizeLabel = document.getElementById('company-stamp-size-val');
+  const opacity = document.getElementById('company-stamp-opacity-range');
+  const opacityLabel = document.getElementById('company-stamp-opacity-val');
+  if (img) {
+    img.src = S.companyStampSrc || '';
+    img.style.display = S.companyStampSrc ? 'block' : 'none';
+  }
+  if (placeholder) placeholder.style.display = S.companyStampSrc ? 'none' : '';
+  if (actions) actions.style.display = S.companyStampSrc ? 'block' : 'none';
+  if (size) size.value = S.companyStampSize || 115;
+  if (sizeLabel) sizeLabel.textContent = S.companyStampSize || 115;
+  if (opacity) opacity.value = S.companyStampOpacity || 90;
+  if (opacityLabel) opacityLabel.textContent = S.companyStampOpacity || 90;
+}
+
+function renderSignatureImageState() {
+  const img = document.getElementById('signature-preview');
+  const placeholder = document.getElementById('signature-placeholder');
+  const actions = document.getElementById('signature-actions');
+  const size = document.getElementById('signature-size-range');
+  const label = document.getElementById('signature-size-val');
+  if (img) {
+    img.src = S.signatureSrc || '';
+    img.style.display = S.signatureSrc ? 'block' : 'none';
+  }
+  if (placeholder) placeholder.style.display = S.signatureSrc ? 'none' : '';
+  if (actions) actions.style.display = S.signatureSrc ? 'block' : 'none';
+  if (size) size.value = S.signatureSize || 135;
+  if (label) label.textContent = S.signatureSize || 135;
 }
 
 function duplicateDocument() {
@@ -2138,6 +2250,12 @@ function resetDocument() {
   setDocVariant('facture', 'batiment');
   setWatermark('');
   setStamp('none');
+  S.companyStampSrc = null;
+  S.signatureSrc = null;
+  S.signature = false;
+  renderCompanyStampState();
+  renderSignatureImageState();
+  renderToggleStates();
   updatePreview();
   showNotif('Document réinitialisé', 'info');
 }
@@ -2151,6 +2269,45 @@ function emailDraft() {
     .replace('{total}', fmtEur(getGrandTotal()));
   const body = encodeURIComponent(bodyText);
   window.location.href = `mailto:${encodeURIComponent(clientEmail)}?subject=${encodeURIComponent(docNum)}&body=${body}`;
+}
+
+async function emailPdf() {
+  syncItemsFromForm();
+  updatePreview();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+  if (typeof html2pdf === 'undefined' && (typeof html2canvas === 'undefined' || !window.jspdf?.jsPDF)) {
+    emailDraft();
+    showNotif('PDF non disponible. Email simple ouvert.', 'info');
+    return;
+  }
+
+  const source = document.getElementById('invoice-preview');
+  const el = buildPdfClone(source);
+  const docNum = document.getElementById('f-number')?.value || 'document';
+  const clientEmail = document.getElementById('c-email')?.value || '';
+  const bodyText = getLangPack().emailBody
+    .replace('{doc}', docNum)
+    .replace('{total}', fmtEur(getGrandTotal()));
+
+  try {
+    const blob = await createInvoicePdfBlob(el);
+    const filename = `${docNum}.pdf`;
+    const file = new File([blob], filename, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: docNum, text: bodyText });
+      showNotif('PDF prêt à envoyer par email', 'success');
+    } else {
+      downloadBlob(blob, filename);
+      window.location.href = `mailto:${encodeURIComponent(clientEmail)}?subject=${encodeURIComponent(docNum)}&body=${encodeURIComponent(bodyText + '\n\nPDF téléchargé : ajoutez le fichier en pièce jointe.')}`;
+      showNotif('PDF téléchargé. Ajoutez-le à votre email.', 'info');
+    }
+  } catch(e) {
+    emailDraft();
+    showNotif('PDF email impossible. Email simple ouvert.', 'info');
+  } finally {
+    el.parentElement?.remove();
+  }
 }
 
 async function copyTotal() {
@@ -2208,6 +2365,60 @@ function setLogoPos(pos) {
     const btn = document.getElementById('lpos-'+p);
     btn.className = 'btn btn-sm ' + (p===pos ? 'btn-primary' : 'btn-ghost');
   });
+  updatePreview();
+}
+
+function readUploadImage(e, done) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2*1024*1024) {
+    showNotif('Le fichier est trop lourd (max 2MB)', 'info');
+    e.target.value = '';
+    return;
+  }
+  if (!file.type.startsWith('image/')) {
+    showNotif('Ajoutez une image PNG, JPG, WebP ou SVG', 'info');
+    e.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ev => done(ev.target.result);
+  reader.readAsDataURL(file);
+}
+
+function handleCompanyStamp(e) {
+  readUploadImage(e, src => {
+    S.companyStampSrc = src;
+    renderCompanyStampState();
+    updatePreview();
+    showNotif('Cachet société ajouté au document', 'success');
+  });
+}
+
+function removeCompanyStamp() {
+  S.companyStampSrc = null;
+  const input = document.getElementById('company-stamp-file');
+  if (input) input.value = '';
+  renderCompanyStampState();
+  updatePreview();
+}
+
+function handleSignatureImage(e) {
+  readUploadImage(e, src => {
+    S.signatureSrc = src;
+    S.signature = true;
+    renderSignatureImageState();
+    renderToggleStates();
+    updatePreview();
+    showNotif('Signature ajoutée au document', 'success');
+  });
+}
+
+function removeSignatureImage() {
+  S.signatureSrc = null;
+  const input = document.getElementById('signature-file');
+  if (input) input.value = '';
+  renderSignatureImageState();
   updatePreview();
 }
 
@@ -2445,7 +2656,14 @@ function updatePreview() {
   const ml        = +( document.getElementById('m-left')?.value||15);
   const fs        = +( document.getElementById('font-size-range')?.value||12);
   const logoSz    = +( document.getElementById('logo-size-range')?.value||80);
+  const companyStampSize = +(document.getElementById('company-stamp-size-range')?.value || S.companyStampSize || 115);
+  const companyStampOpacity = +(document.getElementById('company-stamp-opacity-range')?.value || S.companyStampOpacity || 90);
+  const signatureSize = +(document.getElementById('signature-size-range')?.value || S.signatureSize || 135);
   const wm        = document.getElementById('watermark-text')?.value || S.watermark;
+  S.logoSize = logoSz;
+  S.companyStampSize = companyStampSize;
+  S.companyStampOpacity = companyStampOpacity;
+  S.signatureSize = signatureSize;
 
   const docSectorLabel = profile.sector[S.docSector] || (S.docSector === 'automobile' ? 'AUTOMOTIVE' : 'BUILDING');
   const docLabel  = `${S.docType === 'facture' ? L.invoice : L.quote} ${docSectorLabel}`;
@@ -2678,12 +2896,19 @@ function updatePreview() {
       </div>
     </div>`;
 
-  // Signature
-  const sigHtml = S.signature ? `
-    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;padding-left:${padLeft}">
-      <div style="width:170px;padding:9px;border:1px dashed ${theme.p}60;border-radius:8px;text-align:center">
-        <div style="height:44px;border-bottom:1px solid ${theme.p}40;margin-bottom:5px"></div>
-        <div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45">${L.signature}</div>
+  // Signature and company stamp
+  const customStampImg = S.companyStampSrc
+    ? `<img src="${S.companyStampSrc}" alt="Cachet société" style="width:${companyStampSize}px;max-width:100%;height:auto;object-fit:contain;opacity:${companyStampOpacity/100};margin-top:${S.signatureSrc ? '-10px' : '0'}">`
+    : '';
+  const signatureImg = S.signatureSrc
+    ? `<img src="${S.signatureSrc}" alt="Signature" style="width:${signatureSize}px;max-width:100%;height:auto;object-fit:contain;margin-bottom:${customStampImg ? '0' : '3px'}">`
+    : `<div style="height:44px;border-bottom:1px solid ${theme.p}40;margin-bottom:5px"></div>`;
+  const sigHtml = (S.signature || S.signatureSrc || S.companyStampSrc) ? `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;padding-left:${padLeft};break-inside:avoid;page-break-inside:avoid">
+      <div style="width:${Math.max(190, companyStampSize + 24, signatureSize + 24)}px;padding:9px;border:1px dashed ${theme.p}60;border-radius:8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:82px">
+        ${signatureImg}
+        ${customStampImg}
+        <div style="font-size:${fs-3}px;color:${fontColor.val};opacity:0.45;margin-top:4px">${L.signature}</div>
       </div>
     </div>` : '';
 
@@ -2785,15 +3010,18 @@ async function generatePDF() {
 }
 
 async function saveInvoicePdf(el, docNum) {
+  const blob = await createInvoicePdfBlob(el);
+  downloadBlob(blob, `${docNum}.pdf`);
+}
+
+async function createInvoicePdfBlob(el) {
   if (typeof html2canvas === 'undefined' || !window.jspdf?.jsPDF) {
-    await html2pdf().set({
+    return await html2pdf().set({
       margin: 0,
-      filename: `${docNum}.pdf`,
       image: { type:'jpeg', quality:1 },
       html2canvas: { scale:2, useCORS:true, allowTaint:true, backgroundColor:PAGE_COLORS[S.pageColorIdx].bg },
       jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
-    }).from(el).save();
-    return;
+    }).from(el).outputPdf('blob');
   }
 
   const canvas = await html2canvas(el, {
@@ -2825,7 +3053,18 @@ async function saveInvoicePdf(el, docNum) {
     remaining -= pageContentH;
     page++;
   }
-  pdf.save(`${docNum}.pdf`);
+  return pdf.output('blob');
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
 function buildPdfClone(source) {
