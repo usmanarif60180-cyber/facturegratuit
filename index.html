@@ -162,6 +162,16 @@
   .account-details { display: grid; gap: 8px; }
   .account-detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,.03); font-size: 11px; color: var(--ink-muted); }
   .account-detail-row strong { color: var(--ink); font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+  .account-tabs { display: flex; gap: 8px; margin: 14px 0; }
+  .account-tabs .btn { flex: 1; }
+  .account-panel { display: none; }
+  .account-panel.active { display: block; }
+  .history-month { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; background: rgba(255,255,255,.025); }
+  .history-head { display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; background: rgba(99,102,241,.1); color: var(--ink); font-size: 12px; font-weight: 800; }
+  .history-row { display: grid; grid-template-columns: 80px 1fr 90px; gap: 8px; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--ink-muted); align-items: center; }
+  .history-row strong { color: var(--ink); overflow-wrap: anywhere; }
+  .history-total { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); background: rgba(16,185,129,.08); font-size: 11px; color: var(--ink-muted); }
+  .history-total strong { display: block; color: var(--ink); font-size: 12px; margin-top: 2px; }
   .menu-item { width: 100%; justify-content: flex-start; border-radius: 8px; }
   @media(max-width:760px) {
     .topbar { height: auto; min-height: 56px; padding: 8px 12px; align-items: flex-start; gap: 10px; }
@@ -1108,7 +1118,7 @@
 
 <!-- ACCOUNT MODAL -->
 <div class="modal-backdrop no-print" id="account-modal" onclick="handleAccountBackdrop(event)">
-  <div class="auth-modal" style="width:min(520px,100%)">
+  <div class="auth-modal" style="width:min(860px,100%);max-height:92vh;overflow:auto">
     <div class="auth-modal-head">
       <div>
         <div class="auth-modal-title">Mon compte</div>
@@ -1124,6 +1134,42 @@
         <div class="account-detail-row"><span>Statut email</span><strong id="account-modal-verified">Connecté</strong></div>
         <div class="account-detail-row"><span>Provider</span><strong id="account-modal-provider">Firebase</strong></div>
         <div class="account-detail-row"><span>UID</span><strong id="account-modal-uid">-</strong></div>
+      </div>
+      <div class="account-tabs">
+        <button class="btn btn-primary btn-sm" id="account-tab-profile" onclick="showAccountPanel('profile')"><i class="fa fa-building"></i> Société</button>
+        <button class="btn btn-ghost btn-sm" id="account-tab-history" onclick="showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Historique</button>
+      </div>
+      <div class="account-panel active" id="account-panel-profile">
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label">Nom société</label><input class="form-input" id="acct-company-name" placeholder="Votre société"></div>
+          <div class="form-group"><label class="form-label">Statut</label><input class="form-input" id="acct-company-status" placeholder="Auto-entrepreneur, SASU..."></div>
+          <div class="form-group"><label class="form-label">SIRET / SIREN</label><input class="form-input" id="acct-company-siret" placeholder="852 XXX XXX 00012"></div>
+          <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="acct-company-tel" placeholder="06 00 00 00 00"></div>
+          <div class="form-group"><label class="form-label">Email société</label><input class="form-input" id="acct-company-email" placeholder="contact@vous.fr"></div>
+          <div class="form-group"><label class="form-label">IBAN</label><input class="form-input" id="acct-company-iban" placeholder="FR76..."></div>
+        </div>
+        <div class="form-group"><label class="form-label">Adresse société</label><textarea class="form-input" id="acct-company-addr" rows="2" placeholder="Adresse complète"></textarea></div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label">BIC / SWIFT</label><input class="form-input" id="acct-company-bic" placeholder="AGRIFRPP"></div>
+          <div class="form-group"><label class="form-label">RIB / Banque</label><input class="form-input" id="acct-company-rib" placeholder="Banque, titulaire..."></div>
+        </div>
+        <div class="account-detail-row" style="margin:4px 0 12px">
+          <span>Logo, signature et cachet</span>
+          <strong id="acct-assets-status">Non sauvegardés</strong>
+        </div>
+        <div class="grid-2">
+          <button class="btn btn-primary btn-sm" onclick="saveAccountProfileFromEditor()"><i class="fa fa-cloud-arrow-up"></i> Sauver depuis la facture</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveAccountProfileFromForm()"><i class="fa fa-floppy-disk"></i> Sauver ce formulaire</button>
+          <button class="btn btn-ghost btn-sm" onclick="applyAccountProfileToEditor()"><i class="fa fa-wand-magic-sparkles"></i> Appliquer à la facture</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAccountProfile()"><i class="fa fa-trash"></i> Effacer société</button>
+        </div>
+      </div>
+      <div class="account-panel" id="account-panel-history">
+        <div class="grid-2" style="margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="recordDocumentHistory('manual')"><i class="fa fa-plus"></i> Ajouter facture actuelle</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAccountHistory()"><i class="fa fa-trash"></i> Effacer historique</button>
+        </div>
+        <div id="account-history-list"></div>
       </div>
       <div class="grid-2" style="margin-top:14px">
         <button class="btn btn-ghost btn-sm" id="verify-email-btn" onclick="sendVerificationEmail()"><i class="fa fa-envelope-circle-check"></i> Vérifier email</button>
@@ -1477,6 +1523,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyAppTheme();
   loadAuthUser();
   renderAuth();
+  if (S.authUser) setTimeout(() => applyAccountProfileToEditor(true), 0);
   syncLocaleControls();
   renderDocVariant();
   renderLogoState();
@@ -1680,6 +1727,7 @@ function saveAuthUser(user) {
     else localStorage.removeItem('facturepro-user');
   } catch {}
   renderAuth();
+  if (user) applyAccountProfileToEditor(true);
 }
 
 function renderAuth() {
@@ -1770,6 +1818,258 @@ function renderAccountModal() {
   }
   if (sub) sub.textContent = verified ? 'Votre compte est connecté.' : 'Votre compte est connecté, email à vérifier.';
   if (verifyBtn) verifyBtn.style.display = user && user.provider === 'firebase' && !verified ? '' : 'none';
+  fillAccountProfileForm(loadAccountProfile());
+  renderAccountHistory();
+}
+
+function showAccountPanel(panel='profile') {
+  ['profile','history'].forEach(name => {
+    document.getElementById('account-panel-'+name)?.classList.toggle('active', name === panel);
+    const btn = document.getElementById('account-tab-'+name);
+    if (btn) btn.className = 'btn btn-sm ' + (name === panel ? 'btn-primary' : 'btn-ghost');
+  });
+  if (panel === 'history') renderAccountHistory();
+}
+
+function getAccountStorageKey(suffix) {
+  const key = S.authUser?.uid || S.authUser?.email || 'guest';
+  return `facturepro-account-${key}-${suffix}`;
+}
+
+function loadAccountProfile() {
+  if (!S.authUser) return null;
+  try { return JSON.parse(localStorage.getItem(getAccountStorageKey('profile')) || 'null'); } catch { return null; }
+}
+
+function saveAccountProfile(profile) {
+  if (!S.authUser) { showNotif('Login karein, phir société save karein', 'info'); return false; }
+  try {
+    localStorage.setItem(getAccountStorageKey('profile'), JSON.stringify({ ...profile, savedAt: new Date().toISOString() }));
+    showNotif('Société profile sauvegardé', 'success');
+    renderAccountModal();
+    return true;
+  } catch {
+    showNotif('Société profile save nahi ho saka', 'info');
+    return false;
+  }
+}
+
+function collectCompanyProfileFromEditor() {
+  return {
+    name: document.getElementById('e-name')?.value || '',
+    status: document.getElementById('e-status')?.value || '',
+    siret: document.getElementById('e-siret')?.value || '',
+    addr: document.getElementById('e-addr')?.value || '',
+    email: document.getElementById('e-email')?.value || '',
+    tel: document.getElementById('e-tel')?.value || '',
+    iban: document.getElementById('e-iban')?.value || '',
+    bic: document.getElementById('e-bic')?.value || '',
+    rib: document.getElementById('e-rib')?.value || '',
+    logoSrc: S.logoSrc,
+    logoPos: S.logoPos,
+    logoSize: S.logoSize,
+    companyStampSrc: S.companyStampSrc,
+    companyStampSize: S.companyStampSize,
+    companyStampOpacity: S.companyStampOpacity,
+    signatureSrc: S.signatureSrc,
+    signatureSize: S.signatureSize,
+    signature: S.signature
+  };
+}
+
+function collectCompanyProfileFromForm() {
+  const current = loadAccountProfile() || {};
+  return {
+    ...current,
+    name: document.getElementById('acct-company-name')?.value || '',
+    status: document.getElementById('acct-company-status')?.value || '',
+    siret: document.getElementById('acct-company-siret')?.value || '',
+    addr: document.getElementById('acct-company-addr')?.value || '',
+    email: document.getElementById('acct-company-email')?.value || '',
+    tel: document.getElementById('acct-company-tel')?.value || '',
+    iban: document.getElementById('acct-company-iban')?.value || '',
+    bic: document.getElementById('acct-company-bic')?.value || '',
+    rib: document.getElementById('acct-company-rib')?.value || ''
+  };
+}
+
+function fillAccountProfileForm(profile) {
+  const p = profile || {};
+  const map = {
+    'acct-company-name': p.name,
+    'acct-company-status': p.status,
+    'acct-company-siret': p.siret,
+    'acct-company-addr': p.addr,
+    'acct-company-email': p.email,
+    'acct-company-tel': p.tel,
+    'acct-company-iban': p.iban,
+    'acct-company-bic': p.bic,
+    'acct-company-rib': p.rib,
+  };
+  Object.entries(map).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el && document.activeElement !== el) el.value = value || '';
+  });
+  const assets = [
+    p.logoSrc ? 'logo' : '',
+    p.signatureSrc ? 'signature' : '',
+    p.companyStampSrc ? 'cachet' : ''
+  ].filter(Boolean);
+  const status = document.getElementById('acct-assets-status');
+  if (status) status.textContent = assets.length ? assets.join(' + ') : 'Non sauvegardés';
+}
+
+function applyAccountProfileToEditor(silent=false) {
+  const p = loadAccountProfile();
+  if (!p) {
+    if (!silent) showNotif('Aucun profil société sauvegardé', 'info');
+    return;
+  }
+  const map = {
+    'e-name': p.name,
+    'e-status': p.status,
+    'e-siret': p.siret,
+    'e-addr': p.addr,
+    'e-email': p.email,
+    'e-tel': p.tel,
+    'e-iban': p.iban,
+    'e-bic': p.bic,
+    'e-rib': p.rib,
+  };
+  Object.entries(map).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el && value !== undefined && value !== null) el.value = value;
+  });
+  S.logoSrc = p.logoSrc || S.logoSrc;
+  S.logoPos = p.logoPos || S.logoPos || 'left';
+  S.logoSize = p.logoSize || S.logoSize || 80;
+  S.companyStampSrc = p.companyStampSrc || S.companyStampSrc;
+  S.companyStampSize = p.companyStampSize || S.companyStampSize || 115;
+  S.companyStampOpacity = p.companyStampOpacity || S.companyStampOpacity || 90;
+  S.signatureSrc = p.signatureSrc || S.signatureSrc;
+  S.signatureSize = p.signatureSize || S.signatureSize || 135;
+  S.signature = Boolean(p.signature || p.signatureSrc || S.signature);
+  renderLogoState();
+  renderCompanyStampState();
+  renderSignatureImageState();
+  renderToggleStates();
+  updatePreview();
+  if (!silent) showNotif('Société appliquée à la facture', 'success');
+}
+
+function saveAccountProfileFromEditor() {
+  if (saveAccountProfile(collectCompanyProfileFromEditor())) fillAccountProfileForm(loadAccountProfile());
+}
+
+function saveAccountProfileFromForm() {
+  saveAccountProfile(collectCompanyProfileFromForm());
+}
+
+function clearAccountProfile() {
+  if (!S.authUser) return;
+  try { localStorage.removeItem(getAccountStorageKey('profile')); } catch {}
+  fillAccountProfileForm(null);
+  showNotif('Société effacée du compte', 'info');
+}
+
+function loadAccountHistory() {
+  if (!S.authUser) return [];
+  try {
+    const list = JSON.parse(localStorage.getItem(getAccountStorageKey('history')) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch { return []; }
+}
+
+function saveAccountHistory(list) {
+  if (!S.authUser) return;
+  try { localStorage.setItem(getAccountStorageKey('history'), JSON.stringify(list)); } catch {}
+}
+
+function getCurrentDocumentSummary(action='PDF') {
+  syncItemsFromForm();
+  const profile = getCountryProfile();
+  const subtotal = S.items.reduce((s,i) => s + cleanNumber(i.qty) * cleanNumber(i.price), 0);
+  const tvaAmt = S.tva ? S.items.reduce((s,i) => s + cleanNumber(i.qty) * cleanNumber(i.price) * (cleanNumber(i.tvaRate) / 100), 0) : 0;
+  const rawDate = document.getElementById('f-date')?.value || new Date().toISOString().slice(0,10);
+  const docNum = document.getElementById('f-number')?.value || getDefaultDocNumber(S.docType, S.docSector);
+  return {
+    id: `${S.docType}-${docNum}`,
+    docNum,
+    docType: S.docType,
+    sector: S.docSector,
+    clientName: document.getElementById('c-name')?.value || 'Client sans nom',
+    date: rawDate,
+    month: rawDate.slice(0,7),
+    subtotal,
+    tva: tvaAmt,
+    total: subtotal + tvaAmt,
+    currency: profile.currency,
+    country: S.country,
+    action,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function recordDocumentHistory(action='PDF') {
+  if (!S.authUser) return;
+  const record = getCurrentDocumentSummary(action);
+  const list = loadAccountHistory();
+  const next = [record, ...list.filter(item => item.id !== record.id)].slice(0, 300);
+  saveAccountHistory(next);
+  renderAccountHistory();
+  if (action === 'manual') showNotif('Facture ajoutée à l’historique', 'success');
+}
+
+function renderAccountHistory() {
+  const box = document.getElementById('account-history-list');
+  if (!box) return;
+  const list = loadAccountHistory().sort((a,b) => String(b.date).localeCompare(String(a.date)));
+  if (!list.length) {
+    box.innerHTML = '<div class="account-detail-row"><span>Historique</span><strong>Aucune facture sauvegardée</strong></div>';
+    return;
+  }
+  const grouped = list.reduce((acc, item) => {
+    const key = item.month || String(item.date || '').slice(0,7) || 'Sans date';
+    (acc[key] ||= []).push(item);
+    return acc;
+  }, {});
+  box.innerHTML = Object.entries(grouped).map(([month, items]) => {
+    const totals = items.reduce((sum, item) => ({
+      subtotal: sum.subtotal + (+item.subtotal || 0),
+      tva: sum.tva + (+item.tva || 0),
+      total: sum.total + (+item.total || 0)
+    }), { subtotal:0, tva:0, total:0 });
+    return `
+      <div class="history-month">
+        <div class="history-head"><span>${formatMonthLabel(month)}</span><span>${items.length} document${items.length>1?'s':''}</span></div>
+        ${items.map(item => `
+          <div class="history-row">
+            <span>${fmtDate(item.date)}</span>
+            <strong>${escHtml(item.clientName || 'Client')}</strong>
+            <span style="text-align:right">${fmtEur(item.total)}</span>
+            <span style="grid-column:2 / 4;font-size:10px;opacity:.65">${escHtml((item.docType || '').toUpperCase())} · ${escHtml(item.docNum || '')}</span>
+          </div>
+        `).join('')}
+        <div class="history-total">
+          <span>Total HT<strong>${fmtEur(totals.subtotal)}</strong></span>
+          <span>TVA<strong>${fmtEur(totals.tva)}</strong></span>
+          <span>TTC<strong>${fmtEur(totals.total)}</strong></span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function formatMonthLabel(key) {
+  if (!/^\d{4}-\d{2}$/.test(key)) return key;
+  const [year, month] = key.split('-').map(Number);
+  return new Intl.DateTimeFormat(getCountryProfile().locale, { month:'long', year:'numeric' }).format(new Date(year, month - 1, 1));
+}
+
+function clearAccountHistory() {
+  if (!S.authUser) return;
+  try { localStorage.removeItem(getAccountStorageKey('history')); } catch {}
+  renderAccountHistory();
+  showNotif('Historique effacé', 'info');
 }
 
 function switchAuthMode() {
@@ -2398,9 +2698,11 @@ async function emailPdf() {
     const file = new File([blob], filename, { type: 'application/pdf' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({ files: [file], title: docNum, text: bodyText });
+      recordDocumentHistory('email');
       showNotif('PDF prêt à envoyer par email', 'success');
     } else {
       downloadBlob(blob, filename);
+      recordDocumentHistory('email');
       window.location.href = `mailto:${encodeURIComponent(clientEmail)}?subject=${encodeURIComponent(docNum)}&body=${encodeURIComponent(bodyText + '\n\nPDF téléchargé : ajoutez le fichier en pièce jointe.')}`;
       showNotif('PDF téléchargé. Ajoutez-le à votre email.', 'info');
     }
@@ -3101,6 +3403,7 @@ async function generatePDF() {
 
   try {
     await saveInvoicePdf(el, docNum);
+    recordDocumentHistory('PDF');
     showNotif('✅ PDF généré avec succès !', 'success');
   } catch(e) {
     showNotif('⚠️ Erreur lors de la génération. Essayez Imprimer.', 'info');
