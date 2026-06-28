@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FacturePro — Générateur de Facture & Devis Gratuit</title>
-<meta name="description" content="Créez gratuitement des factures et devis professionnels pour bâtiment et automobile. PDF A4, TVA, IBAN/RIB, VIN, plaque, 30 thèmes, logo, signature et compte Firebase.">
+<meta name="description" content="Créez gratuitement des factures et devis professionnels pour bâtiment, automobile, freelance et vendeurs Amazon, eBay, Etsy. PDF A4, TVA, IBAN/RIB, logo, signature et compte Firebase.">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<meta name="keywords" content="facture gratuit, devis gratuit, générateur facture, facture bâtiment, devis bâtiment, facture automobile, devis automobile, facture PDF, facture auto entrepreneur, modèle facture, modèle devis">
+<meta name="keywords" content="facture gratuit, devis gratuit, générateur facture, facture bâtiment, devis bâtiment, facture automobile, facture freelance, facture marketplace, facture Amazon, facture eBay, facture Etsy, facture vendeur en ligne, facture PDF, facture auto entrepreneur, modèle facture, modèle devis">
 <meta name="author" content="FacturePro">
 <meta name="application-name" content="FacturePro">
 <meta name="theme-color" content="#6366f1">
@@ -17,11 +17,11 @@
 <meta property="og:locale" content="fr_FR">
 <meta property="og:site_name" content="FacturePro">
 <meta property="og:title" content="FacturePro — Générateur de Facture & Devis Gratuit">
-<meta property="og:description" content="Générez des factures et devis PDF pour bâtiment et automobile avec TVA, IBAN/RIB, VIN, plaque, logo et 30 thèmes.">
+<meta property="og:description" content="Générez des factures et devis PDF pour bâtiment, automobile, freelance et vendeurs Amazon, eBay, Etsy avec TVA, IBAN/RIB, logo et 30 thèmes.">
 <meta property="og:url" content="https://facturergratuit.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="FacturePro — Générateur de Facture & Devis Gratuit">
-<meta name="twitter:description" content="Créez des factures et devis PDF professionnels gratuitement pour bâtiment et automobile.">
+<meta name="twitter:description" content="Créez des factures et devis PDF professionnels gratuitement pour bâtiment, automobile, freelance et vendeurs marketplace.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -31,7 +31,7 @@
   "operatingSystem": "Web",
   "inLanguage": "fr-FR",
   "url": "https://facturergratuit.com/",
-  "description": "Générateur gratuit de factures et devis PDF pour bâtiment et automobile avec TVA, IBAN/RIB, VIN, plaque, logo, signature et thèmes personnalisables.",
+  "description": "Générateur gratuit de factures et devis PDF pour bâtiment, automobile, freelance et vendeurs Amazon, eBay, Etsy avec TVA, IBAN/RIB, logo, signature et thèmes personnalisables.",
   "offers": {
     "@type": "Offer",
     "price": "0",
@@ -40,6 +40,7 @@
   "featureList": [
     "Facture bâtiment",
     "Facture automobile",
+    "Facture freelance marketplace",
     "Devis bâtiment",
     "Devis automobile",
     "PDF A4",
@@ -469,7 +470,7 @@
   @keyframes featureMove { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   .home-section { max-width:1360px; margin:0 auto; padding:28px; }
   .home-section-title { margin-bottom:18px; color:#6f7e9a; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.18em; }
-  .home-tool-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+  .home-tool-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
   .home-tool-card { min-height:150px; padding:22px; border:1px solid rgba(124,58,237,.22); border-radius:14px; background:rgba(30,18,62,.62); cursor:pointer; transition:transform .18s ease, border-color .18s ease, background .18s ease; }
   .home-tool-card:hover { transform:translateY(-5px); border-color:rgba(124,58,237,.52); background:rgba(38,24,76,.86); }
   .home-tool-icon { font-size:22px; margin-bottom:18px; }
@@ -477,6 +478,7 @@
   .home-tool-copy { color:#8390aa; font-size:12px; line-height:1.5; }
   .home-tool-tag { display:inline-flex; margin-top:14px; padding:3px 8px; border-radius:5px; background:rgba(16,185,129,.18); color:#5ee5a5; font-size:10px; font-weight:900; }
   .home-tool-tag.auto { background:rgba(139,92,246,.24); color:#c4b5fd; }
+  .home-tool-tag.online { background:rgba(14,165,233,.2); color:#7dd3fc; }
   .home-stat-grid { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
   .home-stat { min-height:130px; display:grid; place-items:center; text-align:center; border-right:1px solid var(--border); background:rgba(15,23,42,.32); }
   .home-stat:last-child { border-right:0; }
@@ -563,7 +565,7 @@
     <div>
       <div class="home-kicker"><i class="fa fa-bolt"></i> 100% gratuit · Aucun compte requis</div>
       <h1 class="home-title">Créez vos <span>Factures & Devis</span> en quelques clics</h1>
-      <p class="home-copy">L'outil professionnel pour artisans, auto-entrepreneurs et PME. Bâtiment · Automobile · PDF A4 · TVA · Logo · Signature & cachet PNG en ligne.</p>
+      <p class="home-copy">L'outil professionnel pour artisans, vendeurs en ligne, freelancers et PME. Bâtiment · Automobile · Amazon · eBay · Etsy · PDF A4 · TVA · Logo · Signature & cachet PNG.</p>
       <div class="home-actions">
         <button class="btn btn-primary btn-lg" onclick="openEditor('facture')"><i class="fa fa-bolt"></i> Commencer gratuitement</button>
         <button class="btn btn-ghost btn-lg" onclick="selectHomeTool('devis','batiment')"><i class="fa fa-clipboard"></i> Créer un devis</button>
@@ -591,8 +593,8 @@
 
   <div class="home-feature-strip">
     <div class="home-feature-track">
-      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Logo upload</span><span class="home-feature">Signature PNG online</span><span class="home-feature">Cachet société PNG</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Email PDF</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
-      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Logo upload</span><span class="home-feature">Signature PNG online</span><span class="home-feature">Cachet société PNG</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Email PDF</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
+      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Amazon · eBay · Etsy</span><span class="home-feature">Toutes devises ISO</span><span class="home-feature">Logo upload</span><span class="home-feature">Signature PNG online</span><span class="home-feature">Cachet société PNG</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Email PDF</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
+      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Amazon · eBay · Etsy</span><span class="home-feature">Toutes devises ISO</span><span class="home-feature">Logo upload</span><span class="home-feature">Signature PNG online</span><span class="home-feature">Cachet société PNG</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Email PDF</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
     </div>
   </div>
 
@@ -601,6 +603,7 @@
     <div class="home-tool-grid">
       <div class="home-tool-card" onclick="selectHomeTool('facture','batiment')"><div class="home-tool-icon">🔨</div><div class="home-tool-title">Facture bâtiment</div><div class="home-tool-copy">Travaux, rénovation, artisanat, maçonnerie, électricité</div><span class="home-tool-tag">Bâtiment</span></div>
       <div class="home-tool-card" onclick="selectHomeTool('facture','automobile')"><div class="home-tool-icon">🚗</div><div class="home-tool-title">Facture automobile</div><div class="home-tool-copy">Vente, réparation, VIN, plaque, kilométrage</div><span class="home-tool-tag auto">Automobile</span></div>
+      <div class="home-tool-card" onclick="selectHomeTool('facture','online')"><div class="home-tool-icon">🛒</div><div class="home-tool-title">Facture freelance / marketplace</div><div class="home-tool-copy">Amazon, eBay, Etsy, Shopify, Fiverr, Upwork, vendeurs en ligne</div><span class="home-tool-tag online">Online seller</span></div>
       <div class="home-tool-card" onclick="selectHomeTool('devis','batiment')"><div class="home-tool-icon">📋</div><div class="home-tool-title">Devis bâtiment</div><div class="home-tool-copy">Chiffrage, appel d'offre, second oeuvre</div><span class="home-tool-tag">Bâtiment</span></div>
       <div class="home-tool-card" onclick="selectHomeTool('devis','automobile')"><div class="home-tool-icon">🚘</div><div class="home-tool-title">Devis automobile</div><div class="home-tool-copy">Estimation réparation, reprise, carrosserie</div><span class="home-tool-tag auto">Automobile</span></div>
     </div>
@@ -660,10 +663,11 @@
         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px">
           <button class="btn btn-primary btn-sm" style="height:38px" id="variant-facture-batiment" onclick="setDocVariant('facture','batiment')"><i class="fa fa-hammer"></i> Facture bâtiment</button>
           <button class="btn btn-ghost btn-sm" style="height:38px" id="variant-facture-automobile" onclick="setDocVariant('facture','automobile')"><i class="fa fa-car"></i> Facture automobile</button>
+          <button class="btn btn-ghost btn-sm" style="height:38px" id="variant-facture-online" onclick="setDocVariant('facture','online')"><i class="fa fa-store"></i> Facture freelance / marketplace</button>
           <button class="btn btn-ghost btn-sm" style="height:38px" id="variant-devis-batiment" onclick="setDocVariant('devis','batiment')"><i class="fa fa-helmet-safety"></i> Devis bâtiment</button>
           <button class="btn btn-ghost btn-sm" style="height:38px" id="variant-devis-automobile" onclick="setDocVariant('devis','automobile')"><i class="fa fa-car-side"></i> Devis automobile</button>
         </div>
-        <div class="grid-2" style="margin-bottom:12px">
+        <div class="grid-3" style="margin-bottom:12px">
           <div class="form-group" style="margin:0">
             <label class="form-label">Pays / Format</label>
             <select class="form-input form-select" id="country-select" onchange="setCountry(this.value)">
@@ -684,6 +688,10 @@
               <option value="it">Italiano</option>
               <option value="en">English</option>
             </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Devise</label>
+            <select class="form-input form-select" id="currency-select" onchange="setCurrency(this.value)"></select>
           </div>
         </div>
         <div class="grid-3" style="margin-bottom:12px">
@@ -713,6 +721,7 @@
             <option value="conf">CONFIDENTIEL</option>
           </select>
         </div>
+        <div id="country-format-note" style="margin-top:12px;padding:9px 11px;border-radius:9px;background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.22);font-size:10px;color:var(--ink-dim);line-height:1.55"></div>
       </div>
 
       <div class="card" id="vehicle-card" style="display:none">
@@ -737,6 +746,43 @@
         <div class="form-group" style="margin-top:12px;margin-bottom:0">
           <label class="form-label">Détails véhicule</label>
           <textarea class="form-input" id="v-details" rows="3" placeholder="Motorisation, finition, options, état, contrôle technique, accessoires inclus..." oninput="updatePreview()"></textarea>
+        </div>
+      </div>
+
+      <div class="card" id="online-card" style="display:none">
+        <div class="card-title"><i class="fa fa-store" style="color:#0ea5e9"></i> Freelance / marketplace seller</div>
+        <div class="grid-2">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Plateforme</label>
+            <select class="form-input form-select" id="o-platform" onchange="updatePreview()">
+              <option value="">Choisir...</option>
+              <option>Amazon</option>
+              <option>eBay</option>
+              <option>Etsy</option>
+              <option>Shopify</option>
+              <option>Fiverr</option>
+              <option>Upwork</option>
+              <option>Freelance direct</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0"><label class="form-label">Order / transaction ID</label><input class="form-input" id="o-order-id" placeholder="ex: 123-1234567-1234567" oninput="updatePreview()"></div>
+        </div>
+        <div class="grid-2" style="margin-top:12px">
+          <div class="form-group" style="margin:0"><label class="form-label">Buyer username / ref client</label><input class="form-input" id="o-buyer-ref" placeholder="buyer_123, client ref..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">SKU / listing ref</label><input class="form-input" id="o-sku" placeholder="SKU-001, listing #..." oninput="updatePreview()"></div>
+        </div>
+        <div class="grid-2" style="margin-top:12px">
+          <div class="form-group" style="margin:0"><label class="form-label">Product / service category</label><input class="form-input" id="o-category" placeholder="Digital service, handmade product..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">Payment method</label><input class="form-input" id="o-payment" placeholder="Stripe, PayPal, marketplace payout..." oninput="updatePreview()"></div>
+        </div>
+        <div class="grid-2" style="margin-top:12px">
+          <div class="form-group" style="margin:0"><label class="form-label">Shipping / delivery ref</label><input class="form-input" id="o-shipping" placeholder="Tracking, delivery, milestone..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label">Marketplace fees / commission (info)</label><input class="form-input" id="o-fees" type="number" min="0" step="0.01" placeholder="0.00" oninput="updatePreview()"></div>
+        </div>
+        <div class="form-group" style="margin-top:12px;margin-bottom:0">
+          <label class="form-label">Platform / order notes</label>
+          <textarea class="form-input" id="o-notes" rows="3" placeholder="Refund policy, delivery status, project milestone, platform notes..." oninput="updatePreview()"></textarea>
         </div>
       </div>
 
@@ -1368,37 +1414,37 @@ const LAYOUTS = [
 const COUNTRY_PROFILES = {
   FR: {
     name:'France', lang:'fr', locale:'fr-FR', currency:'EUR', symbol:'€', taxName:'TVA', taxRate:20,
-    docPrefix:{ facture:'FAC', devis:'DEV' }, sector:{ batiment:'BÂTIMENT', automobile:'AUTOMOBILE' },
+    docPrefix:{ facture:'FAC', devis:'DEV' }, sector:{ batiment:'BÂTIMENT', automobile:'AUTOMOBILE', online:'FREELANCE / MARKETPLACE' },
     businessId:'SIRET/SIREN', clientId:'SIREN', dateOrder:'dmy',
     exempt:'TVA non applicable — art. 293 B du CGI'
   },
   DE: {
     name:'Germany', lang:'de', locale:'de-DE', currency:'EUR', symbol:'€', taxName:'USt.', taxRate:19,
-    docPrefix:{ facture:'RE', devis:'ANG' }, sector:{ batiment:'BAU', automobile:'AUTOMOBIL' },
+    docPrefix:{ facture:'RE', devis:'ANG' }, sector:{ batiment:'BAU', automobile:'AUTOMOBIL', online:'FREELANCE / MARKETPLACE' },
     businessId:'USt-IdNr. / Steuernummer', clientId:'USt-IdNr.', dateOrder:'dmy',
     exempt:'Umsatzsteuerbefreit nach § 19 UStG'
   },
   ES: {
     name:'Spain', lang:'es', locale:'es-ES', currency:'EUR', symbol:'€', taxName:'IVA', taxRate:21,
-    docPrefix:{ facture:'FAC', devis:'PRE' }, sector:{ batiment:'CONSTRUCCIÓN', automobile:'AUTOMÓVIL' },
+    docPrefix:{ facture:'FAC', devis:'PRE' }, sector:{ batiment:'CONSTRUCCIÓN', automobile:'AUTOMÓVIL', online:'FREELANCE / MARKETPLACE' },
     businessId:'NIF / CIF', clientId:'NIF / CIF', dateOrder:'dmy',
     exempt:'IVA no aplicable / exento según normativa vigente'
   },
   IT: {
     name:'Italy', lang:'it', locale:'it-IT', currency:'EUR', symbol:'€', taxName:'IVA', taxRate:22,
-    docPrefix:{ facture:'FAT', devis:'PREV' }, sector:{ batiment:'EDILIZIA', automobile:'AUTOMOBILE' },
+    docPrefix:{ facture:'FAT', devis:'PREV' }, sector:{ batiment:'EDILIZIA', automobile:'AUTOMOBILE', online:'FREELANCE / MARKETPLACE' },
     businessId:'P. IVA / Codice fiscale', clientId:'P. IVA / C.F.', dateOrder:'dmy',
     exempt:'IVA non applicabile / regime agevolato se previsto'
   },
   UK: {
     name:'United Kingdom', lang:'en', locale:'en-GB', currency:'GBP', symbol:'£', taxName:'VAT', taxRate:20,
-    docPrefix:{ facture:'INV', devis:'QUO' }, sector:{ batiment:'BUILDING', automobile:'AUTOMOTIVE' },
+    docPrefix:{ facture:'INV', devis:'QUO' }, sector:{ batiment:'BUILDING', automobile:'AUTOMOTIVE', online:'FREELANCE / MARKETPLACE' },
     businessId:'Company No. / VAT No.', clientId:'Company No. / VAT No.', dateOrder:'dmy',
     exempt:'VAT not applicable'
   },
   US: {
     name:'United States', lang:'en', locale:'en-US', currency:'USD', symbol:'$', taxName:'Sales tax', taxRate:0,
-    docPrefix:{ facture:'INV', devis:'EST' }, sector:{ batiment:'CONSTRUCTION', automobile:'AUTOMOTIVE' },
+    docPrefix:{ facture:'INV', devis:'EST' }, sector:{ batiment:'CONSTRUCTION', automobile:'AUTOMOTIVE', online:'FREELANCE / MARKETPLACE' },
     businessId:'EIN / Tax ID', clientId:'EIN / Tax ID', dateOrder:'mdy',
     exempt:'Sales tax not applied'
   },
@@ -1457,6 +1503,17 @@ const I18N = {
   }
 };
 
+const FALLBACK_CURRENCIES = ['EUR','USD','GBP','PKR','AED','CAD','AUD','CHF','JPY','CNY','INR','SAR','MAD','TRY','BRL','MXN','SGD','HKD','NZD','ZAR'];
+
+const COUNTRY_FORMATS = {
+  FR: { layout:'classic', margins:[5,15,5,15], note:'Format France : SIRET/SIREN, TVA, adresse complète, échéance devis, mentions TVA.' },
+  DE: { layout:'elegant', margins:[8,14,8,14], note:'Format Germany : Rechnungsnummer, Steuernummer/USt-IdNr., Leistungsbeschreibung, USt. details.' },
+  ES: { layout:'split', margins:[8,14,8,14], note:'Format Spain : NIF/CIF, IVA, datos de emisor y cliente, base imponible y total.' },
+  IT: { layout:'card', margins:[7,14,7,14], note:'Format Italy : P. IVA / Codice fiscale, IVA, dati cliente, descrizione e totale.' },
+  UK: { layout:'minimal', margins:[10,16,10,16], note:'Format UK : invoice number, VAT/company details, tax point/date, VAT rate and total.' },
+  US: { layout:'bold', margins:[10,16,10,16], note:'Format USA : invoice number, seller/buyer details, description, sales tax where applicable.' },
+};
+
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
@@ -1465,6 +1522,7 @@ const S = {
   docSector: 'batiment',
   country: 'FR',
   lang: 'fr',
+  currency: 'EUR',
   themeIdx: 0,
   fontIdx: 0,
   fontCat: 'Tous',
@@ -1520,6 +1578,7 @@ document.addEventListener('DOMContentLoaded', () => {
   buildFontList();
   buildPageColorGrid();
   buildFontColorGrid();
+  buildCurrencySelect();
   loadAppTheme();
   applyAppTheme();
   loadAuthUser();
@@ -1532,6 +1591,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSignatureImageState();
   renderCookieBanner();
   initAdsenseSlots();
+  applyCountryDocumentFormat();
 
   addRow();
   addRow();
@@ -2004,7 +2064,7 @@ function getCurrentDocumentSummary(action='PDF') {
     subtotal,
     tva: tvaAmt,
     total: subtotal + tvaAmt,
-    currency: profile.currency,
+    currency: S.currency || profile.currency,
     country: S.country,
     action,
     updatedAt: new Date().toISOString()
@@ -2091,6 +2151,7 @@ function applyDraftSnapshot(draft) {
   Object.assign(S, draft.state || {});
   S.country = COUNTRY_PROFILES[S.country] ? S.country : 'FR';
   S.lang = I18N[S.lang] ? S.lang : getCountryProfile().lang;
+  S.currency = draft.state?.currency || S.currency || getCountryProfile().currency;
   syncLocaleControls();
   S.items = (draft.state?.items || []).map(item => ({ ...item }));
   itemId = S.items.reduce((max, item) => Math.max(max, item.id || 0), 0);
@@ -2278,7 +2339,8 @@ function scrollToEditor() {
 }
 
 function openEditor(type='facture', sector) {
-  setDocVariant(type, sector || S.docSector || 'batiment');
+  const nextSector = sector || (type === 'devis' && S.docSector === 'online' ? 'batiment' : (S.docSector || 'batiment'));
+  setDocVariant(type, nextSector);
   scrollToEditor();
 }
 
@@ -2305,12 +2367,15 @@ function syncLocaleControls() {
     const el = document.getElementById(id);
     if (el) el.value = S.lang;
   });
+  const currency = document.getElementById('currency-select');
+  if (currency) currency.value = S.currency || getCountryProfile().currency;
 }
 
 function setCountry(country) {
   S.country = COUNTRY_PROFILES[country] ? country : 'FR';
   const profile = getCountryProfile();
   S.lang = profile.lang;
+  S.currency = profile.currency;
 
   syncLocaleControls();
 
@@ -2319,10 +2384,29 @@ function setCountry(country) {
   const num = document.getElementById('f-number');
   if (num) num.value = getDefaultDocNumber(S.docType, S.docSector);
 
+  applyCountryDocumentFormat();
   renderToggleStates();
   renderItems();
   updatePreview();
   showNotif(`${profile.name} format applied`, 'success');
+}
+
+function buildCurrencySelect() {
+  const select = document.getElementById('currency-select');
+  if (!select) return;
+  let codes = FALLBACK_CURRENCIES;
+  try {
+    if (Intl.supportedValuesOf) codes = Intl.supportedValuesOf('currency');
+  } catch {}
+  select.innerHTML = codes.map(code => `<option value="${code}">${code}</option>`).join('');
+  select.value = S.currency || getCountryProfile().currency;
+}
+
+function setCurrency(currency) {
+  S.currency = currency || getCountryProfile().currency;
+  syncLocaleControls();
+  updateTotals();
+  updatePreview();
 }
 
 function setLanguage(lang) {
@@ -2336,6 +2420,7 @@ function setDocType(type) {
 }
 
 function setDocVariant(type, sector='batiment') {
+  if (sector === 'online') type = 'facture';
   S.docType = type;
   S.docSector = sector;
   ['facture','devis'].forEach(t => {
@@ -2351,19 +2436,54 @@ function setDocVariant(type, sector='batiment') {
   if (num) num.value = getDefaultDocNumber(type, sector);
   const dueGroup = document.getElementById('due-date-group');
   if (dueGroup) dueGroup.style.display = type === 'devis' ? '' : 'none';
+  applyCountryDocumentFormat();
   renderDocVariant();
   updatePreview();
+}
+
+function getDocumentFormat() {
+  if (S.docType === 'facture' && S.docSector === 'online') {
+    const country = COUNTRY_FORMATS[S.country] || COUNTRY_FORMATS.FR;
+    return {
+      layout:'card',
+      margins:[8,14,8,14],
+      note:`Standard online seller : Amazon, eBay, Etsy, Shopify, Fiverr, Upwork. ${country.note}`
+    };
+  }
+  return COUNTRY_FORMATS[S.country] || COUNTRY_FORMATS.FR;
+}
+
+function applyCountryDocumentFormat() {
+  const format = getDocumentFormat();
+  const layoutIndex = LAYOUTS.findIndex(l => l.id === format.layout);
+  if (layoutIndex >= 0 && S.layoutIdx !== layoutIndex) {
+    S.layoutIdx = layoutIndex;
+    buildLayoutGrid();
+  }
+  const ids = ['m-top','m-right','m-bottom','m-left'];
+  (format.margins || []).forEach((val, i) => {
+    const el = document.getElementById(ids[i]);
+    if (el) el.value = val;
+  });
+  renderFormatNote();
+}
+
+function renderFormatNote() {
+  const el = document.getElementById('country-format-note');
+  if (!el) return;
+  const format = getDocumentFormat();
+  el.innerHTML = `<strong style="color:#7dd3fc">Format appliqué :</strong> ${escHtml(format.note)}`;
 }
 
 function getDefaultDocNumber(type, sector) {
   const profile = getCountryProfile();
   const prefix = profile.docPrefix[type] || (type === 'facture' ? 'FAC' : 'DEV');
-  const suffix = sector === 'automobile' ? 'AUTO' : 'BAT';
+  const suffix = sector === 'automobile' ? 'AUTO' : (sector === 'online' ? 'MKT' : 'BAT');
   return `${prefix}-${suffix}-${new Date().getFullYear()}-001`;
 }
 
 function renderDocVariant() {
-  ['facture-batiment','facture-automobile','devis-batiment','devis-automobile'].forEach(key => {
+  ['facture-batiment','facture-automobile','facture-online','devis-batiment','devis-automobile'].forEach(key => {
     const btn = document.getElementById('variant-'+key);
     if (!btn) return;
     const [type, sector] = key.split('-');
@@ -2373,6 +2493,8 @@ function renderDocVariant() {
   });
   const vehicleCard = document.getElementById('vehicle-card');
   if (vehicleCard) vehicleCard.style.display = S.docSector === 'automobile' ? '' : 'none';
+  const onlineCard = document.getElementById('online-card');
+  if (onlineCard) onlineCard.style.display = S.docType === 'facture' && S.docSector === 'online' ? '' : 'none';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2529,7 +2651,7 @@ function toggleExtra(which) {
 function collectDraft() {
   syncItemsFromForm();
   const fields = {};
-  document.querySelectorAll('.sidebar input[id], .sidebar textarea[id]').forEach(el => {
+  document.querySelectorAll('.sidebar input[id], .sidebar textarea[id], .sidebar select[id]').forEach(el => {
     if (el.type === 'file') return;
     fields[el.id] = el.value;
   });
@@ -2541,6 +2663,7 @@ function collectDraft() {
       docSector: S.docSector,
       country: S.country,
       lang: S.lang,
+      currency: S.currency,
       themeIdx: S.themeIdx,
       fontIdx: S.fontIdx,
       fontCat: S.fontCat,
@@ -3121,7 +3244,7 @@ function updatePreview() {
   S.companyStampOpacity = companyStampOpacity;
   S.signatureSize = signatureSize;
 
-  const docSectorLabel = profile.sector[S.docSector] || (S.docSector === 'automobile' ? 'AUTOMOTIVE' : 'BUILDING');
+  const docSectorLabel = profile.sector[S.docSector] || (S.docSector === 'automobile' ? 'AUTOMOTIVE' : (S.docSector === 'online' ? 'FREELANCE / MARKETPLACE' : 'BUILDING'));
   const docLabel  = `${S.docType === 'facture' ? L.invoice : L.quote} ${docSectorLabel}`;
   const docNum    = document.getElementById('f-number')?.value || '';
   const fDate     = fmtDate(document.getElementById('f-date')?.value);
@@ -3137,6 +3260,15 @@ function updatePreview() {
   const vFirstReg = fmtDate(document.getElementById('v-first-reg')?.value);
   const vColor    = document.getElementById('v-color')?.value || '';
   const vDetails  = document.getElementById('v-details')?.value || '';
+  const oPlatform = document.getElementById('o-platform')?.value || '';
+  const oOrderId  = document.getElementById('o-order-id')?.value || '';
+  const oBuyerRef = document.getElementById('o-buyer-ref')?.value || '';
+  const oSku      = document.getElementById('o-sku')?.value || '';
+  const oCategory = document.getElementById('o-category')?.value || '';
+  const oPayment  = document.getElementById('o-payment')?.value || '';
+  const oShipping = document.getElementById('o-shipping')?.value || '';
+  const oFees     = document.getElementById('o-fees')?.value || '';
+  const oNotes    = document.getElementById('o-notes')?.value || '';
 
   const eName     = document.getElementById('e-name')?.value || '';
   const eStatus   = document.getElementById('e-status')?.value || '';
@@ -3281,6 +3413,13 @@ function updatePreview() {
       <div style="font-size:${fs}px;color:${fontColor.val};font-weight:500;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word">${escHtml(fObj)}</div>
     </div>` : '';
 
+  const formatInfo = getDocumentFormat();
+  const formatHtml = formatInfo?.note ? `
+    <div style="margin-bottom:14px;padding:8px 12px;border-radius:8px;background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.22);padding-left:${padLeft?'calc('+padLeft+' + 12px)':'12px'};break-inside:avoid;page-break-inside:avoid">
+      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:#0284c7;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Format pays / standard</div>
+      <div style="font-size:${fs-3}px;color:${fontColor.val};opacity:.56;line-height:1.55">${escHtml(formatInfo.note)}</div>
+    </div>` : '';
+
   // Vehicle details
   const hasVehicle = S.docSector === 'automobile' && [vTransaction,vVin,vPlate,vMake,vModel,vYear,vMileage,vFirstReg,vColor,vDetails].some(Boolean);
   const vehicleLine = (label, value) => value
@@ -3301,6 +3440,27 @@ function updatePreview() {
         ${vehicleLine(L.color, vColor)}
       </div>
       ${vDetails ? `<div style="font-size:${fs-2}px;color:${fontColor.val};opacity:.62;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin-top:8px">${escHtml(vDetails)}</div>` : ''}
+    </div>` : '';
+
+  // Marketplace / freelance details
+  const hasOnline = S.docType === 'facture' && S.docSector === 'online' && [oPlatform,oOrderId,oBuyerRef,oSku,oCategory,oPayment,oShipping,oFees,oNotes].some(Boolean);
+  const onlineLine = (label, value) => value
+    ? `<div><span style="font-weight:${S.boldLabels?800:700};opacity:.72">${label} :</span> ${escHtml(value)}</div>`
+    : '';
+  const onlineHtml = hasOnline ? `
+    <div style="margin-bottom:18px;padding:11px 14px;border-radius:8px;background:#0ea5e910;border:1px solid #0ea5e933;padding-left:${padLeft?'calc('+padLeft+' + 14px)':'14px'};break-inside:avoid;page-break-inside:avoid">
+      <div style="font-size:${fs-3}px;font-weight:${S.boldLabels?800:700};color:#0284c7;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px">Marketplace / freelance details</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:${fs-2}px;color:${fontColor.val};opacity:.68;line-height:1.55;overflow-wrap:anywhere;word-break:break-word">
+        ${onlineLine('Plateforme', oPlatform)}
+        ${onlineLine('Order / transaction ID', oOrderId)}
+        ${onlineLine('Buyer username / ref client', oBuyerRef)}
+        ${onlineLine('SKU / listing ref', oSku)}
+        ${onlineLine('Product / service category', oCategory)}
+        ${onlineLine('Payment method', oPayment)}
+        ${onlineLine('Shipping / delivery ref', oShipping)}
+        ${onlineLine('Marketplace fees / commission', oFees ? fmtEur(cleanNumber(oFees)) : '')}
+      </div>
+      ${oNotes ? `<div style="font-size:${fs-2}px;color:${fontColor.val};opacity:.62;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin-top:8px">${escHtml(oNotes)}</div>` : ''}
     </div>` : '';
 
   // Items table
@@ -3421,6 +3581,8 @@ function updatePreview() {
       ${headerHtml}
       ${partiesHtml}
       ${objectHtml}
+      ${formatHtml}
+      ${onlineHtml}
       ${vehicleHtml}
       ${tableHtml}
       ${totalsHtml}
@@ -3588,7 +3750,7 @@ window.addEventListener('beforeprint', () => {
 // ═══════════════════════════════════════════════════════
 function fmtEur(n) {
   const profile = getCountryProfile();
-  return new Intl.NumberFormat(profile.locale, { style:'currency', currency:profile.currency }).format(n||0);
+  return new Intl.NumberFormat(profile.locale, { style:'currency', currency:S.currency || profile.currency }).format(n||0);
 }
 
 function fmtDate(iso) {
