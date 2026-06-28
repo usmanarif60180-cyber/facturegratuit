@@ -765,7 +765,8 @@
           <div class="form-group" style="margin:0"><label class="form-label">Nom / Société</label><input class="form-input" id="c-name" placeholder="Studio Moreau" oninput="updatePreview()"></div>
           <div class="form-group" style="margin:0"><label class="form-label">SIREN</label><input class="form-input" id="c-siret" placeholder="789 XXX XXX" oninput="updatePreview()"></div>
         </div>
-        <div class="form-group"><label class="form-label">Adresse</label><input class="form-input" id="c-addr" placeholder="15 avenue Montaigne, 75008 Paris" oninput="updatePreview()"></div>
+        <div class="form-group"><label class="form-label">Adresse client / siège</label><input class="form-input" id="c-addr" placeholder="15 avenue Montaigne, 75008 Paris" oninput="updatePreview()"></div>
+        <div class="form-group"><label class="form-label">Adresse de chantier</label><input class="form-input" id="c-site-addr" placeholder="Adresse du chantier si différente" oninput="updatePreview()"></div>
         <div class="grid-2">
           <div class="form-group" style="margin:0"><label class="form-label">Email</label><input class="form-input" id="c-email" placeholder="client@email.fr" oninput="updatePreview()"></div>
           <div class="form-group" style="margin:0"><label class="form-label">Téléphone</label><input class="form-input" id="c-tel" placeholder="01 00 00 00 00" oninput="updatePreview()"></div>
@@ -3099,6 +3100,7 @@ function updatePreview() {
   const cName     = document.getElementById('c-name')?.value || '';
   const cSiret    = document.getElementById('c-siret')?.value || '';
   const cAddr     = document.getElementById('c-addr')?.value || '';
+  const cSiteAddr = document.getElementById('c-site-addr')?.value || '';
   const cEmail    = document.getElementById('c-email')?.value || '';
   const cTel      = document.getElementById('c-tel')?.value || '';
 
@@ -3213,6 +3215,7 @@ function updatePreview() {
           ${[
             detailLine(profile.clientId, cSiret),
             detailLine(L.address, cAddr),
+            detailLine('Adresse de chantier', cSiteAddr),
             detailLine(L.email, cEmail),
             detailLine(L.phone, cTel)
           ].filter(Boolean).join('')}
@@ -3446,13 +3449,19 @@ async function createInvoicePdfBlob(el) {
   const pageH = 297;
   const margin = 10;
   const imgW = pageW - margin * 2;
-  const imgH = canvas.height * imgW / canvas.width;
+  const rawImgH = canvas.height * imgW / canvas.width;
   const pageContentH = pageH - margin * 2;
   const imgData = canvas.toDataURL('image/jpeg', 1);
 
+  if (rawImgH <= pageContentH + 18) {
+    pdf.addImage(imgData, 'JPEG', margin, margin, imgW, Math.min(rawImgH, pageContentH));
+    return pdf.output('blob');
+  }
+
+  const imgH = rawImgH;
   let page = 0;
   let remaining = imgH;
-  while (remaining > 0) {
+  while (remaining > 2) {
     if (page > 0) pdf.addPage();
     pdf.addImage(imgData, 'JPEG', margin, margin - (page * pageContentH), imgW, imgH);
     remaining -= pageContentH;
