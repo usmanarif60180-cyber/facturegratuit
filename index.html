@@ -211,6 +211,8 @@
   /* ── MAIN LAYOUT ── */
   .main-layout { display: grid; grid-template-columns: minmax(480px, 540px) minmax(0, 1fr); gap: 0; flex: 1; max-width: 1600px; width: 100%; margin: 0 auto; padding: 0 0 40px; border-top: 1px solid var(--border); }
   @media(max-width:1100px) { .main-layout { grid-template-columns: 1fr; } }
+  body.home-mode .main-layout { display: none; }
+  body.editor-mode .home-preview { display: none; }
 
   /* ── SIDEBAR FORM ── */
   .sidebar { padding: 0 18px 24px; border-right: 1px solid var(--border); background: rgba(8,13,25,.55); }
@@ -411,12 +413,78 @@
   body.light .cookie-banner { background: rgba(255,255,255,.98); }
   @media(max-width:720px) { .cookie-banner { flex-direction: column; align-items: flex-start; } }
 
+  /* Preview homepage upgrade */
+  .home-preview { position: relative; overflow: hidden; border-bottom: 1px solid var(--border); background:
+    radial-gradient(circle at 82% 14%, rgba(59,130,246,.18), transparent 30%),
+    radial-gradient(circle at 22% 22%, rgba(124,58,237,.22), transparent 34%),
+    linear-gradient(135deg, rgba(20,12,46,.92), rgba(10,14,26,.96) 62%, rgba(12,22,40,.96)); }
+  .home-preview::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:.36; background:
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255,255,255,.026) 1px, transparent 1px);
+    background-size: 84px 84px; mask-image: linear-gradient(to bottom, #000, transparent 88%); }
+  .home-hero { position: relative; z-index: 1; display:grid; grid-template-columns:minmax(0,1fr) minmax(360px,560px); gap:48px; align-items:center; max-width:1360px; margin:0 auto; padding:58px 28px 44px; min-height:520px; }
+  .home-kicker { display:inline-flex; align-items:center; gap:8px; margin-bottom:22px; padding:7px 14px; border-radius:999px; background:rgba(124,58,237,.18); border:1px solid rgba(167,139,250,.26); color:#d8b4fe; font-size:12px; font-weight:800; letter-spacing:.02em; }
+  .home-title { max-width:700px; font-size:clamp(42px,6.2vw,78px); line-height:.98; font-weight:900; letter-spacing:0; color:#fff; }
+  .home-title span { display:inline-block; background:linear-gradient(100deg,#8b5cf6,#2563eb,#06b6d4); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .home-copy { max-width:620px; margin-top:22px; color:#b8c2d7; font-size:17px; line-height:1.65; }
+  .home-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:30px; }
+  .home-proof { display:flex; align-items:center; gap:12px; margin-top:28px; color:#73829f; font-size:13px; font-weight:700; }
+  .home-avatars { display:flex; }
+  .home-avatar { width:28px; height:28px; display:grid; place-items:center; margin-left:-6px; border-radius:50%; background:#f8fafc; border:2px solid #20123f; font-size:13px; }
+  .home-avatar:first-child { margin-left:0; }
+  .floating-docs { position:relative; min-height:430px; perspective:900px; }
+  .float-card { position:absolute; width:170px; min-height:128px; padding:16px; border-radius:8px; background:#172033; border:1px solid rgba(255,255,255,.08); box-shadow:0 28px 80px rgba(0,0,0,.38); animation:floatDoc 7s ease-in-out infinite; transform:rotate(var(--rot)); }
+  .float-card:nth-child(1) { left:4%; top:10%; --rot:-2deg; animation-delay:-1s; }
+  .float-card:nth-child(2) { left:36%; top:4%; width:190px; min-height:170px; --rot:7deg; animation-delay:-2.3s; }
+  .float-card:nth-child(3) { right:2%; top:14%; --rot:-3deg; animation-delay:-3.1s; }
+  .float-card:nth-child(4) { left:16%; bottom:6%; --rot:1deg; animation-delay:-4.2s; }
+  .float-card:nth-child(5) { right:0; bottom:10%; width:180px; min-height:155px; --rot:-6deg; animation-delay:-5s; }
+  .doc-mini-title { font-size:10px; font-weight:900; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
+  .doc-mini-line { height:6px; border-radius:999px; margin-bottom:8px; background:rgba(226,232,240,.12); }
+  .doc-mini-line.short { width:62%; }
+  .doc-mini-pill { height:12px; border-radius:4px; margin-top:14px; background:linear-gradient(90deg,var(--accent),var(--accent-2)); }
+  @keyframes floatDoc { 0%,100% { transform:translate3d(0,0,0) rotate(var(--rot)); } 50% { transform:translate3d(0,-18px,0) rotate(calc(var(--rot) * -1)); } }
+  .home-feature-strip { position:relative; z-index:2; overflow:hidden; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:rgba(15,23,42,.48); }
+  .home-feature-track { display:flex; width:max-content; gap:44px; padding:14px 0; animation:featureMove 34s linear infinite; }
+  .home-feature { color:#8190ad; font-size:13px; font-weight:800; white-space:nowrap; }
+  .home-feature::before { content:""; display:inline-block; width:6px; height:6px; margin:0 10px 2px 0; border-radius:50%; background:#7c3aed; box-shadow:0 0 16px rgba(124,58,237,.8); }
+  @keyframes featureMove { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+  .home-section { max-width:1360px; margin:0 auto; padding:28px; }
+  .home-section-title { margin-bottom:18px; color:#6f7e9a; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.18em; }
+  .home-tool-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+  .home-tool-card { min-height:150px; padding:22px; border:1px solid rgba(124,58,237,.22); border-radius:14px; background:rgba(30,18,62,.62); cursor:pointer; transition:transform .18s ease, border-color .18s ease, background .18s ease; }
+  .home-tool-card:hover { transform:translateY(-5px); border-color:rgba(124,58,237,.52); background:rgba(38,24,76,.86); }
+  .home-tool-icon { font-size:22px; margin-bottom:18px; }
+  .home-tool-title { color:#f8fafc; font-size:15px; font-weight:900; margin-bottom:8px; }
+  .home-tool-copy { color:#8390aa; font-size:12px; line-height:1.5; }
+  .home-tool-tag { display:inline-flex; margin-top:14px; padding:3px 8px; border-radius:5px; background:rgba(16,185,129,.18); color:#5ee5a5; font-size:10px; font-weight:900; }
+  .home-tool-tag.auto { background:rgba(139,92,246,.24); color:#c4b5fd; }
+  .home-stat-grid { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .home-stat { min-height:130px; display:grid; place-items:center; text-align:center; border-right:1px solid var(--border); background:rgba(15,23,42,.32); }
+  .home-stat:last-child { border-right:0; }
+  .home-stat-num { font-size:32px; font-weight:900; color:#7c3aed; }
+  .home-stat-label { margin-top:8px; color:#8491aa; font-size:13px; }
+  .ad-home-label { margin-bottom:7px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; text-align:center; }
+  .editor-anchor-note { max-width:1360px; margin:0 auto; padding:18px 28px 8px; color:#7b89a4; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; }
+  @media(max-width:1050px) {
+    .home-hero { grid-template-columns:1fr; min-height:auto; }
+    .floating-docs { min-height:320px; }
+    .home-tool-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .home-stat-grid { grid-template-columns:repeat(2,1fr); }
+  }
+  @media(max-width:640px) {
+    .home-hero { padding:38px 18px 28px; }
+    .floating-docs { display:none; }
+    .home-tool-grid, .home-stat-grid { grid-template-columns:1fr; }
+    .home-actions .btn { width:100%; }
+  }
+
   /* Range slider */
   input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; outline: none; }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); cursor: pointer; box-shadow: 0 0 8px var(--brand-glow); }
 </style>
 </head>
-<body>
+<body class="home-mode">
 <div id="app">
 
 <!-- TOPBAR -->
@@ -427,8 +495,9 @@
     <span class="logo-badge">GRATUIT</span>
   </div>
   <div class="topbar-actions">
-    <button class="btn btn-ghost btn-sm" onclick="setDocType('facture')" id="tab-facture">📄 Facture</button>
-    <button class="btn btn-ghost btn-sm" onclick="setDocType('devis')" id="tab-devis">📋 Devis</button>
+    <button class="btn btn-ghost btn-sm" onclick="scrollToHome()" title="Accueil"><i class="fa fa-home"></i> <span class="auth-text">Home</span></button>
+    <button class="btn btn-ghost btn-sm" onclick="openEditor('facture')" id="tab-facture">📄 Facture</button>
+    <button class="btn btn-ghost btn-sm" onclick="openEditor('devis')" id="tab-devis">📋 Devis</button>
     <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Imprimer</button>
     <button class="btn btn-primary btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> <span id="pdf-btn-text">Télécharger PDF</span></button>
     <label class="top-select-wrap" title="Pays / format">
@@ -469,50 +538,85 @@
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero no-print">
-  <div class="hero-kicker">⚡ Outil professionnel — 100% gratuit</div>
-  <h1 class="hero-title">Créez vos <span>Factures & Devis</span><br>en quelques secondes</h1>
-  <p class="hero-sub">50+ polices · 30 thèmes · Logo · PDF haute qualité · Filigrane · Signature · Tampon</p>
-  <div class="hero-ctas">
-    <div class="doc-switcher">
-      <button class="doc-tab active" id="hero-tab-facture" onclick="setDocType('facture')">📄 Facture</button>
-      <button class="doc-tab" id="hero-tab-devis" onclick="setDocType('devis')">📋 Devis</button>
+<!-- HOMEPAGE PREVIEW -->
+<section class="home-preview no-print">
+  <div class="home-hero">
+    <div>
+      <div class="home-kicker"><i class="fa fa-bolt"></i> 100% gratuit · Aucun compte requis</div>
+      <h1 class="home-title">Créez vos <span>Factures & Devis</span> en quelques clics</h1>
+      <p class="home-copy">L'outil professionnel pour artisans, auto-entrepreneurs et PME. Bâtiment · Automobile · PDF A4 · TVA · Logo · Signature.</p>
+      <div class="home-actions">
+        <button class="btn btn-primary btn-lg" onclick="openEditor('facture')"><i class="fa fa-bolt"></i> Commencer gratuitement</button>
+        <button class="btn btn-ghost btn-lg" onclick="selectHomeTool('devis','batiment')"><i class="fa fa-clipboard"></i> Créer un devis</button>
+      </div>
+      <div class="home-proof">
+        <div class="home-avatars"><span class="home-avatar">👷</span><span class="home-avatar">🔧</span><span class="home-avatar">🚗</span><span class="home-avatar">⚖️</span></div>
+        Utilisé par 10 000+ professionnels
+      </div>
+    </div>
+    <div class="floating-docs" aria-hidden="true">
+      <div class="float-card" style="--accent:#8b5cf6;--accent-2:#6366f1"><div class="doc-mini-title">Facture</div><div class="doc-mini-line"></div><div class="doc-mini-line short"></div><div class="doc-mini-line"></div><div class="doc-mini-pill"></div></div>
+      <div class="float-card" style="--accent:#3b82f6;--accent-2:#38bdf8"><div class="doc-mini-title">Facture Pro</div><div class="doc-mini-line"></div><div class="doc-mini-line"></div><div class="doc-mini-line short"></div><div class="doc-mini-pill"></div></div>
+      <div class="float-card" style="--accent:#ec4899;--accent-2:#f97316"><div class="doc-mini-title">Facture</div><div class="doc-mini-line short"></div><div class="doc-mini-line"></div><div class="doc-mini-line"></div><div class="doc-mini-pill"></div></div>
+      <div class="float-card" style="--accent:#10b981;--accent-2:#34d399"><div class="doc-mini-title">Devis</div><div class="doc-mini-line"></div><div class="doc-mini-line short"></div><div class="doc-mini-line"></div><div class="doc-mini-pill"></div></div>
+      <div class="float-card" style="--accent:#f59e0b;--accent-2:#fb923c"><div class="doc-mini-title">Devis Auto</div><div class="doc-mini-line"></div><div class="doc-mini-line"></div><div class="doc-mini-line short"></div><div class="doc-mini-pill"></div></div>
+    </div>
+  </div>
+
+  <div class="ad-band no-print" data-ad-position="home-banner-1">
+    <div class="ad-home-label">Publicité</div>
+    <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4956341710070686" data-ad-slot="REPLACE_HOME_SLOT_1" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
+  </div>
+
+  <div class="home-feature-strip">
+    <div class="home-feature-track">
+      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Logo upload</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Zone signature</span><span class="home-feature">Tampon / Cachet</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
+      <span class="home-feature">IBAN / RIB</span><span class="home-feature">VIN · Plaque · Kilométrage</span><span class="home-feature">Logo upload</span><span class="home-feature">Filigrane personnalisé</span><span class="home-feature">Zone signature</span><span class="home-feature">Tampon / Cachet</span><span class="home-feature">Export PDF haute qualité</span><span class="home-feature">Sauvegarde brouillon</span><span class="home-feature">50+ polices Google Fonts</span><span class="home-feature">30 thèmes de couleurs</span>
+    </div>
+  </div>
+
+  <div class="home-section">
+    <div class="home-section-title">Choisissez votre outil</div>
+    <div class="home-tool-grid">
+      <div class="home-tool-card" onclick="selectHomeTool('facture','batiment')"><div class="home-tool-icon">🔨</div><div class="home-tool-title">Facture bâtiment</div><div class="home-tool-copy">Travaux, rénovation, artisanat, maçonnerie, électricité</div><span class="home-tool-tag">Bâtiment</span></div>
+      <div class="home-tool-card" onclick="selectHomeTool('facture','automobile')"><div class="home-tool-icon">🚗</div><div class="home-tool-title">Facture automobile</div><div class="home-tool-copy">Vente, réparation, VIN, plaque, kilométrage</div><span class="home-tool-tag auto">Automobile</span></div>
+      <div class="home-tool-card" onclick="selectHomeTool('devis','batiment')"><div class="home-tool-icon">📋</div><div class="home-tool-title">Devis bâtiment</div><div class="home-tool-copy">Chiffrage, appel d'offre, second oeuvre</div><span class="home-tool-tag">Bâtiment</span></div>
+      <div class="home-tool-card" onclick="selectHomeTool('devis','automobile')"><div class="home-tool-icon">🚘</div><div class="home-tool-title">Devis automobile</div><div class="home-tool-copy">Estimation réparation, reprise, carrosserie</div><span class="home-tool-tag auto">Automobile</span></div>
+    </div>
+  </div>
+
+  <div class="ad-band no-print" data-ad-position="home-banner-2">
+    <div class="ad-home-label">Publicité</div>
+    <div class="ad-slot" data-ad-format="leaderboard">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4956341710070686" data-ad-slot="REPLACE_HOME_SLOT_2" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
+  </div>
+
+  <div class="home-stat-grid">
+    <div class="home-stat"><div><div class="home-stat-num">50+</div><div class="home-stat-label">Polices disponibles</div></div></div>
+    <div class="home-stat"><div><div class="home-stat-num">30</div><div class="home-stat-label">Thèmes de couleurs</div></div></div>
+    <div class="home-stat"><div><div class="home-stat-num">8</div><div class="home-stat-label">Styles de mise en page</div></div></div>
+    <div class="home-stat"><div><div class="home-stat-num">100%</div><div class="home-stat-label">Gratuit · Aucun compte</div></div></div>
+  </div>
+
+  <div class="ad-band no-print" data-ad-position="home-banner-3">
+    <div class="ad-home-label">Publicité</div>
+    <div class="ad-slot" data-ad-format="leaderboard">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4956341710070686" data-ad-slot="REPLACE_HOME_SLOT_3" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
+  </div>
+
+  <div class="editor-anchor-note">Éditeur de facture et devis</div>
+
+  <div class="ad-band no-print" data-ad-position="home-banner-4">
+    <div class="ad-home-label">Publicité</div>
+    <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4956341710070686" data-ad-slot="REPLACE_HOME_SLOT_4" data-ad-format="auto" data-full-width-responsive="true"></ins>
     </div>
   </div>
 </section>
-
-<!-- HERO BANNER AD -->
-<div class="ad-band no-print" data-ad-position="hero-banner">
-  <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">
-    <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="ca-pub-4956341710070686"
-      data-ad-slot="REPLACE_HERO_SLOT"
-      data-ad-format="auto"
-      data-full-width-responsive="true"></ins>
-  </div>
-</div>
-
-<!-- STATS -->
-<div class="stats-row no-print">
-  <div class="stat-card"><div class="stat-val">50+</div><div class="stat-label">Polices disponibles</div></div>
-  <div class="stat-card"><div class="stat-val">8</div><div class="stat-label">Styles de page</div></div>
-  <div class="stat-card"><div class="stat-val">30</div><div class="stat-label">Thèmes de couleurs</div></div>
-  <div class="stat-card"><div class="stat-val">100%</div><div class="stat-label">Gratuit · Aucun compte</div></div>
-</div>
-
-<!-- TOP BANNER AD -->
-<div class="ad-band no-print" data-ad-position="top-banner">
-  <div class="ad-slot" data-ad-format="leaderboard">
-    <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="ca-pub-4956341710070686"
-      data-ad-slot="REPLACE_TOP_SLOT"
-      data-ad-format="auto"
-      data-full-width-responsive="true"></ins>
-  </div>
-</div>
 
 <!-- MAIN -->
 <div class="main-layout">
@@ -580,6 +684,15 @@
         <div class="form-group">
           <label class="form-label">Objet / Description</label>
           <input class="form-input" id="f-object" placeholder="ex: Travaux de peinture — Salon" oninput="updatePreview()">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Tampon facture / devis</label>
+          <select class="form-input form-select" id="quick-stamp-select" onchange="setStamp(this.value)">
+            <option value="none">Aucun tampon</option>
+            <option value="paid">PAYÉ</option>
+            <option value="draft">BROUILLON</option>
+            <option value="conf">CONFIDENTIEL</option>
+          </select>
         </div>
       </div>
 
@@ -1273,6 +1386,13 @@ document.addEventListener('DOMContentLoaded', () => {
   addRow();
   addRow();
   updatePreview();
+  if (location.hash === '#editor') {
+    document.body.classList.add('editor-mode');
+    document.body.classList.remove('home-mode');
+  } else {
+    document.body.classList.add('home-mode');
+    document.body.classList.remove('editor-mode');
+  }
 });
 
 const LEGAL_PAGES = {
@@ -1625,6 +1745,29 @@ function showSection(id) {
 // ═══════════════════════════════════════════════════════
 // DOC TYPE
 // ═══════════════════════════════════════════════════════
+function scrollToHome() {
+  document.body.classList.add('home-mode');
+  document.body.classList.remove('editor-mode');
+  history.replaceState(null, '', '#home');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function scrollToEditor() {
+  document.body.classList.add('editor-mode');
+  document.body.classList.remove('home-mode');
+  history.replaceState(null, '', '#editor');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function openEditor(type='facture', sector) {
+  setDocVariant(type, sector || S.docSector || 'batiment');
+  scrollToEditor();
+}
+
+function selectHomeTool(type, sector) {
+  openEditor(type, sector);
+}
+
 function getCountryProfile() {
   return COUNTRY_PROFILES[S.country] || COUNTRY_PROFILES.FR;
 }
@@ -1959,6 +2102,8 @@ function renderToggleStates() {
   });
   const exempt = document.getElementById('tva-exempt-msg');
   if (exempt) exempt.style.display = S.tva ? 'none' : 'block';
+  const quickStamp = document.getElementById('quick-stamp-select');
+  if (quickStamp) quickStamp.value = S.stamp || 'none';
 }
 
 function renderLogoState() {
@@ -2077,6 +2222,8 @@ function setWatermark(val) {
 
 function setStamp(val) {
   S.stamp = val;
+  const quickStamp = document.getElementById('quick-stamp-select');
+  if (quickStamp) quickStamp.value = val;
   ['none','paid','draft','conf'].forEach(s => {
     const btn = document.getElementById('stamp-'+s);
     if (btn) btn.className = 'btn btn-sm ' + (s===val ? 'btn-primary' : 'btn-ghost');
