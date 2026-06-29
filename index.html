@@ -4844,6 +4844,20 @@ async function createInvoicePdfBlob(el) {
 
   const pxPerMm = canvas.width / imgW;
   const sliceHeightPx = Math.floor(pageContentH * pxPerMm);
+  const sliceHasVisibleContent = (pageCanvas) => {
+    const ctx = pageCanvas.getContext('2d', { willReadFrequently:true });
+    if (!ctx) return true;
+    const { data, width, height } = ctx.getImageData(0, 0, pageCanvas.width, pageCanvas.height);
+    const baseR = data[0], baseG = data[1], baseB = data[2];
+    let changed = 0;
+    const step = Math.max(4, Math.floor((width * height) / 25000)) * 4;
+    for (let i = 0; i < data.length; i += step) {
+      if (data[i + 3] < 10) continue;
+      const delta = Math.abs(data[i] - baseR) + Math.abs(data[i + 1] - baseG) + Math.abs(data[i + 2] - baseB);
+      if (delta > 36 && ++changed > 18) return true;
+    }
+    return false;
+  };
   let page = 0;
   for (let y = 0; y < canvas.height - 4; y += sliceHeightPx) {
     const currentSliceHeight = Math.min(sliceHeightPx, canvas.height - y);
@@ -4855,6 +4869,7 @@ async function createInvoicePdfBlob(el) {
     ctx.fillStyle = PAGE_COLORS[S.pageColorIdx].bg || '#ffffff';
     ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
     ctx.drawImage(canvas, 0, y, canvas.width, currentSliceHeight, 0, 0, canvas.width, currentSliceHeight);
+    if (page > 0 && !sliceHasVisibleContent(pageCanvas)) continue;
     const sliceImgH = currentSliceHeight / pxPerMm;
     if (page > 0) pdf.addPage();
     pdf.addImage(pageCanvas.toDataURL('image/jpeg', 1), 'JPEG', margin, margin, imgW, sliceImgH);
