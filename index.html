@@ -4844,6 +4844,23 @@ async function createInvoicePdfBlob(el) {
 
   const pxPerMm = canvas.width / imgW;
   const sliceHeightPx = Math.floor(pageContentH * pxPerMm);
+  const findCanvasContentBottom = (sourceCanvas) => {
+    const ctx = sourceCanvas.getContext('2d', { willReadFrequently:true });
+    if (!ctx) return sourceCanvas.height;
+    const { data, width, height } = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+    const baseR = data[0], baseG = data[1], baseB = data[2];
+    const xStep = Math.max(1, Math.floor(width / 90));
+    for (let y = height - 1; y >= 0; y -= 3) {
+      let rowInk = 0;
+      for (let x = 0; x < width; x += xStep) {
+        const i = (y * width + x) * 4;
+        if (data[i + 3] < 10) continue;
+        const delta = Math.abs(data[i] - baseR) + Math.abs(data[i + 1] - baseG) + Math.abs(data[i + 2] - baseB);
+        if (delta > 36 && ++rowInk > 3) return y;
+      }
+    }
+    return Math.min(height, sliceHeightPx);
+  };
   const sliceHasVisibleContent = (pageCanvas) => {
     const ctx = pageCanvas.getContext('2d', { willReadFrequently:true });
     if (!ctx) return true;
@@ -4858,9 +4875,10 @@ async function createInvoicePdfBlob(el) {
     }
     return false;
   };
+  const effectiveCanvasHeight = Math.min(canvas.height, Math.max(16, findCanvasContentBottom(canvas) + 28));
   let page = 0;
-  for (let y = 0; y < canvas.height - 4; y += sliceHeightPx) {
-    const currentSliceHeight = Math.min(sliceHeightPx, canvas.height - y);
+  for (let y = 0; y < effectiveCanvasHeight - 4; y += sliceHeightPx) {
+    const currentSliceHeight = Math.min(sliceHeightPx, effectiveCanvasHeight - y);
     if (currentSliceHeight < 8) break;
     const pageCanvas = document.createElement('canvas');
     pageCanvas.width = canvas.width;
