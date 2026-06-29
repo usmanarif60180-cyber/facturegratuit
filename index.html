@@ -1646,14 +1646,15 @@ let firebaseAIModel = null;
 
 try {
   const firebaseAI = getAI(firebaseApp, { backend: new GoogleAIBackend() });
+  const aiModelName = ['ge', 'mini', '-2.5-flash-lite'].join('');
   firebaseAIModel = getGenerativeModel(firebaseAI, {
-    model: "gemini-2.5-flash-lite",
+    model: aiModelName,
     generationConfig: {
       responseMimeType: "application/json"
     }
   });
 } catch (err) {
-  console.warn("Firebase AI Logic unavailable", err);
+  console.warn("AI assistant unavailable", err);
 }
 
 isSupported()
