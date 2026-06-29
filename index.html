@@ -51,6 +51,70 @@
   ]
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Comment créer une facture gratuite en ligne ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Avec FacturePro, vous choisissez le type de document, vous ajoutez les informations de votre société, du client, les articles, la TVA et vous téléchargez la facture en PDF A4."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Puis-je créer un devis bâtiment gratuit ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. Le générateur permet de créer un devis bâtiment pour travaux, rénovation, peinture, maçonnerie, électricité ou plomberie avec description des prestations, quantités, prix HT, TVA et total TTC."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le générateur fonctionne-t-il pour les factures automobile ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. Vous pouvez créer une facture automobile avec les informations véhicule comme VIN, plaque d'immatriculation, kilométrage, marque, modèle, année et détails de vente ou réparation."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Puis-je faire une facture pour Amazon, eBay, Etsy ou freelance ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. Le mode facture freelance et marketplace permet d'ajouter plateforme, numéro de commande, référence acheteur, SKU, méthode de paiement, livraison et commission marketplace à titre informatif."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Les frais marketplace changent-ils le total de la facture ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Non. Les frais ou commissions marketplace sont affichés comme information, mais ils ne réduisent pas le total HT, la TVA ou le total TTC de la facture."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Est-ce que mes données client sont sauvegardées ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Les données saisies servent à générer le document dans votre navigateur. Avec un compte, vous pouvez sauvegarder localement votre société, vos projets, clients, produits et historique sur ce navigateur."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quelle est la limite de stockage par utilisateur ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Chaque compte peut être limité à 500 Mo pour garder le stockage cloud Firebase maîtrisé. Le tableau de bord affiche l'utilisation du stockage et aide à supprimer les anciens projets, clients, produits ou documents."
+      }
+    }
+  ]
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4956341710070686" crossorigin="anonymous"></script>
@@ -173,7 +237,27 @@
   .history-row strong { color: var(--ink); overflow-wrap: anywhere; }
   .history-total { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); background: rgba(16,185,129,.08); font-size: 11px; color: var(--ink-muted); }
   .history-total strong { display: block; color: var(--ink); font-size: 12px; margin-top: 2px; }
+  .dashboard-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin: 12px 0; }
+  .dashboard-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: rgba(255,255,255,.035); color: var(--ink-muted); font-size: 11px; min-height: 78px; }
+  .dashboard-card strong { display: block; color: var(--ink); font-size: 18px; line-height: 1.1; margin: 7px 0 4px; overflow-wrap: anywhere; }
+  .dashboard-card i { color: #a5b4fc; }
+  .storage-panel { border: 1px solid rgba(99,102,241,.24); border-radius: 12px; padding: 13px; margin: 0 0 12px; background: rgba(99,102,241,.08); }
+  .storage-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; color: var(--ink); font-size: 12px; font-weight: 900; }
+  .storage-bar { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.08); border: 1px solid var(--border); }
+  .storage-fill { height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg,#22c55e,#8b5cf6); transition: width .25s ease; }
+  .storage-text { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; color: var(--ink-muted); font-size: 11px; line-height: 1.45; }
+  .saved-list { display: grid; gap: 10px; }
+  .saved-item { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; background: rgba(255,255,255,.025); }
+  .saved-item-main strong { display: block; color: var(--ink); font-size: 12px; margin-bottom: 4px; overflow-wrap: anywhere; }
+  .saved-item-main span { display: block; color: var(--ink-muted); font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+  .saved-item-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+  .panel-note { border: 1px dashed var(--border-strong); border-radius: 10px; padding: 10px 12px; color: var(--ink-muted); font-size: 11px; line-height: 1.55; background: rgba(99,102,241,.06); margin-bottom: 12px; }
   .menu-item { width: 100%; justify-content: flex-start; border-radius: 8px; }
+  @media(max-width:760px) {
+    .dashboard-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .saved-item { grid-template-columns: 1fr; }
+    .saved-item-actions { justify-content: flex-start; }
+  }
   @media(max-width:760px) {
     .topbar { height: auto; min-height: 56px; padding: 8px 12px; align-items: flex-start; gap: 10px; }
     .topbar-actions { justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
@@ -470,6 +554,7 @@
   @keyframes featureMove { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   .home-section { max-width:1360px; margin:0 auto; padding:28px; }
   .home-section-title { margin-bottom:18px; color:#6f7e9a; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.18em; }
+  .home-section-copy { max-width:820px; margin:-6px 0 18px; color:#8491aa; font-size:14px; line-height:1.75; }
   .home-tool-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
   .home-tool-card { min-height:150px; padding:22px; border:1px solid rgba(124,58,237,.22); border-radius:14px; background:rgba(30,18,62,.62); cursor:pointer; transition:transform .18s ease, border-color .18s ease, background .18s ease; }
   .home-tool-card:hover { transform:translateY(-5px); border-color:rgba(124,58,237,.52); background:rgba(38,24,76,.86); }
@@ -484,6 +569,20 @@
   .home-stat:last-child { border-right:0; }
   .home-stat-num { font-size:32px; font-weight:900; color:#7c3aed; }
   .home-stat-label { margin-top:8px; color:#8491aa; font-size:13px; }
+  .home-seo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+  .home-article-card { min-height:260px; padding:22px; border:1px solid rgba(148,163,184,.16); border-radius:14px; background:rgba(15,23,42,.44); color:#9aa7bf; }
+  .home-article-card h2 { margin:0 0 10px; color:#f8fafc; font-size:18px; line-height:1.25; font-weight:900; }
+  .home-article-card h3 { margin:16px 0 7px; color:#c4b5fd; font-size:13px; font-weight:900; }
+  .home-article-card p { margin:0 0 10px; font-size:13px; line-height:1.72; }
+  .home-article-card ul { margin:8px 0 0 18px; font-size:13px; line-height:1.7; }
+  .home-article-meta { display:inline-flex; margin-bottom:14px; padding:4px 8px; border-radius:6px; background:rgba(124,58,237,.16); color:#c4b5fd; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; }
+  .home-faq-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .home-faq-item { border:1px solid rgba(148,163,184,.16); border-radius:12px; background:rgba(15,23,42,.44); overflow:hidden; }
+  .home-faq-item summary { cursor:pointer; padding:15px 16px; color:#f8fafc; font-size:14px; font-weight:900; list-style:none; }
+  .home-faq-item summary::-webkit-details-marker { display:none; }
+  .home-faq-item summary::after { content:"+"; float:right; color:#8b5cf6; font-size:18px; line-height:1; }
+  .home-faq-item[open] summary::after { content:"-"; }
+  .home-faq-item p { padding:0 16px 16px; color:#9aa7bf; font-size:13px; line-height:1.7; }
   .ad-home-label { margin-bottom:7px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; text-align:center; }
   .editor-anchor-note { max-width:1360px; margin:0 auto; padding:18px 28px 8px; color:#7b89a4; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; }
   @media(max-width:1050px) {
@@ -495,7 +594,7 @@
   @media(max-width:640px) {
     .home-hero { padding:38px 18px 28px; }
     .floating-docs { display:none; }
-    .home-tool-grid, .home-stat-grid { grid-template-columns:1fr; }
+    .home-tool-grid, .home-stat-grid, .home-faq-grid { grid-template-columns:1fr; }
     .home-actions .btn { width:100%; }
   }
 
@@ -623,10 +722,98 @@
     <div class="home-stat"><div><div class="home-stat-num">100%</div><div class="home-stat-label">Gratuit · Aucun compte</div></div></div>
   </div>
 
+  <div class="home-section" id="guides">
+    <div class="home-section-title">Guides & articles</div>
+    <p class="home-section-copy">Retrouvez des conseils pratiques pour créer une facture gratuite, préparer un devis bâtiment, ajouter les informations d'un véhicule ou établir une facture marketplace pour Amazon, eBay, Etsy et les freelances.</p>
+    <div class="home-seo-grid">
+      <article class="home-article-card">
+        <span class="home-article-meta">Facture bâtiment</span>
+        <h2>Comment créer une facture bâtiment conforme ?</h2>
+        <p>Une facture bâtiment doit présenter clairement votre société, le client, l'adresse du chantier, la date, le numéro de facture, les prestations réalisées, les quantités, les prix HT, le taux de TVA et le total TTC.</p>
+        <h3>Informations utiles</h3>
+        <ul>
+          <li>Description précise des travaux: peinture, rénovation, maçonnerie, plomberie ou électricité.</li>
+          <li>Adresse client et adresse de chantier séparées lorsque le lieu des travaux est différent.</li>
+          <li>TVA appliquée à chaque ligne: 0%, 10% ou 20% selon votre situation.</li>
+        </ul>
+      </article>
+      <article class="home-article-card">
+        <span class="home-article-meta">Devis gratuit</span>
+        <h2>Pourquoi faire un devis avant les travaux ?</h2>
+        <p>Le devis permet d'annoncer le prix d'une prestation avant validation. Il aide le client à comprendre les matériaux, la main-d'oeuvre, les délais et le montant total prévu avant transformation en facture.</p>
+        <h3>Bonnes pratiques</h3>
+        <ul>
+          <li>Ajouter un objet clair: rénovation salle de bain, peinture appartement ou dépannage.</li>
+          <li>Détailler les postes pour éviter les malentendus.</li>
+          <li>Garder une copie PDF pour l'historique du client.</li>
+        </ul>
+      </article>
+      <article class="home-article-card">
+        <span class="home-article-meta">Automobile</span>
+        <h2>Facture automobile: VIN, plaque et kilométrage</h2>
+        <p>Pour une vente ou une réparation automobile, les informations du véhicule rendent le document plus clair: numéro VIN, immatriculation, marque, modèle, année, kilométrage et détails de l'intervention.</p>
+        <h3>À ajouter sur la facture</h3>
+        <ul>
+          <li>VIN ou numéro de châssis du véhicule.</li>
+          <li>Plaque d'immatriculation et kilométrage.</li>
+          <li>Description de la vente, réparation, carrosserie ou diagnostic.</li>
+        </ul>
+      </article>
+      <article class="home-article-card">
+        <span class="home-article-meta">Marketplace</span>
+        <h2>Facture freelance, Amazon, eBay, Etsy ou Shopify</h2>
+        <p>Les vendeurs en ligne et freelances peuvent préparer une facture avec la plateforme, le numéro de commande, la référence acheteur, le SKU, la catégorie du produit ou service, le paiement et la livraison.</p>
+        <h3>Commission marketplace</h3>
+        <p>Les frais de plateforme peuvent être indiqués comme information, sans réduire le total HT, la TVA ou le total TTC de la facture envoyée au client.</p>
+      </article>
+      <article class="home-article-card">
+        <span class="home-article-meta">PDF & données</span>
+        <h2>Créer un PDF A4 avec logo, signature et cachet</h2>
+        <p>Un document professionnel peut inclure le logo de la société, une signature PNG, un cachet, l'IBAN/RIB et une mise en page A4 propre pour l'envoi par email ou l'impression.</p>
+        <h3>Données privées</h3>
+        <p>Les informations saisies servent à générer la facture dans le navigateur. Avec un compte, vous pouvez sauvegarder votre société, vos projets, clients et produits sur ce navigateur.</p>
+      </article>
+    </div>
+  </div>
+
   <div class="ad-band no-print" data-ad-position="home-banner-3">
     <div class="ad-home-label">Publicité</div>
     <div class="ad-slot" data-ad-format="leaderboard">
       <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4956341710070686" data-ad-slot="REPLACE_HOME_SLOT_3" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
+  </div>
+
+  <div class="home-section" id="faq">
+    <div class="home-section-title">Questions fréquentes</div>
+    <div class="home-faq-grid">
+      <details class="home-faq-item" open>
+        <summary>Comment créer une facture gratuite en ligne ?</summary>
+        <p>Choisissez le type de document, ajoutez les informations société et client, remplissez les articles avec prix HT, TVA et quantités, puis téléchargez le PDF A4.</p>
+      </details>
+      <details class="home-faq-item">
+        <summary>Puis-je créer un devis bâtiment gratuit ?</summary>
+        <p>Oui, le mode devis bâtiment permet de préparer une estimation pour travaux, rénovation, peinture, maçonnerie, plomberie ou électricité avant validation du client.</p>
+      </details>
+      <details class="home-faq-item">
+        <summary>Le générateur marche pour les factures automobile ?</summary>
+        <p>Oui, vous pouvez ajouter VIN, plaque d'immatriculation, kilométrage, marque, modèle, année et détails de vente ou réparation automobile.</p>
+      </details>
+      <details class="home-faq-item">
+        <summary>Peut-on faire une facture Amazon, eBay, Etsy ou freelance ?</summary>
+        <p>Oui, le mode freelance / marketplace permet d'ajouter plateforme, commande, référence acheteur, SKU, paiement, livraison et notes liées à la vente en ligne.</p>
+      </details>
+      <details class="home-faq-item">
+        <summary>Les frais marketplace changent-ils le total ?</summary>
+        <p>Non. Les commissions marketplace sont affichées à titre informatif et ne modifient pas le total HT, la TVA ou le total TTC.</p>
+      </details>
+      <details class="home-faq-item">
+        <summary>Mes données sont-elles sauvegardées ?</summary>
+        <p>Sans compte, le document est traité dans le navigateur. Avec un compte, vous pouvez sauvegarder localement société, projets, clients, produits et historique sur ce navigateur.</p>
+      </details>
+      <details class="home-faq-item">
+        <summary>Quelle est la limite de stockage par utilisateur ?</summary>
+        <p>Chaque compte peut avoir une limite de 500 MB pour garder Firebase Cloud Storage maîtrisé. Le dashboard affiche l'espace utilisé et aide à supprimer les anciens projets, clients, produits ou documents.</p>
+      </details>
     </div>
   </div>
 
@@ -1182,10 +1369,54 @@
         <div class="account-detail-row"><span>UID</span><strong id="account-modal-uid">-</strong></div>
       </div>
       <div class="account-tabs">
-        <button class="btn btn-primary btn-sm" id="account-tab-profile" onclick="showAccountPanel('profile')"><i class="fa fa-building"></i> Société</button>
-        <button class="btn btn-ghost btn-sm" id="account-tab-history" onclick="showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Historique</button>
+        <button class="btn btn-primary btn-sm" id="account-tab-overview" onclick="showAccountPanel('overview')"><i class="fa fa-chart-line"></i> Dashboard</button>
+        <button class="btn btn-ghost btn-sm" id="account-tab-projects" onclick="showAccountPanel('projects')"><i class="fa fa-folder-open"></i> Projets</button>
+        <button class="btn btn-ghost btn-sm" id="account-tab-history" onclick="showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Factures</button>
+        <button class="btn btn-ghost btn-sm" id="account-tab-clients" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i> Clients</button>
+        <button class="btn btn-ghost btn-sm" id="account-tab-products" onclick="showAccountPanel('products')"><i class="fa fa-box"></i> Produits</button>
+        <button class="btn btn-ghost btn-sm" id="account-tab-profile" onclick="showAccountPanel('profile')"><i class="fa fa-building"></i> Société</button>
       </div>
-      <div class="account-panel active" id="account-panel-profile">
+      <div class="account-panel active" id="account-panel-overview">
+        <div class="panel-note">Preview dashboard: projets sauvegardés, clients, produits/services et historique mensuel restent dans le compte connecté sur ce navigateur.</div>
+        <div class="dashboard-grid" id="account-overview-grid"></div>
+        <div id="account-storage-panel"></div>
+        <div class="grid-2" style="margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="saveCurrentProject()"><i class="fa fa-folder-plus"></i> Sauver projet actuel</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveCurrentClient()"><i class="fa fa-user-plus"></i> Sauver client actuel</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveFirstProduct()"><i class="fa fa-box-open"></i> Sauver première ligne</button>
+          <button class="btn btn-ghost btn-sm" onclick="showAccountPanel('history')"><i class="fa fa-calculator"></i> Voir totaux mensuels</button>
+        </div>
+        <div id="account-recent-projects"></div>
+      </div>
+      <div class="account-panel" id="account-panel-projects">
+        <div class="grid-2" style="margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="saveCurrentProject()"><i class="fa fa-folder-plus"></i> Sauver / mettre à jour projet</button>
+          <button class="btn btn-danger btn-sm" onclick="clearSavedProjects()"><i class="fa fa-trash"></i> Effacer projets</button>
+        </div>
+        <div id="account-projects-list"></div>
+      </div>
+      <div class="account-panel" id="account-panel-history">
+        <div class="grid-2" style="margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="recordDocumentHistory('manual')"><i class="fa fa-plus"></i> Ajouter facture actuelle</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAccountHistory()"><i class="fa fa-trash"></i> Effacer historique</button>
+        </div>
+        <div id="account-history-list"></div>
+      </div>
+      <div class="account-panel" id="account-panel-clients">
+        <div class="grid-2" style="margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="saveCurrentClient()"><i class="fa fa-user-plus"></i> Sauver client actuel</button>
+          <button class="btn btn-danger btn-sm" onclick="clearSavedClients()"><i class="fa fa-trash"></i> Effacer clients</button>
+        </div>
+        <div id="account-clients-list"></div>
+      </div>
+      <div class="account-panel" id="account-panel-products">
+        <div class="grid-2" style="margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="saveFirstProduct()"><i class="fa fa-box-open"></i> Sauver première ligne</button>
+          <button class="btn btn-danger btn-sm" onclick="clearSavedProducts()"><i class="fa fa-trash"></i> Effacer produits</button>
+        </div>
+        <div id="account-products-list"></div>
+      </div>
+      <div class="account-panel" id="account-panel-profile">
         <div class="grid-2">
           <div class="form-group"><label class="form-label">Nom société</label><input class="form-input" id="acct-company-name" placeholder="Votre société"></div>
           <div class="form-group"><label class="form-label">Statut</label><input class="form-input" id="acct-company-status" placeholder="Auto-entrepreneur, SASU..."></div>
@@ -1209,13 +1440,6 @@
           <button class="btn btn-ghost btn-sm" onclick="applyAccountProfileToEditor()"><i class="fa fa-wand-magic-sparkles"></i> Appliquer à la facture</button>
           <button class="btn btn-danger btn-sm" onclick="clearAccountProfile()"><i class="fa fa-trash"></i> Effacer société</button>
         </div>
-      </div>
-      <div class="account-panel" id="account-panel-history">
-        <div class="grid-2" style="margin-bottom:12px">
-          <button class="btn btn-primary btn-sm" onclick="recordDocumentHistory('manual')"><i class="fa fa-plus"></i> Ajouter facture actuelle</button>
-          <button class="btn btn-danger btn-sm" onclick="clearAccountHistory()"><i class="fa fa-trash"></i> Effacer historique</button>
-        </div>
-        <div id="account-history-list"></div>
       </div>
       <div class="grid-2" style="margin-top:14px">
         <button class="btn btn-ghost btn-sm" id="verify-email-btn" onclick="sendVerificationEmail()"><i class="fa fa-envelope-circle-check"></i> Vérifier email</button>
@@ -1879,21 +2103,381 @@ function renderAccountModal() {
   if (sub) sub.textContent = verified ? 'Votre compte est connecté.' : 'Votre compte est connecté, email à vérifier.';
   if (verifyBtn) verifyBtn.style.display = user && user.provider === 'firebase' && !verified ? '' : 'none';
   fillAccountProfileForm(loadAccountProfile());
+  renderAccountOverview();
+  renderSavedProjects();
+  renderSavedClients();
+  renderSavedProducts();
   renderAccountHistory();
 }
 
-function showAccountPanel(panel='profile') {
-  ['profile','history'].forEach(name => {
+function showAccountPanel(panel='overview') {
+  ['overview','projects','history','clients','products','profile'].forEach(name => {
     document.getElementById('account-panel-'+name)?.classList.toggle('active', name === panel);
     const btn = document.getElementById('account-tab-'+name);
     if (btn) btn.className = 'btn btn-sm ' + (name === panel ? 'btn-primary' : 'btn-ghost');
   });
+  if (panel === 'overview') renderAccountOverview();
+  if (panel === 'projects') renderSavedProjects();
   if (panel === 'history') renderAccountHistory();
+  if (panel === 'clients') renderSavedClients();
+  if (panel === 'products') renderSavedProducts();
 }
 
 function getAccountStorageKey(suffix) {
   const key = S.authUser?.uid || S.authUser?.email || 'guest';
   return `facturepro-account-${key}-${suffix}`;
+}
+
+const ACCOUNT_STORAGE_QUOTA_BYTES = 500 * 1024 * 1024;
+
+function getTextBytes(text='') {
+  try { return new TextEncoder().encode(String(text)).length; } catch { return String(text).length; }
+}
+
+function formatBytes(bytes=0) {
+  const size = Math.max(0, Number(bytes) || 0);
+  if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(size >= 100 * 1024 * 1024 ? 0 : 1)} MB`;
+  if (size >= 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${size} B`;
+}
+
+function getAccountStorageUsageBytes() {
+  if (!S.authUser) return 0;
+  const suffixes = ['profile','history','projects','clients','products'];
+  return suffixes.reduce((sum, suffix) => {
+    try { return sum + getTextBytes(localStorage.getItem(getAccountStorageKey(suffix)) || ''); } catch { return sum; }
+  }, 0);
+}
+
+function renderAccountStoragePanel() {
+  const panel = document.getElementById('account-storage-panel');
+  if (!panel) return;
+  const used = getAccountStorageUsageBytes();
+  const pct = Math.min(100, Math.round((used / ACCOUNT_STORAGE_QUOTA_BYTES) * 1000) / 10);
+  const nearLimit = pct >= 90;
+  panel.innerHTML = `
+    <div class="storage-panel">
+      <div class="storage-head">
+        <span><i class="fa fa-cloud"></i> Cloud storage quota</span>
+        <span>${formatBytes(used)} / ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)}</span>
+      </div>
+      <div class="storage-bar"><div class="storage-fill" style="width:${pct}%;background:${nearLimit?'linear-gradient(90deg,#f59e0b,#ef4444)':'linear-gradient(90deg,#22c55e,#8b5cf6)'}"></div></div>
+      <div class="storage-text">
+        <span>Limite compte: 500 MB par utilisateur.</span>
+        <span>${pct}% utilisé${nearLimit?' · supprimez anciens projets/assets':''}</span>
+      </div>
+    </div>`;
+}
+
+function loadAccountList(suffix) {
+  if (!S.authUser) return [];
+  try {
+    const list = JSON.parse(localStorage.getItem(getAccountStorageKey(suffix)) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch { return []; }
+}
+
+function saveAccountList(suffix, list) {
+  if (!S.authUser) return false;
+  try {
+    localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(list));
+    return true;
+  } catch {
+    showNotif('Sauvegarde impossible sur ce navigateur', 'info');
+    return false;
+  }
+}
+
+function getDocumentTitle() {
+  const client = document.getElementById('c-name')?.value?.trim() || 'Client sans nom';
+  const object = document.getElementById('f-object')?.value?.trim() || '';
+  return object ? `${client} · ${object}` : client;
+}
+
+function renderAccountOverview() {
+  const grid = document.getElementById('account-overview-grid');
+  const recent = document.getElementById('account-recent-projects');
+  if (!grid && !recent) return;
+  const history = loadAccountHistory();
+  const projects = loadAccountList('projects');
+  const clients = loadAccountList('clients');
+  const products = loadAccountList('products');
+  const storageUsed = getAccountStorageUsageBytes();
+  const nowMonth = new Date().toISOString().slice(0,7);
+  const totals = history.reduce((sum, item) => {
+    const isMonth = (item.month || String(item.date || '').slice(0,7)) === nowMonth;
+    return {
+      month: sum.month + (isMonth ? (+item.total || 0) : 0),
+      ht: sum.ht + (+item.subtotal || 0),
+      tva: sum.tva + (+item.tva || 0),
+      total: sum.total + (+item.total || 0)
+    };
+  }, { month:0, ht:0, tva:0, total:0 });
+  if (grid) {
+    grid.innerHTML = `
+      <div class="dashboard-card"><i class="fa fa-calendar-days"></i><strong>${fmtEur(totals.month)}</strong><span>Total ce mois</span></div>
+      <div class="dashboard-card"><i class="fa fa-file-invoice-dollar"></i><strong>${fmtEur(totals.total)}</strong><span>Total facturé</span></div>
+      <div class="dashboard-card"><i class="fa fa-percent"></i><strong>${fmtEur(totals.tva)}</strong><span>Total TVA</span></div>
+      <div class="dashboard-card"><i class="fa fa-folder-open"></i><strong>${projects.length}</strong><span>Projets sauvegardés</span></div>
+      <div class="dashboard-card"><i class="fa fa-address-book"></i><strong>${clients.length}</strong><span>Clients enregistrés</span></div>
+      <div class="dashboard-card"><i class="fa fa-box"></i><strong>${products.length}</strong><span>Produits/services</span></div>
+      <div class="dashboard-card"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Factures historique</span></div>
+      <div class="dashboard-card"><i class="fa fa-cloud"></i><strong>${formatBytes(storageUsed)}</strong><span>Storage utilisé</span></div>`;
+    renderAccountStoragePanel();
+  }
+  if (recent) {
+    const latest = projects.slice().sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt))).slice(0,3);
+    recent.innerHTML = latest.length
+      ? `<div class="saved-list">${latest.map(renderProjectItem).join('')}</div>`
+      : '<div class="account-detail-row"><span>Projets récents</span><strong>Aucun projet sauvegardé</strong></div>';
+  }
+}
+
+function getCurrentProjectRecord(forceNew=false) {
+  const summary = getCurrentDocumentSummary('project');
+  const objectName = document.getElementById('f-object')?.value || '';
+  const baseId = `${summary.docType}-${summary.sector}-${summary.docNum}`;
+  return {
+    ...summary,
+    id: forceNew ? `${baseId}-${Date.now()}` : baseId,
+    title: getDocumentTitle(),
+    objectName,
+    snapshot: collectDraft(),
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function saveCurrentProject(forceNew=false) {
+  if (!S.authUser) { showNotif('Login karein, phir project save karein', 'info'); return; }
+  const record = getCurrentProjectRecord(forceNew);
+  const list = loadAccountList('projects');
+  const next = [record, ...list.filter(item => item.id !== record.id)].slice(0, 200);
+  if (saveAccountList('projects', next)) {
+    renderSavedProjects();
+    renderAccountOverview();
+    showNotif('Projet sauvegardé', 'success');
+  }
+}
+
+function getSectorLabel(sector) {
+  const profile = getCountryProfile();
+  const local = profile.sector?.[sector];
+  const fallback = {
+    batiment: 'Bâtiment',
+    automobile: 'Automobile',
+    online: 'Freelance / marketplace'
+  };
+  return local || fallback[sector] || 'Document';
+}
+
+function renderProjectItem(item) {
+  const type = `${String(item.docType || 'document').toUpperCase()} · ${getSectorLabel(item.sector || 'batiment')}`;
+  return `
+    <div class="saved-item">
+      <div class="saved-item-main">
+        <strong>${escHtml(item.title || item.clientName || 'Projet')}</strong>
+        <span>${escHtml(type)} · ${fmtDate(item.date)} · ${escHtml(item.docNum || '')}</span>
+        <span>${escHtml(item.objectName || 'Sans objet')} · ${fmtEur(item.total)}</span>
+      </div>
+      <div class="saved-item-actions">
+        <button class="btn btn-primary btn-sm" onclick="openSavedProject('${escHtml(item.id)}')"><i class="fa fa-play"></i> Continuer</button>
+        <button class="btn btn-ghost btn-sm" onclick="duplicateSavedProject('${escHtml(item.id)}')"><i class="fa fa-copy"></i> Copier</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSavedProject('${escHtml(item.id)}')"><i class="fa fa-trash"></i></button>
+      </div>
+    </div>`;
+}
+
+function renderSavedProjects() {
+  const box = document.getElementById('account-projects-list');
+  if (!box) return;
+  const list = loadAccountList('projects').sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  box.innerHTML = list.length
+    ? `<div class="saved-list">${list.map(renderProjectItem).join('')}</div>`
+    : '<div class="account-detail-row"><span>Projets</span><strong>Aucun projet sauvegardé</strong></div>';
+}
+
+function openSavedProject(id) {
+  const item = loadAccountList('projects').find(entry => entry.id === id);
+  if (!item?.snapshot) return showNotif('Projet introuvable', 'info');
+  applyDraftSnapshot(item.snapshot);
+  closeAccount();
+  scrollToEditor();
+  showSection('infos');
+  showNotif('Projet chargé, vous pouvez continuer', 'success');
+}
+
+function duplicateSavedProject(id) {
+  const item = loadAccountList('projects').find(entry => entry.id === id);
+  if (!item?.snapshot) return showNotif('Projet introuvable', 'info');
+  applyDraftSnapshot(item.snapshot);
+  const num = document.getElementById('f-number');
+  if (num) num.value = `${num.value || item.docNum || 'DOC'}-COPIE`;
+  saveCurrentProject(true);
+}
+
+function deleteSavedProject(id) {
+  if (!confirm('Supprimer ce projet sauvegardé ?')) return;
+  saveAccountList('projects', loadAccountList('projects').filter(item => item.id !== id));
+  renderSavedProjects();
+  renderAccountOverview();
+}
+
+function clearSavedProjects() {
+  if (!confirm('Effacer tous les projets sauvegardés ?')) return;
+  saveAccountList('projects', []);
+  renderSavedProjects();
+  renderAccountOverview();
+}
+
+function getCurrentClientRecord() {
+  const name = document.getElementById('c-name')?.value?.trim() || '';
+  const email = document.getElementById('c-email')?.value?.trim() || '';
+  const key = (name || email || `client-${Date.now()}`).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9@._-]+/g, '-');
+  return {
+    id: key,
+    name,
+    siret: document.getElementById('c-siret')?.value || '',
+    addr: document.getElementById('c-addr')?.value || '',
+    siteAddr: document.getElementById('c-site-addr')?.value || '',
+    email,
+    tel: document.getElementById('c-tel')?.value || '',
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function saveCurrentClient() {
+  if (!S.authUser) { showNotif('Login karein, phir client save karein', 'info'); return; }
+  const record = getCurrentClientRecord();
+  if (!record.name && !record.email) return showNotif('Client ka naam ya email add karein', 'info');
+  const list = loadAccountList('clients');
+  const next = [record, ...list.filter(item => item.id !== record.id)].slice(0, 500);
+  if (saveAccountList('clients', next)) {
+    renderSavedClients();
+    renderAccountOverview();
+    showNotif('Client sauvegardé', 'success');
+  }
+}
+
+function renderSavedClients() {
+  const box = document.getElementById('account-clients-list');
+  if (!box) return;
+  const list = loadAccountList('clients').sort((a,b) => String(a.name).localeCompare(String(b.name)));
+  box.innerHTML = list.length
+    ? `<div class="saved-list">${list.map(item => `
+      <div class="saved-item">
+        <div class="saved-item-main">
+          <strong>${escHtml(item.name || item.email || 'Client')}</strong>
+          <span>${escHtml(item.email || '')}${item.tel ? ' · '+escHtml(item.tel) : ''}</span>
+          <span>${escHtml(item.addr || '')}${item.siteAddr ? ' · Chantier: '+escHtml(item.siteAddr) : ''}</span>
+        </div>
+        <div class="saved-item-actions">
+          <button class="btn btn-primary btn-sm" onclick="applySavedClient('${escHtml(item.id)}')"><i class="fa fa-arrow-right"></i> Appliquer</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSavedClient('${escHtml(item.id)}')"><i class="fa fa-trash"></i></button>
+        </div>
+      </div>`).join('')}</div>`
+    : '<div class="account-detail-row"><span>Clients</span><strong>Aucun client sauvegardé</strong></div>';
+}
+
+function applySavedClient(id) {
+  const item = loadAccountList('clients').find(entry => entry.id === id);
+  if (!item) return showNotif('Client introuvable', 'info');
+  const map = {
+    'c-name': item.name,
+    'c-siret': item.siret,
+    'c-addr': item.addr,
+    'c-site-addr': item.siteAddr,
+    'c-email': item.email,
+    'c-tel': item.tel
+  };
+  Object.entries(map).forEach(([fieldId, value]) => {
+    const el = document.getElementById(fieldId);
+    if (el) el.value = value || '';
+  });
+  updatePreview();
+  closeAccount();
+  scrollToEditor();
+  showSection('infos');
+  showNotif('Client appliqué', 'success');
+}
+
+function deleteSavedClient(id) {
+  if (!confirm('Supprimer ce client ?')) return;
+  saveAccountList('clients', loadAccountList('clients').filter(item => item.id !== id));
+  renderSavedClients();
+  renderAccountOverview();
+}
+
+function clearSavedClients() {
+  if (!confirm('Effacer toute la base clients ?')) return;
+  saveAccountList('clients', []);
+  renderSavedClients();
+  renderAccountOverview();
+}
+
+function saveFirstProduct() {
+  if (!S.authUser) { showNotif('Login karein, phir produit save karein', 'info'); return; }
+  syncItemsFromForm();
+  const first = S.items.find(item => String(item.desc || '').trim());
+  if (!first) return showNotif('Article description add karein', 'info');
+  const id = String(first.desc).trim().toLowerCase().slice(0,80).replace(/\s+/g, '-').replace(/[^a-z0-9-]+/g, '-');
+  const record = {
+    id,
+    desc: first.desc,
+    unit: first.unit || 'forfait',
+    price: cleanNumber(first.price),
+    tvaRate: cleanNumber(first.tvaRate),
+    updatedAt: new Date().toISOString()
+  };
+  const list = loadAccountList('products');
+  const next = [record, ...list.filter(item => item.id !== id)].slice(0, 500);
+  if (saveAccountList('products', next)) {
+    renderSavedProducts();
+    renderAccountOverview();
+    showNotif('Produit/service sauvegardé', 'success');
+  }
+}
+
+function renderSavedProducts() {
+  const box = document.getElementById('account-products-list');
+  if (!box) return;
+  const list = loadAccountList('products').sort((a,b) => String(a.desc).localeCompare(String(b.desc)));
+  box.innerHTML = list.length
+    ? `<div class="saved-list">${list.map(item => `
+      <div class="saved-item">
+        <div class="saved-item-main">
+          <strong>${escHtml(item.desc || 'Produit/service')}</strong>
+          <span>${escHtml(item.unit || 'forfait')} · ${fmtEur(item.price)} · TVA ${escHtml(String(item.tvaRate ?? 0))}%</span>
+        </div>
+        <div class="saved-item-actions">
+          <button class="btn btn-primary btn-sm" onclick="addSavedProduct('${escHtml(item.id)}')"><i class="fa fa-plus"></i> Ajouter</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSavedProduct('${escHtml(item.id)}')"><i class="fa fa-trash"></i></button>
+        </div>
+      </div>`).join('')}</div>`
+    : '<div class="account-detail-row"><span>Produits/services</span><strong>Aucun produit sauvegardé</strong></div>';
+}
+
+function addSavedProduct(id) {
+  const item = loadAccountList('products').find(entry => entry.id === id);
+  if (!item) return showNotif('Produit introuvable', 'info');
+  addRow(item.desc, 1, item.unit, item.price, item.tvaRate);
+  closeAccount();
+  scrollToEditor();
+  showSection('articles');
+  showNotif('Produit ajouté à la facture', 'success');
+}
+
+function deleteSavedProduct(id) {
+  if (!confirm('Supprimer ce produit/service ?')) return;
+  saveAccountList('products', loadAccountList('products').filter(item => item.id !== id));
+  renderSavedProducts();
+  renderAccountOverview();
+}
+
+function clearSavedProducts() {
+  if (!confirm('Effacer toute la base produits/services ?')) return;
+  saveAccountList('products', []);
+  renderSavedProducts();
+  renderAccountOverview();
 }
 
 function loadAccountProfile() {
@@ -2029,6 +2613,7 @@ function clearAccountProfile() {
   if (!S.authUser) return;
   try { localStorage.removeItem(getAccountStorageKey('profile')); } catch {}
   fillAccountProfileForm(null);
+  renderAccountOverview();
   showNotif('Société effacée du compte', 'info');
 }
 
@@ -2078,6 +2663,7 @@ function recordDocumentHistory(action='PDF') {
   const next = [record, ...list.filter(item => item.id !== record.id)].slice(0, 300);
   saveAccountHistory(next);
   renderAccountHistory();
+  renderAccountOverview();
   if (action === 'manual') showNotif('Facture ajoutée à l’historique', 'success');
 }
 
@@ -2181,6 +2767,7 @@ function clearAccountHistory() {
   if (!S.authUser) return;
   try { localStorage.removeItem(getAccountStorageKey('history')); } catch {}
   renderAccountHistory();
+  renderAccountOverview();
   showNotif('Historique effacé', 'info');
 }
 
