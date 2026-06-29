@@ -120,6 +120,22 @@
         "@type": "Answer",
         "text": "Chaque compte peut être limité à 500 Mo pour garder le stockage cloud Firebase maîtrisé. Le tableau de bord affiche l'utilisation du stockage et aide à supprimer les anciens projets, clients, produits ou documents."
       }
+    },
+    {
+      "@type": "Question",
+      "name": "Puis-je reprendre une facture commencée plus tard ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. Le dashboard permet de sauvegarder un projet de facture ou devis, puis de le rouvrir pour continuer avec les mêmes informations client, articles, style et paramètres."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Existe-t-il un nettoyage automatique du stockage ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "L'auto-cleanup peut rester optionnel. Quand la limite de stockage approche, l'utilisateur peut nettoyer les anciens projets ou historiques depuis son dashboard."
+      }
     }
   ]
 }
@@ -242,7 +258,7 @@
   .account-panel.active { display: block; }
   .history-month { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; background: rgba(255,255,255,.025); }
   .history-head { display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; background: rgba(99,102,241,.1); color: var(--ink); font-size: 12px; font-weight: 800; }
-  .history-row { display: grid; grid-template-columns: 80px 1fr 90px 84px; gap: 8px; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--ink-muted); align-items: center; }
+  .history-row { display: grid; grid-template-columns: 80px 1fr 90px auto; gap: 8px; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--ink-muted); align-items: center; }
   .history-row strong { color: var(--ink); overflow-wrap: anywhere; }
   .history-total { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); background: rgba(16,185,129,.08); font-size: 11px; color: var(--ink-muted); }
   .history-total strong { display: block; color: var(--ink); font-size: 12px; margin-top: 2px; }
@@ -255,6 +271,7 @@
   .storage-bar { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.08); border: 1px solid var(--border); }
   .storage-fill { height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg,#22c55e,#8b5cf6); transition: width .25s ease; }
   .storage-text { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; color: var(--ink-muted); font-size: 11px; line-height: 1.45; }
+  .storage-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
   .saved-list { display: grid; gap: 10px; }
   .saved-item { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; background: rgba(255,255,255,.025); }
   .saved-item-main strong { display: block; color: var(--ink); font-size: 12px; margin-bottom: 4px; overflow-wrap: anywhere; }
@@ -587,6 +604,11 @@
   .home-stat-num { font-size:32px; font-weight:900; color:#7c3aed; }
   .home-stat-label { margin-top:8px; color:#8491aa; font-size:13px; }
   .home-seo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+  .home-format-grid, .home-trust-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+  .home-format-card, .home-trust-card { min-height:120px; padding:18px; border:1px solid rgba(148,163,184,.16); border-radius:14px; background:rgba(15,23,42,.38); color:#91a0ba; }
+  .home-format-card strong, .home-trust-card strong { display:block; color:#f8fafc; font-size:14px; margin-bottom:8px; }
+  .home-format-card span, .home-trust-card span { display:block; font-size:12px; line-height:1.6; }
+  .home-format-card em { display:inline-flex; margin-top:10px; padding:3px 8px; border-radius:999px; background:rgba(14,165,233,.16); color:#7dd3fc; font-style:normal; font-size:10px; font-weight:900; }
   .home-article-card { min-height:260px; padding:22px; border:1px solid rgba(148,163,184,.16); border-radius:14px; background:rgba(15,23,42,.44); color:#9aa7bf; }
   .home-article-card h2 { margin:0 0 10px; color:#f8fafc; font-size:18px; line-height:1.25; font-weight:900; }
   .home-article-card h3 { margin:16px 0 7px; color:#c4b5fd; font-size:13px; font-weight:900; }
@@ -600,6 +622,11 @@
   .home-faq-item summary::after { content:"+"; float:right; color:#8b5cf6; font-size:18px; line-height:1; }
   .home-faq-item[open] summary::after { content:"-"; }
   .home-faq-item p { padding:0 16px 16px; color:#9aa7bf; font-size:13px; line-height:1.7; }
+  .ai-status { display:flex; align-items:flex-start; gap:9px; margin-bottom:12px; padding:11px 12px; border-radius:10px; background:rgba(14,165,233,.08); border:1px solid rgba(14,165,233,.18); color:var(--ink-muted); font-size:12px; line-height:1.55; }
+  .ai-status i { color:#7dd3fc; margin-top:2px; }
+  .ai-examples { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 12px; }
+  .ai-example-btn { border:1px solid var(--border); border-radius:999px; background:rgba(255,255,255,.035); color:var(--ink-muted); padding:7px 10px; font-size:11px; font-weight:800; cursor:pointer; }
+  .ai-example-btn:hover { color:#fff; border-color:rgba(99,102,241,.45); background:rgba(99,102,241,.16); }
   .ad-home-label { margin-bottom:7px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; text-align:center; }
   .editor-anchor-note { max-width:1360px; margin:0 auto; padding:18px 28px 8px; color:#7b89a4; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; }
   @media(max-width:1050px) {
@@ -740,6 +767,29 @@
     <div class="home-stat"><div><div class="home-stat-num">100%</div><div class="home-stat-label">Gratuit · Aucun compte</div></div></div>
   </div>
 
+  <div class="home-section" id="formats">
+    <div class="home-section-title">Formats internationaux</div>
+    <p class="home-section-copy">Le pays choisi adapte le format du document, la devise, le nom de taxe et la mise en page: utile pour les factures France, Germany, Spain, Italy, UK, USA et les vendeurs online.</p>
+    <div class="home-format-grid">
+      <div class="home-format-card"><strong>France</strong><span>Facture / devis avec TVA, SIRET/SIREN, adresse chantier et mentions utiles.</span><em>EUR · TVA</em></div>
+      <div class="home-format-card"><strong>Germany</strong><span>Rechnung layout avec USt., company details, service description et totals.</span><em>EUR · USt.</em></div>
+      <div class="home-format-card"><strong>Spain</strong><span>Factura avec NIF/CIF, IVA, base imponible, cliente et emisor.</span><em>EUR · IVA</em></div>
+      <div class="home-format-card"><strong>Italy</strong><span>Fattura avec P. IVA / codice fiscale, IVA et format professionnel.</span><em>EUR · IVA</em></div>
+      <div class="home-format-card"><strong>UK</strong><span>Invoice with VAT, company details, due date and clean business layout.</span><em>GBP · VAT</em></div>
+      <div class="home-format-card"><strong>USA</strong><span>Invoice with seller/buyer details, sales tax option and USD currency.</span><em>USD · Sales tax</em></div>
+    </div>
+  </div>
+
+  <div class="home-section" id="trust">
+    <div class="home-section-title">Confiance & compte</div>
+    <div class="home-trust-grid">
+      <div class="home-trust-card"><strong><i class="fa fa-shield-halved"></i> Sécurité</strong><span>Données traitées dans le navigateur, pages confidentialité/CGU/contact et rappel de ne jamais partager les mots de passe.</span></div>
+      <div class="home-trust-card"><strong><i class="fa fa-chart-line"></i> Dashboard</strong><span>Historique mensuel, totaux HT/TVA/TTC, projets, clients et produits/services sauvegardés.</span></div>
+      <div class="home-trust-card"><strong><i class="fa fa-cloud"></i> 500 MB</strong><span>Limite compte avec nettoyage manuel ou auto-cleanup optionnel pour garder le stockage maîtrisé.</span></div>
+      <div class="home-trust-card"><strong><i class="fa fa-message"></i> Feedback</strong><span>Les utilisateurs peuvent signaler un bug PDF, login, facture/devis ou proposer une amélioration.</span></div>
+    </div>
+  </div>
+
   <div class="home-section" id="guides">
     <div class="home-section-title">Guides & articles</div>
     <p class="home-section-copy">Retrouvez des conseils pratiques pour créer une facture gratuite, utiliser l'assistant AI, préparer un devis bâtiment, ajouter les informations d'un véhicule ou établir une facture marketplace pour Amazon, eBay, Etsy et les freelances.</p>
@@ -798,6 +848,20 @@
         <h3>Données privées</h3>
         <p>Les informations saisies servent à générer la facture dans le navigateur. Avec un compte, vous pouvez sauvegarder votre société, vos projets, clients et produits sur ce navigateur.</p>
       </article>
+      <article class="home-article-card">
+        <span class="home-article-meta">Dashboard</span>
+        <h2>Sauvegarder clients, produits et projets</h2>
+        <p>Le compte permet de garder les données utiles pour travailler plus vite: société, signature, cachet, clients récurrents, produits/services et brouillons de facture ou devis.</p>
+        <h3>Historique mensuel</h3>
+        <p>Chaque facture sauvegardée peut être retrouvée par mois avec les totaux HT, TVA et TTC. Les anciens documents restent modifiables depuis l'historique.</p>
+      </article>
+      <article class="home-article-card">
+        <span class="home-article-meta">AdSense & privacy</span>
+        <h2>Site prêt pour confiance, cookies et support</h2>
+        <p>Les pages mentions légales, confidentialité, CGU, cookies, contact et sécurité aident les visiteurs à comprendre l'utilisation des données et des publicités.</p>
+        <h3>Important</h3>
+        <p>Le fichier ads.txt doit rester publié à la racine du domaine et les emplacements publicitaires doivent garder une expérience propre, sans bloquer l'édition de facture.</p>
+      </article>
     </div>
   </div>
 
@@ -842,6 +906,14 @@
       <details class="home-faq-item">
         <summary>Quelle est la limite de stockage par utilisateur ?</summary>
         <p>Chaque compte peut avoir une limite de 500 MB pour garder Firebase Cloud Storage maîtrisé. Le dashboard affiche l'espace utilisé et aide à supprimer les anciens projets, clients, produits ou documents.</p>
+      </details>
+      <details class="home-faq-item">
+        <summary>Puis-je reprendre une facture commencée plus tard ?</summary>
+        <p>Oui. Le dashboard permet de sauvegarder un projet, puis de le rouvrir pour continuer la facture ou le devis depuis le même point.</p>
+      </details>
+      <details class="home-faq-item">
+        <summary>Le site peut-il nettoyer automatiquement les anciens documents ?</summary>
+        <p>Oui, l'auto-cleanup peut rester optionnel: quand la limite approche, l'utilisateur choisit de supprimer les anciens projets ou historiques inutiles.</p>
       </details>
     </div>
   </div>
@@ -1094,8 +1166,18 @@
     <div id="sec-ai" style="display:none" class="fade-up">
       <div class="card">
         <div class="card-title"><i class="fa fa-wand-magic-sparkles" style="color:#a5b4fc"></i> Assistant facture AI</div>
+        <div class="ai-status" id="ai-status">
+          <i class="fa fa-circle-info"></i>
+          <span>Assistant AI prêt pour préparer des lignes modifiables. Les montants et mentions doivent toujours être vérifiés avant envoi.</span>
+        </div>
         <div class="support-box">
           Décrivez votre travail, vente ou commande. L'AI prépare des lignes de facture/devis éditables. Vérifiez toujours les prix, TVA et mentions avant envoi.
+        </div>
+        <div class="ai-examples">
+          <button class="ai-example-btn" onclick="fillAiExample('batiment')">Peinture appartement</button>
+          <button class="ai-example-btn" onclick="fillAiExample('auto')">Réparation automobile</button>
+          <button class="ai-example-btn" onclick="fillAiExample('marketplace')">Commande Amazon / Etsy</button>
+          <button class="ai-example-btn" onclick="fillAiExample('freelance')">Prestation freelance</button>
         </div>
         <div class="form-group">
           <label class="form-label">Description</label>
@@ -1930,6 +2012,7 @@ const S = {
   appTheme: 'dark',
   aiLastItems: [],
   aiLastObject: '',
+  autoCleanup: false,
 };
 
 let itemId = 0;
@@ -1970,6 +2053,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCookieBanner();
   initAdsenseSlots();
   applyCountryDocumentFormat();
+  loadAutoCleanupPreference();
+  setTimeout(updateAiStatus, 500);
 
   addRow();
   addRow();
@@ -2398,6 +2483,17 @@ function formatBytes(bytes=0) {
   return `${size} B`;
 }
 
+function loadAutoCleanupPreference() {
+  try { S.autoCleanup = localStorage.getItem(getAccountStorageKey('auto-cleanup')) === '1'; } catch { S.autoCleanup = false; }
+}
+
+function setAutoCleanup(on) {
+  S.autoCleanup = Boolean(on);
+  try { localStorage.setItem(getAccountStorageKey('auto-cleanup'), S.autoCleanup ? '1' : '0'); } catch {}
+  renderAccountStoragePanel();
+  showNotif(S.autoCleanup ? 'Auto-cleanup activé' : 'Auto-cleanup désactivé', 'success');
+}
+
 function getAccountStorageUsageBytes() {
   if (!S.authUser) return 0;
   const suffixes = ['profile','history','projects','clients','products'];
@@ -2406,12 +2502,41 @@ function getAccountStorageUsageBytes() {
   }, 0);
 }
 
+function getProjectedAccountStorageUsageBytes(suffix, serialized) {
+  if (!S.authUser) return 0;
+  const suffixes = ['profile','history','projects','clients','products'];
+  return suffixes.reduce((sum, key) => {
+    try {
+      const text = key === suffix ? serialized : (localStorage.getItem(getAccountStorageKey(key)) || '');
+      return sum + getTextBytes(text);
+    } catch { return sum; }
+  }, 0);
+}
+
+function cleanupOldAccountData(silent=false) {
+  if (!S.authUser) return false;
+  const target = ACCOUNT_STORAGE_QUOTA_BYTES * 0.85;
+  let changed = false;
+  ['history','projects'].forEach(suffix => {
+    let list = loadAccountList(suffix);
+    while (getAccountStorageUsageBytes() > target && list.length > 5) {
+      list = list.slice(0, -1);
+      saveAccountList(suffix, list, { skipQuotaCheck:true, silent:true });
+      changed = true;
+    }
+  });
+  if (!silent) showNotif(changed ? 'Anciens documents nettoyés' : 'Rien à nettoyer pour le moment', changed ? 'success' : 'info');
+  renderAccountOverview();
+  return changed;
+}
+
 function renderAccountStoragePanel() {
   const panel = document.getElementById('account-storage-panel');
   if (!panel) return;
   const used = getAccountStorageUsageBytes();
   const pct = Math.min(100, Math.round((used / ACCOUNT_STORAGE_QUOTA_BYTES) * 1000) / 10);
   const nearLimit = pct >= 90;
+  const auto = Boolean(S.autoCleanup);
   panel.innerHTML = `
     <div class="storage-panel">
       <div class="storage-head">
@@ -2422,6 +2547,10 @@ function renderAccountStoragePanel() {
       <div class="storage-text">
         <span>Limite compte: 500 MB par utilisateur.</span>
         <span>${pct}% utilisé${nearLimit?' · supprimez anciens projets/assets':''}</span>
+      </div>
+      <div class="storage-actions">
+        <button class="btn btn-ghost btn-sm" onclick="cleanupOldAccountData()"><i class="fa fa-broom"></i> Nettoyer anciens</button>
+        <button class="btn btn-ghost btn-sm" onclick="setAutoCleanup(${auto ? 'false' : 'true'})"><i class="fa fa-rotate"></i> Auto-cleanup ${auto ? 'ON' : 'OFF'}</button>
       </div>
     </div>`;
 }
@@ -2434,13 +2563,22 @@ function loadAccountList(suffix) {
   } catch { return []; }
 }
 
-function saveAccountList(suffix, list) {
+function saveAccountList(suffix, list, options={}) {
   if (!S.authUser) return false;
   try {
-    localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(list));
+    const serialized = JSON.stringify(list);
+    if (!options.skipQuotaCheck && getProjectedAccountStorageUsageBytes(suffix, serialized) > ACCOUNT_STORAGE_QUOTA_BYTES) {
+      if (S.autoCleanup && cleanupOldAccountData(true) && getProjectedAccountStorageUsageBytes(suffix, serialized) <= ACCOUNT_STORAGE_QUOTA_BYTES) {
+        localStorage.setItem(getAccountStorageKey(suffix), serialized);
+        return true;
+      }
+      showNotif('Storage 500 MB full: pehle history/projets remove karein ya auto-cleanup ON karein', 'info');
+      return false;
+    }
+    localStorage.setItem(getAccountStorageKey(suffix), serialized);
     return true;
   } catch {
-    showNotif('Sauvegarde impossible sur ce navigateur', 'info');
+    if (!options.silent) showNotif('Sauvegarde impossible sur ce navigateur', 'info');
     return false;
   }
 }
@@ -2740,6 +2878,28 @@ function clearSavedProducts() {
 // ═══════════════════════════════════════════════════════
 // AI INVOICE ASSISTANT
 // ═══════════════════════════════════════════════════════
+function updateAiStatus() {
+  const status = document.getElementById('ai-status');
+  if (!status) return;
+  const ready = Boolean(window.firebaseServices?.aiModel);
+  status.innerHTML = ready
+    ? '<i class="fa fa-circle-check"></i><span>Assistant AI connecté. Les lignes générées restent modifiables avant PDF.</span>'
+    : '<i class="fa fa-triangle-exclamation"></i><span>Assistant AI indisponible pour le moment. Vous pouvez continuer à créer la facture manuellement.</span>';
+}
+
+function fillAiExample(kind) {
+  const examples = {
+    batiment: 'Peinture appartement 45 m2, protection du sol, préparation des murs, enduit partiel, ponçage, deux couches de peinture blanche, fournitures incluses.',
+    auto: 'Réparation automobile: diagnostic, remplacement plaquettes de frein avant, contrôle liquide de frein, essai route, véhicule Peugeot 208.',
+    marketplace: 'Commande marketplace Etsy: vente de 3 affiches personnalisées, emballage, livraison suivie, référence commande ETSY-2026-001.',
+    freelance: 'Prestation freelance: création logo, charte couleur simple, 2 propositions graphiques, fichiers PNG et PDF, livraison par email.'
+  };
+  const el = document.getElementById('ai-prompt');
+  if (el) el.value = examples[kind] || examples.batiment;
+  updateAiStatus();
+  showNotif('Exemple AI ajouté', 'success');
+}
+
 function buildAiInvoicePrompt(userText) {
   const profile = getCountryProfile();
   const detail = document.getElementById('ai-detail')?.value || 'standard';
@@ -2833,6 +2993,7 @@ async function generateAiInvoiceItems() {
   }
   const model = window.firebaseServices?.aiModel;
   if (!model) {
+    updateAiStatus();
     showNotif('Assistant AI ready nahi hai. Page reload karein.', 'info');
     return;
   }
@@ -2893,7 +3054,14 @@ function loadAccountProfile() {
 function saveAccountProfile(profile) {
   if (!S.authUser) { showNotif('Login karein, phir société save karein', 'info'); return false; }
   try {
-    localStorage.setItem(getAccountStorageKey('profile'), JSON.stringify({ ...profile, savedAt: new Date().toISOString() }));
+    const serialized = JSON.stringify({ ...profile, savedAt: new Date().toISOString() });
+    if (getProjectedAccountStorageUsageBytes('profile', serialized) > ACCOUNT_STORAGE_QUOTA_BYTES) {
+      if (!S.autoCleanup || !cleanupOldAccountData(true) || getProjectedAccountStorageUsageBytes('profile', serialized) > ACCOUNT_STORAGE_QUOTA_BYTES) {
+        showNotif('Storage 500 MB full: anciens documents remove karein', 'info');
+        return false;
+      }
+    }
+    localStorage.setItem(getAccountStorageKey('profile'), serialized);
     showNotif('Société profile sauvegardé', 'success');
     renderAccountModal();
     return true;
@@ -3032,7 +3200,7 @@ function loadAccountHistory() {
 
 function saveAccountHistory(list) {
   if (!S.authUser) return;
-  try { localStorage.setItem(getAccountStorageKey('history'), JSON.stringify(list)); } catch {}
+  saveAccountList('history', list);
 }
 
 function getCurrentDocumentSummary(action='PDF') {
@@ -3099,7 +3267,11 @@ function renderAccountHistory() {
             <span>${fmtDate(item.date)}</span>
             <strong>${escHtml(item.clientName || 'Client')}</strong>
             <span style="text-align:right">${fmtEur(item.total)}</span>
-            <button class="btn btn-ghost btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="editHistoryRecord(this.dataset.historyId)"><i class="fa fa-pen"></i> Modifier</button>
+            <div class="saved-item-actions">
+              <button class="btn btn-ghost btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="editHistoryRecord(this.dataset.historyId)"><i class="fa fa-pen"></i></button>
+              <button class="btn btn-ghost btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="duplicateHistoryRecord(this.dataset.historyId)"><i class="fa fa-copy"></i></button>
+              <button class="btn btn-danger btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="deleteHistoryRecord(this.dataset.historyId)"><i class="fa fa-trash"></i></button>
+            </div>
             <span style="grid-column:2 / 5;font-size:10px;opacity:.65">${escHtml((item.docType || '').toUpperCase())} · ${escHtml(item.docNum || '')}</span>
           </div>
         `).join('')}
@@ -3131,6 +3303,25 @@ function editHistoryRecord(id) {
   scrollToEditor();
   showSection('infos');
   showNotif('Facture chargée depuis l’historique', 'success');
+}
+
+function duplicateHistoryRecord(id) {
+  const item = loadAccountHistory().find(entry => entry.id === id);
+  if (!item?.snapshot) return showNotif('Historique introuvable', 'info');
+  applyDraftSnapshot(item.snapshot);
+  const num = document.getElementById('f-number');
+  if (num) num.value = `${num.value || item.docNum || 'DOC'}-COPIE`;
+  recordDocumentHistory('duplicate');
+  renderAccountHistory();
+  showNotif('Facture copiée dans l’historique', 'success');
+}
+
+function deleteHistoryRecord(id) {
+  if (!confirm('Supprimer cette facture de l’historique ?')) return;
+  saveAccountHistory(loadAccountHistory().filter(item => item.id !== id));
+  renderAccountHistory();
+  renderAccountOverview();
+  showNotif('Facture supprimée de l’historique', 'info');
 }
 
 function applyDraftSnapshot(draft) {
@@ -3306,6 +3497,7 @@ function showSection(id) {
   ['infos','articles','ai','style','polices','couleurs','logo','extras'].forEach(s => {
     document.getElementById('sec-'+s).style.display = s === id ? '' : 'none';
   });
+  if (id === 'ai') updateAiStatus();
   document.querySelectorAll('.section-tab').forEach((btn,i) => {
     const sections = ['infos','articles','ai','style','polices','couleurs','logo','extras'];
     btn.classList.toggle('active', sections[i] === id);
