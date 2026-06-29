@@ -511,6 +511,14 @@
   .legal-content h3 { color: var(--ink); font-size: 14px; margin: 14px 0 6px; }
   .legal-content p { margin-bottom: 8px; }
   .legal-content ul { margin: 8px 0 12px 18px; }
+  .support-box { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin: 10px 0; background: rgba(99,102,241,.07); color: var(--ink-muted); font-size: 12px; line-height: 1.6; }
+  .security-list { display: grid; gap: 8px; margin: 10px 0; }
+  .security-item { display: flex; gap: 9px; align-items: flex-start; border: 1px solid var(--border); border-radius: 9px; padding: 10px; background: rgba(255,255,255,.025); color: var(--ink-muted); font-size: 12px; line-height: 1.55; }
+  .security-item i { color: #34d399; margin-top: 2px; }
+  .feedback-meter { display: grid; grid-template-columns: repeat(5,1fr); gap: 7px; }
+  .feedback-meter label { cursor: pointer; border: 1px solid var(--border); border-radius: 9px; padding: 9px 6px; text-align: center; color: var(--ink-muted); font-size: 12px; font-weight: 800; background: rgba(255,255,255,.03); }
+  .feedback-meter input { display: none; }
+  .feedback-meter label:has(input:checked) { color: #fff; border-color: rgba(99,102,241,.55); background: linear-gradient(135deg,var(--brand),var(--brand-2)); }
   .cookie-banner { position: fixed; left: 20px; right: 20px; bottom: 18px; z-index: 10001; display: none; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: 12px; background: rgba(15,23,42,.96); box-shadow: 0 24px 80px rgba(0,0,0,.45); color: var(--ink-muted); font-size: 12px; }
   .cookie-banner.open { display: flex; animation: fadeUp .2s ease both; }
   body.light .cookie-banner { background: rgba(255,255,255,.98); }
@@ -652,6 +660,7 @@
         <div class="account-email" id="account-email">email@example.com</div>
         <div class="account-status" id="account-status"><i class="fa fa-circle-check"></i> Connecté</div>
         <button class="btn btn-ghost btn-sm menu-item" onclick="openAccount()"><i class="fa fa-id-card"></i> Mon compte</button>
+        <button class="btn btn-ghost btn-sm menu-item" style="margin-top:6px" onclick="openFeedback()"><i class="fa fa-message"></i> Feedback</button>
         <button class="btn btn-danger btn-sm menu-item" style="margin-top:6px" onclick="logoutUser()"><i class="fa fa-right-from-bracket"></i> Logout</button>
       </div>
     </div>
@@ -1304,9 +1313,11 @@
       <button class="legal-link" onclick="openLegal('about')">À propos</button>
       <button class="legal-link" onclick="openLegal('legal')">Mentions légales</button>
       <button class="legal-link" onclick="openLegal('privacy')">Confidentialité</button>
+      <button class="legal-link" onclick="openLegal('security')">Sécurité</button>
       <button class="legal-link" onclick="openLegal('terms')">CGU</button>
       <button class="legal-link" onclick="openLegal('cookies')">Cookies</button>
       <button class="legal-link" onclick="openLegal('contact')">Contact</button>
+      <button class="legal-link" onclick="openFeedback()">Feedback</button>
     </div>
   </div>
 </footer>
@@ -1377,9 +1388,10 @@
         <button class="btn btn-ghost btn-sm" id="account-tab-profile" onclick="showAccountPanel('profile')"><i class="fa fa-building"></i> Société</button>
       </div>
       <div class="account-panel active" id="account-panel-overview">
-        <div class="panel-note">Preview dashboard: projets sauvegardés, clients, produits/services et historique mensuel restent dans le compte connecté sur ce navigateur.</div>
+        <div class="panel-note">Dashboard: projets sauvegardés, clients, produits/services et historique mensuel restent associés à votre compte sur ce navigateur. Limite prévue: 500 MB par utilisateur.</div>
         <div class="dashboard-grid" id="account-overview-grid"></div>
         <div id="account-storage-panel"></div>
+        <div class="support-box"><strong style="color:var(--ink)">Sécurité :</strong> ne partagez pas votre mot de passe, supprimez les anciens documents inutiles, et signalez tout bug via Feedback. <button class="legal-link" onclick="closeAccount();openLegal('security')">Voir sécurité</button></div>
         <div class="grid-2" style="margin-bottom:12px">
           <button class="btn btn-primary btn-sm" onclick="saveCurrentProject()"><i class="fa fa-folder-plus"></i> Sauver projet actuel</button>
           <button class="btn btn-ghost btn-sm" onclick="saveCurrentClient()"><i class="fa fa-user-plus"></i> Sauver client actuel</button>
@@ -1462,6 +1474,59 @@
       <button class="btn btn-ghost auth-close" onclick="closeLegal()" title="Fermer"><i class="fa fa-xmark"></i></button>
     </div>
     <div class="auth-modal-body legal-content" id="legal-content"></div>
+  </div>
+</div>
+
+<!-- FEEDBACK MODAL -->
+<div class="modal-backdrop no-print" id="feedback-modal" onclick="handleFeedbackBackdrop(event)">
+  <div class="auth-modal" style="width:min(620px,100%)">
+    <div class="auth-modal-head">
+      <div>
+        <div class="auth-modal-title">Feedback & support</div>
+        <div class="auth-modal-sub">Aidez-nous à améliorer FacturePro</div>
+      </div>
+      <button class="btn btn-ghost auth-close" onclick="closeFeedback()" title="Fermer"><i class="fa fa-xmark"></i></button>
+    </div>
+    <form class="auth-modal-body" onsubmit="submitFeedback(event)">
+      <div class="form-group">
+        <label class="form-label">Votre note</label>
+        <div class="feedback-meter">
+          <label><input type="radio" name="feedback-rating" value="1">1</label>
+          <label><input type="radio" name="feedback-rating" value="2">2</label>
+          <label><input type="radio" name="feedback-rating" value="3">3</label>
+          <label><input type="radio" name="feedback-rating" value="4">4</label>
+          <label><input type="radio" name="feedback-rating" value="5" checked>5</label>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Sujet</label>
+          <select class="form-input" id="feedback-type">
+            <option>Problème PDF / impression</option>
+            <option>Compte / login</option>
+            <option>Facture / devis</option>
+            <option>Publicité / AdSense</option>
+            <option>Idée d'amélioration</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email optionnel</label>
+          <input class="form-input" id="feedback-email" type="email" placeholder="vous@email.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea class="form-input" id="feedback-message" rows="5" required placeholder="Décrivez le problème, votre idée, ou ce qui manque dans l'outil..."></textarea>
+      </div>
+      <div class="support-box">
+        <strong style="color:var(--ink)">Support technique :</strong> pour un bug PDF, ajoutez le type de document, le pays choisi, le navigateur, et si possible le numéro de facture/devis.
+      </div>
+      <div class="grid-2">
+        <button class="btn btn-primary btn-sm" type="submit"><i class="fa fa-paper-plane"></i> Envoyer feedback</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="openSupportEmail()"><i class="fa fa-envelope"></i> Email support</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -1860,12 +1925,32 @@ const LEGAL_PAGES = {
       <p>Ces données ne sont pas vendues à des tiers. Elles sont principalement traitées dans votre navigateur. Les brouillons peuvent être enregistrés localement dans votre navigateur via localStorage lorsque vous utilisez la fonction de sauvegarde.</p>
       <h3>Compte utilisateur Firebase</h3>
       <p>Si vous utilisez signup/login, Firebase Authentication peut traiter votre email, identifiant utilisateur et informations de connexion pour permettre l'accès au compte.</p>
+      <h3>Sauvegarde compte et limite de stockage</h3>
+      <p>Le compte peut sauvegarder le profil société, projets, clients, produits/services et historique. Une limite de 500 MB par utilisateur est prévue afin de garder le stockage Firebase maîtrisé.</p>
+      <p>Les fichiers uploadés, comme logo, signature ou cachet, doivent être des fichiers raisonnables et utiles au document. Les anciens projets ou assets peuvent être supprimés depuis le compte pour libérer de l'espace.</p>
       <h3>Google Analytics et Google AdSense</h3>
       <p>Nous utilisons Google Analytics pour mesurer l'audience et pouvons utiliser Google AdSense pour afficher des annonces. Google et ses partenaires peuvent utiliser des cookies ou technologies similaires pour diffuser, mesurer et personnaliser les annonces selon leurs propres règles.</p>
       <h3>Vos choix</h3>
       <p>Vous pouvez refuser ou supprimer les cookies dans les paramètres de votre navigateur. Vous pouvez aussi supprimer vos brouillons locaux en utilisant le bouton Reset ou en vidant les données du navigateur.</p>
       <h3>Contact confidentialité</h3>
       <p>Pour toute demande liée à vos données, contactez : contact@facturergratuit.com</p>
+    `
+  },
+  security: {
+    title: 'Sécurité',
+    html: `
+      <h3>Sécurité du compte</h3>
+      <p>FacturePro utilise Firebase Authentication pour la connexion email/mot de passe. Chaque utilisateur doit protéger son mot de passe et utiliser une adresse email valide pour récupérer son compte.</p>
+      <div class="security-list">
+        <div class="security-item"><i class="fa fa-user-lock"></i><span><strong style="color:var(--ink)">Accès privé :</strong> les données de compte doivent rester associées à l'utilisateur connecté.</span></div>
+        <div class="security-item"><i class="fa fa-cloud"></i><span><strong style="color:var(--ink)">Stockage maîtrisé :</strong> une limite de 500 MB par utilisateur est prévue pour éviter les abus et garder Firebase manageable.</span></div>
+        <div class="security-item"><i class="fa fa-file-shield"></i><span><strong style="color:var(--ink)">Uploads contrôlés :</strong> logo, signature et cachet doivent rester limités aux fichiers utiles, comme PNG, JPG, WebP ou SVG raisonnables.</span></div>
+        <div class="security-item"><i class="fa fa-ban"></i><span><strong style="color:var(--ink)">Aucun secret public :</strong> les clés privées, tokens serveur ou clés API sensibles ne doivent jamais être placés dans le fichier index.html.</span></div>
+      </div>
+      <h3>Conseils utilisateur</h3>
+      <p>Ne partagez pas votre mot de passe, vérifiez les informations client avant envoi, et supprimez les anciens documents si vous n'en avez plus besoin.</p>
+      <h3>Signaler un problème</h3>
+      <p>Pour signaler une faille, un bug de compte ou un problème de PDF, utilisez le formulaire Feedback ou contactez contact@facturergratuit.com.</p>
     `
   },
   terms: {
@@ -1908,8 +1993,12 @@ const LEGAL_PAGES = {
       <p><strong>Email :</strong> contact@facturergratuit.com</p>
       <p><strong>Propriétaire / Éditeur :</strong> À compléter avec votre nom ou société</p>
       <p><strong>Adresse :</strong> À compléter avec votre adresse professionnelle</p>
+      <div class="support-box">
+        <strong style="color:var(--ink)">Support rapide :</strong> pour un problème PDF, login, AdSense ou facture, envoyez le type de document, le pays choisi, votre navigateur et une courte description.
+      </div>
       <h3>Demandes possibles</h3>
-      <p>Vous pouvez nous contacter pour une question sur l'outil, une demande de suppression de données de compte Firebase, un problème technique, ou une remarque liée aux annonces.</p>
+      <p>Vous pouvez nous contacter pour une question sur l'outil, une demande de suppression de données de compte Firebase, un problème technique, une remarque liée aux annonces, ou une suggestion d'amélioration.</p>
+      <p><button class="btn btn-primary btn-sm" onclick="closeLegal();openFeedback()"><i class="fa fa-message"></i> Envoyer un feedback</button></p>
     `
   }
 };
@@ -1929,6 +2018,84 @@ function closeLegal() {
 
 function handleLegalBackdrop(e) {
   if (e.target?.id === 'legal-modal') closeLegal();
+}
+
+function openFeedback() {
+  document.getElementById('account-menu')?.classList.remove('open');
+  const email = document.getElementById('feedback-email');
+  if (email && !email.value) email.value = S.authUser?.email || document.getElementById('e-email')?.value || '';
+  document.getElementById('feedback-modal')?.classList.add('open');
+}
+
+function closeFeedback() {
+  document.getElementById('feedback-modal')?.classList.remove('open');
+}
+
+function handleFeedbackBackdrop(e) {
+  if (e.target?.id === 'feedback-modal') closeFeedback();
+}
+
+function collectFeedbackRecord() {
+  const rating = document.querySelector('input[name="feedback-rating"]:checked')?.value || '5';
+  const message = document.getElementById('feedback-message')?.value?.trim() || '';
+  return {
+    id: `fb-${Date.now()}`,
+    rating,
+    type: document.getElementById('feedback-type')?.value || 'Autre',
+    email: document.getElementById('feedback-email')?.value?.trim() || S.authUser?.email || '',
+    message,
+    userEmail: S.authUser?.email || '',
+    userId: S.authUser?.uid || '',
+    page: location.href,
+    docType: S.docType,
+    sector: S.docSector,
+    country: S.country,
+    createdAt: new Date().toISOString()
+  };
+}
+
+function saveFeedbackRecord(record) {
+  try {
+    const list = JSON.parse(localStorage.getItem('facturepro-feedback') || '[]');
+    const next = [record, ...(Array.isArray(list) ? list : [])].slice(0, 50);
+    localStorage.setItem('facturepro-feedback', JSON.stringify(next));
+  } catch {}
+}
+
+function buildSupportMailto(record) {
+  const subject = `FacturePro feedback - ${record.type}`;
+  const body = [
+    `Note: ${record.rating}/5`,
+    `Sujet: ${record.type}`,
+    `Email: ${record.email || 'Non fourni'}`,
+    `Document: ${record.docType} / ${record.sector} / ${record.country}`,
+    '',
+    'Message:',
+    record.message,
+    '',
+    `Page: ${record.page}`,
+    `Date: ${record.createdAt}`
+  ].join('\n');
+  return `mailto:contact@facturergratuit.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function submitFeedback(e) {
+  e.preventDefault();
+  const record = collectFeedbackRecord();
+  if (record.message.length < 5) {
+    showNotif('Message feedback thora detail mein likhein', 'info');
+    return;
+  }
+  saveFeedbackRecord(record);
+  closeFeedback();
+  showNotif('Feedback sauvegardé, email support ouvert', 'success');
+  window.location.href = buildSupportMailto(record);
+}
+
+function openSupportEmail() {
+  const record = collectFeedbackRecord();
+  if (!record.message) record.message = 'Bonjour, je souhaite contacter le support FacturePro.';
+  window.location.href = buildSupportMailto(record);
 }
 
 function renderCookieBanner() {
