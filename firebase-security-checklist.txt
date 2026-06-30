@@ -1,0 +1,37 @@
+FacturePro Firebase security checklist
+
+1. Authentication
+- Enable Email/Password provider.
+- Add authorized domains:
+  - facturergratuit.com
+  - www.facturergratuit.com if used
+  - localhost only for testing
+- Enable email verification messaging.
+- Confirm password reset email template uses the live domain.
+
+2. Firestore
+- Paste outputs/firestore.rules in Firestore Rules.
+- Keep user data under users/{uid}/...
+- Do not allow public read/write for account data.
+- Store only the data needed for profile, history, projects, clients and products.
+
+3. Cloud Storage
+- Paste outputs/storage.rules in Storage Rules.
+- Store account files under users/{uid}/...
+- Allow only PDF and image files.
+- Keep per-file upload size small, for example 10 MB.
+- Use app/dashboard cleanup for old documents.
+
+4. 500 MB quota
+- Client UI already displays a 500 MB account quota and optional auto-cleanup.
+- Real cloud quota enforcement requires a server check or Cloud Function.
+- If staying on free Spark plan, keep cloud uploads conservative.
+
+5. App Check
+- Enable App Check for Web app if available on your plan/settings.
+- Use reCAPTCHA Enterprise only if the project plan supports it.
+
+6. Privacy and compliance
+- Keep privacy, cookies, terms, legal notice and contact links visible.
+- Use a Google-certified CMP before serving personalized ads to EEA/UK/Switzerland users.
+- Do not put server secrets, private API keys or OAuth tokens in index.html.
