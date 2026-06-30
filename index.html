@@ -144,6 +144,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('consent', 'default', {
+  ad_storage: 'denied',
+  analytics_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied',
+  wait_for_update: 500
+});
+try {
+  if (localStorage.getItem('facturepro-cookie-consent') === 'accepted') {
+    gtag('consent', 'update', {
+      ad_storage: 'granted',
+      analytics_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted'
+    });
+  }
+} catch {}
+</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4956341710070686" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -549,8 +570,11 @@
   .feedback-meter label:has(input:checked) { color: #fff; border-color: rgba(99,102,241,.55); background: linear-gradient(135deg,var(--brand),var(--brand-2)); }
   .cookie-banner { position: fixed; left: 20px; right: 20px; bottom: 18px; z-index: 10001; display: none; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: 12px; background: rgba(15,23,42,.96); box-shadow: 0 24px 80px rgba(0,0,0,.45); color: var(--ink-muted); font-size: 12px; }
   .cookie-banner.open { display: flex; animation: fadeUp .2s ease both; }
+  .cookie-banner strong { color: var(--ink); }
+  .cookie-copy { max-width: 780px; line-height: 1.55; }
+  .cookie-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
   body.light .cookie-banner { background: rgba(255,255,255,.98); }
-  @media(max-width:720px) { .cookie-banner { flex-direction: column; align-items: flex-start; } }
+  @media(max-width:720px) { .cookie-banner { flex-direction: column; align-items: flex-start; } .cookie-actions { width:100%; justify-content:flex-start; } }
 
   /* Preview homepage upgrade */
   .home-preview { position: relative; overflow: hidden; border-bottom: 1px solid var(--border); background:
@@ -1687,13 +1711,14 @@
 
 <!-- COOKIE CONSENT -->
 <div class="cookie-banner no-print" id="cookie-banner">
-  <div>
-    <strong style="color:var(--ink)">Cookies et publicité</strong><br>
-    Nous utilisons Firebase/Google Analytics et pouvons utiliser Google AdSense pour mesurer l'audience et afficher des annonces. Les données saisies dans vos factures restent dans votre navigateur sauf connexion Firebase.
+  <div class="cookie-copy">
+    <strong>Cookies et publicité</strong><br>
+    Nous utilisons les cookies nécessaires au fonctionnement du site. Avec votre accord, Google Analytics et Google AdSense peuvent mesurer l'audience et afficher des annonces. Les données de facture restent dans votre navigateur sauf sauvegarde volontaire dans votre compte.
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
+  <div class="cookie-actions">
     <button class="btn btn-ghost btn-sm" onclick="openLegal('privacy')">En savoir plus</button>
-    <button class="btn btn-primary btn-sm" onclick="acceptCookies()">Accepter</button>
+    <button class="btn btn-ghost btn-sm" onclick="rejectCookies()">Essentiels seulement</button>
+    <button class="btn btn-primary btn-sm" onclick="acceptCookies()">Accepter tout</button>
   </div>
 </div>
 
@@ -2122,7 +2147,8 @@ const LEGAL_PAGES = {
       <h3>Google Analytics et Google AdSense</h3>
       <p>Nous utilisons Google Analytics pour mesurer l'audience et pouvons utiliser Google AdSense pour afficher des annonces. Google et ses partenaires peuvent utiliser des cookies ou technologies similaires pour diffuser, mesurer et personnaliser les annonces selon leurs propres règles.</p>
       <h3>Vos choix</h3>
-      <p>Vous pouvez refuser ou supprimer les cookies dans les paramètres de votre navigateur. Vous pouvez aussi supprimer vos brouillons locaux en utilisant le bouton Reset ou en vidant les données du navigateur.</p>
+      <p>Vous pouvez accepter les cookies analytics/publicité ou choisir les cookies essentiels seulement depuis la bannière cookies. Vous pouvez aussi réinitialiser ce choix depuis la page Cookies.</p>
+      <p>Depuis le compte, vous pouvez exporter une sauvegarde JSON de vos données locales ou supprimer profil société, historique, projets, clients et produits de ce navigateur.</p>
       <h3>Contact confidentialité</h3>
       <p>Pour toute demande liée à vos données, contactez : contact@facturergratuit.com</p>
     `
@@ -2174,7 +2200,8 @@ const LEGAL_PAGES = {
         <li>afficher et mesurer des annonces via Google AdSense lorsque les annonces sont activées.</li>
       </ul>
       <h3>Gestion</h3>
-      <p>Vous pouvez gérer ou supprimer les cookies depuis votre navigateur. Le refus de certains cookies peut limiter certaines fonctions comme la connexion ou les statistiques.</p>
+      <p>Vous pouvez accepter les cookies analytics/publicité, choisir les cookies essentiels seulement, ou réinitialiser votre choix. Le refus de certains cookies peut limiter les statistiques, la personnalisation des annonces ou certaines mesures publicitaires.</p>
+      <p><button class="btn btn-ghost btn-sm" onclick="resetCookieConsent()"><i class="fa fa-cookie-bite"></i> Réinitialiser mon choix cookies</button></p>
     `
   },
   contact: {
@@ -2290,18 +2317,51 @@ function openSupportEmail() {
 }
 
 function renderCookieBanner() {
-  let accepted = false;
-  try { accepted = localStorage.getItem('facturepro-cookie-consent') === 'accepted'; } catch {}
+  let choice = '';
+  try { choice = localStorage.getItem('facturepro-cookie-consent') || ''; } catch {}
   const banner = document.getElementById('cookie-banner');
-  if (banner && !accepted) banner.classList.add('open');
+  if (choice === 'accepted') updateGoogleConsent(true);
+  if (banner && !choice) banner.classList.add('open');
+}
+
+function updateGoogleConsent(granted) {
+  const value = granted ? 'granted' : 'denied';
+  if (typeof gtag === 'function') {
+    gtag('consent', 'update', {
+      ad_storage: value,
+      analytics_storage: value,
+      ad_user_data: value,
+      ad_personalization: value
+    });
+  }
 }
 
 function acceptCookies() {
   try { localStorage.setItem('facturepro-cookie-consent', 'accepted'); } catch {}
+  updateGoogleConsent(true);
   document.getElementById('cookie-banner')?.classList.remove('open');
+  initAdsenseSlots();
+  showNotif('Cookies analytics/publicité acceptés', 'success');
+}
+
+function rejectCookies() {
+  try { localStorage.setItem('facturepro-cookie-consent', 'essential'); } catch {}
+  updateGoogleConsent(false);
+  document.getElementById('cookie-banner')?.classList.remove('open');
+  showNotif('Cookies essentiels seulement', 'info');
+}
+
+function resetCookieConsent() {
+  try { localStorage.removeItem('facturepro-cookie-consent'); } catch {}
+  updateGoogleConsent(false);
+  renderCookieBanner();
+  showNotif('Choix cookies réinitialisé', 'info');
 }
 
 function initAdsenseSlots() {
+  let accepted = false;
+  try { accepted = localStorage.getItem('facturepro-cookie-consent') === 'accepted'; } catch {}
+  if (!accepted) return;
   if (!window.adsbygoogle) return;
   document.querySelectorAll('ins.adsbygoogle').forEach(slot => {
     const adSlot = slot.getAttribute('data-ad-slot') || '';
@@ -2567,8 +2627,61 @@ function renderAccountStoragePanel() {
       <div class="storage-actions">
         <button class="btn btn-ghost btn-sm" onclick="cleanupOldAccountData()"><i class="fa fa-broom"></i> Nettoyer anciens</button>
         <button class="btn btn-ghost btn-sm" onclick="setAutoCleanup(${auto ? 'false' : 'true'})"><i class="fa fa-rotate"></i> Auto-cleanup ${auto ? 'ON' : 'OFF'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportAccountData()"><i class="fa fa-file-export"></i> Export data</button>
+        <button class="btn btn-danger btn-sm" onclick="clearAllAccountLocalData()"><i class="fa fa-shield-halved"></i> Supprimer data</button>
       </div>
     </div>`;
+}
+
+function collectAccountDataBundle() {
+  if (!S.authUser) return null;
+  const suffixes = ['profile','history','projects','clients','products'];
+  const data = {};
+  suffixes.forEach(suffix => {
+    try { data[suffix] = JSON.parse(localStorage.getItem(getAccountStorageKey(suffix)) || (suffix === 'profile' ? 'null' : '[]')); }
+    catch { data[suffix] = suffix === 'profile' ? null : []; }
+  });
+  return {
+    exportedAt: new Date().toISOString(),
+    app: 'FacturePro',
+    version: 'account-backup-v1',
+    user: {
+      uid: S.authUser.uid || '',
+      email: S.authUser.email || '',
+      name: S.authUser.name || ''
+    },
+    quotaBytes: ACCOUNT_STORAGE_QUOTA_BYTES,
+    storageUsedBytes: getAccountStorageUsageBytes(),
+    data
+  };
+}
+
+function exportAccountData() {
+  if (!S.authUser) {
+    showNotif('Login karein, phir account data export karein', 'info');
+    return;
+  }
+  const bundle = collectAccountDataBundle();
+  const safeEmail = String(S.authUser.email || 'account').replace(/[^a-z0-9._-]+/gi, '-');
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type:'application/json' });
+  downloadBlob(blob, `facturepro-backup-${safeEmail}.json`);
+  showNotif('Account backup exporté', 'success');
+}
+
+function clearAllAccountLocalData() {
+  if (!S.authUser) return;
+  if (!confirm('Supprimer profil société, historique, projets, clients et produits de ce navigateur ?')) return;
+  ['profile','history','projects','clients','products','auto-cleanup'].forEach(suffix => {
+    try { localStorage.removeItem(getAccountStorageKey(suffix)); } catch {}
+  });
+  S.autoCleanup = false;
+  fillAccountProfileForm(null);
+  renderAccountOverview();
+  renderSavedProjects();
+  renderSavedClients();
+  renderSavedProducts();
+  renderAccountHistory();
+  showNotif('Données compte locales supprimées', 'info');
 }
 
 function loadAccountList(suffix) {
