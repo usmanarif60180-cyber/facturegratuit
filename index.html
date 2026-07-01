@@ -670,6 +670,113 @@ try {
     .home-actions .btn { width:100%; }
   }
 
+  /* Premium UI upgrade pack */
+  :root {
+    --brand: #4f46e5;
+    --brand-2: #0ea5e9;
+    --brand-glow: rgba(79,70,229,.28);
+    --success: #059669;
+    --navy-1: #07111f;
+    --navy-2: #0d1b2e;
+  }
+  body {
+    background:
+      radial-gradient(circle at 15% 0%, rgba(14,165,233,.09), transparent 34%),
+      radial-gradient(circle at 92% 8%, rgba(5,150,105,.08), transparent 30%),
+      linear-gradient(180deg,var(--navy-1),#0a1220 46%,#0b1323);
+  }
+  body.light {
+    --brand: #4f46e5;
+    --brand-2: #0284c7;
+    --success: #047857;
+    background: linear-gradient(180deg,#f8fafc,#eef4fb 48%,#f8fafc);
+  }
+  body::before {
+    background:
+      radial-gradient(ellipse 70% 46% at 12% 0%, rgba(14,165,233,0.10), transparent),
+      radial-gradient(ellipse 54% 38% at 90% 100%, rgba(5,150,105,0.07), transparent);
+  }
+  .btn-primary { position:relative; overflow:hidden; background:linear-gradient(135deg,#4f46e5,#0ea5e9); }
+  .btn-primary::after { content:""; position:absolute; inset:-120% auto -120% -40%; width:38%; transform:rotate(20deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent); transition:left .45s ease; }
+  .btn-primary:hover::after { left:125%; }
+  .card, .home-tool-card, .home-format-card, .home-trust-card, .home-article-card, .dashboard-card, .saved-item {
+    box-shadow: 0 18px 55px rgba(2,6,23,.14);
+  }
+  .card:hover, .home-tool-card:hover, .layout-card:hover, .theme-card:hover, .saved-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(14,165,233,.34);
+  }
+  .home-workflow { max-width:1360px; margin:0 auto; padding:18px 28px 8px; }
+  .workflow-shell { border:1px solid rgba(148,163,184,.18); border-radius:18px; padding:18px; background:linear-gradient(135deg,rgba(15,23,42,.72),rgba(15,23,42,.38)); box-shadow:0 22px 70px rgba(2,6,23,.22); }
+  body.light .workflow-shell { background:rgba(255,255,255,.82); }
+  .workflow-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:14px; }
+  .workflow-head h2 { color:var(--ink); font-size:22px; line-height:1.15; font-weight:950; letter-spacing:0; }
+  .workflow-head p { color:var(--ink-muted); font-size:13px; line-height:1.6; margin-top:6px; max-width:720px; }
+  .workflow-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+  .workflow-card { min-height:118px; text-align:left; border:1px solid var(--border); border-radius:14px; background:rgba(255,255,255,.035); color:var(--ink-muted); padding:14px; cursor:pointer; transition:transform .18s ease,border-color .18s ease,background .18s ease; }
+  .workflow-card:hover { transform:translateY(-4px); border-color:rgba(14,165,233,.4); background:rgba(14,165,233,.08); }
+  .workflow-card i { color:#38bdf8; font-size:18px; margin-bottom:12px; }
+  .workflow-card strong { display:block; color:var(--ink); font-size:13px; margin-bottom:5px; }
+  .workflow-card span { display:block; font-size:11px; line-height:1.45; }
+  .editor-progress { position:sticky; top:56px; z-index:25; margin:0 -18px 14px; padding:12px 18px; background:rgba(8,13,25,.82); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); }
+  body.light .editor-progress { background:rgba(248,250,252,.9); }
+  .progress-steps { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-bottom:10px; }
+  .progress-step { display:flex; align-items:center; justify-content:center; gap:6px; min-height:30px; border:1px solid var(--border); border-radius:999px; color:var(--ink-dim); background:rgba(255,255,255,.025); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.04em; cursor:pointer; transition:all .15s ease; }
+  .progress-step.active { color:#fff; border-color:rgba(14,165,233,.5); background:linear-gradient(135deg,#4f46e5,#0ea5e9); box-shadow:0 10px 26px rgba(14,165,233,.18); }
+  .mode-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .mode-segment { display:inline-flex; padding:3px; border:1px solid var(--border); border-radius:999px; background:rgba(255,255,255,.03); }
+  .mode-segment button { min-width:86px; height:28px; border:0; border-radius:999px; background:transparent; color:var(--ink-muted); font:inherit; font-size:11px; font-weight:900; cursor:pointer; }
+  .mode-segment button.active { background:rgba(14,165,233,.16); color:#7dd3fc; }
+  body.simple-mode #sec-polices, body.simple-mode #sec-couleurs, body.simple-mode #sec-logo, body.simple-mode #sec-extras { display:none !important; }
+  body.simple-mode .section-tab.advanced-tab { display:none; }
+  .mode-hint { color:var(--ink-dim); font-size:10px; line-height:1.35; }
+  .preview-actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
+  .preview-mini-toolbar { position:sticky; top:110px; z-index:18; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 20px; border-bottom:1px solid var(--border); background:rgba(8,13,25,.72); backdrop-filter:blur(12px); }
+  body.light .preview-mini-toolbar { background:rgba(255,255,255,.78); }
+  .preview-mini-toolbar span { color:var(--ink-muted); font-size:11px; font-weight:800; }
+  .profile-completion { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin:0 0 12px; }
+  .profile-check { border:1px solid var(--border); border-radius:10px; padding:10px; background:rgba(255,255,255,.028); color:var(--ink-muted); font-size:10px; line-height:1.35; }
+  .profile-check i { display:block; color:var(--ink-dim); font-size:14px; margin-bottom:6px; }
+  .profile-check.done { border-color:rgba(5,150,105,.3); background:rgba(5,150,105,.08); color:#8fe7c1; }
+  .profile-check.done i { color:#34d399; }
+  .empty-state { border:1px dashed var(--border-strong); border-radius:14px; padding:22px; text-align:center; background:rgba(255,255,255,.025); color:var(--ink-muted); }
+  .empty-state i { display:inline-grid; place-items:center; width:44px; height:44px; border-radius:14px; color:#7dd3fc; background:rgba(14,165,233,.12); margin-bottom:10px; font-size:18px; }
+  .empty-state strong { display:block; color:var(--ink); margin-bottom:6px; }
+  .empty-state p { font-size:12px; line-height:1.55; margin-bottom:12px; }
+  .template-gallery { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+  .template-card { border:1px solid var(--border); border-radius:12px; padding:10px; background:rgba(255,255,255,.025); cursor:pointer; transition:all .15s ease; }
+  .template-card:hover, .template-card.active { border-color:rgba(14,165,233,.42); background:rgba(14,165,233,.08); transform:translateY(-2px); }
+  .template-mini { height:58px; border-radius:8px; background:linear-gradient(135deg,var(--tp),var(--ta)); padding:7px; margin-bottom:7px; }
+  .template-mini div { height:5px; border-radius:999px; background:rgba(255,255,255,.72); margin-bottom:5px; }
+  .template-mini div:nth-child(2) { width:70%; }
+  .template-mini div:nth-child(3) { width:44%; margin-left:auto; }
+  .template-card strong { display:block; color:var(--ink); font-size:11px; margin-bottom:3px; }
+  .template-card span { display:block; color:var(--ink-muted); font-size:9px; line-height:1.35; }
+  .online-style-card { display:none; }
+  body.online-sector .online-style-card { display:block; }
+  .success-modal-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-top:14px; }
+  .success-icon { width:54px; height:54px; border-radius:18px; display:grid; place-items:center; background:rgba(5,150,105,.14); color:#34d399; font-size:24px; margin-bottom:12px; }
+  .auth-benefits { display:grid; gap:7px; margin:0 0 14px; }
+  .auth-benefits span { display:flex; align-items:center; gap:8px; color:var(--ink-muted); font-size:11px; }
+  .auth-benefits i { color:#38bdf8; }
+  @media(max-width:900px) {
+    .workflow-grid, .profile-completion { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .template-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .progress-steps { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  }
+  @media(max-width:760px) {
+    .topbar-logo .logo-badge { display:none; }
+    .topbar-actions { width:100%; }
+    .topbar-actions > .btn:not(:first-child):not(#theme-toggle), .topbar-actions > label { max-width:42px; min-width:42px; padding-left:0; padding-right:0; }
+    .topbar-actions > .btn:not(:first-child):not(#theme-toggle) { overflow:hidden; }
+    .preview-mini-toolbar, .preview-topbar { position:relative; top:auto; flex-direction:column; align-items:stretch; }
+    .preview-actions { justify-content:flex-start; }
+    .success-modal-actions { grid-template-columns:1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+  }
+
   /* Range slider */
   input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; outline: none; }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); cursor: pointer; box-shadow: 0 0 8px var(--brand-glow); }
@@ -778,6 +885,26 @@ try {
       <div class="home-tool-card" onclick="selectHomeTool('facture','online')"><div class="home-tool-icon">🛒</div><div class="home-tool-title">Facture freelance / marketplace</div><div class="home-tool-copy">Amazon, eBay, Etsy, Shopify, Fiverr, Upwork, vendeurs en ligne</div><span class="home-tool-tag online">Online seller</span></div>
       <div class="home-tool-card" onclick="selectHomeTool('devis','batiment')"><div class="home-tool-icon">📋</div><div class="home-tool-title">Devis bâtiment</div><div class="home-tool-copy">Chiffrage, appel d'offre, second oeuvre</div><span class="home-tool-tag">Bâtiment</span></div>
       <div class="home-tool-card" onclick="selectHomeTool('devis','automobile')"><div class="home-tool-icon">🚘</div><div class="home-tool-title">Devis automobile</div><div class="home-tool-copy">Estimation réparation, reprise, carrosserie</div><span class="home-tool-tag auto">Automobile</span></div>
+    </div>
+  </div>
+
+  <div class="home-workflow">
+    <div class="workflow-shell">
+      <div class="workflow-head">
+        <div>
+          <div class="home-section-title" style="margin-bottom:8px">Choose your workflow</div>
+          <h2>Commencez avec le bon format</h2>
+          <p>Choisissez un profil de travail. L'éditeur ouvre automatiquement le bon type de facture/devis, avec les champs utiles pour votre activité.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="openEditor('facture','batiment')"><i class="fa fa-arrow-right"></i> Ouvrir l'éditeur</button>
+      </div>
+      <div class="workflow-grid">
+        <button class="workflow-card" onclick="selectWorkflow('batiment')"><i class="fa fa-hammer"></i><strong>Bâtiment</strong><span>Travaux, rénovation, chantier, TVA, adresse chantier.</span></button>
+        <button class="workflow-card" onclick="selectWorkflow('automobile')"><i class="fa fa-car"></i><strong>Automobile</strong><span>Vente, réparation, VIN, plaque, kilométrage.</span></button>
+        <button class="workflow-card" onclick="selectWorkflow('marketplace')"><i class="fa fa-store"></i><strong>Marketplace</strong><span>Amazon, eBay, Etsy, Shopify, SKU, commande.</span></button>
+        <button class="workflow-card" onclick="selectWorkflow('freelance')"><i class="fa fa-laptop-code"></i><strong>Freelance</strong><span>Services, Fiverr, Upwork, prestation digitale.</span></button>
+        <button class="workflow-card" onclick="selectWorkflow('devis')"><i class="fa fa-clipboard-list"></i><strong>Devis</strong><span>Chiffrage bâtiment ou automobile avant validation.</span></button>
+      </div>
     </div>
   </div>
 
@@ -973,16 +1100,32 @@ try {
 
   <!-- ── SIDEBAR ── -->
   <aside class="sidebar no-print">
+    <div class="editor-progress">
+      <div class="progress-steps" id="progress-steps">
+        <button class="progress-step active" data-step="infos" onclick="showSection('infos')"><i class="fa fa-circle-info"></i> Infos</button>
+        <button class="progress-step" data-step="articles" onclick="showSection('articles')"><i class="fa fa-box"></i> Articles</button>
+        <button class="progress-step" data-step="style" onclick="showSection('style')"><i class="fa fa-palette"></i> Design</button>
+        <button class="progress-step" data-step="preview" onclick="focusPreview()"><i class="fa fa-eye"></i> Preview</button>
+        <button class="progress-step" data-step="download" onclick="generatePDF()"><i class="fa fa-download"></i> Download</button>
+      </div>
+      <div class="mode-row">
+        <div class="mode-segment" aria-label="Mode éditeur">
+          <button id="mode-simple-btn" onclick="setEditorMode('simple')">Simple</button>
+          <button id="mode-advanced-btn" class="active" onclick="setEditorMode('advanced')">Advanced</button>
+        </div>
+        <div class="mode-hint" id="mode-hint">Advanced: tous les outils visibles</div>
+      </div>
+    </div>
     <!-- Section tabs -->
     <div class="section-tabs" id="section-tabs">
       <button class="section-tab active" onclick="showSection('infos')">📝 Infos</button>
       <button class="section-tab" onclick="showSection('articles')">📦 Articles</button>
       <button class="section-tab" onclick="showSection('ai')">✨ AI</button>
       <button class="section-tab" onclick="showSection('style')">🎨 Style</button>
-      <button class="section-tab" onclick="showSection('polices')">✍️ Polices</button>
-      <button class="section-tab" onclick="showSection('couleurs')">🖌️ Couleurs</button>
-      <button class="section-tab" onclick="showSection('logo')">🏢 Logo</button>
-      <button class="section-tab" onclick="showSection('extras')">⚙️ Extras</button>
+      <button class="section-tab advanced-tab" onclick="showSection('polices')">✍️ Polices</button>
+      <button class="section-tab advanced-tab" onclick="showSection('couleurs')">🖌️ Couleurs</button>
+      <button class="section-tab advanced-tab" onclick="showSection('logo')">🏢 Logo</button>
+      <button class="section-tab advanced-tab" onclick="showSection('extras')">⚙️ Extras</button>
     </div>
 
     <!-- ── INFOS ── -->
@@ -1255,6 +1398,14 @@ try {
         <div class="grid-4" id="layout-grid"></div>
       </div>
       <div class="card">
+        <div class="card-title"><i class="fa fa-table-cells-large" style="color:#0ea5e9"></i> Templates rapides — 8 previews</div>
+        <div class="template-gallery" id="template-gallery"></div>
+      </div>
+      <div class="card online-style-card" id="online-style-card">
+        <div class="card-title"><i class="fa fa-store" style="color:#10b981"></i> Online invoice styles — 15 marketplace styles</div>
+        <div class="template-gallery" id="online-style-gallery"></div>
+      </div>
+      <div class="card">
         <div class="card-title"><i class="fa fa-palette" style="color:#8b5cf6"></i> Thème de couleurs — 30 thèmes</div>
         <div class="grid-3" id="theme-grid"></div>
       </div>
@@ -1453,6 +1604,16 @@ try {
         <button class="btn btn-success btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> Télécharger</button>
       </div>
     </div>
+    <div class="preview-mini-toolbar no-print">
+      <span><i class="fa fa-bolt"></i> Actions rapides</span>
+      <div class="preview-actions">
+        <button class="btn btn-primary btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> Download</button>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Print</button>
+        <button class="btn btn-ghost btn-sm" onclick="emailPdf()"><i class="fa fa-envelope"></i> Email</button>
+        <button class="btn btn-ghost btn-sm" onclick="saveCurrentProject()"><i class="fa fa-folder-plus"></i> Save</button>
+        <button class="btn btn-ghost btn-sm" onclick="showSection('style')"><i class="fa fa-palette"></i> Theme</button>
+      </div>
+    </div>
     <div class="ad-band no-print" data-ad-position="preview-banner">
       <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">
         <ins class="adsbygoogle"
@@ -1515,6 +1676,11 @@ try {
       <button class="btn btn-ghost auth-close" onclick="closeAuth()" title="Fermer"><i class="fa fa-xmark"></i></button>
     </div>
     <form class="auth-modal-body" onsubmit="submitAuth(event)">
+      <div class="auth-benefits">
+        <span><i class="fa fa-building"></i> Sauvegardez votre société, logo, signature et cachet</span>
+        <span><i class="fa fa-clock-rotate-left"></i> Retrouvez projets, clients, produits et historique</span>
+        <span><i class="fa fa-key"></i> Recover account disponible par email Firebase</span>
+      </div>
       <div class="form-group" id="auth-name-group">
         <label class="form-label">Nom</label>
         <input class="form-input" id="auth-name" autocomplete="name" placeholder="Votre nom">
@@ -1637,6 +1803,30 @@ try {
         <button class="btn btn-ghost btn-sm" onclick="closeAccount();openAuth('login')"><i class="fa fa-key"></i> Recover</button>
         <button class="btn btn-danger btn-sm" onclick="logoutUser();closeAccount()"><i class="fa fa-right-from-bracket"></i> Logout</button>
         <button class="btn btn-primary btn-sm" onclick="closeAccount()"><i class="fa fa-check"></i> OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF SUCCESS MODAL -->
+<div class="modal-backdrop no-print" id="pdf-success-modal" onclick="handlePdfSuccessBackdrop(event)">
+  <div class="auth-modal" style="width:min(520px,100%)">
+    <div class="auth-modal-head">
+      <div>
+        <div class="auth-modal-title">PDF téléchargé</div>
+        <div class="auth-modal-sub" id="pdf-success-sub">Votre document est prêt</div>
+      </div>
+      <button class="btn btn-ghost auth-close" onclick="closePdfSuccess()" title="Fermer"><i class="fa fa-xmark"></i></button>
+    </div>
+    <div class="auth-modal-body">
+      <div class="success-icon"><i class="fa fa-check"></i></div>
+      <div style="color:var(--ink);font-size:16px;font-weight:900;margin-bottom:6px" id="pdf-success-title">Facture prête</div>
+      <div style="color:var(--ink-muted);font-size:12px;line-height:1.6">Vous pouvez sauvegarder ce document dans l'historique, l'envoyer par email ou commencer une nouvelle facture.</div>
+      <div class="success-modal-actions">
+        <button class="btn btn-primary btn-sm" onclick="recordDocumentHistory('manual');closePdfSuccess();openAccount();showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Save history</button>
+        <button class="btn btn-ghost btn-sm" onclick="closePdfSuccess();emailPdf()"><i class="fa fa-envelope"></i> Email PDF</button>
+        <button class="btn btn-ghost btn-sm" onclick="closePdfSuccess();duplicateDocument()"><i class="fa fa-copy"></i> Create another</button>
+        <button class="btn btn-ghost btn-sm" onclick="closePdfSuccess();openAccount()"><i class="fa fa-user"></i> Account</button>
       </div>
     </div>
   </div>
@@ -1910,6 +2100,35 @@ const LAYOUTS = [
   { id:'elegant', label:'Élégant',  icon:'✦', desc:'Lignes fines' },
 ];
 
+const QUICK_TEMPLATES = [
+  { name:'Classic', desc:'Deux colonnes lisibles', layout:1, theme:0, p:'#4f46e5', a:'#818cf8' },
+  { name:'Modern', desc:'Header premium', layout:0, theme:1, p:'#0369a1', a:'#38bdf8' },
+  { name:'Minimal', desc:'Blanc, simple, net', layout:2, theme:3, p:'#1e293b', a:'#64748b' },
+  { name:'Stripe', desc:'Bande latérale pro', layout:4, theme:13, p:'#0284c7', a:'#7dd3fc' },
+  { name:'Pro', desc:'Business solide', layout:7, theme:15, p:'#047857', a:'#6ee7b7' },
+  { name:'Auto', desc:'Garage et vente', layout:6, theme:9, p:'#1e3a5f', a:'#60a5fa' },
+  { name:'Marketplace', desc:'Online seller', layout:5, theme:14, p:'#0e7490', a:'#67e8f9' },
+  { name:'Clean', desc:'PDF clair', layout:2, theme:26, p:'#27272a', a:'#a1a1aa' },
+];
+
+const ONLINE_STYLES = [
+  { name:'Marketplace Clean', desc:'Amazon, eBay, Etsy', layout:1, theme:13, p:'#0284c7', a:'#7dd3fc' },
+  { name:'E-commerce Pro', desc:'Order, SKU, totals', layout:0, theme:1, p:'#0369a1', a:'#38bdf8' },
+  { name:'Seller Minimal', desc:'Small seller clean', layout:2, theme:26, p:'#27272a', a:'#a1a1aa' },
+  { name:'Platform Detail', desc:'Marketplace block', layout:6, theme:14, p:'#0e7490', a:'#67e8f9' },
+  { name:'Digital Service', desc:'Fiverr, Upwork', layout:7, theme:0, p:'#4f46e5', a:'#818cf8' },
+  { name:'Product Shipment', desc:'Delivery reference', layout:5, theme:19, p:'#9a3412', a:'#fdba74' },
+  { name:'Storefront Modern', desc:'Shopify style', layout:0, theme:15, p:'#047857', a:'#6ee7b7' },
+  { name:'Creator Invoice', desc:'Digital products', layout:3, theme:21, p:'#be185d', a:'#f9a8d4' },
+  { name:'Wholesale Online', desc:'Bulk products', layout:4, theme:3, p:'#1e293b', a:'#64748b' },
+  { name:'Compact Receipt', desc:'Short order PDF', layout:2, theme:25, p:'#111827', a:'#9ca3af' },
+  { name:'Premium Seller', desc:'Branded seller', layout:7, theme:28, p:'#172554', a:'#facc15' },
+  { name:'International Seller', desc:'Currency friendly', layout:1, theme:2, p:'#065f46', a:'#34d399' },
+  { name:'Subscription Service', desc:'Recurring service', layout:6, theme:7, p:'#0f766e', a:'#2dd4bf' },
+  { name:'Multi-Item Marketplace', desc:'Many rows clear', layout:5, theme:29, p:'#020617', a:'#38bdf8' },
+  { name:'No-TVA Export', desc:'0% tax/export', layout:2, theme:11, p:'#14532d', a:'#4ade80' },
+];
+
 const COUNTRY_PROFILES = {
   FR: {
     name:'France', lang:'fr', locale:'fr-FR', currency:'EUR', symbol:'€', taxName:'TVA', taxRate:20,
@@ -2054,6 +2273,8 @@ const S = {
   aiLastItems: [],
   aiLastObject: '',
   autoCleanup: false,
+  editorMode: 'advanced',
+  onlineStyleIdx: 0,
 };
 
 let itemId = 0;
@@ -2075,6 +2296,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (vehicleCard) vehicleCard.style.display = 'none';
 
   buildLayoutGrid();
+  buildTemplateGallery();
+  buildOnlineStyleGallery();
   buildThemeGrid();
   buildFontCats();
   buildFontList();
@@ -2095,6 +2318,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdsenseSlots();
   applyCountryDocumentFormat();
   loadAutoCleanupPreference();
+  setEditorMode(S.editorMode);
+  updateProgressSteps('infos');
   setTimeout(updateAiStatus, 500);
 
   addRow();
@@ -2739,6 +2964,7 @@ function renderAccountOverview() {
   }, { month:0, ht:0, tva:0, total:0 });
   if (grid) {
     grid.innerHTML = `
+      <div style="grid-column:1 / -1">${renderProfileCompletionWidget()}</div>
       <div class="dashboard-card"><i class="fa fa-calendar-days"></i><strong>${fmtEur(totals.month)}</strong><span>Total ce mois</span></div>
       <div class="dashboard-card"><i class="fa fa-file-invoice-dollar"></i><strong>${fmtEur(totals.total)}</strong><span>Total facturé</span></div>
       <div class="dashboard-card"><i class="fa fa-percent"></i><strong>${fmtEur(totals.tva)}</strong><span>Total TVA</span></div>
@@ -2753,8 +2979,32 @@ function renderAccountOverview() {
     const latest = projects.slice().sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt))).slice(0,3);
     recent.innerHTML = latest.length
       ? `<div class="saved-list">${latest.map(renderProjectItem).join('')}</div>`
-      : '<div class="account-detail-row"><span>Projets récents</span><strong>Aucun projet sauvegardé</strong></div>';
+      : renderEmptyState('folder-open', 'Aucun projet récent', 'Sauvegardez le projet actuel pour le reprendre plus tard.', 'Sauver projet actuel', 'saveCurrentProject()');
   }
+}
+
+function renderProfileCompletionWidget() {
+  const profile = loadAccountProfile() || {};
+  const verified = S.authUser?.emailVerified !== false;
+  const checks = [
+    ['building', 'Société', Boolean(profile.name && profile.addr)],
+    ['pen-nib', 'Signature', Boolean(profile.signatureSrc || S.signatureSrc)],
+    ['certificate', 'Cachet', Boolean(profile.companyStampSrc || S.companyStampSrc)],
+    ['building-columns', 'IBAN', Boolean(profile.iban)],
+    ['envelope-circle-check', 'Email', Boolean(verified)]
+  ];
+  return `<div class="profile-completion">${checks.map(([icon,label,done]) => `
+    <div class="profile-check${done ? ' done' : ''}"><i class="fa fa-${icon}"></i>${label}<br><strong>${done ? 'OK' : 'À compléter'}</strong></div>
+  `).join('')}</div>`;
+}
+
+function renderEmptyState(icon, title, copy, actionLabel, action) {
+  return `<div class="empty-state">
+    <i class="fa fa-${icon}"></i>
+    <strong>${escHtml(title)}</strong>
+    <p>${escHtml(copy)}</p>
+    <button class="btn btn-primary btn-sm" onclick="${action}"><i class="fa fa-plus"></i> ${escHtml(actionLabel)}</button>
+  </div>`;
 }
 
 function getCurrentProjectRecord(forceNew=false) {
@@ -2817,7 +3067,7 @@ function renderSavedProjects() {
   const list = loadAccountList('projects').sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
   box.innerHTML = list.length
     ? `<div class="saved-list">${list.map(renderProjectItem).join('')}</div>`
-    : '<div class="account-detail-row"><span>Projets</span><strong>Aucun projet sauvegardé</strong></div>';
+    : renderEmptyState('folder-open', 'Aucun projet sauvegardé', 'Sauvegardez une facture ou un devis en cours pour reprendre depuis le même point.', 'Sauver projet actuel', 'saveCurrentProject()');
 }
 
 function openSavedProject(id) {
@@ -2899,7 +3149,7 @@ function renderSavedClients() {
           <button class="btn btn-danger btn-sm" onclick="deleteSavedClient('${escHtml(item.id)}')"><i class="fa fa-trash"></i></button>
         </div>
       </div>`).join('')}</div>`
-    : '<div class="account-detail-row"><span>Clients</span><strong>Aucun client sauvegardé</strong></div>';
+    : renderEmptyState('address-book', 'Aucun client sauvegardé', 'Ajoutez les coordonnées du client actuel à votre base clients.', 'Sauver client actuel', 'saveCurrentClient()');
 }
 
 function applySavedClient(id) {
@@ -2977,7 +3227,7 @@ function renderSavedProducts() {
           <button class="btn btn-danger btn-sm" onclick="deleteSavedProduct('${escHtml(item.id)}')"><i class="fa fa-trash"></i></button>
         </div>
       </div>`).join('')}</div>`
-    : '<div class="account-detail-row"><span>Produits/services</span><strong>Aucun produit sauvegardé</strong></div>';
+    : renderEmptyState('box', 'Aucun produit/service', 'Sauvegardez la première ligne d’article pour la réutiliser dans vos prochaines factures.', 'Sauver première ligne', 'saveFirstProduct()');
 }
 
 function addSavedProduct(id) {
@@ -3374,7 +3624,7 @@ function renderAccountHistory() {
   if (!box) return;
   const list = loadAccountHistory().sort((a,b) => String(b.date).localeCompare(String(a.date)));
   if (!list.length) {
-    box.innerHTML = '<div class="account-detail-row"><span>Historique</span><strong>Aucune facture sauvegardée</strong></div>';
+    box.innerHTML = renderEmptyState('clock-rotate-left', 'Aucune facture sauvegardée', 'Ajoutez la facture actuelle à l’historique pour suivre vos totaux mensuels HT, TVA et TTC.', 'Ajouter facture actuelle', "recordDocumentHistory('manual')");
     return;
   }
   const grouped = list.reduce((acc, item) => {
@@ -3467,6 +3717,8 @@ function applyDraftSnapshot(draft) {
   itemId = S.items.reduce((max, item) => Math.max(max, item.id || 0), 0);
   buildLayoutGrid();
   selectLayout(S.layoutIdx);
+  buildTemplateGallery();
+  buildOnlineStyleGallery();
   buildThemeGrid();
   selectTheme(S.themeIdx);
   buildFontCats();
@@ -3479,6 +3731,7 @@ function applyDraftSnapshot(draft) {
   renderCompanyStampState();
   renderSignatureImageState();
   renderDocVariant();
+  setEditorMode(S.editorMode || 'advanced');
   updatePreview();
 }
 
@@ -3631,6 +3884,51 @@ function showSection(id) {
     const sections = ['infos','articles','ai','style','polices','couleurs','logo','extras'];
     btn.classList.toggle('active', sections[i] === id);
   });
+  updateProgressSteps(id);
+}
+
+function updateProgressSteps(active='infos') {
+  const map = { infos:'infos', articles:'articles', ai:'articles', style:'style', polices:'style', couleurs:'style', logo:'style', extras:'style', preview:'preview', download:'download' };
+  const current = map[active] || active;
+  document.querySelectorAll('.progress-step').forEach(step => {
+    step.classList.toggle('active', step.dataset.step === current);
+  });
+}
+
+function focusPreview() {
+  updateProgressSteps('preview');
+  document.querySelector('.preview-panel')?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function setEditorMode(mode='advanced') {
+  S.editorMode = mode === 'simple' ? 'simple' : 'advanced';
+  document.body.classList.toggle('simple-mode', S.editorMode === 'simple');
+  document.getElementById('mode-simple-btn')?.classList.toggle('active', S.editorMode === 'simple');
+  document.getElementById('mode-advanced-btn')?.classList.toggle('active', S.editorMode !== 'simple');
+  const hint = document.getElementById('mode-hint');
+  if (hint) hint.textContent = S.editorMode === 'simple' ? 'Simple: champs essentiels seulement' : 'Advanced: tous les outils visibles';
+  if (S.editorMode === 'simple') {
+    const visibleAdvanced = ['polices','couleurs','logo','extras'].some(s => document.getElementById('sec-'+s)?.style.display !== 'none');
+    if (visibleAdvanced) showSection('infos');
+  }
+}
+
+function syncSectorUi() {
+  document.body.classList.toggle('online-sector', S.docSector === 'online');
+  buildOnlineStyleGallery();
+}
+
+function selectWorkflow(kind) {
+  const map = {
+    batiment: ['facture','batiment','infos'],
+    automobile: ['facture','automobile','infos'],
+    marketplace: ['facture','online','style'],
+    freelance: ['facture','online','infos'],
+    devis: ['devis','batiment','infos']
+  };
+  const [type, sector, section] = map[kind] || map.batiment;
+  openEditor(type, sector);
+  showSection(section);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3681,6 +3979,7 @@ function syncLocaleControls() {
   });
   const currency = document.getElementById('currency-select');
   if (currency) currency.value = S.currency || getCountryProfile().currency;
+  updateCountryFormatTooltip();
 }
 
 function setCountry(country) {
@@ -3701,6 +4000,15 @@ function setCountry(country) {
   renderItems();
   updatePreview();
   showNotif(`${profile.name} format applied`, 'success');
+}
+
+function updateCountryFormatTooltip() {
+  const format = getDocumentFormat();
+  const note = format?.note || '';
+  ['country-select','top-country-select'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.title = note;
+  });
 }
 
 function buildCurrencySelect() {
@@ -3778,6 +4086,7 @@ function applyCountryDocumentFormat() {
     if (el) el.value = val;
   });
   renderFormatNote();
+  updateCountryFormatTooltip();
 }
 
 function renderFormatNote() {
@@ -3803,6 +4112,7 @@ function renderDocVariant() {
   if (vehicleCard) vehicleCard.style.display = S.docSector === 'automobile' ? '' : 'none';
   const onlineCard = document.getElementById('online-card');
   if (onlineCard) onlineCard.style.display = S.docType === 'facture' && S.docSector === 'online' ? '' : 'none';
+  syncSectorUi();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3811,7 +4121,7 @@ function renderDocVariant() {
 function buildLayoutGrid() {
   const grid = document.getElementById('layout-grid');
   grid.innerHTML = LAYOUTS.map((l,i) => `
-    <div class="layout-card${i===0?' active':''}" onclick="selectLayout(${i})">
+    <div class="layout-card${i===S.layoutIdx?' active':''}" onclick="selectLayout(${i})">
       <div class="layout-icon">${l.icon}</div>
       <div class="layout-name">${l.label}</div>
       <div class="layout-desc">${l.desc}</div>
@@ -3831,7 +4141,7 @@ function selectLayout(i) {
 function buildThemeGrid() {
   const grid = document.getElementById('theme-grid');
   grid.innerHTML = THEMES.map((t,i) => `
-    <div class="theme-card${i===0?' active':''}" onclick="selectTheme(${i})">
+    <div class="theme-card${i===S.themeIdx?' active':''}" onclick="selectTheme(${i})">
       <div class="theme-bars">${t.preview.map(c=>`<div class="theme-bar" style="background:${c}"></div>`).join('')}</div>
       <div class="theme-name">${t.name}</div>
     </div>
@@ -3842,6 +4152,53 @@ function selectTheme(i) {
   S.themeIdx = i;
   document.querySelectorAll('.theme-card').forEach((c,j) => c.classList.toggle('active', j===i));
   updatePreview();
+}
+
+function buildTemplateGallery() {
+  const grid = document.getElementById('template-gallery');
+  if (!grid) return;
+  grid.innerHTML = QUICK_TEMPLATES.map((tpl, i) => `
+    <div class="template-card" onclick="applyQuickTemplate(${i})">
+      <div class="template-mini" style="--tp:${tpl.p};--ta:${tpl.a}"><div></div><div></div><div></div></div>
+      <strong>${escHtml(tpl.name)}</strong>
+      <span>${escHtml(tpl.desc)}</span>
+    </div>
+  `).join('');
+}
+
+function applyQuickTemplate(i) {
+  const tpl = QUICK_TEMPLATES[i] || QUICK_TEMPLATES[0];
+  S.layoutIdx = tpl.layout;
+  S.themeIdx = tpl.theme;
+  selectLayout(S.layoutIdx);
+  selectTheme(S.themeIdx);
+  document.querySelectorAll('#template-gallery .template-card').forEach((card, idx) => card.classList.toggle('active', idx === i));
+  showNotif(`${tpl.name} template appliqué`, 'success');
+}
+
+function buildOnlineStyleGallery() {
+  const grid = document.getElementById('online-style-gallery');
+  if (!grid) return;
+  grid.innerHTML = ONLINE_STYLES.map((style, i) => `
+    <div class="template-card${S.onlineStyleIdx===i?' active':''}" onclick="applyOnlineStyle(${i})">
+      <div class="template-mini" style="--tp:${style.p};--ta:${style.a}"><div></div><div></div><div></div></div>
+      <strong>${escHtml(style.name)}</strong>
+      <span>${escHtml(style.desc)}</span>
+    </div>
+  `).join('');
+}
+
+function applyOnlineStyle(i) {
+  const style = ONLINE_STYLES[i] || ONLINE_STYLES[0];
+  S.onlineStyleIdx = i;
+  S.docType = 'facture';
+  S.docSector = 'online';
+  S.layoutIdx = style.layout;
+  S.themeIdx = style.theme;
+  selectLayout(S.layoutIdx);
+  selectTheme(S.themeIdx);
+  renderDocVariant();
+  showNotif(`${style.name} online style appliqué`, 'success');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -4920,6 +5277,8 @@ async function generatePDF() {
   try {
     await saveInvoicePdf(el, docNum);
     recordDocumentHistory('PDF');
+    updateProgressSteps('download');
+    showPdfSuccess(docNum);
     showNotif('✅ PDF généré avec succès !', 'success');
   } catch(e) {
     showNotif('⚠️ Erreur lors de la génération. Essayez Imprimer.', 'info');
@@ -4928,6 +5287,22 @@ async function generatePDF() {
   }
 
   if (btnText) btnText.textContent = 'Télécharger PDF';
+}
+
+function showPdfSuccess(docNum='document') {
+  const title = document.getElementById('pdf-success-title');
+  const sub = document.getElementById('pdf-success-sub');
+  if (title) title.textContent = `${docNum} prêt`;
+  if (sub) sub.textContent = `${S.docType === 'devis' ? 'Devis' : 'Facture'} téléchargé en PDF`;
+  document.getElementById('pdf-success-modal')?.classList.add('open');
+}
+
+function closePdfSuccess() {
+  document.getElementById('pdf-success-modal')?.classList.remove('open');
+}
+
+function handlePdfSuccessBackdrop(e) {
+  if (e.target?.id === 'pdf-success-modal') closePdfSuccess();
 }
 
 async function saveInvoicePdf(el, docNum) {
