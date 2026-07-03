@@ -244,33 +244,6 @@ try {
   </div>
   <div class="topbar-actions">
     <button class="btn btn-ghost btn-sm" onclick="scrollToHome()" title="Accueil"><i class="fa fa-home"></i> <span class="auth-text">Home</span></button>
-    <button class="btn btn-ghost btn-sm" onclick="openEditor('facture')" id="tab-facture"><i class="fa fa-file-invoice"></i> Facture</button>
-    <button class="btn btn-ghost btn-sm" onclick="openEditor('devis')" id="tab-devis"><i class="fa fa-file-lines"></i> Devis</button>
-    <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Imprimer</button>
-    <button class="btn btn-primary btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> <span id="pdf-btn-text">Télécharger PDF</span></button>
-    <label class="top-select-wrap" title="Pays / format">
-      <span class="top-select-icon"><i class="fa fa-globe"></i></span>
-      <select class="top-select" id="top-country-select" onchange="setCountry(this.value)" aria-label="Pays / format">
-        <option value="FR">FR</option>
-        <option value="DE">DE</option>
-        <option value="ES">ES</option>
-        <option value="IT">IT</option>
-        <option value="UK">UK</option>
-        <option value="US">US</option>
-      </select>
-      <i class="fa fa-chevron-down top-select-caret"></i>
-    </label>
-    <label class="top-select-wrap" title="Langue">
-      <span class="top-select-icon"><i class="fa fa-language"></i></span>
-      <select class="top-select" id="top-language-select" onchange="setLanguage(this.value)" aria-label="Langue">
-        <option value="fr">FR</option>
-        <option value="de">DE</option>
-        <option value="es">ES</option>
-        <option value="it">IT</option>
-        <option value="en">EN</option>
-      </select>
-      <i class="fa fa-chevron-down top-select-caret"></i>
-    </label>
     <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleAppTheme()" title="Changer le mode"><i class="fa fa-moon" id="theme-icon"></i> <span class="auth-text" id="theme-label">Dark</span></button>
     <div class="auth-actions">
       <button class="btn btn-ghost btn-sm" id="login-btn" onclick="openAuth('login')"><i class="fa fa-right-to-bracket"></i> <span class="auth-text">Login</span></button>
@@ -527,6 +500,43 @@ try {
 
 <!-- MAIN -->
 <div class="main-layout">
+
+  <!-- ── TOOL RAIL ── -->
+  <aside class="tool-rail no-print" id="tool-rail">
+    <button class="rail-toggle" id="rail-toggle" onclick="toggleToolRail()" title="Développer / réduire"><i class="fa fa-chevron-right"></i><span class="rail-toggle-label" id="rail-toggle-label"></span></button>
+
+    <button class="rail-item" onclick="openEditor('facture')" id="tab-facture" title="Facture"><span class="ricon"><i class="fa fa-file-invoice"></i></span><span class="rlabel">Facture</span></button>
+    <button class="rail-item" onclick="openEditor('devis')" id="tab-devis" title="Devis"><span class="ricon"><i class="fa fa-file-lines"></i></span><span class="rlabel">Devis</span></button>
+
+    <div class="rail-sep"></div>
+    <button class="rail-item" onclick="window.print()" title="Imprimer"><span class="ricon"><i class="fa fa-print"></i></span><span class="rlabel">Imprimer</span></button>
+    <button class="rail-item primary" onclick="generatePDF()" title="Télécharger PDF"><span class="ricon"><i class="fa fa-download"></i></span><span class="rlabel" id="pdf-btn-text">Télécharger PDF</span></button>
+
+    <div class="rail-sep"></div>
+    <label class="rail-item rail-select" title="Pays / format">
+      <span class="ricon"><i class="fa fa-globe"></i></span>
+      <span class="rlabel" id="rail-country-label">France</span>
+      <select id="top-country-select" onchange="setCountry(this.value)" aria-label="Pays / format">
+        <option value="FR">France</option>
+        <option value="DE">Germany</option>
+        <option value="ES">Spain</option>
+        <option value="IT">Italy</option>
+        <option value="UK">UK</option>
+        <option value="US">USA</option>
+      </select>
+    </label>
+    <label class="rail-item rail-select" title="Langue">
+      <span class="ricon"><i class="fa fa-language"></i></span>
+      <span class="rlabel" id="rail-lang-label">Français</span>
+      <select id="top-language-select" onchange="setLanguage(this.value)" aria-label="Langue">
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="it">Italiano</option>
+        <option value="en">English</option>
+      </select>
+    </label>
+  </aside>
 
   <!-- ── SIDEBAR ── -->
   <aside class="sidebar no-print">
@@ -1437,6 +1447,24 @@ onAuthStateChanged(firebaseAuth, user => {
 
 <script src="app.js"></script>
 <script>
+function toggleToolRail() {
+  const rail = document.getElementById('tool-rail');
+  const label = document.getElementById('rail-toggle-label');
+  const expanded = rail.classList.toggle('expanded');
+  label.textContent = expanded ? 'Réduire' : '';
+  try { localStorage.setItem('facturepro-rail-expanded', expanded ? '1' : '0'); } catch {}
+}
+(function () {
+  try {
+    if (localStorage.getItem('facturepro-rail-expanded') === '1') {
+      const rail = document.getElementById('tool-rail');
+      const label = document.getElementById('rail-toggle-label');
+      if (rail) rail.classList.add('expanded');
+      if (label) label.textContent = 'Réduire';
+    }
+  } catch {}
+})();
+
 // ── UI polish: topbar scroll shadow, scroll-reveal, animated stat counters ──
 (function () {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

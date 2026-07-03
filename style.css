@@ -192,10 +192,56 @@
   .doc-tab:not(.active):hover { color: var(--ink-muted); }
 
   /* ── MAIN LAYOUT ── */
-  .main-layout { display: grid; grid-template-columns: minmax(480px, 540px) minmax(0, 1fr); gap: 0; flex: 1; max-width: 1600px; width: 100%; margin: 0 auto; padding: 0 0 40px; border-top: 1px solid var(--border); }
+  .main-layout { display: grid; grid-template-columns: auto minmax(480px, 540px) minmax(0, 1fr); gap: 0; flex: 1; max-width: 1600px; width: 100%; margin: 0 auto; padding: 0 0 40px; border-top: 1px solid var(--border); }
   @media(max-width:1100px) { .main-layout { grid-template-columns: 1fr; } }
   body.home-mode .main-layout { display: none; }
   body.editor-mode .home-preview { display: none; }
+
+  /* ── TOOL RAIL ── */
+  .tool-rail {
+    position: sticky; top: 56px; align-self: start; z-index: 22;
+    display: flex; flex-direction: column; gap: 4px;
+    width: 56px; padding: 12px 8px; height: calc(100vh - 56px); overflow-y: auto;
+    border-right: 1px solid var(--border); background: rgba(8,13,25,.6);
+    transition: width .22s cubic-bezier(.16,1,.3,1);
+  }
+  body.light .tool-rail { background: rgba(255,255,255,.7); }
+  .tool-rail.expanded { width: 208px; }
+  .rail-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 8px; height: 32px; border-radius: 9px;
+    border: 1px dashed var(--border-strong); background: transparent; color: var(--ink-dim); cursor: pointer;
+    font: inherit; font-size: 11px; font-weight: 700; margin-bottom: 4px; overflow: hidden; white-space: nowrap; flex-shrink: 0;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .rail-toggle:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .rail-toggle i { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+  .tool-rail.expanded .rail-toggle i { transform: rotate(180deg); }
+  .rail-item {
+    position: relative; display: flex; align-items: center; gap: 12px; height: 38px; padding: 0 9px; border-radius: 9px;
+    border: none; background: transparent; color: var(--ink-muted); cursor: pointer; font: inherit; font-size: 12.5px;
+    font-weight: 700; white-space: nowrap; overflow: hidden; flex-shrink: 0;
+    transition: background .18s ease, color .18s ease, transform .18s ease;
+  }
+  .rail-item:hover { background: var(--surface-hover); color: var(--ink); }
+  .rail-item.btn-primary, .rail-item.primary { background: linear-gradient(135deg,var(--brand),var(--brand-2)); color: #fff; overflow: hidden; }
+  .rail-item.btn-primary::after, .rail-item.primary::after { content:""; position:absolute; top:0; bottom:0; left:-60%; width:40%; background:linear-gradient(115deg,transparent,rgba(255,255,255,.32),transparent); transform:skewX(-20deg); transition:left .55s cubic-bezier(.16,1,.3,1); }
+  .rail-item.btn-primary:hover::after, .rail-item.primary:hover::after { left: 130%; }
+  .tool-rail:not(.expanded) #tab-facture.btn-primary,
+  .tool-rail:not(.expanded) #tab-devis.btn-primary { animation: pulse-glow 2.4s ease-in-out infinite; }
+  .rail-item .ricon { width: 16px; flex-shrink: 0; display: grid; place-items: center; font-size: 14px; transition: transform .2s cubic-bezier(.34,1.56,.64,1); }
+  .rail-item:hover .ricon { transform: scale(1.12); }
+  .rail-item .rlabel { flex: 1; opacity: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; transform: translateX(-6px); transition: opacity .16s ease, transform .16s ease; }
+  .tool-rail.expanded .rail-item .rlabel { opacity: 1; transform: translateX(0); }
+  .rail-sep { height: 1px; background: var(--border); margin: 6px 4px; flex-shrink: 0; }
+  .rail-select select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; z-index: 2; }
+  .rail-select .ricon { position: relative; z-index: 0; }
+  .rail-select .rlabel { pointer-events: none; }
+  @media(max-width:1100px) {
+    .tool-rail { position: static; height: auto; flex-direction: row; width: 100% !important; overflow-x: auto; overflow-y: hidden; border-right: none; border-bottom: 1px solid var(--border); padding: 8px; }
+    .tool-rail .rail-toggle { display: none; }
+    .tool-rail .rail-item .rlabel { opacity: 1; transform: none; position: static; }
+    .tool-rail .rail-sep { width: 1px; height: 28px; margin: 0 2px; }
+  }
 
   /* ── SIDEBAR FORM ── */
   .sidebar { padding: 0 18px 24px; border-right: 1px solid var(--border); background: rgba(8,13,25,.55); }

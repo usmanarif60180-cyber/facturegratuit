@@ -1960,6 +1960,13 @@ function syncLocaleControls() {
   const currency = document.getElementById('currency-select');
   if (currency) currency.value = S.currency || getCountryProfile().currency;
   updateCountryFormatTooltip();
+
+  const countrySel = document.getElementById('top-country-select');
+  const countryLabel = document.getElementById('rail-country-label');
+  if (countrySel && countryLabel) countryLabel.textContent = countrySel.options[countrySel.selectedIndex]?.text || '';
+  const langSel = document.getElementById('top-language-select');
+  const langLabel = document.getElementById('rail-lang-label');
+  if (langSel && langLabel) langLabel.textContent = langSel.options[langSel.selectedIndex]?.text || '';
 }
 
 function setCountry(country) {
