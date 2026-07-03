@@ -640,14 +640,18 @@ function loadAuthUser() {
   }
 }
 
-function saveAuthUser(user) {
+async function saveAuthUser(user) {
   S.authUser = user;
   try {
     if (user) localStorage.setItem('facturepro-user', JSON.stringify(user));
     else localStorage.removeItem('facturepro-user');
   } catch {}
   renderAuth();
-  if (user) applyAccountProfileToEditor(true);
+  if (user) {
+    await pullAccountDataFromCloud();
+    applyAccountProfileToEditor(true);
+    renderAccountOverview();
+  }
 }
 
 function renderAuth() {
@@ -874,6 +878,59 @@ function collectAccountDataBundle() {
   };
 }
 
+let cloudSyncTimer = null;
+
+function queueCloudSync() {
+  if (!S.authUser?.uid) return;
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(syncAccountDataToCloud, 800);
+}
+
+async function syncAccountDataToCloud() {
+  if (!S.authUser?.uid) return false;
+  const services = window.firebaseServices;
+  if (!services?.db || !window.firestoreDoc || !window.firestoreSetDoc) return false;
+  try {
+    const bundle = collectAccountDataBundle();
+    if (!bundle) return false;
+    const ref = window.firestoreDoc(services.db, 'users', S.authUser.uid);
+    await window.firestoreSetDoc(ref, {
+      profile: bundle.data.profile,
+      history: bundle.data.history,
+      projects: bundle.data.projects,
+      clients: bundle.data.clients,
+      products: bundle.data.products,
+      storageUsedBytes: bundle.storageUsedBytes,
+      updatedAt: new Date().toISOString()
+    });
+    return true;
+  } catch (err) {
+    console.warn('Cloud sync failed, data reste sauvegardé localement', err);
+    return false;
+  }
+}
+
+async function pullAccountDataFromCloud() {
+  if (!S.authUser?.uid) return false;
+  const services = window.firebaseServices;
+  if (!services?.db || !window.firestoreDoc || !window.firestoreGetDoc) return false;
+  try {
+    const ref = window.firestoreDoc(services.db, 'users', S.authUser.uid);
+    const snap = await window.firestoreGetDoc(ref);
+    if (!snap.exists()) return false;
+    const cloud = snap.data() || {};
+    ['profile','history','projects','clients','products'].forEach(suffix => {
+      if (cloud[suffix] !== undefined && cloud[suffix] !== null) {
+        try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(cloud[suffix])); } catch {}
+      }
+    });
+    return true;
+  } catch (err) {
+    console.warn('Cloud data introuvable ou inaccessible, données locales utilisées', err);
+    return false;
+  }
+}
+
 function exportAccountData() {
   if (!S.authUser) {
     showNotif('Login karein, phir account data export karein', 'info');
@@ -917,12 +974,14 @@ function saveAccountList(suffix, list, options={}) {
     if (!options.skipQuotaCheck && getProjectedAccountStorageUsageBytes(suffix, serialized) > ACCOUNT_STORAGE_QUOTA_BYTES) {
       if (S.autoCleanup && cleanupOldAccountData(true) && getProjectedAccountStorageUsageBytes(suffix, serialized) <= ACCOUNT_STORAGE_QUOTA_BYTES) {
         localStorage.setItem(getAccountStorageKey(suffix), serialized);
+        queueCloudSync();
         return true;
       }
       showNotif('Storage 500 MB full: pehle history/projets remove karein ya auto-cleanup ON karein', 'info');
       return false;
     }
     localStorage.setItem(getAccountStorageKey(suffix), serialized);
+    queueCloudSync();
     return true;
   } catch {
     if (!options.silent) showNotif('Sauvegarde impossible sur ce navigateur', 'info');
@@ -1434,6 +1493,7 @@ function saveAccountProfile(profile) {
       }
     }
     localStorage.setItem(getAccountStorageKey('profile'), serialized);
+    queueCloudSync();
     showNotif('Société profile sauvegardé', 'success');
     renderAccountModal();
     return true;

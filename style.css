@@ -195,6 +195,7 @@
   .main-layout { display: grid; grid-template-columns: auto minmax(480px, 540px) minmax(0, 1fr); gap: 0; flex: 1; max-width: 1600px; width: 100%; margin: 0 auto; padding: 0 0 40px; border-top: 1px solid var(--border); }
   @media(max-width:1100px) { .main-layout { grid-template-columns: 1fr; } }
   body.home-mode .main-layout { display: none; }
+  body.home-mode .editor-only-btn { display: none; }
   body.editor-mode .home-preview { display: none; }
 
   /* ── TOOL RAIL ── */
