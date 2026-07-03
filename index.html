@@ -307,6 +307,10 @@ try {
   @keyframes spin { to { transform:rotate(360deg); } }
   .fade-up { animation: fadeUp .4s ease both; }
 
+  /* Scroll-reveal utility, wired up by JS (IntersectionObserver) near the end of body */
+  .reveal-io { opacity:0; transform:translateY(24px); transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); transition-delay:var(--d,0s); }
+  .reveal-io.in-view { opacity:1; transform:translateY(0); }
+
   /* App layout */
   #app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
 
@@ -319,8 +323,11 @@ try {
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
     animation: slideDown .35s ease both;
+    transition: box-shadow .25s ease, background .25s ease;
   }
   body.light .topbar { background: rgba(248,250,252,0.9); }
+  .topbar.scrolled { box-shadow: 0 14px 34px rgba(0,0,0,.35); background: rgba(8,12,22,.94); }
+  body.light .topbar.scrolled { background: rgba(248,250,252,.95); box-shadow: 0 14px 30px rgba(15,23,42,.1); }
   .topbar-logo { display: flex; align-items: center; gap: 10px; }
   .logo-icon { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,var(--brand),var(--brand-2)); display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 0 20px var(--brand-glow); }
   .logo-text { font-size: 15px; font-weight: 800; color: #f1f5f9; letter-spacing: -0.02em; }
@@ -656,9 +663,16 @@ try {
     linear-gradient(0deg, rgba(255,255,255,.026) 1px, transparent 1px);
     background-size: 84px 84px; mask-image: linear-gradient(to bottom, #000, transparent 88%); }
   .home-hero { position: relative; z-index: 1; display:grid; grid-template-columns:minmax(0,1fr) minmax(360px,560px); gap:48px; align-items:center; max-width:1360px; margin:0 auto; padding:58px 28px 44px; min-height:520px; }
+  .home-hero > div:first-child > * { opacity:0; animation: fadeUp .8s cubic-bezier(.16,1,.3,1) forwards; }
+  .home-hero > div:first-child > *:nth-child(1) { animation-delay:.05s; }
+  .home-hero > div:first-child > *:nth-child(2) { animation-delay:.16s; }
+  .home-hero > div:first-child > *:nth-child(3) { animation-delay:.28s; }
+  .home-hero > div:first-child > *:nth-child(4) { animation-delay:.4s; }
+  .home-hero > div:first-child > *:nth-child(5) { animation-delay:.52s; }
   .home-kicker { display:inline-flex; align-items:center; gap:8px; margin-bottom:22px; padding:7px 14px; border-radius:999px; background:rgba(124,58,237,.18); border:1px solid rgba(167,139,250,.26); color:#d8b4fe; font-size:12px; font-weight:800; letter-spacing:.02em; }
   .home-title { max-width:700px; font-size:clamp(42px,6.2vw,78px); line-height:.98; font-weight:900; letter-spacing:0; color:#fff; }
-  .home-title span { display:inline-block; background:linear-gradient(100deg,#8b5cf6,#2563eb,#06b6d4); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .home-title span { display:inline-block; background:linear-gradient(100deg,#8b5cf6,#2563eb,#06b6d4); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation: textSheen 6s ease-in-out infinite; }
+  @keyframes textSheen { 0%,100% { background-position:0% 50%; } 50% { background-position:100% 50%; } }
   .home-copy { max-width:620px; margin-top:22px; color:#b8c2d7; font-size:17px; line-height:1.65; }
   .home-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:30px; }
   .home-proof { display:flex; align-items:center; gap:12px; margin-top:28px; color:#73829f; font-size:13px; font-weight:700; }
@@ -666,20 +680,23 @@ try {
   .home-avatar { width:28px; height:28px; display:grid; place-items:center; margin-left:-6px; border-radius:50%; background:#f8fafc; border:2px solid #20123f; font-size:13px; }
   .home-avatar:first-child { margin-left:0; }
   .floating-docs { position:relative; min-height:430px; perspective:900px; }
-  .float-card { position:absolute; width:170px; min-height:128px; padding:16px; border-radius:8px; background:#172033; border:1px solid rgba(255,255,255,.08); box-shadow:0 28px 80px rgba(0,0,0,.38); animation:floatDoc 7s ease-in-out infinite; transform:rotate(var(--rot)); }
-  .float-card:nth-child(1) { left:4%; top:10%; --rot:-2deg; animation-delay:-1s; }
-  .float-card:nth-child(2) { left:36%; top:4%; width:190px; min-height:170px; --rot:7deg; animation-delay:-2.3s; }
-  .float-card:nth-child(3) { right:2%; top:14%; --rot:-3deg; animation-delay:-3.1s; }
-  .float-card:nth-child(4) { left:16%; bottom:6%; --rot:1deg; animation-delay:-4.2s; }
-  .float-card:nth-child(5) { right:0; bottom:10%; width:180px; min-height:155px; --rot:-6deg; animation-delay:-5s; }
+  .float-card { position:absolute; width:170px; min-height:128px; padding:16px; border-radius:8px; background:#172033; border:1px solid rgba(255,255,255,.08); box-shadow:0 28px 80px rgba(0,0,0,.38); opacity:0; animation: floatPopIn .7s cubic-bezier(.16,1,.3,1) forwards, floatDoc 7s ease-in-out infinite; animation-delay: var(--pop-d,0s), var(--float-d,0s); }
+  .float-card:nth-child(1) { left:4%; top:10%; --rot:-2deg; --pop-d:.1s; --float-d:-1s; }
+  .float-card:nth-child(2) { left:36%; top:4%; width:190px; min-height:170px; --rot:7deg; --pop-d:.24s; --float-d:-2.3s; }
+  .float-card:nth-child(3) { right:2%; top:14%; --rot:-3deg; --pop-d:.38s; --float-d:-3.1s; }
+  .float-card:nth-child(4) { left:16%; bottom:6%; --rot:1deg; --pop-d:.5s; --float-d:-4.2s; }
+  .float-card:nth-child(5) { right:0; bottom:10%; width:180px; min-height:155px; --rot:-6deg; --pop-d:.62s; --float-d:-5s; }
+  @keyframes floatPopIn { from { opacity:0; transform:translateY(26px) rotate(var(--rot)) scale(.92); } to { opacity:1; transform:translateY(0) rotate(var(--rot)) scale(1); } }
   .doc-mini-title { font-size:10px; font-weight:900; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
   .doc-mini-line { height:6px; border-radius:999px; margin-bottom:8px; background:rgba(226,232,240,.12); }
   .doc-mini-line.short { width:62%; }
   .doc-mini-pill { height:12px; border-radius:4px; margin-top:14px; background:linear-gradient(90deg,var(--accent),var(--accent-2)); }
   @keyframes floatDoc { 0%,100% { transform:translate3d(0,0,0) rotate(var(--rot)); } 50% { transform:translate3d(0,-18px,0) rotate(calc(var(--rot) * -1)); } }
-  .home-feature-strip { position:relative; z-index:2; overflow:hidden; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:rgba(15,23,42,.48); }
+  .home-feature-strip { position:relative; z-index:2; overflow:hidden; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:rgba(15,23,42,.48); mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent); -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent); }
   .home-feature-track { display:flex; width:max-content; gap:44px; padding:14px 0; animation:featureMove 34s linear infinite; }
-  .home-feature { color:#8190ad; font-size:13px; font-weight:800; white-space:nowrap; }
+  .home-feature-strip:hover .home-feature-track { animation-play-state: paused; }
+  .home-feature { color:#8190ad; font-size:13px; font-weight:800; white-space:nowrap; transition:color .2s ease; }
+  .home-feature:hover { color:#e7ebf5; }
   .home-feature::before { content:""; display:inline-block; width:6px; height:6px; margin:0 10px 2px 0; border-radius:50%; background:#7c3aed; box-shadow:0 0 16px rgba(124,58,237,.8); }
   @keyframes featureMove { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   .home-section { max-width:1360px; margin:0 auto; padding:28px; }
@@ -688,7 +705,8 @@ try {
   .home-tool-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
   .home-tool-card { min-height:150px; padding:22px; border:1px solid rgba(124,58,237,.22); border-radius:14px; background:rgba(30,18,62,.62); cursor:pointer; transition:transform .18s ease, border-color .18s ease, background .18s ease; }
   .home-tool-card:hover { transform:translateY(-5px); border-color:rgba(124,58,237,.52); background:rgba(38,24,76,.86); }
-  .home-tool-icon { font-size:22px; margin-bottom:18px; }
+  .home-tool-card:hover .home-tool-icon { transform:scale(1.14) rotate(-6deg); }
+  .home-tool-icon { font-size:22px; margin-bottom:18px; display:inline-block; transition:transform .3s cubic-bezier(.34,1.56,.64,1); }
   .home-tool-title { color:#f8fafc; font-size:15px; font-weight:900; margin-bottom:8px; }
   .home-tool-copy { color:#8390aa; font-size:12px; line-height:1.5; }
   .home-tool-tag { display:inline-flex; margin-top:14px; padding:3px 8px; border-radius:5px; background:rgba(16,185,129,.18); color:#5ee5a5; font-size:10px; font-weight:900; }
@@ -717,9 +735,11 @@ try {
   .home-faq-item { border:1px solid rgba(148,163,184,.16); border-radius:12px; background:rgba(15,23,42,.44); overflow:hidden; }
   .home-faq-item summary { cursor:pointer; padding:15px 16px; color:#f8fafc; font-size:14px; font-weight:900; list-style:none; }
   .home-faq-item summary::-webkit-details-marker { display:none; }
-  .home-faq-item summary::after { content:"+"; float:right; color:#8b5cf6; font-size:18px; line-height:1; }
-  .home-faq-item[open] summary::after { content:"-"; }
-  .home-faq-item p { padding:0 16px 16px; color:#9aa7bf; font-size:13px; line-height:1.7; }
+  .home-faq-item summary::after { content:"+"; float:right; color:#8b5cf6; font-size:18px; line-height:1; transition:transform .25s ease; }
+  .home-faq-item[open] summary::after { transform:rotate(45deg); }
+  .home-faq-item .home-faq-body { display:grid; grid-template-rows:0fr; transition:grid-template-rows .3s cubic-bezier(.16,1,.3,1); }
+  .home-faq-item[open] .home-faq-body { grid-template-rows:1fr; }
+  .home-faq-item .home-faq-body p { overflow:hidden; padding:0 16px 16px; color:#9aa7bf; font-size:13px; line-height:1.7; }
   .ai-status { display:flex; align-items:flex-start; gap:9px; margin-bottom:12px; padding:11px 12px; border-radius:10px; background:rgba(14,165,233,.08); border:1px solid rgba(14,165,233,.18); color:var(--ink-muted); font-size:12px; line-height:1.55; }
   .ai-status i { color:#7dd3fc; margin-top:2px; }
   .ai-examples { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 12px; }
@@ -1114,43 +1134,43 @@ try {
     <div class="home-faq-grid">
       <details class="home-faq-item" open>
         <summary>Comment créer une facture gratuite en ligne ?</summary>
-        <p>Choisissez le type de document, ajoutez les informations société et client, remplissez les articles avec prix HT, TVA et quantités, puis téléchargez le PDF A4.</p>
+        <div class="home-faq-body"><p>Choisissez le type de document, ajoutez les informations société et client, remplissez les articles avec prix HT, TVA et quantités, puis téléchargez le PDF A4.</p></div>
       </details>
       <details class="home-faq-item">
         <summary>Comment fonctionne l'assistant AI facture ?</summary>
-        <p>Vous décrivez les travaux, produits ou services. L'assistant propose des lignes de facture modifiables avec quantités, prix et TVA, puis vous vérifiez avant téléchargement PDF.</p>
+        <div class="home-faq-body"><p>Vous décrivez les travaux, produits ou services. L'assistant propose des lignes de facture modifiables avec quantités, prix et TVA, puis vous vérifiez avant téléchargement PDF.</p></div>
       </details>
       <details class="home-faq-item">
         <summary>Puis-je créer un devis bâtiment gratuit ?</summary>
-        <p>Oui, le mode devis bâtiment permet de préparer une estimation pour travaux, rénovation, peinture, maçonnerie, plomberie ou électricité avant validation du client.</p>
+        <div class="home-faq-body"><p>Oui, le mode devis bâtiment permet de préparer une estimation pour travaux, rénovation, peinture, maçonnerie, plomberie ou électricité avant validation du client.</p></div>
       </details>
       <details class="home-faq-item">
         <summary>Le générateur marche pour les factures automobile ?</summary>
-        <p>Oui, vous pouvez ajouter VIN, plaque d'immatriculation, kilométrage, marque, modèle, année et détails de vente ou réparation automobile.</p>
+        <div class="home-faq-body"><p>Oui, vous pouvez ajouter VIN, plaque d'immatriculation, kilométrage, marque, modèle, année et détails de vente ou réparation automobile.</p></div>
       </details>
       <details class="home-faq-item">
         <summary>Peut-on faire une facture Amazon, eBay, Etsy ou freelance ?</summary>
-        <p>Oui, le mode freelance / marketplace permet d'ajouter plateforme, commande, référence acheteur, SKU, paiement, livraison et notes liées à la vente en ligne.</p>
+        <div class="home-faq-body"><p>Oui, le mode freelance / marketplace permet d'ajouter plateforme, commande, référence acheteur, SKU, paiement, livraison et notes liées à la vente en ligne.</p></div>
       </details>
       <details class="home-faq-item">
         <summary>Les frais marketplace changent-ils le total ?</summary>
-        <p>Non. Les commissions marketplace sont affichées à titre informatif et ne modifient pas le total HT, la TVA ou le total TTC.</p>
+        <div class="home-faq-body"><p>Non. Les commissions marketplace sont affichées à titre informatif et ne modifient pas le total HT, la TVA ou le total TTC.</p></div>
       </details>
       <details class="home-faq-item">
         <summary>Mes données sont-elles sauvegardées ?</summary>
-        <p>Sans compte, le document est traité dans le navigateur. Avec un compte, vous pouvez sauvegarder localement société, projets, clients, produits et historique sur ce navigateur.</p>
+        <div class="home-faq-body"><p>Sans compte, le document est traité dans le navigateur. Avec un compte, vous pouvez sauvegarder localement société, projets, clients, produits et historique sur ce navigateur.</p></div>
       </details>
       <details class="home-faq-item">
         <summary>Quelle est la limite de stockage par utilisateur ?</summary>
-        <p>Chaque compte peut avoir une limite de 500 MB pour garder Firebase Cloud Storage maîtrisé. Le dashboard affiche l'espace utilisé et aide à supprimer les anciens projets, clients, produits ou documents.</p>
+        <div class="home-faq-body"><p>Chaque compte peut avoir une limite de 500 MB pour garder Firebase Cloud Storage maîtrisé. Le dashboard affiche l'espace utilisé et aide à supprimer les anciens projets, clients, produits ou documents.</p></div>
       </details>
       <details class="home-faq-item">
         <summary>Puis-je reprendre une facture commencée plus tard ?</summary>
-        <p>Oui. Le dashboard permet de sauvegarder un projet, puis de le rouvrir pour continuer la facture ou le devis depuis le même point.</p>
+        <div class="home-faq-body"><p>Oui. Le dashboard permet de sauvegarder un projet, puis de le rouvrir pour continuer la facture ou le devis depuis le même point.</p></div>
       </details>
       <details class="home-faq-item">
         <summary>Le site peut-il nettoyer automatiquement les anciens documents ?</summary>
-        <p>Oui, l'auto-cleanup peut rester optionnel: quand la limite approche, l'utilisateur choisit de supprimer les anciens projets ou historiques inutiles.</p>
+        <div class="home-faq-body"><p>Oui, l'auto-cleanup peut rester optionnel: quand la limite approche, l'utilisateur choisit de supprimer les anciens projets ou historiques inutiles.</p></div>
       </details>
     </div>
   </div>
@@ -5549,6 +5569,77 @@ function showNotif(msg, type='success') {
   el.style.display = 'flex';
   setTimeout(() => { el.style.display='none'; }, 3500);
 }
+</script>
+<script>
+// ── UI polish: topbar scroll shadow, scroll-reveal, animated stat counters ──
+(function () {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const topbar = document.querySelector('.topbar');
+  if (topbar) {
+    const onScroll = () => topbar.classList.toggle('scrolled', window.scrollY > 12);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const revealGroups = [
+      '.home-tool-grid > .home-tool-card',
+      '.workflow-grid > .workflow-card',
+      '.home-format-grid > *',
+      '.home-trust-grid > .home-trust-card',
+      '.home-seo-grid > .home-article-card',
+      '.home-faq-grid > .home-faq-item',
+      '.home-stat-grid > .home-stat',
+      '.home-section-title, .home-section-copy'
+    ];
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    revealGroups.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((el, i) => {
+        el.classList.add('reveal-io');
+        el.style.setProperty('--d', Math.min(i * 0.06, 0.36) + 's');
+        io.observe(el);
+      });
+    });
+  }
+
+  const counters = document.querySelectorAll('.home-stat-num');
+  if (counters.length && 'IntersectionObserver' in window && !reduceMotion) {
+    const parseTarget = (text) => {
+      const match = text.match(/\d+/);
+      if (!match) return null;
+      return { value: parseInt(match[0], 10), prefix: text.slice(0, match.index), suffix: text.slice(match.index + match[0].length) };
+    };
+    const statIo = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        statIo.unobserve(el);
+        const parsed = parseTarget(el.textContent.trim());
+        if (!parsed) return;
+        const { value, prefix, suffix } = parsed;
+        const duration = 1100;
+        const start = performance.now();
+        function tick(now) {
+          const p = Math.min(1, (now - start) / duration);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = prefix + Math.round(eased * value) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+    }, { threshold: 0.6 });
+    counters.forEach((el) => statIo.observe(el));
+  }
+})();
 </script>
 </body>
 </html>
