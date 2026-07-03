@@ -555,18 +555,6 @@
     transform: translateY(-2px);
     border-color: rgba(13,148,136,.34);
   }
-  .home-workflow { max-width:1360px; margin:0 auto; padding:18px 28px 8px; }
-  .workflow-shell { border:1px solid rgba(148,163,184,.18); border-radius:18px; padding:18px; background:linear-gradient(135deg,rgba(15,23,42,.72),rgba(15,23,42,.38)); box-shadow:0 22px 70px rgba(2,6,23,.22); }
-  body.light .workflow-shell { background:rgba(255,255,255,.82); }
-  .workflow-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:14px; }
-  .workflow-head h2 { color:var(--ink); font-size:22px; line-height:1.15; font-weight:950; letter-spacing:0; }
-  .workflow-head p { color:var(--ink-muted); font-size:13px; line-height:1.6; margin-top:6px; max-width:720px; }
-  .workflow-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
-  .workflow-card { min-height:118px; text-align:left; border:1px solid var(--border); border-radius:14px; background:rgba(255,255,255,.035); color:var(--ink-muted); padding:14px; cursor:pointer; transition:transform .18s ease,border-color .18s ease,background .18s ease; }
-  .workflow-card:hover { transform:translateY(-4px); border-color:rgba(13,148,136,.4); background:rgba(13,148,136,.08); }
-  .workflow-card i { color:#2dd4bf; font-size:18px; margin-bottom:12px; }
-  .workflow-card strong { display:block; color:var(--ink); font-size:13px; margin-bottom:5px; }
-  .workflow-card span { display:block; font-size:11px; line-height:1.45; }
   .editor-progress { position:sticky; top:56px; z-index:25; margin:0 -18px 14px; padding:12px 18px; background:rgba(8,13,25,.82); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); }
   body.light .editor-progress { background:rgba(248,250,252,.9); }
   .progress-steps { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-bottom:10px; }
@@ -609,7 +597,7 @@
   .auth-benefits span { display:flex; align-items:center; gap:8px; color:var(--ink-muted); font-size:11px; }
   .auth-benefits i { color:#2dd4bf; }
   @media(max-width:900px) {
-    .workflow-grid, .profile-completion { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .profile-completion { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .template-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .progress-steps { grid-template-columns:repeat(3,minmax(0,1fr)); }
   }

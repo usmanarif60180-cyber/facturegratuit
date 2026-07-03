@@ -244,8 +244,8 @@ try {
   </div>
   <div class="topbar-actions">
     <button class="btn btn-ghost btn-sm" onclick="scrollToHome()" title="Accueil"><i class="fa fa-home"></i> <span class="auth-text">Home</span></button>
-    <button class="btn btn-ghost btn-sm" onclick="openEditor('facture')" id="tab-facture">📄 Facture</button>
-    <button class="btn btn-ghost btn-sm" onclick="openEditor('devis')" id="tab-devis">📋 Devis</button>
+    <button class="btn btn-ghost btn-sm" onclick="openEditor('facture')" id="tab-facture"><i class="fa fa-file-invoice"></i> Facture</button>
+    <button class="btn btn-ghost btn-sm" onclick="openEditor('devis')" id="tab-devis"><i class="fa fa-file-lines"></i> Devis</button>
     <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Imprimer</button>
     <button class="btn btn-primary btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> <span id="pdf-btn-text">Télécharger PDF</span></button>
     <label class="top-select-wrap" title="Pays / format">
@@ -330,31 +330,11 @@ try {
   <div class="home-section">
     <div class="home-section-title">Choisissez votre outil</div>
     <div class="home-tool-grid">
-      <div class="home-tool-card" onclick="selectHomeTool('facture','batiment')"><div class="home-tool-icon">🔨</div><div class="home-tool-title">Facture bâtiment</div><div class="home-tool-copy">Travaux, rénovation, artisanat, maçonnerie, électricité</div><span class="home-tool-tag">Bâtiment</span></div>
-      <div class="home-tool-card" onclick="selectHomeTool('facture','automobile')"><div class="home-tool-icon">🚗</div><div class="home-tool-title">Facture automobile</div><div class="home-tool-copy">Vente, réparation, VIN, plaque, kilométrage</div><span class="home-tool-tag auto">Automobile</span></div>
-      <div class="home-tool-card" onclick="selectHomeTool('facture','online')"><div class="home-tool-icon">🛒</div><div class="home-tool-title">Facture freelance / marketplace</div><div class="home-tool-copy">Amazon, eBay, Etsy, Shopify, Fiverr, Upwork, vendeurs en ligne</div><span class="home-tool-tag online">Online seller</span></div>
-      <div class="home-tool-card" onclick="selectHomeTool('devis','batiment')"><div class="home-tool-icon">📋</div><div class="home-tool-title">Devis bâtiment</div><div class="home-tool-copy">Chiffrage, appel d'offre, second oeuvre</div><span class="home-tool-tag">Bâtiment</span></div>
-      <div class="home-tool-card" onclick="selectHomeTool('devis','automobile')"><div class="home-tool-icon">🚘</div><div class="home-tool-title">Devis automobile</div><div class="home-tool-copy">Estimation réparation, reprise, carrosserie</div><span class="home-tool-tag auto">Automobile</span></div>
-    </div>
-  </div>
-
-  <div class="home-workflow">
-    <div class="workflow-shell">
-      <div class="workflow-head">
-        <div>
-          <div class="home-section-title" style="margin-bottom:8px">Choose your workflow</div>
-          <h2>Commencez avec le bon format</h2>
-          <p>Choisissez un profil de travail. L'éditeur ouvre automatiquement le bon type de facture/devis, avec les champs utiles pour votre activité.</p>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="openEditor('facture','batiment')"><i class="fa fa-arrow-right"></i> Ouvrir l'éditeur</button>
-      </div>
-      <div class="workflow-grid">
-        <button class="workflow-card" onclick="selectWorkflow('batiment')"><i class="fa fa-hammer"></i><strong>Bâtiment</strong><span>Travaux, rénovation, chantier, TVA, adresse chantier.</span></button>
-        <button class="workflow-card" onclick="selectWorkflow('automobile')"><i class="fa fa-car"></i><strong>Automobile</strong><span>Vente, réparation, VIN, plaque, kilométrage.</span></button>
-        <button class="workflow-card" onclick="selectWorkflow('marketplace')"><i class="fa fa-store"></i><strong>Marketplace</strong><span>Amazon, eBay, Etsy, Shopify, SKU, commande.</span></button>
-        <button class="workflow-card" onclick="selectWorkflow('freelance')"><i class="fa fa-laptop-code"></i><strong>Freelance</strong><span>Services, Fiverr, Upwork, prestation digitale.</span></button>
-        <button class="workflow-card" onclick="selectWorkflow('devis')"><i class="fa fa-clipboard-list"></i><strong>Devis</strong><span>Chiffrage bâtiment ou automobile avant validation.</span></button>
-      </div>
+      <div class="home-tool-card" onclick="selectHomeTool('facture','batiment')"><div class="home-tool-icon"><i class="fa fa-hammer"></i></div><div class="home-tool-title">Facture bâtiment</div><div class="home-tool-copy">Travaux, rénovation, artisanat, maçonnerie, électricité</div><span class="home-tool-tag">Bâtiment</span></div>
+      <div class="home-tool-card" onclick="selectHomeTool('facture','automobile')"><div class="home-tool-icon"><i class="fa fa-car"></i></div><div class="home-tool-title">Facture automobile</div><div class="home-tool-copy">Vente, réparation, VIN, plaque, kilométrage</div><span class="home-tool-tag auto">Automobile</span></div>
+      <div class="home-tool-card" onclick="selectHomeTool('facture','online')"><div class="home-tool-icon"><i class="fa fa-cart-shopping"></i></div><div class="home-tool-title">Facture freelance / marketplace</div><div class="home-tool-copy">Amazon, eBay, Etsy, Shopify, Fiverr, Upwork, vendeurs en ligne</div><span class="home-tool-tag online">Online seller</span></div>
+      <div class="home-tool-card" onclick="selectHomeTool('devis','batiment')"><div class="home-tool-icon"><i class="fa fa-clipboard-list"></i></div><div class="home-tool-title">Devis bâtiment</div><div class="home-tool-copy">Chiffrage, appel d'offre, second oeuvre</div><span class="home-tool-tag">Bâtiment</span></div>
+      <div class="home-tool-card" onclick="selectHomeTool('devis','automobile')"><div class="home-tool-icon"><i class="fa fa-car-side"></i></div><div class="home-tool-title">Devis automobile</div><div class="home-tool-copy">Estimation réparation, reprise, carrosserie</div><span class="home-tool-tag auto">Automobile</span></div>
     </div>
   </div>
 
@@ -568,14 +548,14 @@ try {
     </div>
     <!-- Section tabs -->
     <div class="section-tabs" id="section-tabs">
-      <button class="section-tab active" onclick="showSection('infos')">📝 Infos</button>
-      <button class="section-tab" onclick="showSection('articles')">📦 Articles</button>
-      <button class="section-tab" onclick="showSection('ai')">✨ AI</button>
-      <button class="section-tab" onclick="showSection('style')">🎨 Style</button>
-      <button class="section-tab advanced-tab" onclick="showSection('polices')">✍️ Polices</button>
-      <button class="section-tab advanced-tab" onclick="showSection('couleurs')">🖌️ Couleurs</button>
-      <button class="section-tab advanced-tab" onclick="showSection('logo')">🏢 Logo</button>
-      <button class="section-tab advanced-tab" onclick="showSection('extras')">⚙️ Extras</button>
+      <button class="section-tab active" onclick="showSection('infos')"><i class="fa fa-address-card"></i> Infos</button>
+      <button class="section-tab" onclick="showSection('articles')"><i class="fa fa-boxes-stacked"></i> Articles</button>
+      <button class="section-tab" onclick="showSection('ai')"><i class="fa fa-wand-magic-sparkles"></i> AI</button>
+      <button class="section-tab" onclick="showSection('style')"><i class="fa fa-palette"></i> Style</button>
+      <button class="section-tab advanced-tab" onclick="showSection('polices')"><i class="fa fa-font"></i> Polices</button>
+      <button class="section-tab advanced-tab" onclick="showSection('couleurs')"><i class="fa fa-swatchbook"></i> Couleurs</button>
+      <button class="section-tab advanced-tab" onclick="showSection('logo')"><i class="fa fa-image"></i> Logo</button>
+      <button class="section-tab advanced-tab" onclick="showSection('extras')"><i class="fa fa-sliders"></i> Extras</button>
     </div>
 
     <!-- ── INFOS ── -->
@@ -918,7 +898,7 @@ try {
           <img id="logo-preview" src="" style="display:none">
           <div id="logo-placeholder">
             <div style="text-align:center">
-              <div style="font-size:24px;margin-bottom:4px">⬆</div>
+              <i class="fa fa-cloud-arrow-up" style="font-size:22px"></i>
               <div style="font-size:11px;color:#16a34a;font-weight:600">Cliquer ou glisser votre logo</div>
               <div style="font-size:10px;color:var(--ink-dim);margin-top:2px">PNG · JPG · SVG · Transparent · Max 2MB</div>
             </div>
@@ -926,16 +906,16 @@ try {
         </div>
         <div id="logo-actions" style="display:none;margin-top:8px;display:none">
           <div class="grid-2">
-            <button class="btn btn-danger btn-sm" onclick="removeLogo()">🗑 Supprimer</button>
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('logo-file').click()">↺ Remplacer</button>
+            <button class="btn btn-danger btn-sm" onclick="removeLogo()"><i class="fa fa-trash"></i> Supprimer</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('logo-file').click()"><i class="fa fa-arrow-rotate-left"></i> Remplacer</button>
           </div>
         </div>
         <div class="form-group" style="margin-top:14px">
           <label class="form-label">Position du logo</label>
           <div class="grid-3">
-            <button class="btn btn-primary btn-sm" id="lpos-left" onclick="setLogoPos('left')">⬅ Gauche</button>
-            <button class="btn btn-ghost btn-sm" id="lpos-center" onclick="setLogoPos('center')">⬆ Centre</button>
-            <button class="btn btn-ghost btn-sm" id="lpos-right" onclick="setLogoPos('right')">Droite ➡</button>
+            <button class="btn btn-primary btn-sm" id="lpos-left" onclick="setLogoPos('left')"><i class="fa fa-arrow-left"></i> Gauche</button>
+            <button class="btn btn-ghost btn-sm" id="lpos-center" onclick="setLogoPos('center')"><i class="fa fa-align-center"></i> Centre</button>
+            <button class="btn btn-ghost btn-sm" id="lpos-right" onclick="setLogoPos('right')">Droite <i class="fa fa-arrow-right"></i></button>
           </div>
         </div>
         <div class="form-group">
@@ -962,9 +942,9 @@ try {
         <div class="card-title"><i class="fa fa-stamp" style="color:#22c55e"></i> Tampon / Cachet</div>
         <div class="grid-2" id="stamp-grid">
           <button class="btn btn-primary btn-sm" id="stamp-none" onclick="setStamp('none')">Aucun</button>
-          <button class="btn btn-ghost btn-sm" id="stamp-paid" onclick="setStamp('paid')" style="color:#059669;border-color:rgba(5,150,105,.4)">✅ PAYÉ</button>
-          <button class="btn btn-ghost btn-sm" id="stamp-draft" onclick="setStamp('draft')" style="color:#d97706;border-color:rgba(217,119,6,.4)">📋 BROUILLON</button>
-          <button class="btn btn-ghost btn-sm" id="stamp-conf" onclick="setStamp('conf')" style="color:#15803d;border-color:rgba(21,128,61,.4)">🔒 CONFIDENTIEL</button>
+          <button class="btn btn-ghost btn-sm" id="stamp-paid" onclick="setStamp('paid')" style="color:#059669;border-color:rgba(5,150,105,.4)"><i class="fa fa-check"></i> PAYÉ</button>
+          <button class="btn btn-ghost btn-sm" id="stamp-draft" onclick="setStamp('draft')" style="color:#d97706;border-color:rgba(217,119,6,.4)"><i class="fa fa-pen"></i> BROUILLON</button>
+          <button class="btn btn-ghost btn-sm" id="stamp-conf" onclick="setStamp('conf')" style="color:#15803d;border-color:rgba(21,128,61,.4)"><i class="fa fa-lock"></i> CONFIDENTIEL</button>
         </div>
       </div>
       <div class="card">
@@ -974,7 +954,7 @@ try {
           <img id="company-stamp-preview" src="" style="display:none">
           <div id="company-stamp-placeholder">
             <div style="text-align:center">
-              <div style="font-size:24px;margin-bottom:4px">⬆</div>
+              <i class="fa fa-cloud-arrow-up" style="font-size:22px"></i>
               <div style="font-size:11px;color:#0d9488;font-weight:600">Ajouter le cachet de votre société</div>
               <div style="font-size:10px;color:var(--ink-dim);margin-top:2px">PNG transparent recommandé · Max 2MB</div>
             </div>
@@ -982,8 +962,8 @@ try {
         </div>
         <div id="company-stamp-actions" style="display:none;margin-top:8px">
           <div class="grid-2">
-            <button class="btn btn-danger btn-sm" onclick="removeCompanyStamp()">🗑 Supprimer</button>
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('company-stamp-file').click()">↺ Remplacer</button>
+            <button class="btn btn-danger btn-sm" onclick="removeCompanyStamp()"><i class="fa fa-trash"></i> Supprimer</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('company-stamp-file').click()"><i class="fa fa-arrow-rotate-left"></i> Remplacer</button>
           </div>
         </div>
         <div class="form-group" style="margin-top:14px">
@@ -1003,7 +983,7 @@ try {
           <img id="signature-preview" src="" style="display:none">
           <div id="signature-placeholder">
             <div style="text-align:center">
-              <div style="font-size:24px;margin-bottom:4px">✍</div>
+              <i class="fa fa-signature" style="font-size:22px"></i>
               <div style="font-size:11px;color:#10b981;font-weight:600">Ajouter votre signature</div>
               <div style="font-size:10px;color:var(--ink-dim);margin-top:2px">PNG transparent recommandé · Max 2MB</div>
             </div>
@@ -1011,8 +991,8 @@ try {
         </div>
         <div id="signature-actions" style="display:none;margin-top:8px">
           <div class="grid-2">
-            <button class="btn btn-danger btn-sm" onclick="removeSignatureImage()">🗑 Supprimer</button>
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('signature-file').click()">↺ Remplacer</button>
+            <button class="btn btn-danger btn-sm" onclick="removeSignatureImage()"><i class="fa fa-trash"></i> Supprimer</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('signature-file').click()"><i class="fa fa-arrow-rotate-left"></i> Remplacer</button>
           </div>
         </div>
         <div class="form-group" style="margin-top:14px">
@@ -1471,7 +1451,6 @@ onAuthStateChanged(firebaseAuth, user => {
   if (!reduceMotion && 'IntersectionObserver' in window) {
     const revealGroups = [
       '.home-tool-grid > .home-tool-card',
-      '.workflow-grid > .workflow-card',
       '.home-format-grid > *',
       '.home-trust-grid > .home-trust-card',
       '.home-seo-grid > .home-article-card',
