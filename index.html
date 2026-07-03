@@ -623,6 +623,8 @@ try {
   /* Legal footer and consent */
   .legal-footer { border-top: 1px solid var(--border); padding: 18px 24px 26px; color: var(--ink-dim); font-size: 11px; background: rgba(255,255,255,.015); }
   .legal-footer-inner { max-width: 1600px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .footer-contact { color: var(--ink-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; white-space: nowrap; }
+  .footer-contact:hover { color: #a5b4fc; }
   .legal-links { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .legal-link { color: var(--ink-muted); background: transparent; border: 0; cursor: pointer; font-family: inherit; font-size: 11px; padding: 0; }
   .legal-link:hover { color: #a5b4fc; }
@@ -1718,6 +1720,7 @@ try {
     <div>
       <strong style="color:var(--ink)">FacturePro</strong>
       <span> - générateur gratuit de factures et devis PDF pour bâtiment et automobile.</span>
+      <a class="footer-contact" href="mailto:contact@facturergratuit.com"><i class="fa fa-envelope"></i> contact@facturergratuit.com</a>
     </div>
     <div class="legal-links">
       <button class="legal-link" onclick="openLegal('about')">À propos</button>
