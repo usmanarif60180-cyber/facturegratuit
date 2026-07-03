@@ -1911,19 +1911,6 @@ function syncSectorUi() {
   buildOnlineStyleGallery();
 }
 
-function selectWorkflow(kind) {
-  const map = {
-    batiment: ['facture','batiment','infos'],
-    automobile: ['facture','automobile','infos'],
-    marketplace: ['facture','online','style'],
-    freelance: ['facture','online','infos'],
-    devis: ['devis','batiment','infos']
-  };
-  const [type, sector, section] = map[kind] || map.batiment;
-  openEditor(type, sector);
-  showSection(section);
-}
-
 // ═══════════════════════════════════════════════════════
 // DOC TYPE
 // ═══════════════════════════════════════════════════════
