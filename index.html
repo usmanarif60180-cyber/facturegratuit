@@ -582,7 +582,7 @@ try {
         </div>
         <div class="grid-3" style="margin-bottom:12px">
           <div class="form-group" style="margin:0">
-            <label class="form-label">Pays / Format</label>
+            <label class="form-label" for="country-select">Pays / Format</label>
             <select class="form-input form-select" id="country-select" onchange="setCountry(this.value)">
               <option value="FR">France - Facture / Devis</option>
               <option value="DE">Germany - Rechnung / Angebot</option>
@@ -593,7 +593,7 @@ try {
             </select>
           </div>
           <div class="form-group" style="margin:0">
-            <label class="form-label">Langue</label>
+            <label class="form-label" for="language-select">Langue</label>
             <select class="form-input form-select" id="language-select" onchange="setLanguage(this.value)">
               <option value="fr">Français</option>
               <option value="de">Deutsch</option>
@@ -603,30 +603,30 @@ try {
             </select>
           </div>
           <div class="form-group" style="margin:0">
-            <label class="form-label">Devise</label>
+            <label class="form-label" for="currency-select">Devise</label>
             <select class="form-input form-select" id="currency-select" onchange="setCurrency(this.value)"></select>
           </div>
         </div>
         <div class="grid-3" style="margin-bottom:12px">
           <div class="form-group" style="margin:0">
-            <label class="form-label">N° Document</label>
+            <label class="form-label" for="f-number">N° Document</label>
             <input class="form-input" id="f-number" value="FAC-2024-001" oninput="updatePreview()">
           </div>
           <div class="form-group" style="margin:0">
-            <label class="form-label">Date émission</label>
+            <label class="form-label" for="f-date">Date émission</label>
             <input class="form-input" id="f-date" type="date" oninput="updatePreview()">
           </div>
           <div class="form-group" style="margin:0" id="due-date-group">
-            <label class="form-label">Date échéance</label>
+            <label class="form-label" for="f-due">Date échéance</label>
             <input class="form-input" id="f-due" type="date" oninput="updatePreview()">
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Objet / Description</label>
+          <label class="form-label" for="f-object">Objet / Description</label>
           <input class="form-input" id="f-object" placeholder="ex: Travaux de peinture — Salon" oninput="updatePreview()">
         </div>
         <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Tampon facture / devis</label>
+          <label class="form-label" for="quick-stamp-select">Tampon facture / devis</label>
           <select class="form-input form-select" id="quick-stamp-select" onchange="setStamp(this.value)">
             <option value="none">Aucun tampon</option>
             <option value="paid">PAYÉ</option>
@@ -639,24 +639,24 @@ try {
       <div class="card" id="vehicle-card" style="display:none">
         <div class="card-title"><i class="fa fa-car" style="color:#10b981"></i> Automobile achat / vente (optionnel)</div>
         <div class="grid-2">
-          <div class="form-group" style="margin:0"><label class="form-label">Type</label><input class="form-input" id="v-transaction" placeholder="Achat, vente, reprise..." oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">VIN / N° châssis</label><input class="form-input" id="v-vin" placeholder="VF1XXXXXXXXXXXXXX" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="v-transaction">Type</label><input class="form-input" id="v-transaction" placeholder="Achat, vente, reprise..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="v-vin">VIN / N° châssis</label><input class="form-input" id="v-vin" placeholder="VF1XXXXXXXXXXXXXX" oninput="updatePreview()"></div>
         </div>
         <div class="grid-2" style="margin-top:12px">
-          <div class="form-group" style="margin:0"><label class="form-label">Plaque / Immatriculation</label><input class="form-input" id="v-plate" placeholder="AB-123-CD" oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">Marque</label><input class="form-input" id="v-make" placeholder="Renault, Peugeot, BMW..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="v-plate">Plaque / Immatriculation</label><input class="form-input" id="v-plate" placeholder="AB-123-CD" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="v-make">Marque</label><input class="form-input" id="v-make" placeholder="Renault, Peugeot, BMW..." oninput="updatePreview()"></div>
         </div>
         <div class="grid-3" style="margin-top:12px">
-          <div class="form-group" style="margin:0"><label class="form-label">Modèle</label><input class="form-input" id="v-model" placeholder="Clio, 308..." oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">Année</label><input class="form-input" id="v-year" type="number" min="1900" max="2100" placeholder="2020" oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">Kilométrage</label><input class="form-input" id="v-mileage" placeholder="85000 km" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="v-model">Modèle</label><input class="form-input" id="v-model" placeholder="Clio, 308..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="v-year">Année</label><input class="form-input" id="v-year" type="number" min="1900" max="2100" placeholder="2020" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="v-mileage">Kilométrage</label><input class="form-input" id="v-mileage" placeholder="85000 km" oninput="updatePreview()"></div>
         </div>
         <div class="grid-2" style="margin-top:12px">
-          <div class="form-group" style="margin:0"><label class="form-label">Mise en circulation</label><input class="form-input" id="v-first-reg" type="date" oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">Couleur</label><input class="form-input" id="v-color" placeholder="Noir, blanc, gris..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="v-first-reg">Mise en circulation</label><input class="form-input" id="v-first-reg" type="date" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="v-color">Couleur</label><input class="form-input" id="v-color" placeholder="Noir, blanc, gris..." oninput="updatePreview()"></div>
         </div>
         <div class="form-group" style="margin-top:12px;margin-bottom:0">
-          <label class="form-label">Détails véhicule</label>
+          <label class="form-label" for="v-details">Détails véhicule</label>
           <textarea class="form-input" id="v-details" rows="3" placeholder="Motorisation, finition, options, état, contrôle technique, accessoires inclus..." oninput="updatePreview()"></textarea>
         </div>
       </div>
@@ -665,7 +665,7 @@ try {
         <div class="card-title"><i class="fa fa-store" style="color:#0d9488"></i> Freelance / marketplace seller</div>
         <div class="grid-2">
           <div class="form-group" style="margin:0">
-            <label class="form-label">Plateforme</label>
+            <label class="form-label" for="o-platform">Plateforme</label>
             <select class="form-input form-select" id="o-platform" onchange="updatePreview()">
               <option value="">Choisir...</option>
               <option>Amazon</option>
@@ -678,22 +678,22 @@ try {
               <option>Other</option>
             </select>
           </div>
-          <div class="form-group" style="margin:0"><label class="form-label">Order / transaction ID</label><input class="form-input" id="o-order-id" placeholder="ex: 123-1234567-1234567" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="o-order-id">Order / transaction ID</label><input class="form-input" id="o-order-id" placeholder="ex: 123-1234567-1234567" oninput="updatePreview()"></div>
         </div>
         <div class="grid-2" style="margin-top:12px">
-          <div class="form-group" style="margin:0"><label class="form-label">Buyer username / ref client</label><input class="form-input" id="o-buyer-ref" placeholder="buyer_123, client ref..." oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">SKU / listing ref</label><input class="form-input" id="o-sku" placeholder="SKU-001, listing #..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="o-buyer-ref">Buyer username / ref client</label><input class="form-input" id="o-buyer-ref" placeholder="buyer_123, client ref..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="o-sku">SKU / listing ref</label><input class="form-input" id="o-sku" placeholder="SKU-001, listing #..." oninput="updatePreview()"></div>
         </div>
         <div class="grid-2" style="margin-top:12px">
-          <div class="form-group" style="margin:0"><label class="form-label">Product / service category</label><input class="form-input" id="o-category" placeholder="Digital service, handmade product..." oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">Payment method</label><input class="form-input" id="o-payment" placeholder="Stripe, PayPal, marketplace payout..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="o-category">Product / service category</label><input class="form-input" id="o-category" placeholder="Digital service, handmade product..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="o-payment">Payment method</label><input class="form-input" id="o-payment" placeholder="Stripe, PayPal, marketplace payout..." oninput="updatePreview()"></div>
         </div>
         <div class="grid-2" style="margin-top:12px">
-          <div class="form-group" style="margin:0"><label class="form-label">Shipping / delivery ref</label><input class="form-input" id="o-shipping" placeholder="Tracking, delivery, milestone..." oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">Marketplace fees / commission (info)</label><input class="form-input" id="o-fees" type="number" min="0" step="0.01" placeholder="0.00" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="o-shipping">Shipping / delivery ref</label><input class="form-input" id="o-shipping" placeholder="Tracking, delivery, milestone..." oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="o-fees">Marketplace fees / commission (info)</label><input class="form-input" id="o-fees" type="number" min="0" step="0.01" placeholder="0.00" oninput="updatePreview()"></div>
         </div>
         <div class="form-group" style="margin-top:12px;margin-bottom:0">
-          <label class="form-label">Platform / order notes</label>
+          <label class="form-label" for="o-notes">Platform / order notes</label>
           <textarea class="form-input" id="o-notes" rows="3" placeholder="Refund policy, delivery status, project milestone, platform notes..." oninput="updatePreview()"></textarea>
         </div>
       </div>
@@ -701,33 +701,33 @@ try {
       <div class="card">
         <div class="card-title"><i class="fa fa-user-tie" style="color:#16a34a"></i> Émetteur (Vous)</div>
         <div class="grid-2">
-          <div class="form-group" style="margin:0"><label class="form-label">Nom / Raison sociale</label><input class="form-input" id="e-name" placeholder="Jean Martin" oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">Statut</label><input class="form-input" id="e-status" placeholder="Auto-entrepreneur" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="e-name">Nom / Raison sociale</label><input class="form-input" id="e-name" placeholder="Jean Martin" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="e-status">Statut</label><input class="form-input" id="e-status" placeholder="Auto-entrepreneur" oninput="updatePreview()"></div>
         </div>
-        <div class="form-group"><label class="form-label">SIRET / SIREN</label><input class="form-input" id="e-siret" placeholder="852 XXX XXX 00012" oninput="updatePreview()"></div>
-        <div class="form-group"><label class="form-label">Adresse</label><input class="form-input" id="e-addr" placeholder="42 rue des Artisans, 75011 Paris" oninput="updatePreview()"></div>
+        <div class="form-group"><label class="form-label" for="e-siret">SIRET / SIREN</label><input class="form-input" id="e-siret" placeholder="852 XXX XXX 00012" oninput="updatePreview()"></div>
+        <div class="form-group"><label class="form-label" for="e-addr">Adresse</label><input class="form-input" id="e-addr" placeholder="42 rue des Artisans, 75011 Paris" oninput="updatePreview()"></div>
         <div class="grid-2">
-          <div class="form-group" style="margin:0"><label class="form-label">Email</label><input class="form-input" id="e-email" placeholder="contact@vous.fr" oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">Téléphone</label><input class="form-input" id="e-tel" placeholder="06 00 00 00 00" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="e-email">Email</label><input class="form-input" id="e-email" placeholder="contact@vous.fr" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="e-tel">Téléphone</label><input class="form-input" id="e-tel" placeholder="06 00 00 00 00" oninput="updatePreview()"></div>
         </div>
         <div class="grid-2" style="margin-top:12px">
-          <div class="form-group" style="margin:0"><label class="form-label">IBAN (optionnel)</label><input class="form-input" id="e-iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX" oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">BIC / SWIFT (optionnel)</label><input class="form-input" id="e-bic" placeholder="AGRIFRPPXXX" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="e-iban">IBAN (optionnel)</label><input class="form-input" id="e-iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="e-bic">BIC / SWIFT (optionnel)</label><input class="form-input" id="e-bic" placeholder="AGRIFRPPXXX" oninput="updatePreview()"></div>
         </div>
-        <div class="form-group" style="margin-top:12px;margin-bottom:0"><label class="form-label">RIB / Banque (optionnel)</label><input class="form-input" id="e-rib" placeholder="Nom de la banque, titulaire du compte..." oninput="updatePreview()"></div>
+        <div class="form-group" style="margin-top:12px;margin-bottom:0"><label class="form-label" for="e-rib">RIB / Banque (optionnel)</label><input class="form-input" id="e-rib" placeholder="Nom de la banque, titulaire du compte..." oninput="updatePreview()"></div>
       </div>
 
       <div class="card">
         <div class="card-title"><i class="fa fa-building" style="color:#22c55e"></i> Client</div>
         <div class="grid-2">
-          <div class="form-group" style="margin:0"><label class="form-label">Nom / Société</label><input class="form-input" id="c-name" placeholder="Studio Moreau" oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">SIREN</label><input class="form-input" id="c-siret" placeholder="789 XXX XXX" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="c-name">Nom / Société</label><input class="form-input" id="c-name" placeholder="Studio Moreau" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="c-siret">SIREN</label><input class="form-input" id="c-siret" placeholder="789 XXX XXX" oninput="updatePreview()"></div>
         </div>
-        <div class="form-group"><label class="form-label">Adresse client / siège</label><input class="form-input" id="c-addr" placeholder="15 avenue Montaigne, 75008 Paris" oninput="updatePreview()"></div>
-        <div class="form-group"><label class="form-label">Adresse de chantier</label><input class="form-input" id="c-site-addr" placeholder="Adresse du chantier si différente" oninput="updatePreview()"></div>
+        <div class="form-group"><label class="form-label" for="c-addr">Adresse client / siège</label><input class="form-input" id="c-addr" placeholder="15 avenue Montaigne, 75008 Paris" oninput="updatePreview()"></div>
+        <div class="form-group"><label class="form-label" for="c-site-addr">Adresse de chantier</label><input class="form-input" id="c-site-addr" placeholder="Adresse du chantier si différente" oninput="updatePreview()"></div>
         <div class="grid-2">
-          <div class="form-group" style="margin:0"><label class="form-label">Email</label><input class="form-input" id="c-email" placeholder="client@email.fr" oninput="updatePreview()"></div>
-          <div class="form-group" style="margin:0"><label class="form-label">Téléphone</label><input class="form-input" id="c-tel" placeholder="01 00 00 00 00" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="c-email">Email</label><input class="form-input" id="c-email" placeholder="client@email.fr" oninput="updatePreview()"></div>
+          <div class="form-group" style="margin:0"><label class="form-label" for="c-tel">Téléphone</label><input class="form-input" id="c-tel" placeholder="01 00 00 00 00" oninput="updatePreview()"></div>
         </div>
       </div>
 
@@ -755,21 +755,21 @@ try {
           <div class="card-title" style="margin-bottom:10px"><i class="fa fa-wand-magic-sparkles" style="color:#6ee7b7"></i> Appliquer à toutes les lignes</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
             <div>
-              <label class="form-label">TVA %</label>
+              <label class="form-label" for="bulk-tva">TVA %</label>
               <div style="display:flex;gap:6px">
                 <input class="form-input" id="bulk-tva" type="number" min="0" max="100" step="1" placeholder="0, 10, 20">
                 <button class="btn btn-ghost btn-sm" onclick="applyBulkItemValue('tva')">OK</button>
               </div>
             </div>
             <div>
-              <label class="form-label">Prix unit. HT</label>
+              <label class="form-label" for="bulk-price">Prix unit. HT</label>
               <div style="display:flex;gap:6px">
                 <input class="form-input" id="bulk-price" type="number" min="0" step="0.01" placeholder="€">
                 <button class="btn btn-ghost btn-sm" onclick="applyBulkItemValue('price')">OK</button>
               </div>
             </div>
             <div>
-              <label class="form-label">Total HT / ligne</label>
+              <label class="form-label" for="bulk-total">Total HT / ligne</label>
               <div style="display:flex;gap:6px">
                 <input class="form-input" id="bulk-total" type="number" min="0" step="0.01" placeholder="€">
                 <button class="btn btn-ghost btn-sm" onclick="applyBulkItemValue('total')">OK</button>
@@ -804,12 +804,12 @@ try {
           <button class="ai-example-btn" onclick="fillAiExample('freelance')">Prestation freelance</button>
         </div>
         <div class="form-group">
-          <label class="form-label">Description</label>
+          <label class="form-label" for="ai-prompt">Description</label>
           <textarea class="form-input" id="ai-prompt" rows="6" placeholder="Ex: Peinture appartement 45m2, préparation murs, 2 couches, fournitures incluses, client particulier à Paris..." ></textarea>
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Niveau de détail</label>
+            <label class="form-label" for="ai-detail">Niveau de détail</label>
             <select class="form-input" id="ai-detail">
               <option value="standard">Standard</option>
               <option value="simple">Simple</option>
@@ -817,7 +817,7 @@ try {
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Prix</label>
+            <label class="form-label" for="ai-price-mode">Prix</label>
             <select class="form-input" id="ai-price-mode">
               <option value="estimate">Proposer prix estimatifs</option>
               <option value="blank">Sans prix / à remplir</option>
@@ -853,10 +853,10 @@ try {
       <div class="card">
         <div class="card-title"><i class="fa fa-ruler" style="color:#f59e0b"></i> Marges (mm)</div>
         <div class="grid-2">
-          <div><label class="form-label">Haut</label><input class="form-input" type="number" id="m-top" value="5" min="5" max="50" oninput="updatePreview()"></div>
-          <div><label class="form-label">Droite</label><input class="form-input" type="number" id="m-right" value="15" min="5" max="50" oninput="updatePreview()"></div>
-          <div><label class="form-label">Bas</label><input class="form-input" type="number" id="m-bottom" value="5" min="5" max="50" oninput="updatePreview()"></div>
-          <div><label class="form-label">Gauche</label><input class="form-input" type="number" id="m-left" value="15" min="5" max="50" oninput="updatePreview()"></div>
+          <div><label class="form-label" for="m-top">Haut</label><input class="form-input" type="number" id="m-top" value="5" min="5" max="50" oninput="updatePreview()"></div>
+          <div><label class="form-label" for="m-right">Droite</label><input class="form-input" type="number" id="m-right" value="15" min="5" max="50" oninput="updatePreview()"></div>
+          <div><label class="form-label" for="m-bottom">Bas</label><input class="form-input" type="number" id="m-bottom" value="5" min="5" max="50" oninput="updatePreview()"></div>
+          <div><label class="form-label" for="m-left">Gauche</label><input class="form-input" type="number" id="m-left" value="15" min="5" max="50" oninput="updatePreview()"></div>
         </div>
       </div>
     </div>
@@ -906,7 +906,7 @@ try {
         <div class="card-title"><i class="fa fa-image" style="color:#16a34a"></i> Logo de l'entreprise</div>
         <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="handleLogo(event)">
         <div class="logo-drop" id="logo-drop" onclick="document.getElementById('logo-file').click()">
-          <img id="logo-preview" src="" style="display:none">
+          <img id="logo-preview" src="" alt="Logo entreprise" style="display:none">
           <div id="logo-placeholder">
             <div style="text-align:center">
               <i class="fa fa-cloud-arrow-up" style="font-size:22px"></i>
@@ -962,7 +962,7 @@ try {
         <div class="card-title"><i class="fa fa-certificate" style="color:#0d9488"></i> Cachet société PNG</div>
         <input type="file" id="company-stamp-file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/*" style="display:none" onchange="handleCompanyStamp(event)">
         <div class="logo-drop asset-drop" id="company-stamp-drop" onclick="document.getElementById('company-stamp-file').click()">
-          <img id="company-stamp-preview" src="" style="display:none">
+          <img id="company-stamp-preview" src="" alt="Cachet société" style="display:none">
           <div id="company-stamp-placeholder">
             <div style="text-align:center">
               <i class="fa fa-cloud-arrow-up" style="font-size:22px"></i>
@@ -991,7 +991,7 @@ try {
         <div class="card-title"><i class="fa fa-pen-nib" style="color:#10b981"></i> Signature image</div>
         <input type="file" id="signature-file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/*" style="display:none" onchange="handleSignatureImage(event)">
         <div class="logo-drop asset-drop" id="signature-drop" onclick="document.getElementById('signature-file').click()">
-          <img id="signature-preview" src="" style="display:none">
+          <img id="signature-preview" src="" alt="Signature" style="display:none">
           <div id="signature-placeholder">
             <div style="text-align:center">
               <i class="fa fa-signature" style="font-size:22px"></i>
@@ -1115,7 +1115,7 @@ try {
         <div class="auth-modal-title" id="auth-title">Login</div>
         <div class="auth-modal-sub" id="auth-subtitle">Accédez à votre espace FacturePro</div>
       </div>
-      <button class="btn btn-ghost auth-close" onclick="closeAuth()" title="Fermer"><i class="fa fa-xmark"></i></button>
+      <button class="btn btn-ghost auth-close" onclick="closeAuth()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
     </div>
     <form class="auth-modal-body" onsubmit="submitAuth(event)">
       <div class="auth-benefits">
@@ -1124,15 +1124,15 @@ try {
         <span><i class="fa fa-key"></i> Recover account disponible par email Firebase</span>
       </div>
       <div class="form-group" id="auth-name-group">
-        <label class="form-label">Nom</label>
+        <label class="form-label" for="auth-name">Nom</label>
         <input class="form-input" id="auth-name" autocomplete="name" placeholder="Votre nom">
       </div>
       <div class="form-group">
-        <label class="form-label">Email</label>
+        <label class="form-label" for="auth-email-input">Email</label>
         <input class="form-input" id="auth-email-input" type="email" autocomplete="email" placeholder="vous@email.com" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Mot de passe</label>
+        <label class="form-label" for="auth-password">Mot de passe</label>
         <input class="form-input" id="auth-password" type="password" autocomplete="current-password" placeholder="••••••••" required>
       </div>
       <button class="btn btn-primary btn-lg" id="auth-submit" style="width:100%" type="submit"><i class="fa fa-right-to-bracket"></i> Login</button>
@@ -1155,7 +1155,7 @@ try {
         <div class="auth-modal-title">Mon compte</div>
         <div class="auth-modal-sub" id="account-modal-sub">Compte FacturePro connecté</div>
       </div>
-      <button class="btn btn-ghost auth-close" onclick="closeAccount()" title="Fermer"><i class="fa fa-xmark"></i></button>
+      <button class="btn btn-ghost auth-close" onclick="closeAccount()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
     </div>
     <div class="auth-modal-body">
       <div class="account-status" id="account-modal-status" style="margin:0 0 12px"><i class="fa fa-circle-check"></i> Connecté</div>
@@ -1217,17 +1217,17 @@ try {
       </div>
       <div class="account-panel" id="account-panel-profile">
         <div class="grid-2">
-          <div class="form-group"><label class="form-label">Nom société</label><input class="form-input" id="acct-company-name" placeholder="Votre société"></div>
-          <div class="form-group"><label class="form-label">Statut</label><input class="form-input" id="acct-company-status" placeholder="Auto-entrepreneur, SASU..."></div>
-          <div class="form-group"><label class="form-label">SIRET / SIREN</label><input class="form-input" id="acct-company-siret" placeholder="852 XXX XXX 00012"></div>
-          <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="acct-company-tel" placeholder="06 00 00 00 00"></div>
-          <div class="form-group"><label class="form-label">Email société</label><input class="form-input" id="acct-company-email" placeholder="contact@vous.fr"></div>
-          <div class="form-group"><label class="form-label">IBAN</label><input class="form-input" id="acct-company-iban" placeholder="FR76..."></div>
+          <div class="form-group"><label class="form-label" for="acct-company-name">Nom société</label><input class="form-input" id="acct-company-name" placeholder="Votre société"></div>
+          <div class="form-group"><label class="form-label" for="acct-company-status">Statut</label><input class="form-input" id="acct-company-status" placeholder="Auto-entrepreneur, SASU..."></div>
+          <div class="form-group"><label class="form-label" for="acct-company-siret">SIRET / SIREN</label><input class="form-input" id="acct-company-siret" placeholder="852 XXX XXX 00012"></div>
+          <div class="form-group"><label class="form-label" for="acct-company-tel">Téléphone</label><input class="form-input" id="acct-company-tel" placeholder="06 00 00 00 00"></div>
+          <div class="form-group"><label class="form-label" for="acct-company-email">Email société</label><input class="form-input" id="acct-company-email" placeholder="contact@vous.fr"></div>
+          <div class="form-group"><label class="form-label" for="acct-company-iban">IBAN</label><input class="form-input" id="acct-company-iban" placeholder="FR76..."></div>
         </div>
-        <div class="form-group"><label class="form-label">Adresse société</label><textarea class="form-input" id="acct-company-addr" rows="2" placeholder="Adresse complète"></textarea></div>
+        <div class="form-group"><label class="form-label" for="acct-company-addr">Adresse société</label><textarea class="form-input" id="acct-company-addr" rows="2" placeholder="Adresse complète"></textarea></div>
         <div class="grid-2">
-          <div class="form-group"><label class="form-label">BIC / SWIFT</label><input class="form-input" id="acct-company-bic" placeholder="AGRIFRPP"></div>
-          <div class="form-group"><label class="form-label">RIB / Banque</label><input class="form-input" id="acct-company-rib" placeholder="Banque, titulaire..."></div>
+          <div class="form-group"><label class="form-label" for="acct-company-bic">BIC / SWIFT</label><input class="form-input" id="acct-company-bic" placeholder="AGRIFRPP"></div>
+          <div class="form-group"><label class="form-label" for="acct-company-rib">RIB / Banque</label><input class="form-input" id="acct-company-rib" placeholder="Banque, titulaire..."></div>
         </div>
         <div class="account-detail-row" style="margin:4px 0 12px">
           <span>Logo, signature et cachet</span>
@@ -1258,7 +1258,7 @@ try {
         <div class="auth-modal-title">PDF téléchargé</div>
         <div class="auth-modal-sub" id="pdf-success-sub">Votre document est prêt</div>
       </div>
-      <button class="btn btn-ghost auth-close" onclick="closePdfSuccess()" title="Fermer"><i class="fa fa-xmark"></i></button>
+      <button class="btn btn-ghost auth-close" onclick="closePdfSuccess()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
     </div>
     <div class="auth-modal-body">
       <div class="success-icon"><i class="fa fa-check"></i></div>
@@ -1282,7 +1282,7 @@ try {
         <div class="auth-modal-title" id="legal-title">Mentions légales</div>
         <div class="auth-modal-sub">Informations légales, confidentialité et conditions d'utilisation</div>
       </div>
-      <button class="btn btn-ghost auth-close" onclick="closeLegal()" title="Fermer"><i class="fa fa-xmark"></i></button>
+      <button class="btn btn-ghost auth-close" onclick="closeLegal()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
     </div>
     <div class="auth-modal-body legal-content" id="legal-content"></div>
   </div>
@@ -1296,7 +1296,7 @@ try {
         <div class="auth-modal-title">Feedback & support</div>
         <div class="auth-modal-sub">Aidez-nous à améliorer FacturePro</div>
       </div>
-      <button class="btn btn-ghost auth-close" onclick="closeFeedback()" title="Fermer"><i class="fa fa-xmark"></i></button>
+      <button class="btn btn-ghost auth-close" onclick="closeFeedback()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
     </div>
     <form class="auth-modal-body" onsubmit="submitFeedback(event)">
       <div class="form-group">
@@ -1311,7 +1311,7 @@ try {
       </div>
       <div class="grid-2">
         <div class="form-group">
-          <label class="form-label">Sujet</label>
+          <label class="form-label" for="feedback-type">Sujet</label>
           <select class="form-input" id="feedback-type">
             <option>Problème PDF / impression</option>
             <option>Compte / login</option>
@@ -1322,12 +1322,12 @@ try {
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Email optionnel</label>
+          <label class="form-label" for="feedback-email">Email optionnel</label>
           <input class="form-input" id="feedback-email" type="email" placeholder="vous@email.com">
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Message</label>
+        <label class="form-label" for="feedback-message">Message</label>
         <textarea class="form-input" id="feedback-message" rows="5" required placeholder="Décrivez le problème, votre idée, ou ce qui manque dans l'outil..."></textarea>
       </div>
       <div class="support-box">
