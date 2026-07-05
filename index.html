@@ -243,6 +243,7 @@ try {
     <span class="logo-badge">GRATUIT</span>
   </div>
   <div class="topbar-actions">
+    <button class="btn btn-ghost btn-sm editor-only-btn" onclick="toggleToolRail()" title="Outils facture/devis"><i class="fa fa-bars"></i> <span class="auth-text">Outils</span></button>
     <button class="btn btn-ghost btn-sm" onclick="scrollToHome()" title="Accueil"><i class="fa fa-home"></i> <span class="auth-text">Home</span></button>
     <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleAppTheme()" title="Changer le mode"><i class="fa fa-moon" id="theme-icon"></i> <span class="auth-text" id="theme-label">Dark</span></button>
     <div class="auth-actions">
@@ -1383,6 +1384,12 @@ import {
   getGenerativeModel,
   GoogleAIBackend
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-ai.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
@@ -1396,6 +1403,7 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(firebaseApp);
+const firebaseDb = getFirestore(firebaseApp);
 let firebaseAIModel = null;
 
 try {
@@ -1418,6 +1426,7 @@ isSupported()
 window.firebaseServices = {
   app: firebaseApp,
   auth: firebaseAuth,
+  db: firebaseDb,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -1426,6 +1435,9 @@ window.firebaseServices = {
   updateProfile,
   aiModel: firebaseAIModel
 };
+window.firestoreDoc = doc;
+window.firestoreSetDoc = setDoc;
+window.firestoreGetDoc = getDoc;
 window.__firebaseModuleStatus = 'ready';
 
 onAuthStateChanged(firebaseAuth, user => {
