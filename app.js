@@ -3490,6 +3490,22 @@ function buildPdfClone(source) {
   clone.style.webkitPrintColorAdjust = 'exact';
   clone.style.printColorAdjust = 'exact';
 
+  if (!S.authUser) {
+    const watermark = document.createElement('div');
+    watermark.style.cssText = [
+      'width:100%',
+      'text-align:center',
+      'padding:14px 0 6px',
+      'font-family:Inter,system-ui,sans-serif',
+      'font-size:10px',
+      `color:${PAGE_COLORS[S.pageColorIdx]?.text || '#64748b'}`,
+      'opacity:.45',
+      'letter-spacing:.02em'
+    ].join(';');
+    watermark.textContent = 'Créé gratuitement avec FacturePro — facturergratuit.com';
+    clone.appendChild(watermark);
+  }
+
   holder.appendChild(clone);
   document.body.appendChild(holder);
   return clone;
