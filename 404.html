@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#16a34a">
+<meta name="robots" content="noindex, follow">
+<title>Page introuvable — FacturePro</title>
+<style>
+  :root {
+    --app-bg: #0a0e1a;
+    --ink: #e2e8f0;
+    --ink-muted: #94a3b8;
+    --border: rgba(255,255,255,0.1);
+    --brand: #16a34a;
+    --brand-2: #22c55e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--app-bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    text-align: center;
+    padding: 24px;
+  }
+  .wrap { max-width: 480px; }
+  .logo-icon {
+    width: 64px; height: 64px;
+    margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    border-radius: 18px;
+  }
+  h1 { font-size: 72px; font-weight: 800; letter-spacing: -2px; background: linear-gradient(135deg, var(--brand), var(--brand-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h2 { font-size: 20px; font-weight: 600; margin: 8px 0 12px; }
+  p { color: var(--ink-muted); font-size: 14px; line-height: 1.6; margin-bottom: 28px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; font-weight: 600; font-size: 14px; text-decoration: none; }
+  .links { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: center; }
+  .links a { color: var(--ink-muted); font-size: 13px; text-decoration: none; }
+  .links a:hover { color: var(--ink); }
+  @media (prefers-color-scheme: light) {
+    body { background: #f7f8fb; color: #14151f; }
+    p { color: #5c5f78; }
+    .links { border-top-color: #e5e4f1; }
+    .links a { color: #5c5f78; }
+    .links a:hover { color: #14151f; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo-icon">⚡</div>
+    <h1>404</h1>
+    <h2>Page introuvable</h2>
+    <p>La page que vous cherchez n'existe pas ou a été déplacée.</p>
+    <a class="btn" href="/">Retour à l'accueil</a>
+    <div class="links">
+      <a href="/facture-batiment.html">Facture bâtiment</a>
+      <a href="/devis-batiment.html">Devis bâtiment</a>
+      <a href="/facture-freelance.html">Facture freelance</a>
+      <a href="/aide-faq.html">Aide / FAQ</a>
+    </div>
+  </div>
+</body>
+</html>
