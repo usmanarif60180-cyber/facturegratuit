@@ -3342,6 +3342,24 @@ function showPdfSuccess(docNum='document') {
   if (title) title.textContent = `${docNum} prêt`;
   if (sub) sub.textContent = `${S.docType === 'devis' ? 'Devis' : 'Facture'} téléchargé en PDF`;
   document.getElementById('pdf-success-modal')?.classList.add('open');
+  spawnConfetti(document.querySelector('#pdf-success-modal .success-icon'));
+}
+
+function spawnConfetti(anchorEl) {
+  if (!anchorEl || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['#16a34a', '#22c55e', '#0d9488', '#facc15', '#38bdf8'];
+  for (let i = 0; i < 18; i++) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 70;
+    piece.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+    piece.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+    piece.style.setProperty('--rot', (Math.random() * 360 - 180) + 'deg');
+    piece.style.background = colors[i % colors.length];
+    anchorEl.appendChild(piece);
+    setTimeout(() => piece.remove(), 800);
+  }
 }
 
 function closePdfSuccess() {
