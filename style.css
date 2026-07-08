@@ -514,7 +514,7 @@
   .home-feature-strip:hover .home-feature-track { animation-play-state: paused; }
   .home-feature { color:#8190ad; font-size:13px; font-weight:800; white-space:nowrap; transition:color .2s ease; }
   .home-feature:hover { color:#e7ebf5; }
-  .home-feature::before { content:""; display:inline-block; width:6px; height:6px; margin:0 10px 2px 0; border-radius:50%; background:#15803d; box-shadow:0 0 16px rgba(21,128,61,.8); }
+  .home-feature::before { content:"✓"; display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; margin:0 8px 2px 0; border-radius:50%; background:#15803d; color:#fff; font-size:9px; font-weight:900; box-shadow:0 0 12px rgba(21,128,61,.7); }
   @keyframes featureMove { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   .home-section { max-width:1360px; margin:0 auto; padding:28px; }
   .home-section-title { margin-bottom:18px; color:#6f7e9a; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.18em; }
