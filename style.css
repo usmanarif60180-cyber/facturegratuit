@@ -565,11 +565,11 @@
   .compare-handle { position:absolute; top:0; bottom:0; left:var(--pos,50%); width:3px; background:#fff; transform:translateX(-1.5px); z-index:3; box-shadow:0 0 0 1px rgba(0,0,0,.2); }
   .compare-handle-grip { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:42px; height:42px; border-radius:50%; background:#fff; box-shadow:0 10px 24px rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; color:#0f172a; }
   .compare-handle:focus-visible .compare-handle-grip { outline:2px solid #22c55e; outline-offset:2px; }
-  .compare-paper { width:84%; padding:20px 22px; border-radius:10px; }
+  .compare-paper { width:84%; padding:20px 22px; border-radius:10px; box-sizing:border-box; min-height:210px; display:flex; flex-direction:column; justify-content:center; }
   .compare-paper--clean { background:#fff; color:#1a1a1a; box-shadow:0 1px 3px rgba(0,0,0,.08); }
   .compare-paper--messy { background:#f6efd8; color:#2b2620; transform:rotate(-1.2deg); box-shadow:0 2px 6px rgba(0,0,0,.12); position:relative; font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive; }
   .compare-paper--messy::after { content:""; position:absolute; top:12px; right:22px; width:34px; height:34px; border-radius:50%; border:6px solid rgba(120,85,40,.18); }
-  .compare-cc-head { font-weight:900; font-size:15px; margin-bottom:12px; }
+  .compare-cc-head { font-weight:900; font-size:15px; margin-bottom:12px; text-align:right; }
   .compare-cc-row { display:flex; justify-content:space-between; font-size:13px; padding:7px 0; border-bottom:1px dashed #e2e2e2; }
   .compare-cc-total { display:flex; justify-content:space-between; font-weight:900; font-size:15px; margin-top:10px; padding-top:10px; border-top:2px solid #16a34a; color:#15803d; }
   .compare-messy-line { font-size:14px; margin-bottom:9px; }
@@ -615,6 +615,12 @@
   @media(max-width:600px) {
     .compare-wrap { aspect-ratio:4/5; }
     .why-grid { grid-template-columns:1fr; }
+    .compare-paper { padding:14px 14px; min-height:190px; }
+    .compare-cc-head { font-size:12.5px; }
+    .compare-cc-row, .compare-cc-total { font-size:11.5px; }
+    .compare-cc-row span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:56%; }
+    .compare-cc-total { font-size:13px; }
+    .compare-messy-line { font-size:12px; }
   }
   @media(max-width:640px) {
     .home-hero { padding:38px 18px 28px; }
