@@ -308,6 +308,27 @@ try {
   </div>
 
   <div class="home-section">
+    <div class="home-section-title">Comment ça marche</div>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-step-num">1</div>
+        <div class="how-step-title">Décrivez votre prestation</div>
+        <div class="how-step-copy">Choisissez un type de document, laissez l'assistant préparer les lignes.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">2</div>
+        <div class="how-step-title">Personnalisez</div>
+        <div class="how-step-copy">Logo, signature, couleurs et police&nbsp;: ajustez à votre image.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">3</div>
+        <div class="how-step-title">Téléchargez</div>
+        <div class="how-step-copy">Export PDF A4 en un clic, prêt à envoyer à votre client.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-section">
     <div class="home-section-title">Choisissez votre outil</div>
     <div class="home-tool-grid">
       <div class="home-tool-card" onclick="selectHomeTool('facture','batiment')"><div class="home-tool-icon"><i class="fa fa-hammer"></i></div><div class="home-tool-title">Facture bâtiment</div><div class="home-tool-copy">Travaux, rénovation, artisanat, maçonnerie, électricité</div><span class="home-tool-tag">Bâtiment</span></div>
@@ -332,6 +353,38 @@ try {
     <div class="home-stat"><div><div class="home-stat-num">100%</div><div class="home-stat-label">Gratuit · Aucun compte</div></div></div>
   </div>
 
+  <div class="home-section">
+    <div class="home-section-title">Adieu les factures bricolées</div>
+    <p class="home-section-copy">Faites glisser pour comparer — à gauche l'ancienne méthode, à droite FacturePro.</p>
+    <div class="compare-wrap" id="compareWrap" style="--pos:50%">
+      <div class="compare-after">
+        <span class="compare-tag compare-tag-after">FacturePro</span>
+        <div class="compare-paper compare-paper--clean">
+          <div class="compare-cc-head">Facture — FAC-2026-014</div>
+          <div class="compare-cc-row"><span>Peinture salon 42 m²</span><strong>620,00 €</strong></div>
+          <div class="compare-cc-row"><span>Fournitures</span><strong>85,00 €</strong></div>
+          <div class="compare-cc-row"><span>TVA 20%</span><strong>141,00 €</strong></div>
+          <div class="compare-cc-total"><span>Total TTC</span><strong>846,00 €</strong></div>
+        </div>
+      </div>
+      <div class="compare-before" id="compareBefore">
+        <span class="compare-tag compare-tag-before">Avant</span>
+        <div class="compare-paper compare-paper--messy">
+          <div class="compare-messy-line" style="font-size:18px">Facture ?!</div>
+          <div class="compare-messy-line compare-strike">peinture salon...</div>
+          <div class="compare-messy-line">42m2 x ~15€ = 620€??</div>
+          <div class="compare-messy-line">fournitures 85 (ou 90?)</div>
+          <div class="compare-messy-total">Total : <s>800</s> 846... je crois</div>
+        </div>
+      </div>
+      <div class="compare-handle" id="compareHandle" role="slider" tabindex="0" aria-label="Comparer avant et après" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+        <div class="compare-handle-grip">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="home-section" id="formats">
     <div class="home-section-title">Formats internationaux</div>
     <p class="home-section-copy">Le pays choisi adapte le format du document, la devise, le nom de taxe et la mise en page: utile pour les factures France, Germany, Spain, Italy, UK, USA et les vendeurs online.</p>
@@ -342,6 +395,19 @@ try {
       <a class="home-format-card" href="/fattura-italia.html"><strong>Italy</strong><span>Fattura avec P. IVA / codice fiscale, IVA et format professionnel.</span><em>EUR · IVA</em></a>
       <a class="home-format-card" href="/invoice-uk.html"><strong>UK</strong><span>Invoice with VAT, company details, due date and clean business layout.</span><em>GBP · VAT</em></a>
       <a class="home-format-card" href="/invoice-usa.html"><strong>USA</strong><span>Invoice with seller/buyer details, sales tax option and USD currency.</span><em>USD · Sales tax</em></a>
+    </div>
+    <div class="country-demo-inner">
+      <div class="country-demo-head">Essayez en direct&nbsp;:</div>
+      <div class="country-pills" role="tablist" aria-label="Choisir un pays">
+        <button class="country-pill active" onclick="setCountryDemo(this,'fr')">🇫🇷 France</button>
+        <button class="country-pill" onclick="setCountryDemo(this,'uk')">🇬🇧 UK</button>
+        <button class="country-pill" onclick="setCountryDemo(this,'us')">🇺🇸 USA</button>
+      </div>
+      <div class="country-mini-card">
+        <div class="compare-cc-row"><span>Prestation</span><strong id="cdLine">620,00 €</strong></div>
+        <div class="compare-cc-row"><span id="cdTaxLabel">TVA 20%</span><strong id="cdTax">141,00 €</strong></div>
+        <div class="compare-cc-total"><span>Total</span><strong id="cdTotal">846,00 €</strong></div>
+      </div>
     </div>
   </div>
 
@@ -383,6 +449,28 @@ try {
       <a class="home-format-card" href="/etsy-invoice-generator.html"><strong>Etsy</strong><span>Facture pour créateurs Etsy.</span><em>Ouvrir</em></a>
       <a class="home-format-card" href="/shopify-invoice-generator.html"><strong>Shopify</strong><span>Facture pour boutiques Shopify.</span><em>Ouvrir</em></a>
       <a class="home-format-card" href="/fiverr-upwork-invoice.html"><strong>Fiverr / Upwork</strong><span>Facture pour freelances.</span><em>Ouvrir</em></a>
+    </div>
+  </div>
+
+  <div class="home-section">
+    <div class="home-section-title">Pourquoi FacturePro</div>
+    <div class="why-grid">
+      <div class="why-card why-card--green">
+        <div class="why-card-title">Conçu pour <span>le terrain</span></div>
+        <p>Artisans, freelances et vendeurs en ligne&nbsp;: l'outil a été pensé à partir de vraies factures, pas d'une feuille de spécifications.</p>
+      </div>
+      <div class="why-card why-card--blue">
+        <div class="why-card-title">100% gratuit, <span>pour de vrai</span></div>
+        <p>Pas d'essai qui expire, pas de carte bancaire demandée, aucune fonctionnalité verrouillée derrière un abonnement.</p>
+      </div>
+      <div class="why-card why-card--purple">
+        <div class="why-card-title">On reste <span>disponible</span></div>
+        <p>FAQ complète, feedback envoyé directement depuis l'application, réponses par email sous 24h.</p>
+      </div>
+      <div class="why-card why-card--rust">
+        <div class="why-card-title">Vos données, <span>en sécurité</span></div>
+        <p>Chiffrées sur Firebase si vous créez un compte gratuit, ou 100% locales si vous préférez rester hors-ligne.</p>
+      </div>
     </div>
   </div>
 

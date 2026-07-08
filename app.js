@@ -3542,3 +3542,47 @@ function showNotif(msg, type='success') {
   el.style.display = 'flex';
   setTimeout(() => { el.style.display='none'; }, 3500);
 }
+
+// ═══════════════════════════════════════════════════════
+// HOMEPAGE: before/after compare slider + country demo
+// ═══════════════════════════════════════════════════════
+(function initCompareSlider() {
+  const wrap = document.getElementById('compareWrap');
+  const handle = document.getElementById('compareHandle');
+  if (!wrap || !handle) return;
+  let dragging = false;
+
+  function setPos(pct) {
+    pct = Math.max(0, Math.min(100, pct));
+    wrap.style.setProperty('--pos', pct + '%');
+    handle.setAttribute('aria-valuenow', Math.round(pct));
+  }
+  function fromClientX(clientX) {
+    const rect = wrap.getBoundingClientRect();
+    setPos(((clientX - rect.left) / rect.width) * 100);
+  }
+  wrap.addEventListener('pointerdown', (e) => { dragging = true; fromClientX(e.clientX); wrap.setPointerCapture(e.pointerId); });
+  wrap.addEventListener('pointermove', (e) => { if (dragging) fromClientX(e.clientX); });
+  wrap.addEventListener('pointerup', () => { dragging = false; });
+  wrap.addEventListener('pointercancel', () => { dragging = false; });
+  handle.addEventListener('keydown', (e) => {
+    const current = parseFloat(wrap.style.getPropertyValue('--pos')) || 50;
+    if (e.key === 'ArrowLeft') { setPos(current - 5); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { setPos(current + 5); e.preventDefault(); }
+  });
+})();
+
+const countryDemoData = {
+  fr: { line: '620,00 €', taxLabel: 'TVA 20%', tax: '141,00 €', total: '846,00 €' },
+  uk: { line: '£ 540.00', taxLabel: 'VAT 20%', tax: '£ 108.00', total: '£ 648.00' },
+  us: { line: '$ 680.00', taxLabel: 'Sales tax 8%', tax: '$ 54.40', total: '$ 734.40' },
+};
+function setCountryDemo(btn, code) {
+  document.querySelectorAll('.country-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const d = countryDemoData[code];
+  document.getElementById('cdLine').textContent = d.line;
+  document.getElementById('cdTaxLabel').textContent = d.taxLabel;
+  document.getElementById('cdTax').textContent = d.tax;
+  document.getElementById('cdTotal').textContent = d.total;
+}
