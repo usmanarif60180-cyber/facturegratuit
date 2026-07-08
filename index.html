@@ -242,6 +242,7 @@ try {
 <div id="app">
 
 <!-- TOPBAR -->
+<div class="scroll-progress no-print"><div class="scroll-progress-bar" id="scrollProgressBar"></div></div>
 <nav class="topbar no-print">
   <div class="topbar-logo">
     <div class="logo-icon">⚡</div>
@@ -284,12 +285,41 @@ try {
         Utilisé par 10 000+ professionnels
       </div>
     </div>
-    <div class="floating-docs" aria-hidden="true">
-      <div class="float-card" style="--accent:#8b5cf6;--accent-2:#6366f1"><div class="doc-mini-title">Facture</div><div class="doc-mini-line"></div><div class="doc-mini-line short"></div><div class="doc-mini-line"></div><div class="doc-mini-pill"></div></div>
-      <div class="float-card" style="--accent:#3b82f6;--accent-2:#38bdf8"><div class="doc-mini-title">Facture Pro</div><div class="doc-mini-line"></div><div class="doc-mini-line"></div><div class="doc-mini-line short"></div><div class="doc-mini-pill"></div></div>
-      <div class="float-card" style="--accent:#ec4899;--accent-2:#f97316"><div class="doc-mini-title">Facture</div><div class="doc-mini-line short"></div><div class="doc-mini-line"></div><div class="doc-mini-line"></div><div class="doc-mini-pill"></div></div>
-      <div class="float-card" style="--accent:#10b981;--accent-2:#34d399"><div class="doc-mini-title">Devis</div><div class="doc-mini-line"></div><div class="doc-mini-line short"></div><div class="doc-mini-line"></div><div class="doc-mini-pill"></div></div>
-      <div class="float-card" style="--accent:#f59e0b;--accent-2:#fb923c"><div class="doc-mini-title">Devis Auto</div><div class="doc-mini-line"></div><div class="doc-mini-line"></div><div class="doc-mini-line short"></div><div class="doc-mini-pill"></div></div>
+    <div class="hero-illustration" aria-hidden="true">
+      <div class="hero-blob"></div>
+      <svg class="hero-figure" viewBox="0 0 460 320" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="230" cy="308" rx="200" ry="10" fill="#000" opacity="0.18"/>
+        <ellipse cx="42" cy="222" rx="20" ry="10" fill="#8b6f4e"/>
+        <ellipse cx="30" cy="195" rx="16" ry="20" fill="#4a8f5c"/>
+        <ellipse cx="46" cy="185" rx="16" ry="22" fill="#5aa66c"/>
+        <ellipse cx="58" cy="200" rx="14" ry="18" fill="#4a8f5c"/>
+        <rect x="335" y="86" width="90" height="150" rx="32" fill="#131a29"/>
+        <rect x="10" y="215" width="440" height="14" rx="4" fill="#a4835c"/>
+        <rect x="10" y="225" width="440" height="66" rx="10" fill="#8b6f4e"/>
+        <rect x="190" y="153" width="10" height="62" fill="#9aa3ad"/>
+        <ellipse cx="195" cy="216" rx="34" ry="7" fill="#9aa3ad"/>
+        <rect x="108" y="68" width="174" height="102" rx="10" fill="#1f2733"/>
+        <rect x="120" y="80" width="150" height="78" rx="4" fill="#ffffff"/>
+        <rect x="129" y="89" width="56" height="9" rx="2" fill="var(--brand)"/>
+        <rect id="monLine1" class="mon-line" x="129" y="105" width="132" height="5" rx="2" fill="#c9ccd1"/>
+        <rect id="monLine2" class="mon-line" x="129" y="115" width="98" height="5" rx="2" fill="#c9ccd1"/>
+        <rect id="monLine3" class="mon-line" x="129" y="125" width="112" height="5" rx="2" fill="#c9ccd1"/>
+        <rect id="monTotal" class="mon-line" x="129" y="139" width="132" height="13" rx="3" fill="rgba(22,163,74,.18)"/>
+        <g id="monCheck" class="mon-check">
+          <circle cx="255" cy="80" r="10" fill="var(--brand)"/>
+          <path d="M251 80l3 3 6-6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <rect id="monCursor" class="mon-cursor" x="129" y="105" width="2" height="5" fill="var(--brand)"/>
+        <rect x="150" y="220" width="112" height="14" rx="4" fill="#e7e7ea"/>
+        <ellipse cx="283" cy="227" rx="11" ry="15" fill="#e7e7ea"/>
+        <rect x="298" y="176" width="52" height="19" rx="9.5" transform="rotate(-6 298 176)" fill="var(--brand-2)"/>
+        <ellipse cx="368" cy="118" rx="44" ry="54" fill="#4a3527"/>
+        <rect x="333" y="150" width="78" height="82" rx="27" fill="var(--brand)"/>
+        <rect x="333" y="225" width="78" height="12" fill="#000" opacity="0.12"/>
+        <rect x="362" y="138" width="16" height="20" fill="#f0c396"/>
+        <circle cx="370" cy="110" r="25" fill="#f0c396"/>
+        <path d="M326 108a44 44 0 0 1 88 0c0-20-12-40-44-40s-44 20-44 40Z" fill="#4a3527"/>
+      </svg>
     </div>
   </div>
 
@@ -1207,24 +1237,34 @@ try {
 
 </div><!-- /main-layout -->
 
-<footer class="legal-footer no-print">
-  <div class="legal-footer-inner">
-    <div>
-      <strong style="color:var(--ink)">FacturePro</strong>
-      <span> - générateur gratuit de factures et devis PDF pour bâtiment et automobile.</span>
-      <a class="footer-contact" href="mailto:contact@facturergratuit.com"><i class="fa fa-envelope"></i> contact@facturergratuit.com</a>
+<footer class="site-footer no-print">
+  <div class="site-footer-inner">
+    <div class="footer-brand-col">
+      <div class="footer-brand-row"><div class="logo-icon">⚡</div> FacturePro</div>
+      <p class="footer-brand-copy">Générateur gratuit de factures et devis PDF pour bâtiment, automobile, freelance et vendeurs en ligne. 100% gratuit, sans limite cachée.</p>
+      <a class="footer-cta" href="mailto:contact@facturergratuit.com"><i class="fa fa-envelope"></i> contact@facturergratuit.com</a>
     </div>
-    <div class="legal-links">
-      <button class="legal-link" onclick="openLegal('about')">À propos</button>
-      <button class="legal-link" onclick="openLegal('legal')">Mentions légales</button>
-      <button class="legal-link" onclick="openLegal('privacy')">Confidentialité</button>
-      <button class="legal-link" onclick="openLegal('security')">Sécurité</button>
-      <button class="legal-link" onclick="openLegal('terms')">CGU</button>
-      <button class="legal-link" onclick="openLegal('cookies')">Cookies</button>
-      <button class="legal-link" onclick="openLegal('contact')">Contact</button>
-      <button class="legal-link" onclick="openFeedback()">Feedback</button>
+    <div class="footer-links-grid">
+      <div class="footer-col">
+        <h4>Produit</h4>
+        <button class="legal-link" onclick="openLegal('about')">À propos</button>
+        <button class="legal-link" onclick="openFeedback()">Feedback</button>
+      </div>
+      <div class="footer-col">
+        <h4>Légal</h4>
+        <button class="legal-link" onclick="openLegal('legal')">Mentions légales</button>
+        <button class="legal-link" onclick="openLegal('privacy')">Confidentialité</button>
+        <button class="legal-link" onclick="openLegal('terms')">CGU</button>
+        <button class="legal-link" onclick="openLegal('cookies')">Cookies</button>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <button class="legal-link" onclick="openLegal('security')">Sécurité</button>
+        <button class="legal-link" onclick="openLegal('contact')">Contact</button>
+      </div>
     </div>
   </div>
+  <div class="footer-bottom">© 2026 FacturePro — générateur gratuit de factures et devis PDF.</div>
 </footer>
 
 <!-- NOTIFICATION -->
@@ -1606,8 +1646,15 @@ function toggleToolRail() {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const topbar = document.querySelector('.topbar');
-  if (topbar) {
-    const onScroll = () => topbar.classList.toggle('scrolled', window.scrollY > 12);
+  const progressBar = document.getElementById('scrollProgressBar');
+  if (topbar || progressBar) {
+    const onScroll = () => {
+      if (topbar) topbar.classList.toggle('scrolled', window.scrollY > 12);
+      if (progressBar) {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        progressBar.style.width = (max > 0 ? Math.min(100, (window.scrollY / max) * 100) : 0) + '%';
+      }
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
   }
@@ -1668,6 +1715,32 @@ function toggleToolRail() {
     }, { threshold: 0.6 });
     counters.forEach((el) => statIo.observe(el));
   }
+})();
+
+// ── Hero illustration: monitor "typing" animation ──
+(function () {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lines = ['monLine1', 'monLine2', 'monLine3', 'monTotal'].map((id) => document.getElementById(id));
+  const check = document.getElementById('monCheck');
+  const cursor = document.getElementById('monCursor');
+  if (!lines[0] || reduceMotion) return;
+
+  function animateMonitor() {
+    lines.forEach((el) => el && el.classList.remove('fill'));
+    if (check) check.classList.remove('show');
+    if (cursor) cursor.classList.remove('show');
+    if (cursor) cursor.classList.add('show');
+    lines.forEach((el, i) => {
+      setTimeout(() => { if (el) el.classList.add('fill'); }, 260 + i * 420);
+    });
+    setTimeout(() => {
+      if (cursor) cursor.classList.remove('show');
+      if (check) check.classList.add('show');
+    }, 260 + lines.length * 420 + 200);
+  }
+
+  animateMonitor();
+  setInterval(animateMonitor, 5200);
 })();
 </script>
 </body>
