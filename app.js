@@ -2099,6 +2099,7 @@ function setDocVariant(type, sector='batiment') {
       topBtn.classList.toggle('btn-ghost', t !== type);
     }
   });
+  positionRailPill();
   const num = document.getElementById('f-number');
   if (num) num.value = getDefaultDocNumber(type, sector);
   const dueGroup = document.getElementById('due-date-group');
@@ -2107,6 +2108,20 @@ function setDocVariant(type, sector='batiment') {
   renderDocVariant();
   updatePreview();
 }
+
+function positionRailPill() {
+  const pill = document.getElementById('railPill');
+  const activeBtn = document.getElementById('tab-' + S.docType);
+  const rail = document.getElementById('tool-rail');
+  if (!pill || !activeBtn || !rail) return;
+  const railRect = rail.getBoundingClientRect();
+  const btnRect = activeBtn.getBoundingClientRect();
+  pill.style.width = btnRect.width + 'px';
+  pill.style.height = btnRect.height + 'px';
+  pill.style.transform = `translate(${btnRect.left - railRect.left}px, ${btnRect.top - railRect.top}px)`;
+  pill.classList.add('ready');
+}
+window.addEventListener('resize', () => positionRailPill());
 
 function getDocumentFormat() {
   if (S.docType === 'facture' && S.docSector === 'online') {
@@ -3604,3 +3619,7 @@ function setCountryDemo(btn, code) {
   document.getElementById('cdTax').textContent = d.tax;
   document.getElementById('cdTotal').textContent = d.total;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { if (typeof positionRailPill === 'function') positionRailPill(); }, 60);
+});

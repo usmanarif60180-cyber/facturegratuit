@@ -198,7 +198,7 @@
 
   /* ── MAIN LAYOUT ── */
   .main-layout { display: grid; grid-template-columns: auto minmax(480px, 540px) minmax(0, 1fr); gap: 0; flex: 1; max-width: 1600px; width: 100%; margin: 0 auto; padding: 0 0 40px; border-top: 1px solid var(--border); }
-  @media(max-width:1100px) { .main-layout { grid-template-columns: 1fr; } }
+  @media(max-width:1100px) { .main-layout { grid-template-columns: minmax(0,1fr); } }
   body.home-mode .main-layout { display: none; }
   body.home-mode .editor-only-btn { display: none; }
   body.editor-mode .home-preview { display: none; }
@@ -223,7 +223,7 @@
   .rail-toggle i { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
   .tool-rail.expanded .rail-toggle i { transform: rotate(180deg); }
   .rail-item {
-    position: relative; display: flex; align-items: center; gap: 12px; height: 38px; padding: 0 9px; border-radius: 9px;
+    position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; height: 38px; padding: 0 9px; border-radius: 9px;
     border: none; background: transparent; color: var(--ink-muted); cursor: pointer; font: inherit; font-size: 12.5px;
     font-weight: 700; white-space: nowrap; overflow: hidden; flex-shrink: 0;
     transition: background .18s ease, color .18s ease, transform .18s ease;
@@ -234,6 +234,11 @@
   .rail-item.btn-primary:hover::after, .rail-item.primary:hover::after { left: 130%; }
   .tool-rail:not(.expanded) #tab-facture.btn-primary,
   .tool-rail:not(.expanded) #tab-devis.btn-primary { animation: pulse-glow 2.4s ease-in-out infinite; }
+  #tab-facture.btn-primary, #tab-devis.btn-primary { background: none; color: #fff; }
+  #tab-facture.btn-primary::after, #tab-devis.btn-primary::after { display: none; }
+  .rail-pill { position: absolute; z-index: 0; border-radius: 9px; background: linear-gradient(135deg,var(--brand),var(--brand-2)); box-shadow: 0 4px 14px -4px var(--brand-glow); opacity: 0; pointer-events: none; transition: transform .35s cubic-bezier(.34,1.56,.64,1), width .35s ease, height .35s ease, opacity .2s ease; }
+  .rail-pill.ready { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .rail-pill { transition: opacity .2s ease; } }
   .rail-item .ricon { width: 16px; flex-shrink: 0; display: grid; place-items: center; font-size: 14px; transition: transform .2s cubic-bezier(.34,1.56,.64,1); }
   .rail-item:hover .ricon { transform: scale(1.12); }
   .rail-item .rlabel { flex: 1; opacity: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; transform: translateX(-6px); transition: opacity .16s ease, transform .16s ease; }
@@ -243,7 +248,7 @@
   .rail-select .ricon { position: relative; z-index: 0; }
   .rail-select .rlabel { pointer-events: none; }
   @media(max-width:1100px) {
-    .tool-rail { position: static; height: auto; flex-direction: row; width: 100% !important; overflow-x: auto; overflow-y: hidden; border-right: none; border-bottom: 1px solid var(--border); padding: 8px; }
+    .tool-rail { position: static; height: auto; flex-direction: row; width: 100% !important; min-width: 0; overflow-x: auto; overflow-y: hidden; border-right: none; border-bottom: 1px solid var(--border); padding: 8px; }
     .tool-rail .rail-toggle { display: none; }
     .tool-rail .rail-item .rlabel { opacity: 1; transform: none; position: static; }
     .tool-rail .rail-sep { width: 1px; height: 28px; margin: 0 2px; }

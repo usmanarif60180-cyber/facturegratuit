@@ -690,6 +690,7 @@ try {
   <aside class="tool-rail no-print" id="tool-rail">
     <button class="rail-toggle" id="rail-toggle" onclick="toggleToolRail()" title="Développer / réduire"><i class="fa fa-chevron-right"></i><span class="rail-toggle-label" id="rail-toggle-label"></span></button>
 
+    <div class="rail-pill" id="railPill" aria-hidden="true"></div>
     <button class="rail-item" onclick="openEditor('facture')" id="tab-facture" title="Facture"><span class="ricon"><i class="fa fa-file-invoice"></i></span><span class="rlabel">Facture</span></button>
     <button class="rail-item" onclick="openEditor('devis')" id="tab-devis" title="Devis"><span class="ricon"><i class="fa fa-file-lines"></i></span><span class="rlabel">Devis</span></button>
 
@@ -1660,6 +1661,10 @@ function toggleToolRail() {
   const expanded = rail.classList.toggle('expanded');
   label.textContent = expanded ? 'Réduire' : '';
   try { localStorage.setItem('facturepro-rail-expanded', expanded ? '1' : '0'); } catch {}
+  if (typeof positionRailPill === 'function') {
+    positionRailPill();
+    setTimeout(positionRailPill, 230);
+  }
 }
 (function () {
   try {
