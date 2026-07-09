@@ -564,6 +564,8 @@
   .home-article-card p { margin:0 0 10px; font-size:13px; line-height:1.72; }
   .home-article-card ul { margin:8px 0 0 18px; font-size:13px; line-height:1.7; }
   .home-article-meta { display:inline-flex; margin-bottom:14px; padding:4px 8px; border-radius:6px; background:rgba(21,128,61,.16); color:#86efac; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; }
+  .home-article-icon { width:36px; height:36px; margin-bottom:12px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; background:rgba(21,128,61,.16); color:#86efac; transition:transform .3s cubic-bezier(.34,1.56,.64,1); }
+  .home-article-card:hover .home-article-icon { transform:scale(1.12) rotate(-6deg); }
   .home-faq-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
   .home-faq-item { border:1px solid rgba(148,163,184,.16); border-radius:12px; background:rgba(15,23,42,.44); overflow:hidden; }
   .home-faq-item summary { cursor:pointer; padding:15px 16px; color:#f8fafc; font-size:14px; font-weight:900; list-style:none; }
