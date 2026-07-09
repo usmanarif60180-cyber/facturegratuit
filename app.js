@@ -3622,4 +3622,17 @@ function setCountryDemo(btn, code) {
 
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { if (typeof positionRailPill === 'function') positionRailPill(); }, 60);
+
+  const themeTrack = document.getElementById('themeTrack');
+  if (themeTrack && typeof THEMES !== 'undefined') {
+    const swatchHtml = THEMES.map(t => `
+      <div class="theme-swatch">
+        <div class="theme-swatch-lines">
+          <div class="theme-swatch-line" style="background:${t.p};width:80%"></div>
+          <div class="theme-swatch-line" style="background:${t.a}"></div>
+        </div>
+        <div class="theme-swatch-name">${t.name}</div>
+      </div>`).join('');
+    themeTrack.innerHTML = swatchHtml + swatchHtml;
+  }
 });
