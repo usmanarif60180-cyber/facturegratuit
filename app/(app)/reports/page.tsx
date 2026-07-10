@@ -3,6 +3,7 @@
 import * as React from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { Reveal } from "@/components/ui/Reveal";
 import { RevenueExpensesChart, type RevenueExpensePoint } from "@/components/dashboard/RevenueExpensesChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -79,10 +80,16 @@ export default function ReportsPage() {
       <PageHeader title="Reports" description="Understand where your business stands." />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Revenue" value={formatCurrency(revenue, currency)} icon={TrendingUp} />
-        <StatCard label="Outstanding" value={formatCurrency(outstanding, currency)} icon={DollarSign} />
-        <StatCard label="Expenses" value={formatCurrency(totalExpenses, currency)} icon={TrendingDown} />
-        <StatCard label="Net" value={formatCurrency(net, currency)} icon={Wallet} />
+        {[
+          { label: "Revenue", value: revenue, icon: TrendingUp },
+          { label: "Outstanding", value: outstanding, icon: DollarSign },
+          { label: "Expenses", value: totalExpenses, icon: TrendingDown },
+          { label: "Net", value: net, icon: Wallet },
+        ].map((stat, i) => (
+          <Reveal key={stat.label} delay={i * 60}>
+            <StatCard {...stat} formatValue={(n) => formatCurrency(n, currency)} />
+          </Reveal>
+        ))}
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">

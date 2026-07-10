@@ -1,11 +1,17 @@
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 
-export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Lifts and deepens shadow on hover — use for clickable/navigable cards only. */
+  hoverable?: boolean;
+}
+
+export function Card({ className, hoverable, ...props }: CardProps) {
   return (
     <div
       className={cn(
         "rounded-xl border border-border bg-card text-card-foreground shadow-card",
+        hoverable && "transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-elevated",
         className
       )}
       {...props}

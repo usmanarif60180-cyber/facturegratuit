@@ -35,7 +35,7 @@ export default function ResourcesPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {RESOURCE_ITEMS.filter((r) => r.category === category).map((resource) => (
                 <Link key={resource.slug} href={`/resources/${resource.slug}`}>
-                  <Card className="h-full transition-shadow hover:shadow-elevated">
+                  <Card hoverable className="h-full">
                     <CardContent className="pt-6">
                       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <FileText className="h-4.5 w-4.5" />

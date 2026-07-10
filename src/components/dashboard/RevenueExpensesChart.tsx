@@ -41,8 +41,8 @@ export function RevenueExpensesChart({ data }: { data: RevenueExpensePoint[] }) 
               }}
             />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Revenue" />
-            <Bar dataKey="expenses" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} name="Expenses" />
+            <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Revenue" animationDuration={800} />
+            <Bar dataKey="expenses" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} name="Expenses" animationDuration={800} animationBegin={100} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

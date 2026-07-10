@@ -17,9 +17,12 @@ export function QuickActions() {
           <Link
             key={action.href}
             href={action.href}
-            className="flex flex-col items-center gap-2 rounded-lg border border-border p-4 text-center text-sm font-medium transition-colors hover:border-primary hover:bg-primary/5"
+            className="group flex flex-col items-center gap-2 rounded-lg border border-border p-4 text-center text-sm font-medium transition-colors hover:border-primary hover:bg-primary/5"
           >
-            <action.icon className="h-5 w-5 text-primary" aria-hidden="true" />
+            <action.icon
+              className="h-5 w-5 text-primary transition-transform duration-200 group-hover:scale-110"
+              aria-hidden="true"
+            />
             {action.label}
           </Link>
         ))}

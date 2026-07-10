@@ -58,7 +58,7 @@ export default function InvoiceGeneratorHubPage() {
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {COUNTRY_GUIDES.map((country) => (
             <Link key={country.slug} href={`/invoice-generator/${country.slug}`}>
-              <Card className="h-full transition-shadow hover:shadow-elevated">
+              <Card hoverable className="h-full">
                 <CardContent className="pt-6">
                   <p className="text-sm font-semibold">{country.name}</p>
                   <p className="mt-1 text-xs text-muted-foreground">

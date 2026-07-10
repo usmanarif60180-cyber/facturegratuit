@@ -30,7 +30,7 @@ export function MarketingHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-[width] after:duration-200 hover:after:w-full"
             >
               {link.label}
             </Link>
@@ -55,12 +55,16 @@ export function MarketingHeader() {
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {open ? (
+            <X className="h-5 w-5 animate-scale-in" />
+          ) : (
+            <Menu className="h-5 w-5 animate-scale-in" />
+          )}
         </Button>
       </div>
 
       {open && (
-        <div className="border-t border-border bg-background px-4 py-4 lg:hidden">
+        <div className="animate-slide-up border-t border-border bg-background px-4 py-4 lg:hidden">
           <nav className="flex flex-col gap-4" aria-label="Mobile">
             {LINKS.map((link) => (
               <Link

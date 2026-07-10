@@ -51,6 +51,8 @@ export function RevenueChart({ data }: { data: RevenuePoint[] }) {
               stroke="hsl(var(--primary))"
               strokeWidth={2}
               fill="url(#revenueGradient)"
+              animationDuration={900}
+              animationEasing="ease-out"
             />
           </AreaChart>
         </ResponsiveContainer>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { aiAssistant, CAPABILITY_LABELS, type AICapability } from "@/lib/services/aiService";
+import { TypingIndicator } from "./TypingIndicator";
 import { cn } from "@/lib/utils/cn";
 
 interface Message {
@@ -82,7 +83,7 @@ export function AIAssistantPanel() {
                 <div
                   key={message.id}
                   className={cn(
-                    "max-w-[85%] rounded-lg px-4 py-2.5 text-sm",
+                    "max-w-[85%] animate-slide-up rounded-lg px-4 py-2.5 text-sm",
                     message.role === "user"
                       ? "ml-auto bg-primary text-primary-foreground"
                       : "bg-muted text-foreground"
@@ -92,6 +93,7 @@ export function AIAssistantPanel() {
                 </div>
               ))
             )}
+            {sending && <TypingIndicator />}
           </div>
 
           <form onSubmit={handleSend} className="flex gap-2">

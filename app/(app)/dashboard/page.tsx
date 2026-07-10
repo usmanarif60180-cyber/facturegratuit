@@ -8,6 +8,8 @@ import { RevenueChart, type RevenuePoint } from "@/components/dashboard/RevenueC
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Reveal } from "@/components/ui/Reveal";
+import { LiveIndicator } from "@/components/dashboard/LiveIndicator";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
@@ -58,7 +60,11 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" description="A snapshot of your business, in real time." />
+      <PageHeader
+        title="Dashboard"
+        description="A snapshot of your business, in real time."
+        action={<LiveIndicator />}
+      />
 
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -68,15 +74,17 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <StatCard label="Revenue" value={formatCurrency(revenue, currency)} icon={DollarSign} />
-          <StatCard
-            label="Outstanding"
-            value={formatCurrency(outstanding, currency)}
-            icon={DollarSign}
-          />
-          <StatCard label="Invoices" value={String(invoices.length)} icon={FileText} />
-          <StatCard label="Quotes" value={String(quotes.length)} icon={FileSpreadsheet} />
-          <StatCard label="Clients" value={String(clients.length)} icon={Users} />
+          {[
+            { label: "Revenue", value: revenue, icon: DollarSign, formatValue: (n: number) => formatCurrency(n, currency) },
+            { label: "Outstanding", value: outstanding, icon: DollarSign, formatValue: (n: number) => formatCurrency(n, currency) },
+            { label: "Invoices", value: invoices.length, icon: FileText },
+            { label: "Quotes", value: quotes.length, icon: FileSpreadsheet },
+            { label: "Clients", value: clients.length, icon: Users },
+          ].map((stat, i) => (
+            <Reveal key={stat.label} delay={i * 60}>
+              <StatCard {...stat} />
+            </Reveal>
+          ))}
         </div>
       )}
 

@@ -34,7 +34,7 @@ export default function ToolsPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {TOOLS.filter((t) => t.category === category).map((tool) => (
                 <Link key={tool.slug} href={`/tools/${tool.slug}`}>
-                  <Card className="h-full transition-shadow hover:shadow-elevated">
+                  <Card hoverable className="h-full">
                     <CardContent className="pt-6">
                       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <tool.icon className="h-4.5 w-4.5" />

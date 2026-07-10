@@ -62,7 +62,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   role="status"
                   className="flex animate-slide-up items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-popover"
                 >
-                  <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", COLORS[t.variant])} aria-hidden="true" />
+                  <Icon
+                    className={cn(
+                      "mt-0.5 h-5 w-5 shrink-0",
+                      COLORS[t.variant],
+                      t.variant === "success" && "animate-pop-in"
+                    )}
+                    aria-hidden="true"
+                  />
                   <div className="flex-1">
                     <p className="text-sm font-medium">{t.title}</p>
                     {t.description && (

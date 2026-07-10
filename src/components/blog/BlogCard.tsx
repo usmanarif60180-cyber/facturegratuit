@@ -9,7 +9,7 @@ export function BlogCard({ post }: { post: BlogPostWithContent }) {
   const author = getAuthor(post.authorSlug);
   return (
     <Link href={`/blog/${post.slug}`}>
-      <Card className="h-full transition-shadow hover:shadow-elevated">
+      <Card hoverable className="h-full">
         <CardContent className="flex h-full flex-col pt-6">
           <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-xl">
             {post.coverEmoji}
