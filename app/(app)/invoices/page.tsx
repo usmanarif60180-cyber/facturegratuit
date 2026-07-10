@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { FilePlus2, FileText, Search } from "lucide-react";
+import { FilePlus2, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { buttonVariants } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -88,7 +88,7 @@ export default function InvoicesPage() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={<FileText className="h-5 w-5" />}
+          illustration="invoice-generation"
           title={invoices.length === 0 ? "No invoices yet" : "No invoices match your filters"}
           description={
             invoices.length === 0

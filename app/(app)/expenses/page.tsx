@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { MoreHorizontal, Plus, Receipt, Search } from "lucide-react";
+import { MoreHorizontal, Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -83,7 +83,7 @@ export default function ExpensesPage() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={<Receipt className="h-5 w-5" />}
+          illustration="payment-processing"
           title={expenses.length === 0 ? "No expenses yet" : "No expenses match your search"}
           action={
             expenses.length === 0 ? (

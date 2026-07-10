@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
+import { Switch } from "@/components/ui/Switch";
 import { useToast } from "@/components/ui/Toast";
+import { useSound } from "@/context/SoundContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { updateOrganization } from "@/lib/services/organizationService";
 import { COUNTRIES } from "@/lib/constants/countries";
@@ -21,6 +23,7 @@ import { buttonVariants } from "@/components/ui/Button";
 export default function SettingsPage() {
   const { organization, loading } = useOrganization();
   const { toast } = useToast();
+  const { enabled: soundEnabled, setEnabled: setSoundEnabled, play } = useSound();
   const [saving, setSaving] = React.useState(false);
 
   const [name, setName] = React.useState("");
@@ -94,6 +97,7 @@ export default function SettingsPage() {
         <TabsList className="mb-6">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="localization">Localization</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
         </TabsList>
 
@@ -191,6 +195,35 @@ export default function SettingsPage() {
                 <Button loading={saving} onClick={handleSaveLocalization}>
                   Save changes
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="preferences">
+          <Card>
+            <CardHeader>
+              <CardTitle>Interface sounds</CardTitle>
+              <CardDescription>
+                Subtle audio feedback for actions like sending invoices and payments received. Off by default.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between rounded-lg border border-border p-4">
+                <div>
+                  <p className="text-sm font-medium">Enable sound effects</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    Plays a short tone on success, notifications and completed actions.
+                  </p>
+                </div>
+                <Switch
+                  checked={soundEnabled}
+                  onChange={(next) => {
+                    setSoundEnabled(next);
+                    if (next) setTimeout(() => play("success"), 50);
+                  }}
+                  aria-label="Enable interface sound effects"
+                />
               </div>
             </CardContent>
           </Card>

@@ -48,7 +48,7 @@ export function Dialog({ open, onClose, title, description, children, className 
       />
       <div
         className={cn(
-          "relative z-10 w-full max-w-lg animate-scale-in rounded-xl border border-border bg-card p-6 shadow-popover",
+          "glass relative z-10 w-full max-w-lg animate-scale-in rounded-xl p-6",
           className
         )}
       >

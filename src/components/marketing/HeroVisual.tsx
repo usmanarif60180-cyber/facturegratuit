@@ -1,4 +1,8 @@
+"use client";
+
+import * as React from "react";
 import { ArrowUpRight, CheckCircle2, Sparkles } from "lucide-react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 const SPARKLINE_POINTS = "0,34 20,28 40,30 60,18 80,22 100,10 120,14 140,4";
 
@@ -21,12 +25,37 @@ const NETWORK_LINES: Array<[number, number]> = [
   [2, 6],
 ];
 
-/** Decorative hero panel: a stylized dashboard preview, two floating data
- * cards, and a faint AI-network backdrop. Pure CSS/SVG — no canvas, no
- * images, nothing render-blocking. */
+/** Decorative hero panel: a stylized dashboard preview, two floating
+ * glass data cards, and a faint AI-network backdrop. Tilts gently toward
+ * the cursor (disabled under reduced motion) — pure CSS transforms, no
+ * animation library. */
 export function HeroVisual() {
+  const reducedMotion = useReducedMotion();
+  const wrapRef = React.useRef<HTMLDivElement>(null);
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (reducedMotion || !wrapRef.current) return;
+    const rect = wrapRef.current.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    wrapRef.current.style.setProperty("--tilt-x", `${(-py * 6).toFixed(2)}deg`);
+    wrapRef.current.style.setProperty("--tilt-y", `${(px * 6).toFixed(2)}deg`);
+  }
+
+  function handleMouseLeave() {
+    if (!wrapRef.current) return;
+    wrapRef.current.style.setProperty("--tilt-x", "0deg");
+    wrapRef.current.style.setProperty("--tilt-y", "0deg");
+  }
+
   return (
-    <div className="relative mx-auto w-full max-w-md" aria-hidden="true">
+    <div
+      ref={wrapRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative mx-auto w-full max-w-md [perspective:1200px]"
+      aria-hidden="true"
+    >
       <svg
         className="pointer-events-none absolute -inset-10 -z-10 text-primary/40"
         viewBox="0 0 200 90"
@@ -61,7 +90,13 @@ export function HeroVisual() {
         ))}
       </svg>
 
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-elevated">
+      <div
+        className="rounded-2xl border border-border bg-card p-5 shadow-elevated transition-transform duration-300 ease-out will-change-transform"
+        style={{
+          transform: "rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))",
+          transformStyle: "preserve-3d",
+        }}
+      >
         <div className="flex items-center justify-between">
           <div className="flex gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
@@ -109,7 +144,7 @@ export function HeroVisual() {
         </div>
       </div>
 
-      <div className="absolute -left-10 -top-7 hidden animate-float rounded-xl border border-border bg-card px-3.5 py-2.5 shadow-popover sm:block">
+      <div className="glass absolute -left-10 -top-7 hidden animate-float rounded-xl px-3.5 py-2.5 sm:block">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-success/10 text-success">
             <CheckCircle2 className="h-4 w-4" />
@@ -121,7 +156,7 @@ export function HeroVisual() {
         </div>
       </div>
 
-      <div className="absolute -right-10 -bottom-12 hidden animate-float-delayed rounded-xl border border-border bg-card px-3.5 py-2.5 shadow-popover sm:block">
+      <div className="glass absolute -right-10 -bottom-12 hidden animate-float-delayed rounded-xl px-3.5 py-2.5 sm:block">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Sparkles className="h-4 w-4" />

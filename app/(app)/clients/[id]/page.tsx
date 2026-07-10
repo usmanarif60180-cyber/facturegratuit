@@ -14,7 +14,6 @@ import { clientService } from "@/lib/services/clientService";
 import { invoiceService } from "@/lib/services/invoiceService";
 import { where } from "@/lib/firebase/firestoreService";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
-import { FileText } from "lucide-react";
 import type { Client, Invoice } from "@/types";
 
 export default function ClientDetailPage() {
@@ -110,7 +109,7 @@ export default function ClientDetailPage() {
           <CardContent>
             {invoices.length === 0 ? (
               <EmptyState
-                icon={<FileText className="h-5 w-5" />}
+                illustration="invoice-generation"
                 title="No invoices yet"
                 description="Invoices sent to this client will appear here."
               />

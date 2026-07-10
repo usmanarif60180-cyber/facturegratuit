@@ -14,4 +14,5 @@ export interface AppUser extends Timestamps {
   languagePreference: LanguageTag;
   themePreference: ThemePreference;
   lastLoginAt?: string;
+  onboardingCompletedAt?: string | null;
 }

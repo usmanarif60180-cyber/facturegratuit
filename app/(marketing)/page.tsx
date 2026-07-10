@@ -19,6 +19,7 @@ import { LatestArticles } from "@/components/marketing/LatestArticles";
 import { FeaturedTemplates } from "@/components/marketing/FeaturedTemplates";
 import { HeroVisual } from "@/components/marketing/HeroVisual";
 import { WorkflowDemo } from "@/components/marketing/WorkflowDemo";
+import { PremiumBackdrop } from "@/components/backgrounds/PremiumBackdrop";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils/cn";
 
@@ -66,7 +67,9 @@ const FEATURES = [
 export default function LandingPage() {
   return (
     <>
-      <section className="container grid items-center gap-16 py-20 md:py-28 lg:grid-cols-[1.05fr,0.95fr] lg:gap-10">
+      <section className="relative overflow-hidden">
+        <PremiumBackdrop />
+        <div className="container relative z-[1] grid items-center gap-16 py-20 md:py-28 lg:grid-cols-[1.05fr,0.95fr] lg:gap-10">
         <div className="text-center lg:text-left">
           <Reveal>
             <span className="inline-block rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
@@ -100,9 +103,10 @@ export default function LandingPage() {
           </Reveal>
         </div>
 
-        <Reveal delay={200} className="hidden lg:block">
+        <Reveal delay={200} variant="scale" className="hidden lg:block">
           <HeroVisual />
         </Reveal>
+        </div>
       </section>
 
       <div className="container border-y border-border">
@@ -159,8 +163,9 @@ export default function LandingPage() {
         <LatestArticles />
       </section>
 
-      <section className="border-t border-border bg-muted/30 py-20">
-        <div className="container flex flex-col items-center gap-6 text-center">
+      <section className="relative overflow-hidden border-t border-border bg-muted/30 py-20">
+        <PremiumBackdrop className="opacity-70" />
+        <div className="container relative z-[1] flex flex-col items-center gap-6 text-center">
           <h2 className="text-3xl font-bold tracking-tight">Free to start. Built to grow with you.</h2>
           <p className="max-w-xl text-muted-foreground">
             Version 1 is completely free — every core tool, no credit card required.

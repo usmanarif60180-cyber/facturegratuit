@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { MoreHorizontal, Search, UserPlus, Users } from "lucide-react";
+import { MoreHorizontal, Search, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -73,7 +73,7 @@ export default function ClientsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={<Users className="h-5 w-5" />}
+          illustration="client-management"
           title={clients.length === 0 ? "No clients yet" : "No clients match your search"}
           description={clients.length === 0 ? "Add your first client to get started." : undefined}
           action={

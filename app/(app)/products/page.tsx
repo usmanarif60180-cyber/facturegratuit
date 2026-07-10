@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { MoreHorizontal, Package, PackagePlus, Search } from "lucide-react";
+import { MoreHorizontal, PackagePlus, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -73,7 +73,7 @@ export default function ProductsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={<Package className="h-5 w-5" />}
+          illustration="digital-workspace"
           title={products.length === 0 ? "No products yet" : "No products match your search"}
           action={
             products.length === 0 ? (

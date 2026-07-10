@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { FilePlus2, FileSpreadsheet, Search } from "lucide-react";
+import { FilePlus2, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { buttonVariants } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -89,7 +89,7 @@ export default function QuotesPage() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={<FileSpreadsheet className="h-5 w-5" />}
+          illustration="quote-generation"
           title={quotes.length === 0 ? "No quotes yet" : "No quotes match your filters"}
           description={
             quotes.length === 0

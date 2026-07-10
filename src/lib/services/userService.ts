@@ -29,7 +29,9 @@ export async function createUserProfile(
 
 export async function updateUserProfile(
   uid: string,
-  data: Partial<Pick<AppUser, "displayName" | "languagePreference" | "themePreference">>
+  data: Partial<
+    Pick<AppUser, "displayName" | "languagePreference" | "themePreference" | "onboardingCompletedAt">
+  >
 ) {
   await updateDoc(doc(db, COLLECTIONS.users, uid), {
     ...data,

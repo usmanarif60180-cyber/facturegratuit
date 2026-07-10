@@ -64,8 +64,8 @@ export function DropdownMenu({
     <div
       role="menu"
       className={cn(
-        "absolute z-40 mt-2 min-w-[10rem] animate-slide-up rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-popover",
-        align === "end" ? "right-0" : "left-0"
+        "glass absolute z-40 mt-2 min-w-[10rem] animate-scale-in rounded-md p-1 text-popover-foreground",
+        align === "end" ? "right-0 origin-top-right" : "left-0 origin-top-left"
       )}
     >
       {children}
@@ -89,7 +89,7 @@ export function DropdownItem({
         props.onClick?.(e);
       }}
       className={cn(
-        "flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-left text-sm transition-colors hover:bg-muted",
+        "flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-left text-sm transition-[background-color,transform] duration-100 hover:translate-x-0.5 hover:bg-muted",
         className
       )}
       {...props}

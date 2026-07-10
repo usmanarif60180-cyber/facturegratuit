@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { InvoiceStatusBadge } from "@/components/shared/StatusBadge";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
-import { History } from "lucide-react";
 import type { Invoice } from "@/types";
 
 export function RecentActivity({ invoices }: { invoices: Invoice[] }) {
@@ -16,7 +15,7 @@ export function RecentActivity({ invoices }: { invoices: Invoice[] }) {
       <CardContent>
         {recent.length === 0 ? (
           <EmptyState
-            icon={<History className="h-5 w-5" />}
+            illustration="business-analytics"
             title="No activity yet"
             description="Your recent invoices will show up here."
           />

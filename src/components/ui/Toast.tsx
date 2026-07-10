@@ -4,6 +4,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle2, AlertTriangle, Info, XCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useSound } from "@/context/SoundContext";
 
 export type ToastVariant = "success" | "error" | "warning" | "info";
 
@@ -37,16 +38,21 @@ const COLORS: Record<ToastVariant, string> = {
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<Toast[]>([]);
   const [mounted, setMounted] = React.useState(false);
+  const { play } = useSound();
 
   React.useEffect(() => setMounted(true), []);
 
-  const toast = React.useCallback((input: Omit<Toast, "id">) => {
-    const id = crypto.randomUUID();
-    setToasts((prev) => [...prev, { ...input, id }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 5000);
-  }, []);
+  const toast = React.useCallback(
+    (input: Omit<Toast, "id">) => {
+      const id = crypto.randomUUID();
+      setToasts((prev) => [...prev, { ...input, id }]);
+      if (input.variant === "success") play("success");
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 5000);
+    },
+    [play]
+  );
 
   return (
     <ToastContext.Provider value={{ toast }}>
@@ -60,7 +66,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 <div
                   key={t.id}
                   role="status"
-                  className="flex animate-slide-up items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-popover"
+                  className="glass flex animate-slide-up items-start gap-3 rounded-lg p-4"
                 >
                   <Icon
                     className={cn(

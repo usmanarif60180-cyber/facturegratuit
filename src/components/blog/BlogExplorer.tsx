@@ -69,7 +69,7 @@ export function BlogExplorer({ posts }: { posts: BlogPostWithContent[] }) {
 
       {filtered.length === 0 ? (
         <EmptyState
-          icon={<Search className="h-5 w-5" />}
+          illustration="smart-reports"
           title="No articles match your search"
           description="Try a different keyword or category."
         />

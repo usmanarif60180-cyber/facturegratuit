@@ -96,6 +96,20 @@
     background-size: 700px 100%;
     @apply animate-shimmer;
   }
+
+  /* Used sparingly — floating hero cards, the AI panel header, dialogs. */
+  .glass {
+    background: hsl(var(--card) / 0.72);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid hsl(var(--border) / 0.6);
+    box-shadow: 0 1px 0 0 hsl(var(--card-foreground) / 0.04) inset, 0 8px 30px -12px rgb(0 0 0 / 0.25);
+  }
+
+  .scroll-progress {
+    transform-origin: 0 50%;
+    transition: transform 0.1s linear;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

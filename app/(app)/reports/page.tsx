@@ -5,14 +5,16 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { RevenueExpensesChart, type RevenueExpensePoint } from "@/components/dashboard/RevenueExpensesChart";
+import { ConversionRing } from "@/components/dashboard/ConversionRing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useInvoices } from "@/hooks/useInvoices";
+import { useQuotes } from "@/hooks/useQuotes";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useClients } from "@/hooks/useClients";
 import { useOrganization } from "@/hooks/useOrganization";
 import { formatCurrency } from "@/lib/utils/format";
-import { DollarSign, TrendingDown, TrendingUp, Wallet, BarChart3 } from "lucide-react";
+import { DollarSign, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 
 function buildSeries(
   invoices: ReturnType<typeof useInvoices>["items"],
@@ -48,6 +50,7 @@ function buildSeries(
 
 export default function ReportsPage() {
   const { items: invoices } = useInvoices();
+  const { items: quotes } = useQuotes();
   const { items: expenses } = useExpenses();
   const { items: clients } = useClients();
   const { organization } = useOrganization();
@@ -59,6 +62,14 @@ export default function ReportsPage() {
     .reduce((s, i) => s + i.totals.total, 0);
   const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
   const net = revenue - totalExpenses;
+
+  const sentQuotes = quotes.filter((q) => q.status !== "draft");
+  const acceptedQuotes = quotes.filter((q) => q.status === "accepted" || q.status === "converted");
+  const quoteConversionRate = sentQuotes.length > 0 ? (acceptedQuotes.length / sentQuotes.length) * 100 : 0;
+
+  const decidedInvoices = invoices.filter((i) => i.status !== "draft");
+  const paidInvoices = invoices.filter((i) => i.status === "paid");
+  const invoicePaidRate = decidedInvoices.length > 0 ? (paidInvoices.length / decidedInvoices.length) * 100 : 0;
 
   const series = React.useMemo(() => buildSeries(invoices, expenses), [invoices, expenses]);
 
@@ -103,7 +114,7 @@ export default function ReportsPage() {
           <CardContent>
             {revenueByClient.length === 0 ? (
               <EmptyState
-                icon={<BarChart3 className="h-5 w-5" />}
+                illustration="business-analytics"
                 title="No revenue yet"
                 description="Paid invoices will rank your top clients here."
               />
@@ -117,6 +128,18 @@ export default function ReportsPage() {
                 ))}
               </ul>
             )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversion</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap justify-center gap-10 py-4 sm:justify-start">
+            <ConversionRing label="Quotes accepted" percent={quoteConversionRate} />
+            <ConversionRing label="Invoices paid" percent={invoicePaidRate} />
           </CardContent>
         </Card>
       </div>
