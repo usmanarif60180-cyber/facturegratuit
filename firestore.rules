@@ -1,5 +1,8 @@
 rules_version = '2';
 
+// IVOXA data model: every business document lives under
+// organizations/{organizationId}/{collection}/{docId}, scoped by the
+// requesting user's organizationId on their /users/{uid} profile.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
@@ -10,31 +13,92 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
-    function validAccountDoc() {
-      return request.resource.data.keys().hasOnly([
-        'profile',
-        'history',
-        'projects',
-        'clients',
-        'products',
-        'storageUsedBytes',
-        'updatedAt'
-      ]);
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    match /users/{userId} {
-      allow create, read, update, delete: if isOwner(userId) && validAccountDoc();
+    function belongsToOrg(organizationId) {
+      return signedIn() && userDoc().organizationId == organizationId;
+    }
 
-      match /{collectionName}/{docId} {
-        allow read, create, update, delete: if isOwner(userId)
-          && collectionName in ['history', 'projects', 'clients', 'products', 'feedback'];
+    function isOrgAdmin(organizationId) {
+      return belongsToOrg(organizationId) && userDoc().role in ['owner', 'admin'];
+    }
+
+    function canWrite(organizationId) {
+      return belongsToOrg(organizationId) && userDoc().role != 'viewer';
+    }
+
+    // --- User profiles ---
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      // Users may edit their own profile but never reassign themselves to another org.
+      allow update: if isOwner(userId)
+        && request.resource.data.organizationId == resource.data.organizationId;
+      allow delete: if false;
+    }
+
+    // --- Organizations + org-scoped business data ---
+    match /organizations/{organizationId} {
+      allow read: if belongsToOrg(organizationId);
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update: if isOrgAdmin(organizationId);
+      allow delete: if false;
+
+      match /clients/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /products/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /invoices/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /quotes/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /expenses/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /notifications/{docId} {
+        allow read, update, delete: if belongsToOrg(organizationId);
+        allow create: if false; // written by Cloud Functions only
+      }
+
+      match /activity_logs/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create: if belongsToOrg(organizationId);
+        allow update, delete: if false;
+      }
+
+      match /subscriptions/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow write: if false; // managed server-side (Cloud Functions / billing webhook) only
       }
     }
 
-    match /publicFeedback/{feedbackId} {
-      allow create: if signedIn()
-        && request.resource.data.message is string
-        && request.resource.data.message.size() <= 3000;
+    // Public marketing contact form — write-only, no auth required.
+    match /contact_messages/{messageId} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'email', 'message', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 200
+        && request.resource.data.email is string && request.resource.data.email.size() <= 200
+        && request.resource.data.message is string && request.resource.data.message.size() <= 5000;
       allow read, update, delete: if false;
     }
 

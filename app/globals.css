@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 25% 98%;
+    --foreground: 224 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 224 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 30% 12%;
+
+    --surface: 220 25% 98%;
+    --surface-foreground: 224 30% 12%;
+
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 10% 45%;
+
+    --accent: 234 89% 97%;
+    --accent-foreground: 234 60% 30%;
+
+    --border: 220 18% 89%;
+    --input: 220 18% 89%;
+    --ring: 234 75% 58%;
+
+    --primary: 234 75% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 262 71% 58%;
+    --secondary-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 224 32% 8%;
+    --foreground: 220 20% 96%;
+
+    --card: 224 28% 11%;
+    --card-foreground: 220 20% 96%;
+
+    --popover: 224 28% 11%;
+    --popover-foreground: 220 20% 96%;
+
+    --surface: 224 30% 10%;
+    --surface-foreground: 220 20% 96%;
+
+    --muted: 224 22% 16%;
+    --muted-foreground: 220 12% 65%;
+
+    --accent: 234 40% 18%;
+    --accent-foreground: 220 60% 88%;
+
+    --border: 224 20% 20%;
+    --input: 224 20% 20%;
+    --ring: 234 80% 66%;
+
+    --primary: 234 80% 66%;
+    --primary-foreground: 224 32% 10%;
+
+    --secondary: 262 75% 68%;
+    --secondary-foreground: 224 32% 10%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  ::selection {
+    @apply bg-primary/20;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0px,
+      hsl(var(--muted) / 0.5) 40px,
+      hsl(var(--muted)) 80px
+    );
+    background-size: 700px 100%;
+    @apply animate-shimmer;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-area,
+  #print-area * {
+    visibility: visible;
+  }
+  #print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+}
