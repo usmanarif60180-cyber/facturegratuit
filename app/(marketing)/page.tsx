@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -10,7 +11,20 @@ import {
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
+import { TrustStrip } from "@/components/marketing/TrustStrip";
+import { AudienceStrip } from "@/components/marketing/AudienceStrip";
+import { TestimonialsSection } from "@/components/marketing/TestimonialsSection";
+import { LatestArticles } from "@/components/marketing/LatestArticles";
+import { FeaturedTemplates } from "@/components/marketing/FeaturedTemplates";
+import { buildMetadata } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils/cn";
+
+export const metadata: Metadata = buildMetadata({
+  title: "IVOXA — The AI Business Platform",
+  description:
+    "IVOXA brings invoicing, quotations, clients and AI together — designed for freelancers, agencies and growing teams who want tools that feel effortless.",
+  path: "/",
+});
 
 const FEATURES = [
   {
@@ -73,7 +87,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="container pb-24">
+      <div className="container border-y border-border">
+        <TrustStrip />
+      </div>
+
+      <section className="container py-24">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature) => (
             <Card key={feature.title} className="animate-fade-in">
@@ -87,6 +105,26 @@ export default function LandingPage() {
             </Card>
           ))}
         </div>
+      </section>
+
+      <section className="border-t border-border bg-muted/30 py-20">
+        <div className="container">
+          <h2 className="text-center text-2xl font-bold tracking-tight">What people are saying</h2>
+          <div className="mt-8">
+            <TestimonialsSection />
+          </div>
+          <div className="mt-10">
+            <AudienceStrip />
+          </div>
+        </div>
+      </section>
+
+      <section className="container py-20">
+        <FeaturedTemplates />
+      </section>
+
+      <section className="container pb-20">
+        <LatestArticles />
       </section>
 
       <section className="border-t border-border bg-muted/30 py-20">
