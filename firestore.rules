@@ -33,15 +33,22 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId);
-      // Users may edit their own profile but never reassign themselves to another org.
+      // Users may edit their own profile. organizationId ("active workspace")
+      // may only be reassigned to an org this user owns — this is what lets
+      // the workspace switcher work while still blocking self-reassignment
+      // into someone else's org. A future memberIds-on-org model can widen
+      // this to "owns OR is a member of" without touching anything else.
       allow update: if isOwner(userId)
-        && request.resource.data.organizationId == resource.data.organizationId;
+        && (request.resource.data.organizationId == resource.data.organizationId
+            || get(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)).data.ownerId == request.auth.uid);
       allow delete: if false;
     }
 
     // --- Organizations + org-scoped business data ---
     match /organizations/{organizationId} {
-      allow read: if belongsToOrg(organizationId);
+      // Readable by the currently-active member, or by the owner listing
+      // their other workspaces for the switcher (before switching into them).
+      allow read: if belongsToOrg(organizationId) || (signedIn() && resource.data.ownerId == request.auth.uid);
       allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
       allow update: if isOrgAdmin(organizationId);
       allow delete: if false;
@@ -90,6 +97,12 @@ service cloud.firestore {
       match /subscriptions/{docId} {
         allow read: if belongsToOrg(organizationId);
         allow write: if false; // managed server-side (Cloud Functions / billing webhook) only
+      }
+
+      match /saved_designs/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if canWrite(organizationId);
       }
     }
 

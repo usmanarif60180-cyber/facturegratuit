@@ -16,9 +16,12 @@ import { updateOrganization } from "@/lib/services/organizationService";
 import { COUNTRIES } from "@/lib/constants/countries";
 import { CURRENCIES } from "@/lib/constants/currencies";
 import { LANGUAGES } from "@/lib/constants/languages";
+import { INDUSTRY_PRESETS } from "@/lib/design/industries";
+import { BUILTIN_TEMPLATES } from "@/lib/design/templates";
 import { PLANS } from "@/config/plans";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/Button";
+import type { SocialLinks } from "@/types";
 
 export default function SettingsPage() {
   const { organization, loading } = useOrganization();
@@ -28,9 +31,18 @@ export default function SettingsPage() {
 
   const [name, setName] = React.useState("");
   const [legalName, setLegalName] = React.useState("");
+  const [businessType, setBusinessType] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [countryCode, setCountryCode] = React.useState("");
+  const [city, setCity] = React.useState("");
+  const [postalCode, setPostalCode] = React.useState("");
+  const [vatNumber, setVatNumber] = React.useState("");
+  const [registrationNumber, setRegistrationNumber] = React.useState("");
+  const [businessLicenseNumber, setBusinessLicenseNumber] = React.useState("");
+  const [socialLinks, setSocialLinks] = React.useState<SocialLinks>({});
+  const [defaultInvoiceTemplateId, setDefaultInvoiceTemplateId] = React.useState("");
+  const [defaultQuoteTemplateId, setDefaultQuoteTemplateId] = React.useState("");
   const [currency, setCurrency] = React.useState("USD");
   const [language, setLanguage] = React.useState("en");
   const [invoicePrefix, setInvoicePrefix] = React.useState("INV-");
@@ -40,9 +52,18 @@ export default function SettingsPage() {
     if (!organization) return;
     setName(organization.name ?? "");
     setLegalName(organization.legalName ?? "");
+    setBusinessType(organization.businessType ?? "");
     setEmail(organization.email ?? "");
     setPhone(organization.phone ?? "");
     setCountryCode(organization.address?.countryCode ?? "");
+    setCity(organization.address?.city ?? "");
+    setPostalCode(organization.address?.postalCode ?? "");
+    setVatNumber(organization.vatNumber ?? "");
+    setRegistrationNumber(organization.registrationNumber ?? "");
+    setBusinessLicenseNumber(organization.businessLicenseNumber ?? "");
+    setSocialLinks(organization.socialLinks ?? {});
+    setDefaultInvoiceTemplateId(organization.defaultInvoiceTemplateId ?? "");
+    setDefaultQuoteTemplateId(organization.defaultQuoteTemplateId ?? "");
     setCurrency(organization.settings.defaultCurrency);
     setLanguage(organization.settings.defaultLanguage);
     setInvoicePrefix(organization.settings.invoicePrefix);
@@ -56,11 +77,18 @@ export default function SettingsPage() {
       await updateOrganization(organization.id, {
         name,
         legalName: legalName || undefined,
+        businessType: businessType || undefined,
         email: email || undefined,
         phone: phone || undefined,
-        address: { ...organization.address, countryCode: countryCode || undefined },
+        address: { ...organization.address, countryCode: countryCode || undefined, city: city || undefined, postalCode: postalCode || undefined },
+        vatNumber: vatNumber || undefined,
+        registrationNumber: registrationNumber || undefined,
+        businessLicenseNumber: businessLicenseNumber || undefined,
+        socialLinks: Object.values(socialLinks).some(Boolean) ? socialLinks : undefined,
+        defaultInvoiceTemplateId: defaultInvoiceTemplateId || undefined,
+        defaultQuoteTemplateId: defaultQuoteTemplateId || undefined,
       });
-      toast({ variant: "success", title: "Organization updated" });
+      toast({ variant: "success", title: "Company profile updated" });
     } finally {
       setSaving(false);
     }
@@ -91,7 +119,7 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title="Settings" description="Manage your workspace, preferences and billing." />
+      <PageHeader title="Settings" description="This company's profile, preferences and billing — every company you own has its own." />
 
       <Tabs defaultValue="general">
         <TabsList className="mb-6">
@@ -105,7 +133,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Company profile</CardTitle>
-              <CardDescription>Shown on your invoices and quotes.</CardDescription>
+              <CardDescription>Shown on your invoices and quotes. Logo, signature, bank details and design live in the Design Studio&rsquo;s Brand Kit.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -115,6 +143,15 @@ export default function SettingsPage() {
               <div>
                 <Label htmlFor="legalName">Legal name</Label>
                 <Input id="legalName" value={legalName} onChange={(e) => setLegalName(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="businessType">Business type</Label>
+                <Select id="businessType" value={businessType} onChange={(e) => setBusinessType(e.target.value)}>
+                  <option value="">Select an industry</option>
+                  {INDUSTRY_PRESETS.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </Select>
               </div>
               <div>
                 <Label htmlFor="orgEmail">Email</Label>
@@ -139,6 +176,72 @@ export default function SettingsPage() {
                   ))}
                 </Select>
               </div>
+              <div>
+                <Label htmlFor="orgCity">City</Label>
+                <Input id="orgCity" value={city} onChange={(e) => setCity(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="orgPostal">Postal code</Label>
+                <Input id="orgPostal" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="vatNumber">VAT number</Label>
+                <Input id="vatNumber" value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="registrationNumber">Registration number</Label>
+                <Input id="registrationNumber" value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="businessLicenseNumber">Business license number</Label>
+                <Input id="businessLicenseNumber" value={businessLicenseNumber} onChange={(e) => setBusinessLicenseNumber(e.target.value)} />
+              </div>
+
+              <div className="sm:col-span-2">
+                <p className="mb-1.5 text-sm font-medium">Social media links</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Input
+                    placeholder="Facebook URL"
+                    value={socialLinks.facebook ?? ""}
+                    onChange={(e) => setSocialLinks((s) => ({ ...s, facebook: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="Instagram URL"
+                    value={socialLinks.instagram ?? ""}
+                    onChange={(e) => setSocialLinks((s) => ({ ...s, instagram: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="LinkedIn URL"
+                    value={socialLinks.linkedin ?? ""}
+                    onChange={(e) => setSocialLinks((s) => ({ ...s, linkedin: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="X / Twitter URL"
+                    value={socialLinks.twitter ?? ""}
+                    onChange={(e) => setSocialLinks((s) => ({ ...s, twitter: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="defaultInvoiceTemplate">Default invoice template</Label>
+                <Select id="defaultInvoiceTemplate" value={defaultInvoiceTemplateId} onChange={(e) => setDefaultInvoiceTemplateId(e.target.value)}>
+                  <option value="">Use active Design Studio theme</option>
+                  {BUILTIN_TEMPLATES.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="defaultQuoteTemplate">Default quote template</Label>
+                <Select id="defaultQuoteTemplate" value={defaultQuoteTemplateId} onChange={(e) => setDefaultQuoteTemplateId(e.target.value)}>
+                  <option value="">Use active Design Studio theme</option>
+                  {BUILTIN_TEMPLATES.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </Select>
+              </div>
+
               <div className="sm:col-span-2 flex justify-end">
                 <Button loading={saving} onClick={handleSaveGeneral}>
                   Save changes

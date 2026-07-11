@@ -11,14 +11,19 @@ import {
   sendPasswordReset,
   resendVerificationEmail,
 } from "@/lib/firebase/auth";
-import { createUserProfile, getUserProfile } from "@/lib/services/userService";
-import { createOrganizationForNewUser } from "@/lib/services/organizationService";
-import type { AppUser } from "@/types";
+import { createUserProfile, getUserProfile, switchActiveOrganization } from "@/lib/services/userService";
+import { createOrganizationForNewUser, subscribeOrganizationsByOwner } from "@/lib/services/organizationService";
+import type { AppUser, Organization } from "@/types";
 
 interface AuthContextValue {
   firebaseUser: User | null;
   profile: AppUser | null;
   loading: boolean;
+  /** Every company this account owns — powers the workspace switcher. */
+  organizations: Organization[];
+  organizationsLoading: boolean;
+  switchingOrganization: boolean;
+  switchOrganization: (organizationId: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   continueWithGoogle: () => Promise<void>;
@@ -34,6 +39,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [firebaseUser, setFirebaseUser] = React.useState<User | null>(null);
   const [profile, setProfile] = React.useState<AppUser | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [organizations, setOrganizations] = React.useState<Organization[]>([]);
+  const [organizationsLoading, setOrganizationsLoading] = React.useState(true);
+  const [switchingOrganization, setSwitchingOrganization] = React.useState(false);
 
   const loadProfile = React.useCallback(async (user: User) => {
     const existing = await getUserProfile(user.uid);
@@ -71,10 +79,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe;
   }, [loadProfile]);
 
+  React.useEffect(() => {
+    if (!firebaseUser) {
+      setOrganizations([]);
+      setOrganizationsLoading(false);
+      return;
+    }
+    setOrganizationsLoading(true);
+    const unsubscribe = subscribeOrganizationsByOwner(firebaseUser.uid, (orgs) => {
+      setOrganizations(orgs);
+      setOrganizationsLoading(false);
+    });
+    return unsubscribe;
+  }, [firebaseUser]);
+
   const value: AuthContextValue = {
     firebaseUser,
     profile,
     loading,
+    organizations,
+    organizationsLoading,
+    switchingOrganization,
+    switchOrganization: async (organizationId) => {
+      if (!firebaseUser || organizationId === profile?.organizationId) return;
+      setSwitchingOrganization(true);
+      try {
+        await switchActiveOrganization(firebaseUser.uid, organizationId);
+        await loadProfile(firebaseUser);
+      } finally {
+        setSwitchingOrganization(false);
+      }
+    },
     signIn: async (email, password) => {
       await signInWithEmail(email, password);
     },

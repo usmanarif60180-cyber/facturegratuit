@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { DollarSign, FileText, FileSpreadsheet, Users } from "lucide-react";
+import { DollarSign, FileSpreadsheet, TrendingDown, Users, Wallet } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
-import { RevenueChart, type RevenuePoint } from "@/components/dashboard/RevenueChart";
+import { RevenueExpensesChart, type RevenueExpensePoint } from "@/components/dashboard/RevenueExpensesChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { AiInsightsCard } from "@/components/dashboard/AiInsightsCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Reveal } from "@/components/ui/Reveal";
@@ -13,27 +14,36 @@ import { LiveIndicator } from "@/components/dashboard/LiveIndicator";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
+import { useExpenses } from "@/hooks/useExpenses";
 import { useOrganization } from "@/hooks/useOrganization";
 import { formatCurrency } from "@/lib/utils/format";
 
-function buildRevenueSeries(invoices: ReturnType<typeof useInvoices>["items"]): RevenuePoint[] {
-  const months: RevenuePoint[] = [];
+function buildRevenueExpenseSeries(
+  invoices: ReturnType<typeof useInvoices>["items"],
+  expenses: ReturnType<typeof useExpenses>["items"]
+): RevenueExpensePoint[] {
+  const months: RevenueExpensePoint[] = [];
   const now = new Date();
 
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push({ month: d.toLocaleString("en", { month: "short" }), revenue: 0 });
+    months.push({ month: d.toLocaleString("en", { month: "short" }), revenue: 0, expenses: 0 });
   }
+
+  const monthIndex = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const diff = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+    return diff >= 0 && diff <= 5 ? 5 - diff : -1;
+  };
 
   for (const invoice of invoices) {
     if (invoice.status !== "paid") continue;
-    const issued = new Date(invoice.issueDate);
-    const diffMonths =
-      (now.getFullYear() - issued.getFullYear()) * 12 + (now.getMonth() - issued.getMonth());
-    if (diffMonths >= 0 && diffMonths <= 5) {
-      const index = 5 - diffMonths;
-      months[index]!.revenue += invoice.totals.total;
-    }
+    const idx = monthIndex(invoice.issueDate);
+    if (idx >= 0) months[idx]!.revenue += invoice.totals.total;
+  }
+  for (const expense of expenses) {
+    const idx = monthIndex(expense.date);
+    if (idx >= 0) months[idx]!.expenses += expense.amount;
   }
 
   return months;
@@ -43,10 +53,11 @@ export default function DashboardPage() {
   const { items: invoices, loading: invoicesLoading } = useInvoices();
   const { items: quotes, loading: quotesLoading } = useQuotes();
   const { items: clients, loading: clientsLoading } = useClients();
+  const { items: expenses, loading: expensesLoading } = useExpenses();
   const { organization } = useOrganization();
 
   const currency = organization?.settings.defaultCurrency ?? "USD";
-  const loading = invoicesLoading || quotesLoading || clientsLoading;
+  const loading = invoicesLoading || quotesLoading || clientsLoading || expensesLoading;
 
   const revenue = invoices
     .filter((inv) => inv.status === "paid")
@@ -56,28 +67,32 @@ export default function DashboardPage() {
     .filter((inv) => inv.status === "pending" || inv.status === "overdue")
     .reduce((sum, inv) => sum + inv.totals.total, 0);
 
-  const revenueSeries = React.useMemo(() => buildRevenueSeries(invoices), [invoices]);
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const netCashFlow = revenue - totalExpenses;
+
+  const series = React.useMemo(() => buildRevenueExpenseSeries(invoices, expenses), [invoices, expenses]);
 
   return (
     <div>
       <PageHeader
         title="Dashboard"
-        description="A snapshot of your business, in real time."
+        description={organization ? `${organization.name} — a snapshot of your business, in real time.` : "A snapshot of your business, in real time."}
         action={<LiveIndicator />}
       />
 
       {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {Array.from({ length: 5 }).map((_, i) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-28 rounded-xl" />
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {[
             { label: "Revenue", value: revenue, icon: DollarSign, formatValue: (n: number) => formatCurrency(n, currency) },
             { label: "Outstanding", value: outstanding, icon: DollarSign, formatValue: (n: number) => formatCurrency(n, currency) },
-            { label: "Invoices", value: invoices.length, icon: FileText },
+            { label: "Expenses", value: totalExpenses, icon: TrendingDown, formatValue: (n: number) => formatCurrency(n, currency) },
+            { label: "Net cash flow", value: netCashFlow, icon: Wallet, formatValue: (n: number) => formatCurrency(n, currency) },
             { label: "Quotes", value: quotes.length, icon: FileSpreadsheet },
             { label: "Clients", value: clients.length, icon: Users },
           ].map((stat, i) => (
@@ -94,9 +109,12 @@ export default function DashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <RevenueChart data={revenueSeries} />
+          <RevenueExpensesChart data={series} />
         </div>
-        <RecentActivity invoices={invoices} />
+        <div className="flex flex-col gap-6">
+          <AiInsightsCard invoices={invoices} quotes={quotes} clients={clients} expenses={expenses} currency={currency} />
+          <RecentActivity invoices={invoices} />
+        </div>
       </div>
     </div>
   );

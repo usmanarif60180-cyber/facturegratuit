@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { MobileNav } from "./MobileNav";
 import { ThemeToggle } from "./ThemeToggle";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { Avatar } from "@/components/ui/Avatar";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@/components/ui/Dropdown";
 import { useAuth } from "@/context/AuthContext";
@@ -17,6 +18,9 @@ export function AppTopbar() {
     <header className="flex h-16 items-center justify-between border-b border-border bg-background px-4 md:px-6">
       <div className="flex items-center gap-2">
         <MobileNav />
+        <div className="hidden md:block">
+          <WorkspaceSwitcher />
+        </div>
       </div>
 
       <div className="flex items-center gap-1">

@@ -1,6 +1,6 @@
 import { DesignableDocument } from "@/components/design/DesignableDocument";
 import { quoteToDesignableDoc } from "@/lib/design/documentAdapter";
-import { DEFAULT_DESIGN_CONFIG } from "@/lib/design/defaults";
+import { resolveDesignConfig } from "@/lib/design/resolve";
 import type { Client, Organization, Quote } from "@/types";
 
 interface QuotePreviewProps {
@@ -15,7 +15,7 @@ export function QuotePreview({ quote, client, organization }: QuotePreviewProps)
       doc={quoteToDesignableDoc(quote)}
       client={client}
       organization={organization}
-      design={organization?.designConfig ?? DEFAULT_DESIGN_CONFIG}
+      design={resolveDesignConfig(organization, "quote")}
       brandKit={organization?.brandKit}
       locale={organization?.settings.defaultLanguage}
     />

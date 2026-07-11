@@ -38,3 +38,18 @@ export async function updateUserProfile(
     updatedAt: serverTimestamp(),
   });
 }
+
+/** Switches the user's active workspace. Firestore rules only allow this
+ * when `organizationId` names an org the user owns (see firestore.rules) —
+ * every org-scoped hook in the app keys off this one field, so this single
+ * write is what makes every page (dashboard, clients, invoices, branding…)
+ * update to the new company. Role is always "owner" today because a user
+ * can only switch into companies they own; a future memberships model can
+ * resolve per-org role here instead. */
+export async function switchActiveOrganization(uid: string, organizationId: string) {
+  await updateDoc(doc(db, COLLECTIONS.users, uid), {
+    organizationId,
+    role: "owner",
+    updatedAt: serverTimestamp(),
+  });
+}

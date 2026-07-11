@@ -1,6 +1,6 @@
 import { DesignableDocument } from "@/components/design/DesignableDocument";
 import { invoiceToDesignableDoc } from "@/lib/design/documentAdapter";
-import { DEFAULT_DESIGN_CONFIG } from "@/lib/design/defaults";
+import { resolveDesignConfig } from "@/lib/design/resolve";
 import type { Client, Invoice, Organization } from "@/types";
 
 interface InvoicePreviewProps {
@@ -15,7 +15,7 @@ export function InvoicePreview({ invoice, client, organization }: InvoicePreview
       doc={invoiceToDesignableDoc(invoice)}
       client={client}
       organization={organization}
-      design={organization?.designConfig ?? DEFAULT_DESIGN_CONFIG}
+      design={resolveDesignConfig(organization, "invoice")}
       brandKit={organization?.brandKit}
       locale={organization?.settings.defaultLanguage}
     />
