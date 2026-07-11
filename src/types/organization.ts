@@ -1,4 +1,5 @@
 import type { Address, CurrencyCode, LanguageTag, Timestamps } from "./common";
+import type { BrandKit, DesignConfig } from "./design";
 
 export interface OrganizationSettings {
   defaultCurrency: CurrencyCode;
@@ -26,6 +27,10 @@ export interface Organization extends Timestamps {
   taxId?: string;
   registrationNumber?: string;
   settings: OrganizationSettings;
+  /** Active Invoice & Quote Design Studio configuration. Falls back to
+   * DEFAULT_DESIGN_CONFIG when unset. */
+  designConfig?: DesignConfig;
+  brandKit?: BrandKit;
 }
 
 export const DEFAULT_ORGANIZATION_SETTINGS: OrganizationSettings = {

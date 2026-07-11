@@ -4,6 +4,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { Analytics } from "@/components/analytics/Analytics";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import { SITE, absoluteUrl } from "@/config/site";
+import { FONT_VARIABLE_CLASS } from "@/lib/design/fonts";
+import { cn } from "@/lib/utils/cn";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -45,7 +47,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-sans">
+      <body className={cn("font-sans", FONT_VARIABLE_CLASS)}>
         <JsonLd data={[organizationSchema(), websiteSchema()]} />
         <Analytics />
         <Providers>{children}</Providers>

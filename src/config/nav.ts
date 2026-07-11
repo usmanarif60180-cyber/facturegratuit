@@ -8,6 +8,7 @@ import {
   Receipt,
   BarChart3,
   Sparkles,
+  Palette,
   Settings,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ export const APP_NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Invoices", href: "/invoices", icon: FileText },
   { label: "Quotes", href: "/quotes", icon: FileSpreadsheet },
+  { label: "Design Studio", href: "/design-studio", icon: Palette },
   { label: "Clients", href: "/clients", icon: Users },
   { label: "Products", href: "/products", icon: Package },
   { label: "Expenses", href: "/expenses", icon: Receipt },

@@ -9,3 +9,4 @@ export * from "./expense";
 export * from "./subscription";
 export * from "./notification";
 export * from "./activity-log";
+export * from "./design";

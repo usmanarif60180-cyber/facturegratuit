@@ -31,6 +31,8 @@
 
     --secondary: 262 71% 58%;
     --secondary-foreground: 0 0% 100%;
+
+    --font-sans: var(--font-inter);
   }
 
   .dark {
@@ -135,5 +137,23 @@
     position: absolute;
     inset: 0;
     width: 100%;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #print-area thead {
+    display: table-header-group;
+  }
+  #print-area[data-repeat-header="false"] thead {
+    display: table-row-group;
+  }
+  #print-area tbody {
+    display: table-row-group;
+  }
+  #print-area tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
