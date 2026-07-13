@@ -666,13 +666,33 @@ function renderAuth() {
 
   if (loginBtn) loginBtn.style.display = loggedIn ? 'none' : '';
   if (signupBtn) signupBtn.style.display = loggedIn ? 'none' : '';
-  if (accountBtn) accountBtn.style.display = loggedIn ? '' : 'none';
+  if (accountBtn) {
+    accountBtn.style.display = loggedIn ? '' : 'none';
+    const initial = (S.authUser?.name || S.authUser?.email || '?').trim().charAt(0).toUpperCase();
+    accountBtn.innerHTML = loggedIn ? `<span class="account-avatar">${initial}</span>` : '<i class="fa fa-user"></i>';
+  }
   if (accountName) accountName.textContent = S.authUser?.name || 'Compte';
   if (accountEmail) accountEmail.textContent = S.authUser?.email || '';
   if (accountStatus) {
     accountStatus.className = 'account-status ' + (verified ? '' : 'warn');
     accountStatus.innerHTML = verified ? '<i class="fa fa-circle-check"></i> Connecté' : '<i class="fa fa-clock"></i> Email non vérifié';
   }
+
+  const hpLoginLink = document.getElementById('hp-login-link');
+  const hpProfileLink = document.getElementById('hp-profile-link');
+  const hpCtaLink = document.getElementById('hp-cta-link');
+  if (hpLoginLink) hpLoginLink.style.display = loggedIn ? 'none' : '';
+  if (hpProfileLink) {
+    hpProfileLink.style.display = loggedIn ? 'flex' : 'none';
+    hpProfileLink.textContent = (S.authUser?.name || S.authUser?.email || '?').trim().charAt(0).toUpperCase();
+  }
+  if (hpCtaLink) hpCtaLink.textContent = loggedIn ? 'Ouvrir mon espace' : 'Commencer gratuitement';
+
+  const heroCtaText = document.getElementById('hero-cta-text');
+  const heroCtaLink = document.getElementById('hero-cta-link');
+  if (heroCtaText) heroCtaText.textContent = loggedIn ? 'Ouvrir mon espace' : 'Commencer gratuitement';
+  if (heroCtaLink) heroCtaLink.setAttribute('onclick', loggedIn ? 'openAccount()' : "openEditor('facture')");
+
   renderAccountModal();
 }
 

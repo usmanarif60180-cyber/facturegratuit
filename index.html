@@ -407,6 +407,7 @@ try {
   .nav-links a { text-decoration: none; transition: color .15s ease; }
   .nav-links a:hover { color: var(--ink); }
   .hp-topbar-actions { display: flex; align-items: center; gap: 12px; }
+  .hp-profile-link { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg,var(--accent),var(--accent-2)); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; flex-shrink: 0; }
   .topbar-chip-group { display: flex; align-items: center; gap: 8px; }
   .topbar-icon-chip {
     width: 38px; height: 38px; border-radius: 999px;
@@ -1058,8 +1059,9 @@ body.home-mode .home-mobile-cta { display: none; }
       </a>
       <a class="topbar-icon-chip" href="javascript:void(0)" onclick="document.getElementById('formats')?.scrollIntoView({behavior:'smooth',block:'start'})" title="Langues">FR</a>
     </div>
-    <a class="hp-btn hp-btn-ghost hp-btn-sm" href="javascript:void(0)" onclick="openAuth('login')">Connexion</a>
-    <a class="hp-btn hp-btn-primary hp-btn-sm" href="javascript:void(0)" onclick="openEditor('facture')">Commencer gratuitement</a>
+    <a class="hp-btn hp-btn-ghost hp-btn-sm" id="hp-login-link" href="javascript:void(0)" onclick="openAuth('login')">Connexion</a>
+    <a class="hp-profile-link" id="hp-profile-link" href="javascript:void(0)" onclick="openAccount()" title="Mon compte" style="display:none"></a>
+    <a class="hp-btn hp-btn-primary hp-btn-sm" id="hp-cta-link" href="javascript:void(0)" onclick="openEditor('facture')">Commencer gratuitement</a>
   </div>
 </nav>
 
@@ -1079,9 +1081,9 @@ body.home-mode .home-mobile-cta { display: none; }
       <span class="hero-mini-pill">Marketplace</span>
     </div>
     <div class="hero-ctas hero-in" style="--d:.24s">
-      <a class="hp-btn hp-btn-primary" href="javascript:void(0)" onclick="openEditor('facture')">
+      <a class="hp-btn hp-btn-primary" id="hero-cta-link" href="javascript:void(0)" onclick="openEditor('facture')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="currentColor"/></svg>
-        Commencer gratuitement
+        <span id="hero-cta-text">Commencer gratuitement</span>
       </a>
       <a class="hp-btn hp-btn-ghost" href="#factures" onclick="return navToCategory('factures', event)">Voir les fonctionnalités</a>
     </div>
