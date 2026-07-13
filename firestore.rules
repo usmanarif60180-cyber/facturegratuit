@@ -38,6 +38,11 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
+    match /publicConfig/{configId} {
+      allow read: if configId in ['pricing'];
+      allow create, update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
