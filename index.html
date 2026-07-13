@@ -1049,6 +1049,7 @@ body.home-mode .home-mobile-cta { display: none; }
     <a href="#devis" onclick="return navToCategory('devis', event)">Devis</a>
     <a href="#personnalisation" onclick="return navToCategory('personnalisation', event)">Personnalisation</a>
     <a href="#suivi" onclick="return navToCategory('suivi', event)">Suivi</a>
+    <a href="/pricing.html">Pricing</a>
   </div>
   <div class="hp-topbar-actions">
     <div class="topbar-chip-group" aria-label="Langue et pays">
@@ -1603,6 +1604,7 @@ body.home-mode .home-mobile-cta { display: none; }
           <a href="javascript:void(0)" onclick="goToFaq()">Aide / FAQ</a>
           <a href="javascript:void(0)" onclick="document.getElementById('guides')?.scrollIntoView({behavior:'smooth',block:'start'})">Guides &amp; articles</a>
           <a href="javascript:void(0)" onclick="document.getElementById('formats')?.scrollIntoView({behavior:'smooth',block:'start'})">Formats par pays</a>
+          <a href="/pricing.html">Pricing</a>
         </div>
         <div class="foot-col">
           <h4>Légal</h4>
@@ -2310,7 +2312,7 @@ body.home-mode .home-mobile-cta { display: none; }
         <button class="btn btn-ghost btn-sm" id="account-tab-profile" onclick="showAccountPanel('profile')"><i class="fa fa-building"></i> Société</button>
       </div>
       <div class="account-panel active" id="account-panel-overview">
-        <div class="panel-note">Dashboard: projets sauvegardés, clients, produits/services et historique mensuel restent associés à votre compte sur ce navigateur. Limite prévue: 500 MB par utilisateur.</div>
+        <div class="panel-note">Dashboard privé: visible seulement après login. Les projets, clients, produits, société et historique sont synchronisés avec votre compte Firebase quand la connexion cloud est disponible. Les analytics utilisent uniquement vos vraies factures sauvegardées, sans données fake. Limite prévue: 500 MB par utilisateur.</div>
         <div class="dashboard-grid" id="account-overview-grid"></div>
         <div id="account-storage-panel"></div>
         <div class="support-box"><strong style="color:var(--ink)">Sécurité :</strong> ne partagez pas votre mot de passe, supprimez les anciens documents inutiles, et signalez tout bug via Feedback. <button class="legal-link" onclick="closeAccount();openLegal('security')">Voir sécurité</button></div>
