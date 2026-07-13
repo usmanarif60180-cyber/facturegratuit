@@ -356,11 +356,11 @@ const LEGAL_PAGES = {
     html: `
       <h3>Données saisies dans les factures et devis</h3>
       <p>Les informations que vous saisissez dans l'outil, comme nom, prénom, client, adresse, SIRET/SIREN, IBAN/RIB, VIN, plaque d'immatriculation, détails de véhicule, prix et prestations, sont utilisées pour afficher l'aperçu et générer le PDF.</p>
-      <p>Ces données ne sont pas vendues à des tiers. Elles sont principalement traitées dans votre navigateur. Les brouillons peuvent être enregistrés localement dans votre navigateur via localStorage lorsque vous utilisez la fonction de sauvegarde.</p>
+      <p>Ces données ne sont pas vendues à des tiers. Sans compte, elles sont principalement traitées dans votre navigateur. Avec un compte connecté, les projets, clients, produits, profil société et historique peuvent être synchronisés dans Firebase Firestore afin de retrouver vos données après login.</p>
       <h3>Compte utilisateur Firebase</h3>
       <p>Si vous utilisez signup/login, Firebase Authentication peut traiter votre email, identifiant utilisateur et informations de connexion pour permettre l'accès au compte.</p>
       <h3>Sauvegarde compte et limite de stockage</h3>
-      <p>Le compte peut sauvegarder le profil société, projets, clients, produits/services et historique. Une limite de 500 MB par utilisateur est prévue afin de garder le stockage Firebase maîtrisé.</p>
+      <p>Le compte peut sauvegarder le profil société, projets, clients, produits/services et historique dans le cloud Firebase associé à l'utilisateur connecté. Une limite de 500 MB par utilisateur est prévue afin de garder le stockage Firebase maîtrisé.</p>
       <p>Les fichiers uploadés, comme logo, signature ou cachet, doivent être des fichiers raisonnables et utiles au document. Les anciens projets ou assets peuvent être supprimés depuis le compte pour libérer de l'espace.</p>
       <h3>Google Analytics et Google AdSense</h3>
       <p>Nous utilisons Google Analytics pour mesurer l'audience et pouvons utiliser Google AdSense pour afficher des annonces. Google et ses partenaires peuvent utiliser des cookies ou technologies similaires pour diffuser, mesurer et personnaliser les annonces selon leurs propres règles.</p>
@@ -995,6 +995,190 @@ function getDocumentTitle() {
   return object ? `${client} · ${object}` : client;
 }
 
+function getHistoryAmount(item, key) {
+  return Number(item?.[key]) || 0;
+}
+
+function getHistoryStatus(item) {
+  const raw = String(item?.paymentStatus || item?.status || item?.action || '').toLowerCase();
+  const dueDate = item?.dueDate || item?.expiryDate || item?.validUntil || '';
+  if (raw.includes('paid') || raw.includes('payé') || raw.includes('paye')) return 'paid';
+  if (raw.includes('partial') || raw.includes('partiel')) return 'partial';
+  if (raw.includes('draft') || raw.includes('brouillon')) return 'draft';
+  if (raw.includes('cancel')) return 'cancelled';
+  if (dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate) && dueDate < new Date().toISOString().slice(0,10)) return 'overdue';
+  return 'sent';
+}
+
+function buildAccountAnalytics(history=[]) {
+  const now = new Date();
+  const todayKey = now.toISOString().slice(0,10);
+  const monthKey = todayKey.slice(0,7);
+  const yearKey = todayKey.slice(0,4);
+  const empty = {
+    today:0, month:0, year:0, ht:0, tva:0, total:0,
+    paid:0, unpaid:0, overdue:0, draft:0, quotes:0, invoices:0,
+    monthly:[], topClients:[], conversionRate:0, avgPaymentDelay:0
+  };
+  if (!history.length) return empty;
+
+  const monthlyMap = {};
+  const clientMap = {};
+  let paidDelayTotal = 0;
+  let paidDelayCount = 0;
+
+  const totals = history.reduce((sum, item) => {
+    const date = String(item.date || item.updatedAt || '').slice(0,10);
+    const month = item.month || date.slice(0,7) || 'Sans date';
+    const total = getHistoryAmount(item, 'total');
+    const subtotal = getHistoryAmount(item, 'subtotal');
+    const tva = getHistoryAmount(item, 'tva');
+    const status = getHistoryStatus(item);
+    const isQuote = String(item.docType || '').toLowerCase() === 'devis';
+    const client = item.clientName || 'Client';
+
+    monthlyMap[month] ||= { month, subtotal:0, tva:0, total:0, count:0 };
+    monthlyMap[month].subtotal += subtotal;
+    monthlyMap[month].tva += tva;
+    monthlyMap[month].total += total;
+    monthlyMap[month].count += 1;
+
+    clientMap[client] ||= { name: client, total:0, count:0 };
+    clientMap[client].total += total;
+    clientMap[client].count += 1;
+
+    if (status === 'paid' && item.paidAt && date) {
+      const start = new Date(date);
+      const paid = new Date(item.paidAt);
+      const diff = Math.round((paid - start) / 86400000);
+      if (Number.isFinite(diff) && diff >= 0) {
+        paidDelayTotal += diff;
+        paidDelayCount += 1;
+      }
+    }
+
+    return {
+      today: sum.today + (date === todayKey ? total : 0),
+      month: sum.month + (month === monthKey ? total : 0),
+      year: sum.year + (date.slice(0,4) === yearKey ? total : 0),
+      ht: sum.ht + subtotal,
+      tva: sum.tva + tva,
+      total: sum.total + total,
+      paid: sum.paid + (status === 'paid' ? total : 0),
+      unpaid: sum.unpaid + (!['paid','cancelled','draft'].includes(status) ? total : 0),
+      overdue: sum.overdue + (status === 'overdue' ? total : 0),
+      draft: sum.draft + (status === 'draft' ? 1 : 0),
+      quotes: sum.quotes + (isQuote ? 1 : 0),
+      invoices: sum.invoices + (!isQuote ? 1 : 0)
+    };
+  }, empty);
+
+  const monthly = Object.values(monthlyMap)
+    .sort((a,b) => String(a.month).localeCompare(String(b.month)))
+    .slice(-6);
+  const topClients = Object.values(clientMap)
+    .sort((a,b) => b.total - a.total)
+    .slice(0,5);
+
+  return {
+    ...totals,
+    monthly,
+    topClients,
+    conversionRate: totals.quotes ? Math.round((totals.invoices / (totals.invoices + totals.quotes)) * 100) : (totals.invoices ? 100 : 0),
+    avgPaymentDelay: paidDelayCount ? Math.round(paidDelayTotal / paidDelayCount) : 0
+  };
+}
+
+function renderMiniBarChart(monthly=[]) {
+  if (!monthly.length) {
+    return `<div class="analytics-empty">No invoice data yet. Save invoices to activate charts.</div>`;
+  }
+  const max = Math.max(...monthly.map(item => item.total), 1);
+  return `<div class="analytics-bars" aria-label="Monthly revenue chart">
+    ${monthly.map(item => {
+      const pct = Math.max(8, Math.round((item.total / max) * 100));
+      const label = /^\d{4}-\d{2}$/.test(item.month) ? item.month.slice(5) + '/' + item.month.slice(2,4) : item.month;
+      return `<div class="analytics-bar-col">
+        <div class="analytics-bar-track"><span style="height:${pct}%"></span></div>
+        <small>${escHtml(label)}</small>
+        <b>${fmtEur(item.total)}</b>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderStatusSplitChart(analytics) {
+  const paid = analytics.paid;
+  const unpaid = analytics.unpaid;
+  const overdue = analytics.overdue;
+  const total = Math.max(paid + unpaid + overdue, 1);
+  const paidPct = Math.round((paid / total) * 100);
+  const unpaidPct = Math.round((unpaid / total) * 100);
+  const overduePct = Math.max(0, 100 - paidPct - unpaidPct);
+  return `<div class="status-split-chart">
+    <div class="status-split-bar" aria-label="Paid unpaid overdue split">
+      <span class="paid" style="width:${paidPct}%"></span>
+      <span class="unpaid" style="width:${unpaidPct}%"></span>
+      <span class="overdue" style="width:${overduePct}%"></span>
+    </div>
+    <div class="status-legend">
+      <span><i class="paid"></i> Paid ${fmtEur(paid)}</span>
+      <span><i class="unpaid"></i> Unpaid ${fmtEur(unpaid)}</span>
+      <span><i class="overdue"></i> Overdue ${fmtEur(overdue)}</span>
+    </div>
+  </div>`;
+}
+
+function renderTopClientsList(clients=[]) {
+  if (!clients.length) {
+    return `<div class="analytics-empty">Top customers will appear after saved invoices.</div>`;
+  }
+  return `<div class="top-client-list">
+    ${clients.map(client => `<div class="top-client-row">
+      <span>${escHtml(client.name)}</span>
+      <strong>${fmtEur(client.total)}</strong>
+      <small>${client.count} document${client.count > 1 ? 's' : ''}</small>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderAccountAdvancedAnalytics(history, analytics) {
+  const hasData = history.length > 0;
+  return `<div class="account-analytics" style="grid-column:1 / -1">
+    <div class="analytics-head">
+      <div>
+        <strong>Advanced analytics</strong>
+        <span>${hasData ? 'Real data from your saved invoice history only.' : 'No fake data. Charts stay empty until you save invoices.'}</span>
+      </div>
+      <span class="analytics-badge"><i class="fa fa-lock-open"></i> Free</span>
+    </div>
+    <div class="analytics-grid">
+      <div class="analytics-panel wide">
+        <div class="analytics-panel-head"><span>Monthly revenue</span><small>HT + TVA + TTC source: history</small></div>
+        ${renderMiniBarChart(analytics.monthly)}
+      </div>
+      <div class="analytics-panel">
+        <div class="analytics-panel-head"><span>Payment split</span><small>Saved statuses</small></div>
+        ${renderStatusSplitChart(analytics)}
+      </div>
+      <div class="analytics-panel">
+        <div class="analytics-panel-head"><span>Top customers</span><small>By revenue</small></div>
+        ${renderTopClientsList(analytics.topClients)}
+      </div>
+      <div class="analytics-panel">
+        <div class="analytics-panel-head"><span>Quote conversion</span><small>Devis to invoice</small></div>
+        <div class="analytics-big-number">${analytics.conversionRate}%</div>
+        <p>${analytics.quotes} devis · ${analytics.invoices} facture${analytics.invoices > 1 ? 's' : ''}</p>
+      </div>
+      <div class="analytics-panel">
+        <div class="analytics-panel-head"><span>Payment delay</span><small>Paid invoices</small></div>
+        <div class="analytics-big-number">${analytics.avgPaymentDelay}</div>
+        <p>Average days after invoice date. Shows 0 until paid dates are saved.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderAccountOverview() {
   const grid = document.getElementById('account-overview-grid');
   const recent = document.getElementById('account-recent-projects');
@@ -1004,27 +1188,26 @@ function renderAccountOverview() {
   const clients = loadAccountList('clients');
   const products = loadAccountList('products');
   const storageUsed = getAccountStorageUsageBytes();
-  const nowMonth = new Date().toISOString().slice(0,7);
-  const totals = history.reduce((sum, item) => {
-    const isMonth = (item.month || String(item.date || '').slice(0,7)) === nowMonth;
-    return {
-      month: sum.month + (isMonth ? (+item.total || 0) : 0),
-      ht: sum.ht + (+item.subtotal || 0),
-      tva: sum.tva + (+item.tva || 0),
-      total: sum.total + (+item.total || 0)
-    };
-  }, { month:0, ht:0, tva:0, total:0 });
+  const totals = buildAccountAnalytics(history);
   if (grid) {
     grid.innerHTML = `
       <div style="grid-column:1 / -1">${renderProfileCompletionWidget()}</div>
+      <div class="dashboard-card"><i class="fa fa-sun"></i><strong>${fmtEur(totals.today)}</strong><span>Revenue today</span></div>
       <div class="dashboard-card"><i class="fa fa-calendar-days"></i><strong>${fmtEur(totals.month)}</strong><span>Total ce mois</span></div>
+      <div class="dashboard-card"><i class="fa fa-chart-line"></i><strong>${fmtEur(totals.year)}</strong><span>Revenue this year</span></div>
       <div class="dashboard-card"><i class="fa fa-file-invoice-dollar"></i><strong>${fmtEur(totals.total)}</strong><span>Total facturé</span></div>
+      <div class="dashboard-card"><i class="fa fa-layer-group"></i><strong>${fmtEur(totals.ht)}</strong><span>Total HT</span></div>
       <div class="dashboard-card"><i class="fa fa-percent"></i><strong>${fmtEur(totals.tva)}</strong><span>Total TVA</span></div>
+      <div class="dashboard-card"><i class="fa fa-circle-check"></i><strong>${fmtEur(totals.paid)}</strong><span>Paid invoices</span></div>
+      <div class="dashboard-card"><i class="fa fa-triangle-exclamation"></i><strong>${fmtEur(totals.unpaid)}</strong><span>Outstanding invoices</span></div>
+      <div class="dashboard-card"><i class="fa fa-clock"></i><strong>${fmtEur(totals.overdue)}</strong><span>Overdue invoices</span></div>
+      <div class="dashboard-card"><i class="fa fa-file-pen"></i><strong>${totals.draft}</strong><span>Draft invoices</span></div>
       <div class="dashboard-card"><i class="fa fa-folder-open"></i><strong>${projects.length}</strong><span>Projets sauvegardés</span></div>
       <div class="dashboard-card"><i class="fa fa-address-book"></i><strong>${clients.length}</strong><span>Clients enregistrés</span></div>
       <div class="dashboard-card"><i class="fa fa-box"></i><strong>${products.length}</strong><span>Produits/services</span></div>
       <div class="dashboard-card"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Factures historique</span></div>
-      <div class="dashboard-card"><i class="fa fa-cloud"></i><strong>${formatBytes(storageUsed)}</strong><span>Storage utilisé</span></div>`;
+      <div class="dashboard-card"><i class="fa fa-cloud"></i><strong>${formatBytes(storageUsed)}</strong><span>Storage utilisé</span></div>
+      ${renderAccountAdvancedAnalytics(history, totals)}`;
     renderAccountStoragePanel();
   }
   if (recent) {
