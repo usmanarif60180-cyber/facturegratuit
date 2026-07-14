@@ -605,7 +605,7 @@ function applyAppTheme() {
   const icon = document.getElementById('theme-icon');
   const label = document.getElementById('theme-label');
   if (icon) icon.className = isLight ? 'fa fa-sun' : 'fa fa-moon';
-  if (label) label.textContent = isLight ? 'Light' : 'Dark';
+  if (label) label.textContent = isLight ? 'Clair' : 'Sombre';
 }
 
 function toggleAppTheme() {
@@ -709,11 +709,11 @@ function openAuth(mode='login') {
   const switchLink = document.getElementById('auth-switch-link');
   const isSignup = mode === 'signup';
 
-  if (title) title.textContent = isSignup ? 'Signup' : 'Login';
+  if (title) title.textContent = isSignup ? 'Inscription' : 'Connexion';
   if (subtitle) subtitle.textContent = isSignup ? 'Créez votre compte FacturePro' : 'Accédez à votre espace FacturePro';
   if (nameGroup) nameGroup.style.display = isSignup ? '' : 'none';
   if (password) password.autocomplete = isSignup ? 'new-password' : 'current-password';
-  if (submit) submit.innerHTML = isSignup ? '<i class="fa fa-user-plus"></i> Signup' : '<i class="fa fa-right-to-bracket"></i> Login';
+  if (submit) submit.innerHTML = isSignup ? '<i class="fa fa-user-plus"></i> Inscription' : '<i class="fa fa-right-to-bracket"></i> Connexion';
   if (forgot) forgot.style.display = isSignup ? 'none' : '';
   if (switchText) switchText.textContent = isSignup ? 'Déjà un compte ?' : 'Pas encore de compte ?';
   if (switchLink) switchLink.textContent = isSignup ? 'Se connecter' : 'Créer un compte';
@@ -858,7 +858,7 @@ function renderAccountStoragePanel() {
   panel.innerHTML = `
     <div class="storage-panel">
       <div class="storage-head">
-        <span><i class="fa fa-cloud"></i> Cloud storage quota</span>
+        <span><i class="fa fa-cloud"></i> Quota de stockage cloud</span>
         <span>${formatBytes(used)} / ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)}</span>
       </div>
       <div class="storage-bar"><div class="storage-fill" style="width:${pct}%;background:${nearLimit?'linear-gradient(90deg,#f59e0b,#ef4444)':'linear-gradient(90deg,#22c55e,#8b5cf6)'}"></div></div>
@@ -868,9 +868,9 @@ function renderAccountStoragePanel() {
       </div>
       <div class="storage-actions">
         <button class="btn btn-ghost btn-sm" onclick="cleanupOldAccountData()"><i class="fa fa-broom"></i> Nettoyer anciens</button>
-        <button class="btn btn-ghost btn-sm" onclick="setAutoCleanup(${auto ? 'false' : 'true'})"><i class="fa fa-rotate"></i> Auto-cleanup ${auto ? 'ON' : 'OFF'}</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportAccountData()"><i class="fa fa-file-export"></i> Export data</button>
-        <button class="btn btn-danger btn-sm" onclick="clearAllAccountLocalData()"><i class="fa fa-shield-halved"></i> Supprimer data</button>
+        <button class="btn btn-ghost btn-sm" onclick="setAutoCleanup(${auto ? 'false' : 'true'})"><i class="fa fa-rotate"></i> Nettoyage auto ${auto ? 'activé' : 'désactivé'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportAccountData()"><i class="fa fa-file-export"></i> Exporter les données</button>
+        <button class="btn btn-danger btn-sm" onclick="clearAllAccountLocalData()"><i class="fa fa-shield-halved"></i> Supprimer les données</button>
       </div>
     </div>`;
 }
@@ -1111,7 +1111,7 @@ function buildAccountAnalytics(history=[]) {
 
 function renderMiniBarChart(monthly=[]) {
   if (!monthly.length) {
-    return `<div class="analytics-empty">No invoice data yet. Save invoices to activate charts.</div>`;
+    return `<div class="analytics-empty">Aucune donnée pour le moment. Sauvegardez des factures pour activer les graphiques.</div>`;
   }
   const max = Math.max(...monthly.map(item => item.total), 1);
   return `<div class="analytics-bars" aria-label="Monthly revenue chart">
@@ -1136,22 +1136,22 @@ function renderStatusSplitChart(analytics) {
   const unpaidPct = Math.round((unpaid / total) * 100);
   const overduePct = Math.max(0, 100 - paidPct - unpaidPct);
   return `<div class="status-split-chart">
-    <div class="status-split-bar" aria-label="Paid unpaid overdue split">
+    <div class="status-split-bar" aria-label="Répartition payées, impayées, en retard">
       <span class="paid" style="width:${paidPct}%"></span>
       <span class="unpaid" style="width:${unpaidPct}%"></span>
       <span class="overdue" style="width:${overduePct}%"></span>
     </div>
     <div class="status-legend">
-      <span><i class="paid"></i> Paid ${fmtEur(paid)}</span>
-      <span><i class="unpaid"></i> Unpaid ${fmtEur(unpaid)}</span>
-      <span><i class="overdue"></i> Overdue ${fmtEur(overdue)}</span>
+      <span><i class="paid"></i> Payées ${fmtEur(paid)}</span>
+      <span><i class="unpaid"></i> Impayées ${fmtEur(unpaid)}</span>
+      <span><i class="overdue"></i> En retard ${fmtEur(overdue)}</span>
     </div>
   </div>`;
 }
 
 function renderTopClientsList(clients=[]) {
   if (!clients.length) {
-    return `<div class="analytics-empty">Top customers will appear after saved invoices.</div>`;
+    return `<div class="analytics-empty">Les meilleurs clients apparaîtront après vos premières factures sauvegardées.</div>`;
   }
   return `<div class="top-client-list">
     ${clients.map(client => `<div class="top-client-row">
@@ -1167,33 +1167,33 @@ function renderAccountAdvancedAnalytics(history, analytics) {
   return `<div class="account-analytics" style="grid-column:1 / -1">
     <div class="analytics-head">
       <div>
-        <strong>Advanced analytics</strong>
-        <span>${hasData ? 'Real data from your saved invoice history only.' : 'No fake data. Charts stay empty until you save invoices.'}</span>
+        <strong>Analytics avancées</strong>
+        <span>${hasData ? 'Données réelles issues uniquement de votre historique de factures sauvegardées.' : 'Aucune donnée fictive. Les graphiques restent vides tant que vous n\'avez pas sauvegardé de facture.'}</span>
       </div>
-      <span class="analytics-badge"><i class="fa fa-lock-open"></i> Free</span>
+      <span class="analytics-badge"><i class="fa fa-lock-open"></i> Gratuit</span>
     </div>
     <div class="analytics-grid">
       <div class="analytics-panel wide">
-        <div class="analytics-panel-head"><span>Monthly revenue</span><small>HT + TVA + TTC source: history</small></div>
+        <div class="analytics-panel-head"><span>Revenu mensuel</span><small>HT + TVA + TTC, source: historique</small></div>
         ${renderMiniBarChart(analytics.monthly)}
       </div>
       <div class="analytics-panel">
-        <div class="analytics-panel-head"><span>Payment split</span><small>Saved statuses</small></div>
+        <div class="analytics-panel-head"><span>Répartition des paiements</span><small>Statuts sauvegardés</small></div>
         ${renderStatusSplitChart(analytics)}
       </div>
       <div class="analytics-panel">
-        <div class="analytics-panel-head"><span>Top customers</span><small>By revenue</small></div>
+        <div class="analytics-panel-head"><span>Meilleurs clients</span><small>Par chiffre d'affaires</small></div>
         ${renderTopClientsList(analytics.topClients)}
       </div>
       <div class="analytics-panel">
-        <div class="analytics-panel-head"><span>Quote conversion</span><small>Devis to invoice</small></div>
+        <div class="analytics-panel-head"><span>Conversion devis</span><small>Devis vers facture</small></div>
         <div class="analytics-big-number">${analytics.conversionRate}%</div>
         <p>${analytics.quotes} devis · ${analytics.invoices} facture${analytics.invoices > 1 ? 's' : ''}</p>
       </div>
       <div class="analytics-panel">
-        <div class="analytics-panel-head"><span>Payment delay</span><small>Paid invoices</small></div>
+        <div class="analytics-panel-head"><span>Délai de paiement</span><small>Factures payées</small></div>
         <div class="analytics-big-number">${analytics.avgPaymentDelay}</div>
-        <p>Average days after invoice date. Shows 0 until paid dates are saved.</p>
+        <p>Nombre moyen de jours après la date de facture. Affiche 0 tant qu'aucune date de paiement n'est sauvegardée.</p>
       </div>
     </div>
   </div>`;
@@ -1212,21 +1212,21 @@ function renderAccountOverview() {
   if (grid) {
     grid.innerHTML = `
       <div style="grid-column:1 / -1">${renderProfileCompletionWidget()}</div>
-      <div class="dashboard-card"><i class="fa fa-sun"></i><strong>${fmtEur(totals.today)}</strong><span>Revenue today</span></div>
+      <div class="dashboard-card"><i class="fa fa-sun"></i><strong>${fmtEur(totals.today)}</strong><span>Revenu aujourd'hui</span></div>
       <div class="dashboard-card"><i class="fa fa-calendar-days"></i><strong>${fmtEur(totals.month)}</strong><span>Total ce mois</span></div>
-      <div class="dashboard-card"><i class="fa fa-chart-line"></i><strong>${fmtEur(totals.year)}</strong><span>Revenue this year</span></div>
+      <div class="dashboard-card"><i class="fa fa-chart-line"></i><strong>${fmtEur(totals.year)}</strong><span>Revenu cette année</span></div>
       <div class="dashboard-card"><i class="fa fa-file-invoice-dollar"></i><strong>${fmtEur(totals.total)}</strong><span>Total facturé</span></div>
       <div class="dashboard-card"><i class="fa fa-layer-group"></i><strong>${fmtEur(totals.ht)}</strong><span>Total HT</span></div>
       <div class="dashboard-card"><i class="fa fa-percent"></i><strong>${fmtEur(totals.tva)}</strong><span>Total TVA</span></div>
-      <div class="dashboard-card"><i class="fa fa-circle-check"></i><strong>${fmtEur(totals.paid)}</strong><span>Paid invoices</span></div>
-      <div class="dashboard-card"><i class="fa fa-triangle-exclamation"></i><strong>${fmtEur(totals.unpaid)}</strong><span>Outstanding invoices</span></div>
-      <div class="dashboard-card"><i class="fa fa-clock"></i><strong>${fmtEur(totals.overdue)}</strong><span>Overdue invoices</span></div>
-      <div class="dashboard-card"><i class="fa fa-file-pen"></i><strong>${totals.draft}</strong><span>Draft invoices</span></div>
+      <div class="dashboard-card"><i class="fa fa-circle-check"></i><strong>${fmtEur(totals.paid)}</strong><span>Factures payées</span></div>
+      <div class="dashboard-card"><i class="fa fa-triangle-exclamation"></i><strong>${fmtEur(totals.unpaid)}</strong><span>Factures impayées</span></div>
+      <div class="dashboard-card"><i class="fa fa-clock"></i><strong>${fmtEur(totals.overdue)}</strong><span>Factures en retard</span></div>
+      <div class="dashboard-card"><i class="fa fa-file-pen"></i><strong>${totals.draft}</strong><span>Factures brouillon</span></div>
       <div class="dashboard-card"><i class="fa fa-folder-open"></i><strong>${projects.length}</strong><span>Projets sauvegardés</span></div>
       <div class="dashboard-card"><i class="fa fa-address-book"></i><strong>${clients.length}</strong><span>Clients enregistrés</span></div>
       <div class="dashboard-card"><i class="fa fa-box"></i><strong>${products.length}</strong><span>Produits/services</span></div>
       <div class="dashboard-card"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Factures historique</span></div>
-      <div class="dashboard-card"><i class="fa fa-cloud"></i><strong>${formatBytes(storageUsed)}</strong><span>Storage utilisé</span></div>
+      <div class="dashboard-card"><i class="fa fa-cloud"></i><strong>${formatBytes(storageUsed)}</strong><span>Stockage utilisé</span></div>
       ${renderAccountAdvancedAnalytics(history, totals)}`;
     renderAccountStoragePanel();
   }

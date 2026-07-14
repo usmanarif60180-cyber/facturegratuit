@@ -1019,8 +1019,8 @@ body.home-mode .home-mobile-cta { display: none; }
     <button class="btn btn-ghost btn-sm" onclick="scrollToHome()" title="Accueil"><i class="fa fa-home"></i> <span class="auth-text">Home</span></button>
     <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleAppTheme()" title="Changer le mode"><i class="fa fa-moon" id="theme-icon"></i> <span class="auth-text" id="theme-label">Dark</span></button>
     <div class="auth-actions">
-      <button class="btn btn-ghost btn-sm" id="login-btn" onclick="openAuth('login')"><i class="fa fa-right-to-bracket"></i> <span class="auth-text">Login</span></button>
-      <button class="btn btn-primary btn-sm" id="signup-btn" onclick="openAuth('signup')"><i class="fa fa-user-plus"></i> <span class="auth-text">Signup</span></button>
+      <button class="btn btn-ghost btn-sm" id="login-btn" onclick="openAuth('login')"><i class="fa fa-right-to-bracket"></i> <span class="auth-text">Connexion</span></button>
+      <button class="btn btn-primary btn-sm" id="signup-btn" onclick="openAuth('signup')"><i class="fa fa-user-plus"></i> <span class="auth-text">Inscription</span></button>
       <button class="btn btn-ghost btn-sm account-btn" id="account-btn" onclick="toggleAccountMenu()" title="Compte" style="display:none"><i class="fa fa-user"></i></button>
       <div class="account-menu" id="account-menu">
         <div class="account-name" id="account-name">Compte</div>
@@ -1028,7 +1028,7 @@ body.home-mode .home-mobile-cta { display: none; }
         <div class="account-status" id="account-status"><i class="fa fa-circle-check"></i> Connecté</div>
         <button class="btn btn-ghost btn-sm menu-item" onclick="openAccount()"><i class="fa fa-id-card"></i> Mon compte</button>
         <button class="btn btn-ghost btn-sm menu-item" style="margin-top:6px" onclick="openFeedback()"><i class="fa fa-message"></i> Feedback</button>
-        <button class="btn btn-danger btn-sm menu-item" style="margin-top:6px" onclick="logoutUser()"><i class="fa fa-right-from-bracket"></i> Logout</button>
+        <button class="btn btn-danger btn-sm menu-item" style="margin-top:6px" onclick="logoutUser()"><i class="fa fa-right-from-bracket"></i> Déconnexion</button>
       </div>
     </div>
   </div>
@@ -1674,8 +1674,8 @@ body.home-mode .home-mobile-cta { display: none; }
         <button class="progress-step active" data-step="infos" onclick="showSection('infos')"><i class="fa fa-circle-info"></i> Infos</button>
         <button class="progress-step" data-step="articles" onclick="showSection('articles')"><i class="fa fa-box"></i> Articles</button>
         <button class="progress-step" data-step="style" onclick="showSection('style')"><i class="fa fa-palette"></i> Design</button>
-        <button class="progress-step" data-step="preview" onclick="focusPreview()"><i class="fa fa-eye"></i> Preview</button>
-        <button class="progress-step" data-step="download" onclick="generatePDF()"><i class="fa fa-download"></i> Download</button>
+        <button class="progress-step" data-step="preview" onclick="focusPreview()"><i class="fa fa-eye"></i> Aperçu</button>
+        <button class="progress-step" data-step="download" onclick="generatePDF()"><i class="fa fa-download"></i> Télécharger</button>
       </div>
       <div class="mode-row">
         <div class="mode-segment" aria-label="Mode éditeur">
@@ -2153,7 +2153,7 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-ghost btn-sm" onclick="duplicateDocument()"><i class="fa fa-copy"></i> Dupliquer</button>
           <button class="btn btn-ghost btn-sm" onclick="emailPdf()"><i class="fa fa-envelope"></i> Email PDF</button>
           <button class="btn btn-ghost btn-sm" onclick="copyTotal()"><i class="fa fa-calculator"></i> Copier total</button>
-          <button class="btn btn-danger btn-sm" onclick="resetDocument()"><i class="fa fa-rotate-left"></i> Reset</button>
+          <button class="btn btn-danger btn-sm" onclick="resetDocument()"><i class="fa fa-rotate-left"></i> Réinitialiser</button>
         </div>
       </div>
     </div>
@@ -2176,11 +2176,11 @@ body.home-mode .home-mobile-cta { display: none; }
     <div class="preview-mini-toolbar no-print">
       <span><i class="fa fa-bolt"></i> Actions rapides</span>
       <div class="preview-actions">
-        <button class="btn btn-primary btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> Download</button>
-        <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Print</button>
+        <button class="btn btn-primary btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> Télécharger</button>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Imprimer</button>
         <button class="btn btn-ghost btn-sm" onclick="emailPdf()"><i class="fa fa-envelope"></i> Email</button>
-        <button class="btn btn-ghost btn-sm" onclick="saveCurrentProject()"><i class="fa fa-folder-plus"></i> Save</button>
-        <button class="btn btn-ghost btn-sm" onclick="showSection('style')"><i class="fa fa-palette"></i> Theme</button>
+        <button class="btn btn-ghost btn-sm" onclick="saveCurrentProject()"><i class="fa fa-folder-plus"></i> Sauvegarder</button>
+        <button class="btn btn-ghost btn-sm" onclick="showSection('style')"><i class="fa fa-palette"></i> Thème</button>
       </div>
     </div>
     <div class="ad-band no-print" data-ad-position="preview-banner">
@@ -2250,7 +2250,7 @@ body.home-mode .home-mobile-cta { display: none; }
   <div class="auth-modal">
     <div class="auth-modal-head">
       <div>
-        <div class="auth-modal-title" id="auth-title">Login</div>
+        <div class="auth-modal-title" id="auth-title">Connexion</div>
         <div class="auth-modal-sub" id="auth-subtitle">Accédez à votre espace FacturePro</div>
       </div>
       <button class="btn btn-ghost auth-close" onclick="closeAuth()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
@@ -2260,7 +2260,7 @@ body.home-mode .home-mobile-cta { display: none; }
         <span><i class="fa fa-building"></i> Sauvegardez votre société, logo, signature et cachet</span>
         <span><i class="fa fa-clock-rotate-left"></i> Retrouvez projets, clients, produits et historique</span>
         <span><i class="fa fa-droplet-slash"></i> Retirez la mention FacturePro de vos PDF</span>
-        <span><i class="fa fa-key"></i> Recover account disponible par email Firebase</span>
+        <span><i class="fa fa-key"></i> Récupération de compte disponible par email</span>
       </div>
       <div class="form-group" id="auth-name-group">
         <label class="form-label" for="auth-name">Nom</label>
@@ -2274,9 +2274,9 @@ body.home-mode .home-mobile-cta { display: none; }
         <label class="form-label" for="auth-password">Mot de passe</label>
         <input class="form-input" id="auth-password" type="password" autocomplete="current-password" placeholder="••••••••" required>
       </div>
-      <button class="btn btn-primary btn-lg" id="auth-submit" style="width:100%" type="submit"><i class="fa fa-right-to-bracket"></i> Login</button>
+      <button class="btn btn-primary btn-lg" id="auth-submit" style="width:100%" type="submit"><i class="fa fa-right-to-bracket"></i> Connexion</button>
       <button class="btn btn-ghost btn-sm" id="forgot-password-btn" style="width:100%;margin-top:10px" type="button" onclick="sendPasswordReset()">
-        <i class="fa fa-key"></i> Mot de passe oublié / Recover account
+        <i class="fa fa-key"></i> Mot de passe oublié ?
       </button>
       <div class="auth-switch">
         <span id="auth-switch-text">Pas encore de compte ?</span>
@@ -2381,8 +2381,8 @@ body.home-mode .home-mobile-cta { display: none; }
       </div>
       <div class="grid-2" style="margin-top:14px">
         <button class="btn btn-ghost btn-sm" id="verify-email-btn" onclick="sendVerificationEmail()"><i class="fa fa-envelope-circle-check"></i> Vérifier email</button>
-        <button class="btn btn-ghost btn-sm" onclick="closeAccount();openAuth('login')"><i class="fa fa-key"></i> Recover</button>
-        <button class="btn btn-danger btn-sm" onclick="logoutUser();closeAccount()"><i class="fa fa-right-from-bracket"></i> Logout</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeAccount();openAuth('login')"><i class="fa fa-key"></i> Récupérer</button>
+        <button class="btn btn-danger btn-sm" onclick="logoutUser();closeAccount()"><i class="fa fa-right-from-bracket"></i> Déconnexion</button>
         <button class="btn btn-primary btn-sm" onclick="closeAccount()"><i class="fa fa-check"></i> OK</button>
       </div>
     </div>
@@ -2404,10 +2404,10 @@ body.home-mode .home-mobile-cta { display: none; }
       <div style="color:var(--ink);font-size:16px;font-weight:900;margin-bottom:6px" id="pdf-success-title">Facture prête</div>
       <div style="color:var(--ink-muted);font-size:12px;line-height:1.6">Vous pouvez sauvegarder ce document dans l'historique, l'envoyer par email ou commencer une nouvelle facture.</div>
       <div class="success-modal-actions">
-        <button class="btn btn-primary btn-sm" onclick="recordDocumentHistory('manual');closePdfSuccess();openAccount();showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Save history</button>
-        <button class="btn btn-ghost btn-sm" onclick="closePdfSuccess();emailPdf()"><i class="fa fa-envelope"></i> Email PDF</button>
-        <button class="btn btn-ghost btn-sm" onclick="closePdfSuccess();duplicateDocument()"><i class="fa fa-copy"></i> Create another</button>
-        <button class="btn btn-ghost btn-sm" onclick="closePdfSuccess();openAccount()"><i class="fa fa-user"></i> Account</button>
+        <button class="btn btn-primary btn-sm" onclick="recordDocumentHistory('manual');closePdfSuccess();openAccount();showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Sauvegarder l'historique</button>
+        <button class="btn btn-ghost btn-sm" onclick="closePdfSuccess();emailPdf()"><i class="fa fa-envelope"></i> Envoyer par email</button>
+        <button class="btn btn-ghost btn-sm" onclick="closePdfSuccess();duplicateDocument()"><i class="fa fa-copy"></i> Créer un autre</button>
+        <button class="btn btn-ghost btn-sm" onclick="closePdfSuccess();openAccount()"><i class="fa fa-user"></i> Mon compte</button>
       </div>
     </div>
   </div>
