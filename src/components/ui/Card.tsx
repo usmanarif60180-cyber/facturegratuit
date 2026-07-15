@@ -11,7 +11,8 @@ export function Card({ className, hoverable, ...props }: CardProps) {
     <div
       className={cn(
         "rounded-xl border border-border bg-card text-card-foreground shadow-card",
-        hoverable && "transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-elevated",
+        hoverable &&
+          "transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-elevated",
         className
       )}
       {...props}

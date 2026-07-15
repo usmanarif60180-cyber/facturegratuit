@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { m } from "framer-motion";
 import { APP_NAV, APP_NAV_FOOTER } from "@/config/nav";
 import { Logo } from "./Logo";
 import { cn } from "@/lib/utils/cn";
@@ -15,14 +16,19 @@ function NavLink({ href, label, icon: Icon }: (typeof APP_NAV)[number]) {
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-        active
-          ? "bg-primary/10 text-primary"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        active ? "text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
-      <Icon className="h-4 w-4" aria-hidden="true" />
-      {label}
+      {active && (
+        <m.span
+          layoutId="sidebar-nav-active"
+          className="absolute inset-0 rounded-md bg-primary/10"
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+        />
+      )}
+      <Icon className="relative h-4 w-4" aria-hidden="true" />
+      <span className="relative">{label}</span>
     </Link>
   );
 }

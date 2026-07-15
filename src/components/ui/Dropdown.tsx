@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { AnimatePresence, m } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
 interface DropdownContextValue {
@@ -59,17 +60,24 @@ export function DropdownMenu({
   align?: "start" | "end";
 }) {
   const { open } = useDropdown();
-  if (!open) return null;
   return (
-    <div
-      role="menu"
-      className={cn(
-        "glass absolute z-40 mt-2 min-w-[10rem] animate-scale-in rounded-md p-1 text-popover-foreground",
-        align === "end" ? "right-0 origin-top-right" : "left-0 origin-top-left"
+    <AnimatePresence>
+      {open && (
+        <m.div
+          role="menu"
+          initial={{ opacity: 0, scale: 0.96, y: -4 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: -4 }}
+          transition={{ type: "spring", stiffness: 420, damping: 32 }}
+          className={cn(
+            "glass absolute z-40 mt-2 min-w-[10rem] rounded-md p-1 text-popover-foreground",
+            align === "end" ? "right-0 origin-top-right" : "left-0 origin-top-left"
+          )}
+        >
+          {children}
+        </m.div>
       )}
-    >
-      {children}
-    </div>
+    </AnimatePresence>
   );
 }
 

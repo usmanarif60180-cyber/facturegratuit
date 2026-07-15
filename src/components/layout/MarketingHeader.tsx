@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { AnimatePresence, m } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -55,44 +56,59 @@ export function MarketingHeader() {
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? (
-            <X className="h-5 w-5 animate-scale-in" />
-          ) : (
-            <Menu className="h-5 w-5 animate-scale-in" />
-          )}
+          <AnimatePresence mode="wait" initial={false}>
+            <m.span
+              key={open ? "close" : "open"}
+              initial={{ opacity: 0, rotate: -45, scale: 0.7 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: 45, scale: 0.7, transition: { duration: 0.12 } }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="flex"
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </m.span>
+          </AnimatePresence>
         </Button>
       </div>
 
-      {open && (
-        <div className="animate-slide-up border-t border-border bg-background px-4 py-4 lg:hidden">
-          <nav className="flex flex-col gap-4" aria-label="Mobile">
-            {LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
-            <div className="flex items-center gap-2 pt-2">
-              <Link
-                href="/login"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1")}
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                className={cn(buttonVariants({ variant: "primary", size: "sm" }), "flex-1")}
-              >
-                Get started
-              </Link>
-            </div>
-          </nav>
-        </div>
-      )}
+      <AnimatePresence>
+        {open && (
+          <m.div
+            className="overflow-hidden border-t border-border bg-background lg:hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 380, damping: 38 }}
+          >
+            <nav className="flex flex-col gap-4 px-4 py-4" aria-label="Mobile">
+              {LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div className="flex items-center gap-2 pt-2">
+                <Link
+                  href="/login"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1")}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/register"
+                  className={cn(buttonVariants({ variant: "primary", size: "sm" }), "flex-1")}
+                >
+                  Get started
+                </Link>
+              </div>
+            </nav>
+          </m.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

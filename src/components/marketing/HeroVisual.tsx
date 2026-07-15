@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { m, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowUpRight, CheckCircle2, Sparkles } from "lucide-react";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { AiOrb } from "./AiOrb";
 
 const SPARKLINE_POINTS = "0,34 20,28 40,30 60,18 80,22 100,10 120,14 140,4";
 
@@ -25,27 +26,33 @@ const NETWORK_LINES: Array<[number, number]> = [
   [2, 6],
 ];
 
-/** Decorative hero panel: a stylized dashboard preview, two floating
- * glass data cards, and a faint AI-network backdrop. Tilts gently toward
- * the cursor (disabled under reduced motion) — pure CSS transforms, no
- * animation library. */
+const SPRING = { stiffness: 120, damping: 18, mass: 0.4 };
+
+/** Decorative hero panel: an AI Orb backdrop (the one Spline-equivalent
+ * 3D object for the whole site), a stylized dashboard preview, two
+ * floating glass data cards, and a faint AI-network overlay. Everything
+ * tilts gently toward the cursor via spring-smoothed Framer Motion
+ * values, shared by the orb and the panel — `reducedMotion="user"` on
+ * the app's MotionConfig disables this automatically. */
 export function HeroVisual() {
-  const reducedMotion = useReducedMotion();
   const wrapRef = React.useRef<HTMLDivElement>(null);
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+  const springPx = useSpring(px, SPRING);
+  const springPy = useSpring(py, SPRING);
+  const rotateX = useTransform(springPy, [-0.5, 0.5], [6, -6]);
+  const rotateY = useTransform(springPx, [-0.5, 0.5], [-6, 6]);
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    if (reducedMotion || !wrapRef.current) return;
+    if (!wrapRef.current) return;
     const rect = wrapRef.current.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width - 0.5;
-    const py = (e.clientY - rect.top) / rect.height - 0.5;
-    wrapRef.current.style.setProperty("--tilt-x", `${(-py * 6).toFixed(2)}deg`);
-    wrapRef.current.style.setProperty("--tilt-y", `${(px * 6).toFixed(2)}deg`);
+    px.set((e.clientX - rect.left) / rect.width - 0.5);
+    py.set((e.clientY - rect.top) / rect.height - 0.5);
   }
 
   function handleMouseLeave() {
-    if (!wrapRef.current) return;
-    wrapRef.current.style.setProperty("--tilt-x", "0deg");
-    wrapRef.current.style.setProperty("--tilt-y", "0deg");
+    px.set(0);
+    py.set(0);
   }
 
   return (
@@ -56,6 +63,8 @@ export function HeroVisual() {
       className="relative mx-auto w-full max-w-md [perspective:1200px]"
       aria-hidden="true"
     >
+      <AiOrb px={springPx} py={springPy} />
+
       <svg
         className="pointer-events-none absolute -inset-10 -z-10 text-primary/40"
         viewBox="0 0 200 90"
@@ -90,12 +99,9 @@ export function HeroVisual() {
         ))}
       </svg>
 
-      <div
-        className="rounded-2xl border border-border bg-card p-5 shadow-elevated transition-transform duration-300 ease-out will-change-transform"
-        style={{
-          transform: "rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))",
-          transformStyle: "preserve-3d",
-        }}
+      <m.div
+        className="rounded-2xl border border-border bg-card p-5 shadow-elevated will-change-transform"
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       >
         <div className="flex items-center justify-between">
           <div className="flex gap-1.5">
@@ -142,7 +148,7 @@ export function HeroVisual() {
             </div>
           ))}
         </div>
-      </div>
+      </m.div>
 
       <div className="glass absolute -left-10 -top-7 hidden animate-float rounded-xl px-3.5 py-2.5 sm:block">
         <div className="flex items-center gap-2">

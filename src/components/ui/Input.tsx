@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { AnimatePresence, m } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -53,6 +56,20 @@ export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLab
 }
 
 export function FieldError({ children }: { children?: React.ReactNode }) {
-  if (!children) return null;
-  return <p className="mt-1.5 text-sm text-danger" role="alert">{children}</p>;
+  return (
+    <AnimatePresence>
+      {children && (
+        <m.p
+          className="mt-1.5 text-sm text-danger"
+          role="alert"
+          initial={{ opacity: 0, height: 0, y: -4 }}
+          animate={{ opacity: 1, height: "auto", y: 0 }}
+          exit={{ opacity: 0, height: 0, y: -4 }}
+          transition={{ type: "spring", stiffness: 400, damping: 32 }}
+        >
+          {children}
+        </m.p>
+      )}
+    </AnimatePresence>
+  );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { AnimatePresence, m } from "framer-motion";
 import { Send, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -79,21 +80,26 @@ export function AIAssistantPanel() {
                 </p>
               </div>
             ) : (
-              messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "max-w-[85%] animate-slide-up rounded-lg px-4 py-2.5 text-sm",
-                    message.role === "user"
-                      ? "ml-auto bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground"
-                  )}
-                >
-                  {message.content}
-                </div>
-              ))
+              <AnimatePresence initial={false}>
+                {messages.map((message) => (
+                  <m.div
+                    key={message.id}
+                    className={cn(
+                      "max-w-[85%] rounded-lg px-4 py-2.5 text-sm",
+                      message.role === "user"
+                        ? "ml-auto bg-primary text-primary-foreground"
+                        : "bg-muted text-foreground"
+                    )}
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                  >
+                    {message.content}
+                  </m.div>
+                ))}
+              </AnimatePresence>
             )}
-            {sending && <TypingIndicator />}
+            <AnimatePresence>{sending && <TypingIndicator />}</AnimatePresence>
           </div>
 
           <form onSubmit={handleSend} className="flex gap-2">
