@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { Input, Label, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { useAuth } from "@/context/AuthContext";
 import { clientService } from "@/lib/services/clientService";
+import { notificationService } from "@/lib/services/notificationService";
 import { COUNTRIES } from "@/lib/constants/countries";
 import type { Client } from "@/types";
 
@@ -31,6 +33,7 @@ const EMPTY = {
 
 export function ClientFormDialog({ open, onClose, organizationId, client }: ClientFormDialogProps) {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [form, setForm] = React.useState(EMPTY);
   const [saving, setSaving] = React.useState(false);
 
@@ -72,6 +75,14 @@ export function ClientFormDialog({ open, onClose, organizationId, client }: Clie
       } else {
         await clientService.create(organizationId, payload);
         toast({ variant: "success", title: "Client added" });
+        if (profile) {
+          notificationService.notify(organizationId, profile.id, {
+            type: "new_customer",
+            title: "New customer",
+            message: `${form.displayName} was added.`,
+            linkTo: "/clients",
+          });
+        }
       }
       onClose();
     } catch {

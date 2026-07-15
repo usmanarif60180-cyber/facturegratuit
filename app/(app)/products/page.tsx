@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { MoreHorizontal, PackagePlus, Search } from "lucide-react";
+import { AlertTriangle, Boxes, MoreHorizontal, PackagePlus, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -16,6 +16,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useOrganization } from "@/hooks/useOrganization";
 import { productService } from "@/lib/services/productService";
 import { ProductFormDialog } from "@/components/products/ProductFormDialog";
+import { AdjustStockDialog } from "@/components/products/AdjustStockDialog";
 import { formatCurrency } from "@/lib/utils/format";
 import type { Product } from "@/types";
 
@@ -28,6 +29,7 @@ export default function ProductsPage() {
   const [search, setSearch] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(searchParams.get("new") === "1");
   const [editing, setEditing] = React.useState<Product | null>(null);
+  const [stockTarget, setStockTarget] = React.useState<Product | null>(null);
 
   const filtered = products.filter(
     (p) => !search || p.name.toLowerCase().includes(search.toLowerCase())
@@ -89,48 +91,72 @@ export default function ProductsPage() {
               <TableHead>Type</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>SKU</TableHead>
+              <TableHead>Stock</TableHead>
               <TableHead className="text-right">Price</TableHead>
               <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell>
-                  <Badge variant={product.type === "service" ? "info" : "default"}>
-                    {product.type}
-                  </Badge>
-                </TableCell>
-                <TableCell>{product.category ?? "—"}</TableCell>
-                <TableCell>{product.sku ?? "—"}</TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(product.unitPrice, product.currency)}
-                </TableCell>
-                <TableCell>
-                  <Dropdown>
-                    <DropdownTrigger>
-                      <Button variant="ghost" size="icon" aria-label="Product actions">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu>
-                      <DropdownItem
-                        onSelect={() => {
-                          setEditing(product);
-                          setDialogOpen(true);
-                        }}
-                      >
-                        Edit
-                      </DropdownItem>
-                      <DropdownItem onSelect={() => handleDelete(product)} className="text-danger">
-                        Delete
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-                </TableCell>
-              </TableRow>
-            ))}
+            {filtered.map((product) => {
+              const tracked = product.type === "product" && product.stockQuantity !== undefined;
+              const low = tracked && (product.stockQuantity ?? 0) <= (product.minimumStock ?? 0);
+              return (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell>
+                    <Badge variant={product.type === "service" ? "info" : "default"}>
+                      {product.type}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{product.category ?? "—"}</TableCell>
+                  <TableCell>{product.sku ?? "—"}</TableCell>
+                  <TableCell>
+                    {tracked ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        {product.stockQuantity} {product.unit ?? ""}
+                        {low && (
+                          <Badge variant="danger" className="gap-1">
+                            <AlertTriangle className="h-3 w-3" /> Low
+                          </Badge>
+                        )}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    {formatCurrency(product.unitPrice, product.currency)}
+                  </TableCell>
+                  <TableCell>
+                    <Dropdown>
+                      <DropdownTrigger>
+                        <Button variant="ghost" size="icon" aria-label="Product actions">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu>
+                        {product.type === "product" && (
+                          <DropdownItem onSelect={() => setStockTarget(product)}>
+                            <Boxes className="h-4 w-4" /> Adjust stock
+                          </DropdownItem>
+                        )}
+                        <DropdownItem
+                          onSelect={() => {
+                            setEditing(product);
+                            setDialogOpen(true);
+                          }}
+                        >
+                          Edit
+                        </DropdownItem>
+                        <DropdownItem onSelect={() => handleDelete(product)} className="text-danger">
+                          Delete
+                        </DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       )}
@@ -142,6 +168,16 @@ export default function ProductsPage() {
           organizationId={organizationId}
           defaultCurrency={organization?.settings.defaultCurrency ?? "USD"}
           product={editing}
+        />
+      )}
+
+      {organizationId && (
+        <AdjustStockDialog
+          open={!!stockTarget}
+          onClose={() => setStockTarget(null)}
+          organizationId={organizationId}
+          product={stockTarget}
+          onAdjusted={() => {}}
         />
       )}
     </div>

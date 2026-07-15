@@ -85,12 +85,52 @@ service cloud.firestore {
 
       match /notifications/{docId} {
         allow read, update, delete: if belongsToOrg(organizationId);
-        allow create: if false; // written by Cloud Functions only
+        // No Cloud Functions backend exists yet — notifications are
+        // created client-side as a side effect of other actions (invoice
+        // paid, quote accepted, ...), same trust level as any other
+        // org-scoped write. Revisit if/when a server-side trigger lands.
+        allow create: if canWrite(organizationId);
       }
 
       match /activity_logs/{docId} {
         allow read: if belongsToOrg(organizationId);
         allow create: if belongsToOrg(organizationId);
+        allow update, delete: if false;
+      }
+
+      match /leads/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /companies/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /contact_persons/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /tasks/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if canWrite(organizationId);
+      }
+
+      match /payments/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /inventory_movements/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create: if canWrite(organizationId);
         allow update, delete: if false;
       }
 

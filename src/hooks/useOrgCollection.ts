@@ -37,8 +37,12 @@ export function useOrgCollection<T>(
       setLoading(false);
     }, constraints);
     return unsubscribe;
+    // Constraints are plain-serializable Firestore QueryConstraint objects
+    // (field/op/value) — JSON.stringify captures their actual value so the
+    // subscription re-fires when a caller's constraints change (e.g. an
+    // entityId-scoped query), not just when organizationId changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile?.organizationId, JSON.stringify(constraints.map(String))]);
+  }, [profile?.organizationId, JSON.stringify(constraints)]);
 
   return { items, loading, organizationId: profile?.organizationId };
 }

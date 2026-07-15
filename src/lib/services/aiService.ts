@@ -1,8 +1,16 @@
+import { answerBusinessQuery, type BusinessQueryData } from "./businessQueryService";
+
 /**
  * Pluggable interface for IVOXA's AI capabilities. Version 1 ships a stub
  * implementation so the UI, credit accounting and prompts are all wired up;
  * swapping in a real model provider later only means implementing this
  * interface differently — no call sites change.
+ *
+ * "business_assistant" is the one capability that's genuinely live today:
+ * it answers questions ("Show overdue invoices", "profit this month", ...)
+ * with real computed answers over the caller's own data, passed in via
+ * `AIRequest.context`. Every other capability still returns the
+ * "coming soon" placeholder until a real model provider is connected.
  */
 
 export type AICapability =
@@ -48,11 +56,17 @@ const CAPABILITY_LABELS: Record<AICapability, string> = {
 
 /** Stub assistant used until a real provider is connected via AI_PROVIDER_API_KEY. */
 class PlaceholderAIAssistant implements AIAssistant {
-  isAvailable(): boolean {
-    return false;
+  isAvailable(capability: AICapability): boolean {
+    return capability === "business_assistant";
   }
 
   async complete(request: AIRequest): Promise<AIResponse> {
+    if (request.capability === "business_assistant" && request.context) {
+      return {
+        capability: request.capability,
+        content: answerBusinessQuery(request.prompt, request.context as unknown as BusinessQueryData),
+      };
+    }
     return {
       capability: request.capability,
       content: `${CAPABILITY_LABELS[request.capability]} is coming soon. This workspace is wired up and ready — connect an AI provider to enable it.`,

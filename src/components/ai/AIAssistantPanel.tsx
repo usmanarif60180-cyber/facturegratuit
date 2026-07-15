@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { aiAssistant, CAPABILITY_LABELS, type AICapability } from "@/lib/services/aiService";
+import { useInvoices } from "@/hooks/useInvoices";
+import { useQuotes } from "@/hooks/useQuotes";
+import { useClients } from "@/hooks/useClients";
+import { useExpenses } from "@/hooks/useExpenses";
+import { useProducts } from "@/hooks/useProducts";
+import { useOrganization } from "@/hooks/useOrganization";
 import { TypingIndicator } from "./TypingIndicator";
 import { cn } from "@/lib/utils/cn";
 
@@ -19,25 +25,47 @@ interface Message {
 
 const CAPABILITIES = Object.keys(CAPABILITY_LABELS) as AICapability[];
 
+const EXAMPLE_PROMPTS = [
+  "Show overdue invoices",
+  "How much profit this month?",
+  "Show unpaid customers",
+  "Generate monthly report",
+];
+
 export function AIAssistantPanel() {
   const [capability, setCapability] = React.useState<AICapability>("business_assistant");
   const [input, setInput] = React.useState("");
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [sending, setSending] = React.useState(false);
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const { items: invoices } = useInvoices();
+  const { items: quotes } = useQuotes();
+  const { items: clients } = useClients();
+  const { items: expenses } = useExpenses();
+  const { items: products } = useProducts();
+  const { organization } = useOrganization();
+  const currency = organization?.settings.defaultCurrency ?? "USD";
 
-    const userMessage: Message = { id: crypto.randomUUID(), role: "user", content: input };
+  async function sendPrompt(prompt: string) {
+    if (!prompt.trim()) return;
+    const userMessage: Message = { id: crypto.randomUUID(), role: "user", content: prompt };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setSending(true);
 
-    const response = await aiAssistant.complete({ capability, prompt: userMessage.content });
+    const response = await aiAssistant.complete({
+      capability,
+      prompt,
+      context: { invoices, quotes, clients, expenses, products, currency },
+    });
 
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: response.content }]);
     setSending(false);
+  }
+
+  async function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    sendPrompt(input);
   }
 
   return (
@@ -78,6 +106,19 @@ export function AIAssistantPanel() {
                 <p className="text-sm text-muted-foreground">
                   Ask {CAPABILITY_LABELS[capability]} anything to get started.
                 </p>
+                {capability === "business_assistant" && (
+                  <div className="flex flex-wrap justify-center gap-2 pt-1">
+                    {EXAMPLE_PROMPTS.map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => sendPrompt(p)}
+                        className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <AnimatePresence initial={false}>
@@ -85,7 +126,7 @@ export function AIAssistantPanel() {
                   <m.div
                     key={message.id}
                     className={cn(
-                      "max-w-[85%] rounded-lg px-4 py-2.5 text-sm",
+                      "max-w-[85%] whitespace-pre-line rounded-lg px-4 py-2.5 text-sm",
                       message.role === "user"
                         ? "ml-auto bg-primary text-primary-foreground"
                         : "bg-muted text-foreground"

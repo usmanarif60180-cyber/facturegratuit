@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { quoteService } from "@/lib/services/quoteService";
 import { clientService } from "@/lib/services/clientService";
+import { notificationService } from "@/lib/services/notificationService";
 import { DEFAULT_TAX_RATES } from "@/lib/constants/taxRates";
 import type { Client, Quote, QuoteStatus } from "@/types";
 
@@ -50,6 +51,14 @@ export default function QuoteDetailPage() {
     if (!profile?.organizationId || !quote) return;
     await quoteService.markStatus(profile.organizationId, quote.id, status);
     toast({ variant: "success", title: `Marked as ${status}` });
+    if (status === "accepted") {
+      notificationService.notify(profile.organizationId, profile.id, {
+        type: "quote_accepted",
+        title: "Quote accepted",
+        message: `${quote.number} was accepted.`,
+        linkTo: `/quotes/${quote.id}`,
+      });
+    }
     load();
   }
 

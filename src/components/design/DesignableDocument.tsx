@@ -50,8 +50,8 @@ function isDarkColor(hex: string): boolean {
 
 function statusColor(status: DesignableStatus, palette: DesignConfig["palette"]): string {
   if (status === "paid" || status === "accepted" || status === "converted") return palette.statusPaid;
-  if (status === "overdue" || status === "declined" || status === "expired") return palette.statusOverdue;
-  if (status === "pending" || status === "sent") return palette.statusPending;
+  if (status === "overdue" || status === "declined" || status === "expired" || status === "refunded") return palette.statusOverdue;
+  if (status === "pending" || status === "sent" || status === "viewed" || status === "partially_paid") return palette.statusPending;
   return palette.muted;
 }
 

@@ -30,9 +30,15 @@ export function ProductFormDialog({
   const [description, setDescription] = React.useState("");
   const [type, setType] = React.useState<ProductType>("service");
   const [sku, setSku] = React.useState("");
+  const [barcode, setBarcode] = React.useState("");
   const [category, setCategory] = React.useState("");
+  const [unit, setUnit] = React.useState("");
   const [unitPrice, setUnitPrice] = React.useState(0);
+  const [purchasePrice, setPurchasePrice] = React.useState<number | "">("");
   const [currency, setCurrency] = React.useState(defaultCurrency);
+  const [stockQuantity, setStockQuantity] = React.useState<number | "">("");
+  const [minimumStock, setMinimumStock] = React.useState<number | "">("");
+  const [supplier, setSupplier] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -41,17 +47,29 @@ export function ProductFormDialog({
       setDescription(product.description ?? "");
       setType(product.type);
       setSku(product.sku ?? "");
+      setBarcode(product.barcode ?? "");
       setCategory(product.category ?? "");
+      setUnit(product.unit ?? "");
       setUnitPrice(product.unitPrice);
+      setPurchasePrice(product.purchasePrice ?? "");
       setCurrency(product.currency);
+      setStockQuantity(product.stockQuantity ?? "");
+      setMinimumStock(product.minimumStock ?? "");
+      setSupplier(product.supplier ?? "");
     } else {
       setName("");
       setDescription("");
       setType("service");
       setSku("");
+      setBarcode("");
       setCategory("");
+      setUnit("");
       setUnitPrice(0);
+      setPurchasePrice("");
       setCurrency(defaultCurrency);
+      setStockQuantity("");
+      setMinimumStock("");
+      setSupplier("");
     }
   }, [product, open, defaultCurrency]);
 
@@ -64,9 +82,15 @@ export function ProductFormDialog({
         description: description || undefined,
         type,
         sku: sku || undefined,
+        barcode: barcode || undefined,
         category: category || undefined,
+        unit: unit || undefined,
         unitPrice,
+        purchasePrice: purchasePrice === "" ? undefined : purchasePrice,
         currency,
+        stockQuantity: type === "product" && stockQuantity !== "" ? stockQuantity : undefined,
+        minimumStock: type === "product" && minimumStock !== "" ? minimumStock : undefined,
+        supplier: supplier || undefined,
       };
       if (product) {
         await productService.update(organizationId, product.id, payload);
@@ -121,7 +145,7 @@ export function ProductFormDialog({
             <Input id="sku" value={sku} onChange={(e) => setSku(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="unitPrice">Unit price</Label>
+            <Label htmlFor="unitPrice">Selling price</Label>
             <Input
               id="unitPrice"
               type="number"
@@ -141,7 +165,59 @@ export function ProductFormDialog({
               ))}
             </Select>
           </div>
+          <div>
+            <Label htmlFor="purchasePrice">Purchase price</Label>
+            <Input
+              id="purchasePrice"
+              type="number"
+              min={0}
+              step="any"
+              value={purchasePrice}
+              onChange={(e) => setPurchasePrice(e.target.value === "" ? "" : Number(e.target.value))}
+            />
+          </div>
         </div>
+
+        {type === "product" && (
+          <div className="space-y-4 rounded-md border border-border p-3.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Inventory</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="barcode">Barcode</Label>
+                <Input id="barcode" value={barcode} onChange={(e) => setBarcode(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="unit">Unit</Label>
+                <Input id="unit" placeholder="pcs, kg, box…" value={unit} onChange={(e) => setUnit(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="stockQuantity">Stock quantity</Label>
+                <Input
+                  id="stockQuantity"
+                  type="number"
+                  min={0}
+                  value={stockQuantity}
+                  onChange={(e) => setStockQuantity(e.target.value === "" ? "" : Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="minimumStock">Minimum stock</Label>
+                <Input
+                  id="minimumStock"
+                  type="number"
+                  min={0}
+                  value={minimumStock}
+                  onChange={(e) => setMinimumStock(e.target.value === "" ? "" : Number(e.target.value))}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="supplier">Supplier</Label>
+                <Input id="supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel

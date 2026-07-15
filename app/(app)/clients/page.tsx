@@ -26,12 +26,16 @@ export default function ClientsPage() {
   const [dialogOpen, setDialogOpen] = React.useState(searchParams.get("new") === "1");
   const [editing, setEditing] = React.useState<Client | null>(null);
 
-  const filtered = clients.filter(
-    (c) =>
-      !search ||
-      c.displayName.toLowerCase().includes(search.toLowerCase()) ||
-      c.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = clients.filter((c) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      c.displayName.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.companyName?.toLowerCase().includes(q) ||
+      c.tags?.some((t) => t.toLowerCase().includes(q))
+    );
+  });
 
   async function handleDelete(client: Client) {
     if (!organizationId) return;

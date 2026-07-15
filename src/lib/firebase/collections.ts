@@ -15,6 +15,12 @@ export const COLLECTIONS = {
   notifications: "notifications",
   activityLogs: "activity_logs",
   savedDesigns: "saved_designs",
+  leads: "leads",
+  companies: "companies",
+  contactPersons: "contact_persons",
+  tasks: "tasks",
+  payments: "payments",
+  inventoryMovements: "inventory_movements",
 } as const;
 
 export function orgScoped(collection: string, organizationId: string) {

@@ -10,3 +10,7 @@ export * from "./subscription";
 export * from "./notification";
 export * from "./activity-log";
 export * from "./design";
+export * from "./crm";
+export * from "./task";
+export * from "./payment";
+export * from "./inventory";

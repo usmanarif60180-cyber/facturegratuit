@@ -10,7 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/Table";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { InvoiceStatusBadge } from "@/components/shared/StatusBadge";
+import { InvoiceStatusBadge, INVOICE_LABELS } from "@/components/shared/StatusBadge";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
@@ -20,10 +20,13 @@ import { cn } from "@/lib/utils/cn";
 const STATUS_FILTERS: Array<InvoiceStatus | "all"> = [
   "all",
   "draft",
-  "pending",
+  "sent",
+  "viewed",
+  "partially_paid",
   "paid",
   "overdue",
   "canceled",
+  "refunded",
 ];
 
 export default function InvoicesPage() {
@@ -76,7 +79,7 @@ export default function InvoicesPage() {
         >
           {STATUS_FILTERS.map((s) => (
             <option key={s} value={s}>
-              {s === "all" ? "All statuses" : s.charAt(0).toUpperCase() + s.slice(1)}
+              {s === "all" ? "All statuses" : INVOICE_LABELS[s]}
             </option>
           ))}
         </Select>

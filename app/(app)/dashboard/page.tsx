@@ -8,6 +8,10 @@ import { RevenueExpensesChart, type RevenueExpensePoint } from "@/components/das
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { AiInsightsCard } from "@/components/dashboard/AiInsightsCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { PipelineWidget } from "@/components/dashboard/PipelineWidget";
+import { TasksTodayWidget } from "@/components/dashboard/TasksTodayWidget";
+import { UpcomingWidget } from "@/components/dashboard/UpcomingWidget";
+import { InventoryAlertsWidget } from "@/components/dashboard/InventoryAlertsWidget";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Reveal } from "@/components/ui/Reveal";
 import { LiveIndicator } from "@/components/dashboard/LiveIndicator";
@@ -15,6 +19,9 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useLeads } from "@/hooks/useLeads";
+import { useTasks } from "@/hooks/useTasks";
+import { useProducts } from "@/hooks/useProducts";
 import { useOrganization } from "@/hooks/useOrganization";
 import { formatCurrency } from "@/lib/utils/format";
 
@@ -50,10 +57,13 @@ function buildRevenueExpenseSeries(
 }
 
 export default function DashboardPage() {
-  const { items: invoices, loading: invoicesLoading } = useInvoices();
+  const { items: invoices, loading: invoicesLoading, organizationId } = useInvoices();
   const { items: quotes, loading: quotesLoading } = useQuotes();
   const { items: clients, loading: clientsLoading } = useClients();
   const { items: expenses, loading: expensesLoading } = useExpenses();
+  const { items: leads } = useLeads();
+  const { items: tasks } = useTasks();
+  const { items: products } = useProducts();
   const { organization } = useOrganization();
 
   const currency = organization?.settings.defaultCurrency ?? "USD";
@@ -63,9 +73,10 @@ export default function DashboardPage() {
     .filter((inv) => inv.status === "paid")
     .reduce((sum, inv) => sum + inv.totals.total, 0);
 
+  const OUTSTANDING_STATUSES = new Set(["pending", "sent", "viewed", "partially_paid", "overdue"]);
   const outstanding = invoices
-    .filter((inv) => inv.status === "pending" || inv.status === "overdue")
-    .reduce((sum, inv) => sum + inv.totals.total, 0);
+    .filter((inv) => OUTSTANDING_STATUSES.has(inv.status))
+    .reduce((sum, inv) => sum + (inv.totals.amountDue ?? inv.totals.total), 0);
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const netCashFlow = revenue - totalExpenses;
@@ -115,6 +126,13 @@ export default function DashboardPage() {
           <AiInsightsCard invoices={invoices} quotes={quotes} clients={clients} expenses={expenses} currency={currency} />
           <RecentActivity invoices={invoices} />
         </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <PipelineWidget leads={leads} />
+        <TasksTodayWidget tasks={tasks} organizationId={organizationId} />
+        <UpcomingWidget invoices={invoices} quotes={quotes} tasks={tasks} expenses={expenses} />
+        <InventoryAlertsWidget products={products} />
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { LogOut, Search, Settings, User as UserIcon } from "lucide-react";
 import { MobileNav } from "./MobileNav";
 import { ThemeToggle } from "./ThemeToggle";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { NotificationBell } from "./NotificationBell";
 import { Avatar } from "@/components/ui/Avatar";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@/components/ui/Dropdown";
 import { useAuth } from "@/context/AuthContext";
@@ -24,6 +25,17 @@ export function AppTopbar() {
       </div>
 
       <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event("ivoxa:open-search"))}
+          className="mr-1 hidden items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground sm:flex"
+          aria-label="Open global search"
+        >
+          <Search className="h-3.5 w-3.5" />
+          <span>Search…</span>
+          <kbd className="rounded border border-border bg-background px-1 text-[10px]">⌘K</kbd>
+        </button>
+        <NotificationBell />
         <ThemeToggle />
         <Dropdown>
           <DropdownTrigger>

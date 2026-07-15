@@ -9,9 +9,17 @@ export interface Product extends Timestamps {
   description?: string;
   type: ProductType;
   sku?: string;
+  barcode?: string;
   category?: string;
+  unit?: string;
   unitPrice: number;
+  /** Cost price — used for margin reporting. Only meaningful for type "product". */
+  purchasePrice?: number;
   currency: CurrencyCode;
   defaultTaxRateId?: string;
+  /** Inventory tracking is opt-in per product — undefined means "not tracked". */
+  stockQuantity?: number;
+  minimumStock?: number;
+  supplier?: string;
   archived?: boolean;
 }

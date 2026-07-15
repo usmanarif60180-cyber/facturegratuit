@@ -1,6 +1,6 @@
 import type { Timestamps, LanguageTag } from "./common";
 
-export type UserRole = "owner" | "admin" | "member" | "viewer";
+export type UserRole = "owner" | "admin" | "manager" | "accountant" | "employee" | "viewer";
 export type ThemePreference = "light" | "dark" | "system";
 
 export interface AppUser extends Timestamps {
