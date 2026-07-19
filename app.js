@@ -2700,32 +2700,50 @@ function loadDraft() {
   let draft = null;
   try { draft = JSON.parse(localStorage.getItem('facturepro-draft') || 'null'); } catch {}
   if (!draft) { showNotif('Aucun brouillon sauvegardé', 'info'); return; }
-  Object.entries(draft.fields || {}).forEach(([id, value]) => {
-    const el = document.getElementById(id);
-    if (el && el.type !== 'file') el.value = value;
-  });
-  Object.assign(S, draft.state || {});
-  S.country = COUNTRY_PROFILES[S.country] ? S.country : 'FR';
-  S.lang = I18N[S.lang] ? S.lang : getCountryProfile().lang;
-  syncLocaleControls();
-  S.items = (draft.state?.items || []).map(item => ({ ...item }));
-  itemId = S.items.reduce((max, item) => Math.max(max, item.id || 0), 0);
-  buildLayoutGrid();
-  selectLayout(S.layoutIdx);
-  buildThemeGrid();
-  selectTheme(S.themeIdx);
-  buildFontCats();
-  buildFontList();
-  buildPageColorGrid();
-  buildFontColorGrid();
-  renderItems();
-  renderToggleStates();
-  renderLogoState();
-  renderCompanyStampState();
-  renderSignatureImageState();
-  renderDocVariant();
-  updatePreview();
+  applyDraftSnapshot(draft);
   showNotif('Brouillon chargé', 'success');
+}
+
+let undoStack = [];
+const UNDO_LIMIT = 40;
+let undoCoalescing = false;
+let undoCoalesceTimer = null;
+let isRestoringUndo = false;
+
+function pushUndoSnapshot() {
+  if (isRestoringUndo) return;
+  try {
+    undoStack.push(JSON.parse(JSON.stringify(collectDraft())));
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    updateUndoButtonState();
+  } catch {}
+}
+
+function captureUndoSnapshotCoalesced() {
+  if (isRestoringUndo) return;
+  if (!undoCoalescing) {
+    pushUndoSnapshot();
+    undoCoalescing = true;
+  }
+  clearTimeout(undoCoalesceTimer);
+  undoCoalesceTimer = setTimeout(() => { undoCoalescing = false; }, 1000);
+}
+
+function updateUndoButtonState() {
+  const btn = document.getElementById('undo-btn');
+  if (btn) btn.disabled = undoStack.length === 0;
+}
+
+function undoLastAction() {
+  clearTimeout(undoCoalesceTimer);
+  undoCoalescing = false;
+  if (!undoStack.length) { showNotif('Rien à annuler', 'info'); return; }
+  const snapshot = undoStack.pop();
+  isRestoringUndo = true;
+  applyDraftSnapshot(snapshot);
+  isRestoringUndo = false;
+  updateUndoButtonState();
+  showNotif('Action annulée', 'success');
 }
 
 function renderToggleStates() {
@@ -3903,4 +3921,28 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>`).join('');
     themeTrack.innerHTML = swatchHtml + swatchHtml;
   }
+
+  const editorRoot = document.querySelector('.main-layout');
+  if (editorRoot && typeof captureUndoSnapshotCoalesced === 'function') {
+    editorRoot.addEventListener('focusin', (e) => {
+      if (e.target.matches('input, textarea, select')) captureUndoSnapshotCoalesced();
+    }, true);
+    editorRoot.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button, .toggle, .theme-card, .layout-card, .font-item, .color-swatch, .template-card, .style-card')) captureUndoSnapshotCoalesced();
+    }, true);
+    editorRoot.addEventListener('change', (e) => {
+      if (e.target.matches('input[type="file"], select, input[type="checkbox"], input[type="range"]')) captureUndoSnapshotCoalesced();
+    }, true);
+  }
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+      const active = document.activeElement;
+      const isTextEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+      if (!isTextEditing) {
+        e.preventDefault();
+        undoLastAction();
+      }
+    }
+  });
+  if (typeof updateUndoButtonState === 'function') updateUndoButtonState();
 });

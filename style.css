@@ -196,6 +196,7 @@
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; border-radius: 10px; font-family: inherit; font-weight: 600; cursor: pointer; transition: all .15s ease; white-space: nowrap; }
   .btn:hover { transform: translateY(-1px); }
   .btn:active { transform: translateY(0) scale(.98); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
   .btn-sm { height: 32px; padding: 0 12px; font-size: 12px; }
   .btn-md { height: 38px; padding: 0 16px; font-size: 13px; }
   .btn-lg { height: 44px; padding: 0 22px; font-size: 14px; }
