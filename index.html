@@ -1011,6 +1011,7 @@ body.home-mode .home-mobile-cta { display: none; }
 </style>
 </head>
 <body class="home-mode">
+<a href="#main-content" class="skip-link">Aller au contenu principal</a>
 <div id="app">
 
 <!-- TOPBAR -->
@@ -1023,12 +1024,12 @@ body.home-mode .home-mobile-cta { display: none; }
   </div>
   <div class="topbar-actions">
     <button class="btn btn-ghost btn-sm editor-only-btn" onclick="toggleToolRail()" title="Outils facture/devis"><i class="fa fa-bars"></i> <span class="auth-text">Outils</span></button>
-    <button class="btn btn-ghost btn-sm" onclick="scrollToHome()" title="Accueil"><i class="fa fa-home"></i> <span class="auth-text">Home</span></button>
+    <button class="btn btn-ghost btn-sm" onclick="scrollToHome()" title="Accueil"><i class="fa fa-home"></i> <span class="auth-text">Accueil</span></button>
     <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleAppTheme()" title="Changer le mode"><i class="fa fa-moon" id="theme-icon"></i> <span class="auth-text" id="theme-label">Dark</span></button>
     <div class="auth-actions">
       <button class="btn btn-ghost btn-sm" id="login-btn" onclick="openAuth('login')"><i class="fa fa-right-to-bracket"></i> <span class="auth-text">Connexion</span></button>
       <button class="btn btn-primary btn-sm" id="signup-btn" onclick="openAuth('signup')"><i class="fa fa-user-plus"></i> <span class="auth-text">Inscription</span></button>
-      <button class="btn btn-ghost btn-sm account-btn" id="account-btn" onclick="toggleAccountMenu()" title="Compte" style="display:none"><i class="fa fa-user"></i></button>
+      <button class="btn btn-ghost btn-sm account-btn" id="account-btn" onclick="toggleAccountMenu()" title="Compte" aria-label="Mon compte" style="display:none"><i class="fa fa-user"></i></button>
       <div class="account-menu" id="account-menu">
         <div class="account-name" id="account-name">Compte</div>
         <div class="account-email" id="account-email">email@example.com</div>
@@ -1067,12 +1068,12 @@ body.home-mode .home-mobile-cta { display: none; }
       <a class="topbar-icon-chip" href="javascript:void(0)" onclick="document.getElementById('formats')?.scrollIntoView({behavior:'smooth',block:'start'})" title="Langues">FR</a>
     </div>
     <a class="hp-btn hp-btn-ghost hp-btn-sm" id="hp-login-link" href="javascript:void(0)" onclick="openAuth('login')">Connexion</a>
-    <a class="hp-profile-link" id="hp-profile-link" href="javascript:void(0)" onclick="openAccount()" title="Mon compte" style="display:none"></a>
+    <a class="hp-profile-link" id="hp-profile-link" href="javascript:void(0)" onclick="openAccount()" title="Mon compte" aria-label="Mon compte" style="display:none"></a>
     <a class="hp-btn hp-btn-primary hp-btn-sm" id="hp-cta-link" href="javascript:void(0)" onclick="openEditor('facture')">Commencer gratuitement</a>
   </div>
 </nav>
 
-<section class="hero">
+<section class="hero" id="main-content">
   <div>
     <div class="eyebrow hero-in" style="--d:0s"><span class="dot"></span> 100% gratuit · Sans inscription · Sans carte bancaire</div>
     <div class="ai-power-badge hero-in" style="--d:.04s">
@@ -1638,7 +1639,7 @@ body.home-mode .home-mobile-cta { display: none; }
 
   <!-- ── TOOL RAIL ── -->
   <aside class="tool-rail no-print" id="tool-rail">
-    <button class="rail-toggle" id="rail-toggle" onclick="toggleToolRail()" title="Développer / réduire"><i class="fa fa-chevron-right"></i><span class="rail-toggle-label" id="rail-toggle-label"></span></button>
+    <button class="rail-toggle" id="rail-toggle" onclick="toggleToolRail()" title="Développer / réduire" aria-label="Développer ou réduire le menu d'outils"><i class="fa fa-chevron-right"></i><span class="rail-toggle-label" id="rail-toggle-label"></span></button>
 
     <div class="rail-pill" id="railPill" aria-hidden="true"></div>
     <button class="rail-item" onclick="openEditor('facture')" id="tab-facture" title="Facture"><span class="ricon"><i class="fa fa-file-invoice"></i></span><span class="rlabel">Facture</span></button>
@@ -2259,7 +2260,7 @@ body.home-mode .home-mobile-cta { display: none; }
 
 <!-- AUTH MODAL -->
 <div class="modal-backdrop no-print" id="auth-modal" onclick="handleAuthBackdrop(event)">
-  <div class="auth-modal">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
     <div class="auth-modal-head">
       <div>
         <div class="auth-modal-title" id="auth-title">Connexion</div>
@@ -2300,10 +2301,10 @@ body.home-mode .home-mobile-cta { display: none; }
 
 <!-- ACCOUNT MODAL -->
 <div class="modal-backdrop no-print" id="account-modal" onclick="handleAccountBackdrop(event)">
-  <div class="auth-modal" style="width:min(860px,100%);max-height:92vh;overflow:auto">
+  <div class="auth-modal" style="width:min(860px,100%);max-height:92vh;overflow:auto" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
     <div class="auth-modal-head">
       <div>
-        <div class="auth-modal-title">Mon compte</div>
+        <div class="auth-modal-title" id="account-modal-title">Mon compte</div>
         <div class="auth-modal-sub" id="account-modal-sub">Compte FacturePro connecté</div>
       </div>
       <button class="btn btn-ghost auth-close" onclick="closeAccount()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
@@ -2404,10 +2405,10 @@ body.home-mode .home-mobile-cta { display: none; }
 
 <!-- PDF SUCCESS MODAL -->
 <div class="modal-backdrop no-print" id="pdf-success-modal" onclick="handlePdfSuccessBackdrop(event)">
-  <div class="auth-modal" style="width:min(520px,100%)">
+  <div class="auth-modal" style="width:min(520px,100%)" role="dialog" aria-modal="true" aria-labelledby="pdf-success-title">
     <div class="auth-modal-head">
       <div>
-        <div class="auth-modal-title">PDF téléchargé</div>
+        <div class="auth-modal-title" id="pdf-success-title">PDF téléchargé</div>
         <div class="auth-modal-sub" id="pdf-success-sub">Votre document est prêt</div>
       </div>
       <button class="btn btn-ghost auth-close" onclick="closePdfSuccess()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
@@ -2428,7 +2429,7 @@ body.home-mode .home-mobile-cta { display: none; }
 
 <!-- LEGAL MODAL -->
 <div class="modal-backdrop no-print" id="legal-modal" onclick="handleLegalBackdrop(event)">
-  <div class="auth-modal" style="width:min(760px,100%)">
+  <div class="auth-modal" style="width:min(760px,100%)" role="dialog" aria-modal="true" aria-labelledby="legal-title">
     <div class="auth-modal-head">
       <div>
         <div class="auth-modal-title" id="legal-title">Mentions légales</div>
@@ -2442,10 +2443,10 @@ body.home-mode .home-mobile-cta { display: none; }
 
 <!-- FEEDBACK MODAL -->
 <div class="modal-backdrop no-print" id="feedback-modal" onclick="handleFeedbackBackdrop(event)">
-  <div class="auth-modal" style="width:min(620px,100%)">
+  <div class="auth-modal" style="width:min(620px,100%)" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
     <div class="auth-modal-head">
       <div>
-        <div class="auth-modal-title">Feedback & support</div>
+        <div class="auth-modal-title" id="feedback-modal-title">Feedback & support</div>
         <div class="auth-modal-sub">Aidez-nous à améliorer FacturePro</div>
       </div>
       <button class="btn btn-ghost auth-close" onclick="closeFeedback()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>

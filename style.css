@@ -197,6 +197,10 @@
   .btn:hover { transform: translateY(-1px); }
   .btn:active { transform: translateY(0) scale(.98); }
   .btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
+
+  /* ── ACCESSIBILITY ── */
+  .skip-link { position: absolute; top: -100px; left: 12px; z-index: 99999; background: var(--brand); color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; transition: top .15s ease; }
+  .skip-link:focus { top: 12px; }
   .btn-sm { height: 32px; padding: 0 12px; font-size: 12px; }
   .btn-md { height: 38px; padding: 0 16px; font-size: 13px; }
   .btn-lg { height: 44px; padding: 0 22px; font-size: 14px; }
