@@ -2188,6 +2188,7 @@ body.home-mode .home-mobile-cta { display: none; }
       <span><i class="fa fa-bolt"></i> Actions rapides</span>
       <div class="preview-actions">
         <button class="btn btn-primary btn-sm" onclick="generatePDF()"><i class="fa fa-download"></i> Télécharger</button>
+        <button id="undo-btn" class="btn btn-ghost btn-sm" onclick="undoLastAction()" title="Annuler (Ctrl+Z)" disabled><i class="fa fa-rotate-left"></i> Annuler</button>
         <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Imprimer</button>
         <button class="btn btn-ghost btn-sm" onclick="emailPdf()"><i class="fa fa-envelope"></i> Email</button>
         <button class="btn btn-ghost btn-sm" onclick="saveCurrentProject()"><i class="fa fa-folder-plus"></i> Sauvegarder</button>
