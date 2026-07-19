@@ -3943,6 +3943,19 @@ document.addEventListener('DOMContentLoaded', () => {
         undoLastAction();
       }
     }
+    if (e.key === 'Escape') {
+      const modalClosers = {
+        'auth-modal': closeAuth,
+        'account-modal': closeAccount,
+        'pdf-success-modal': closePdfSuccess,
+        'legal-modal': closeLegal,
+        'feedback-modal': closeFeedback,
+      };
+      Object.entries(modalClosers).forEach(([id, closeFn]) => {
+        const modal = document.getElementById(id);
+        if (modal && modal.classList.contains('open')) closeFn();
+      });
+    }
   });
   if (typeof updateUndoButtonState === 'function') updateUndoButtonState();
 });
