@@ -686,11 +686,11 @@ function renderAuth() {
     hpProfileLink.style.display = loggedIn ? 'flex' : 'none';
     hpProfileLink.textContent = (S.authUser?.name || S.authUser?.email || '?').trim().charAt(0).toUpperCase();
   }
-  if (hpCtaLink) hpCtaLink.textContent = loggedIn ? 'Commencer facture' : 'Commencer gratuitement';
+  if (hpCtaLink) hpCtaLink.textContent = 'Commencer gratuitement';
 
   const heroCtaText = document.getElementById('hero-cta-text');
   const heroCtaLink = document.getElementById('hero-cta-link');
-  if (heroCtaText) heroCtaText.textContent = loggedIn ? 'Commencer facture' : 'Commencer gratuitement';
+  if (heroCtaText) heroCtaText.textContent = 'Commencer gratuitement';
   if (heroCtaLink) heroCtaLink.setAttribute('onclick', "openEditor('facture')");
 
   renderAccountModal();
