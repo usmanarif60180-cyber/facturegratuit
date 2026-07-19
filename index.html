@@ -875,8 +875,10 @@ try {
     border-radius: 16px; overflow: hidden; background: var(--recap-color-soft, var(--card-color-soft));
     display: flex; flex-direction: column; min-height: 260px;
     transition: transform .2s ease, box-shadow .2s ease;
+    cursor: pointer; text-decoration: none; color: inherit;
   }
   .recap-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px -14px rgba(0,0,0,.45); }
+  .recap-card:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
   .recap-card-visual { flex: 1; background: var(--card-color); position: relative; display: flex; align-items: center; justify-content: center; padding: 18px; }
   .recap-card-body { padding: 16px 16px 20px; }
   .recap-card-body strong { display: block; font-size: 14.5px; margin-bottom: 6px; color: #10241a; }
@@ -1571,26 +1573,26 @@ body.home-mode .home-mobile-cta { display: none; }
   <div class="recap-inner">
     <h2>Tout pour gérer votre facturation</h2>
     <div class="recap-grid">
-      <div class="recap-card" style="--card-color: var(--cat-facture); --recap-color-soft: #d7f2df;">
+      <a class="recap-card" href="javascript:void(0)" onclick="openEditor('facture')" style="--card-color: var(--cat-facture); --recap-color-soft: #d7f2df;">
         <div class="recap-card-visual"><div class="recap-mini-mock"><div class="recap-mini-line"></div><div class="recap-mini-line w60"></div><div class="recap-mini-line"></div></div></div>
         <div class="recap-card-body"><strong>Facturation</strong><span>Créez et envoyez en quelques clics.</span></div>
-      </div>
-      <div class="recap-card" style="--card-color: var(--cat-devis); --recap-color-soft: #cdeee9;">
+      </a>
+      <a class="recap-card" href="javascript:void(0)" onclick="openEditor('devis')" style="--card-color: var(--cat-devis); --recap-color-soft: #cdeee9;">
         <div class="recap-card-visual"><div class="recap-mini-mock"><div class="recap-mini-line w60"></div><div class="recap-mini-line"></div><div class="recap-mini-line w60"></div></div></div>
         <div class="recap-card-body"><strong>Devis</strong><span>Validez avant de facturer, sans ressaisie.</span></div>
-      </div>
-      <div class="recap-card" style="--card-color: var(--cat-clients); --recap-color-soft: #f7ddc0;">
+      </a>
+      <a class="recap-card" href="javascript:void(0)" onclick="openAccount()" style="--card-color: var(--cat-clients); --recap-color-soft: #f7ddc0;">
         <div class="recap-card-visual"><div class="recap-mini-mock"><div class="recap-mini-line"></div><div class="recap-mini-line"></div><div class="recap-mini-line w60"></div></div></div>
         <div class="recap-card-body"><strong>Clients &amp; produits</strong><span>Enregistrés une fois, réutilisés partout.</span></div>
-      </div>
-      <div class="recap-card" style="--card-color: var(--cat-perso); --recap-color-soft: #ded9fa;">
+      </a>
+      <a class="recap-card" href="javascript:void(0)" onclick="openEditor('facture')" style="--card-color: var(--cat-perso); --recap-color-soft: #ded9fa;">
         <div class="recap-card-visual"><div class="recap-mini-mock"><div class="recap-mini-line w60"></div><div class="recap-mini-line"></div><div class="recap-mini-line"></div></div></div>
         <div class="recap-card-body"><strong>Personnalisation</strong><span>30 thèmes, 50+ polices, votre logo.</span></div>
-      </div>
-      <div class="recap-card" style="--card-color: var(--cat-suivi); --recap-color-soft: #d7e7f0;">
+      </a>
+      <a class="recap-card" href="javascript:void(0)" onclick="openAccount()" style="--card-color: var(--cat-suivi); --recap-color-soft: #d7e7f0;">
         <div class="recap-card-visual"><div class="recap-mini-mock"><div class="recap-mini-line"></div><div class="recap-mini-line w60"></div><div class="recap-mini-line"></div></div></div>
         <div class="recap-card-body"><strong>Suivi</strong><span>Historique et totaux en un coup d'œil.</span></div>
-      </div>
+      </a>
     </div>
 
     <div class="foot-card">
@@ -1619,7 +1621,7 @@ body.home-mode .home-mobile-cta { display: none; }
         </div>
         <div class="foot-col">
           <h4>Légal</h4>
-          <a href="javascript:void(0)" onclick="openLegal('mentions')">Mentions légales</a>
+          <a href="javascript:void(0)" onclick="openLegal('legal')">Mentions légales</a>
           <a href="javascript:void(0)" onclick="openLegal('privacy')">Confidentialité</a>
           <a href="javascript:void(0)" onclick="openLegal('contact')">Contact</a>
         </div>
