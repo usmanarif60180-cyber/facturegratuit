@@ -963,6 +963,44 @@ function exportAccountData() {
   showNotif('Account backup exporté', 'success');
 }
 
+function csvEscape(value) {
+  const str = String(value ?? '');
+  return /[";\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+}
+
+function exportHistoryCsv() {
+  if (!S.authUser) {
+    showNotif('Login karein, phir historique export karein', 'info');
+    return;
+  }
+  const history = loadAccountHistory();
+  if (!history.length) {
+    showNotif('Aucune facture dans l\'historique à exporter', 'info');
+    return;
+  }
+  const rows = [
+    ['Date', 'Numéro', 'Type', 'Client', 'Total HT', 'TVA', 'Total TTC', 'Devise', 'Statut']
+  ];
+  history.slice().sort((a,b) => String(a.date).localeCompare(String(b.date))).forEach(item => {
+    rows.push([
+      item.date || '',
+      item.docNum || '',
+      item.docType === 'devis' ? 'Devis' : 'Facture',
+      item.clientName || '',
+      getHistoryAmount(item, 'subtotal').toFixed(2),
+      getHistoryAmount(item, 'tva').toFixed(2),
+      getHistoryAmount(item, 'total').toFixed(2),
+      item.currency || '',
+      getHistoryStatus(item)
+    ]);
+  });
+  const csv = '﻿' + rows.map(row => row.map(csvEscape).join(';')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const safeEmail = String(S.authUser.email || 'historique').replace(/[^a-z0-9._-]+/gi, '-');
+  downloadBlob(blob, `facturepro-historique-${safeEmail}.csv`);
+  showNotif('Historique exporté en CSV', 'success');
+}
+
 function clearAllAccountLocalData() {
   if (!S.authUser) return;
   if (!confirm('Supprimer profil société, historique, projets, clients et produits de ce navigateur ?')) return;
@@ -2249,6 +2287,7 @@ function setCountry(country) {
   renderToggleStates();
   renderItems();
   updatePreview();
+  checkLegalMentions();
   showNotif(`${profile.name} format applied`, 'success');
 }
 
@@ -2310,6 +2349,31 @@ function setDocVariant(type, sector='batiment') {
   applyCountryDocumentFormat();
   renderDocVariant();
   updatePreview();
+  checkLegalMentions();
+}
+
+function checkLegalMentions() {
+  const box = document.getElementById('legal-mentions-warning');
+  const textEl = document.getElementById('legal-mentions-warning-text');
+  if (!box || !textEl) return;
+  const applies = S.docType === 'facture' && S.country === 'FR';
+  if (!applies) { box.style.display = 'none'; return; }
+  const notes = (document.getElementById('f-notes')?.value || '').toLowerCase();
+  const hasPenalty = /p[ée]nalit|retard/.test(notes);
+  const hasIndemnity = /40\s*€|indemnit|recouvrement/.test(notes);
+  if (hasPenalty && hasIndemnity) { box.style.display = 'none'; return; }
+  textEl.textContent = 'Mention obligatoire manquante : pénalités de retard et indemnité forfaitaire de recouvrement de 40 € (factures B2B en France).';
+  box.style.display = '';
+}
+
+function addLegalMentions() {
+  const notes = document.getElementById('f-notes');
+  if (!notes) return;
+  const mention = 'En cas de retard de paiement, une pénalité au taux légal en vigueur sera appliquée, ainsi qu\'une indemnité forfaitaire de recouvrement de 40 €.';
+  notes.value = notes.value.trim() ? `${notes.value.trim()}\n${mention}` : mention;
+  updatePreview();
+  checkLegalMentions();
+  showNotif('Mentions légales ajoutées', 'success');
 }
 
 function positionRailPill() {
@@ -3825,6 +3889,7 @@ function setCountryDemo(btn, code) {
 
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { if (typeof positionRailPill === 'function') positionRailPill(); }, 60);
+  setTimeout(() => { if (typeof checkLegalMentions === 'function') checkLegalMentions(); }, 60);
 
   const themeTrack = document.getElementById('themeTrack');
   if (themeTrack && typeof THEMES !== 'undefined') {
