@@ -2324,6 +2324,7 @@ body.home-mode .home-mobile-cta { display: none; }
       </div>
       <div class="account-tabs">
         <button class="btn btn-primary btn-sm" id="account-tab-overview" onclick="showAccountPanel('overview')"><i class="fa fa-chart-line"></i> Dashboard</button>
+        <button class="btn btn-ghost btn-sm" id="account-tab-ai" onclick="showAccountPanel('ai')"><i class="fa fa-wand-magic-sparkles"></i> Assistant IA</button>
         <button class="btn btn-ghost btn-sm" id="account-tab-projects" onclick="showAccountPanel('projects')"><i class="fa fa-folder-open"></i> Projets</button>
         <button class="btn btn-ghost btn-sm" id="account-tab-history" onclick="showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Factures</button>
         <button class="btn btn-ghost btn-sm" id="account-tab-clients" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i> Clients</button>
@@ -2342,6 +2343,27 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-ghost btn-sm" onclick="showAccountPanel('history')"><i class="fa fa-calculator"></i> Voir totaux mensuels</button>
         </div>
         <div id="account-recent-projects"></div>
+      </div>
+      <div class="account-panel" id="account-panel-ai">
+        <div class="panel-note">Analyse générée uniquement à partir de vos vraies factures, devis, clients et produits sauvegardés — aucune donnée inventée. Vos données business sont envoyées à l'IA (Google Gemini) uniquement pour générer cette analyse ; rien n'est stocké par FacturePro.</div>
+        <div class="ai-health-row" id="ai-health-score"></div>
+        <div class="ai-insights-grid" id="ai-insights-grid">
+          <div class="ai-loading"><span class="spinner"></span> Analyse de vos données en cours...</div>
+        </div>
+        <div class="ai-chat-panel">
+          <div class="ai-chat-head"><i class="fa fa-comments"></i> Posez une question sur votre business</div>
+          <div class="ai-chat-suggestions">
+            <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Quel est mon meilleur client ce mois-ci ?')">Meilleur client</button>
+            <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Qui me doit le plus d\'argent ?')">Qui me doit de l'argent ?</button>
+            <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Quel est mon revenu total ce mois ?')">Revenu de ce mois</button>
+            <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Combien de factures sont en retard ?')">Factures en retard</button>
+          </div>
+          <div class="ai-chat-thread" id="ai-chat-thread"></div>
+          <div class="ai-chat-input-row">
+            <textarea id="ai-chat-input" class="form-input" rows="1" placeholder="Écrivez votre question sur votre business..." onkeydown="handleAiChatKeydown(event)" aria-label="Question pour l'assistant IA"></textarea>
+            <button class="btn btn-primary btn-sm" id="ai-chat-send-btn" onclick="sendAiChatMessage()" aria-label="Envoyer la question"><i class="fa fa-paper-plane"></i></button>
+          </div>
+        </div>
       </div>
       <div class="account-panel" id="account-panel-projects">
         <div class="grid-2" style="margin-bottom:12px">
