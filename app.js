@@ -646,6 +646,10 @@ async function saveAuthUser(user) {
     if (user) localStorage.setItem('facturepro-user', JSON.stringify(user));
     else localStorage.removeItem('facturepro-user');
   } catch {}
+  aiInsightsLoaded = false;
+  aiChatHistory = [];
+  const aiThread = document.getElementById('ai-chat-thread');
+  if (aiThread) aiThread.innerHTML = '';
   renderAuth();
   if (user) {
     await pullAccountDataFromCloud();
@@ -771,12 +775,13 @@ function renderAccountModal() {
 }
 
 function showAccountPanel(panel='overview') {
-  ['overview','projects','history','clients','products','profile'].forEach(name => {
+  ['overview','ai','projects','history','clients','products','profile'].forEach(name => {
     document.getElementById('account-panel-'+name)?.classList.toggle('active', name === panel);
     const btn = document.getElementById('account-tab-'+name);
     if (btn) btn.className = 'btn btn-sm ' + (name === panel ? 'btn-primary' : 'btn-ghost');
   });
   if (panel === 'overview') renderAccountOverview();
+  if (panel === 'ai') generateAiInsights();
   if (panel === 'projects') renderSavedProjects();
   if (panel === 'history') renderAccountHistory();
   if (panel === 'clients') renderSavedClients();
@@ -1716,6 +1721,212 @@ function applyAiItemsToInvoice() {
   showSection('articles');
   updatePreview();
   showNotif('AI articles appliqués', 'success');
+}
+
+// ═══════════════════════════════════════════════════════
+// AI BUSINESS ASSISTANT (insights + chat over real saved data)
+// ═══════════════════════════════════════════════════════
+let aiInsightsLoaded = false;
+let aiChatHistory = [];
+let aiChatBusy = false;
+
+function buildBusinessContext() {
+  const history = loadAccountHistory();
+  const clients = loadAccountList('clients');
+  const products = loadAccountList('products');
+  const analytics = buildAccountAnalytics(history);
+  const overdueInvoices = history
+    .filter(item => getHistoryStatus(item) === 'overdue')
+    .map(item => ({
+      client: item.clientName || 'Client',
+      docNum: item.docNum || '',
+      total: getHistoryAmount(item, 'total'),
+      dueDate: item.dueDate || item.expiryDate || item.validUntil || ''
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
+  const recentDocuments = history
+    .slice()
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+    .slice(0, 15)
+    .map(item => ({
+      date: item.date || '',
+      docNum: item.docNum || '',
+      type: item.docType === 'devis' ? 'devis' : 'facture',
+      client: item.clientName || 'Client',
+      total: getHistoryAmount(item, 'total'),
+      status: getHistoryStatus(item)
+    }));
+  return {
+    today: new Date().toISOString().slice(0, 10),
+    currency: S.currency || getCountryProfile().currency,
+    summary: {
+      revenueToday: analytics.today,
+      revenueThisMonth: analytics.month,
+      revenueThisYear: analytics.year,
+      totalInvoicedAllTime: analytics.total,
+      totalHT: analytics.ht,
+      totalTVA: analytics.tva,
+      paidAmount: analytics.paid,
+      unpaidAmount: analytics.unpaid,
+      overdueAmount: analytics.overdue,
+      draftCount: analytics.draft,
+      invoiceCount: analytics.invoices,
+      quoteCount: analytics.quotes,
+      quoteToInvoiceConversionRatePct: analytics.conversionRate,
+      avgPaymentDelayDays: analytics.avgPaymentDelay
+    },
+    monthlyRevenue: analytics.monthly,
+    topClientsByRevenue: analytics.topClients,
+    overdueInvoices,
+    recentDocuments,
+    savedClientsCount: clients.length,
+    savedProductsCount: products.length,
+    hasAnyData: history.length > 0
+  };
+}
+
+function buildAiInsightsPrompt(context) {
+  return `Tu es l'assistant business intégré à FacturePro, un générateur de factures. Tu dois analyser UNIQUEMENT les données JSON fournies ci-dessous : ce sont les vraies données de facturation de l'utilisateur. N'invente jamais de chiffre absent des données. Si une donnée est vide ou à zéro, dis-le clairement plutôt que d'halluciner.
+
+Données business (JSON) :
+${JSON.stringify(context)}
+
+Réponds UNIQUEMENT avec un objet JSON valide de cette forme exacte, en français, ton professionnel et concis :
+{
+  "healthScore": 0-100,
+  "healthLabel": "court label, ex: Sain, À surveiller, Critique, Données insuffisantes",
+  "insights": [
+    {"icon": "chart-line ou triangle-exclamation ou circle-check ou clock ou trophy ou arrow-trend-up ou arrow-trend-down ou users ou file-invoice", "title": "titre court", "detail": "1-2 phrases basées uniquement sur les données fournies, avec des chiffres précis quand pertinent", "tone": "good ou warn ou bad ou neutral"}
+  ]
+}
+Génère entre 3 et 6 insights, les plus utiles et actionnables en premier. Si hasAnyData est false, renvoie un seul insight expliquant qu'il faut sauvegarder des factures pour activer l'analyse, avec healthScore à 0 et healthLabel "Données insuffisantes".`;
+}
+
+function buildAiChatPrompt(context, recentHistory, question) {
+  const conversation = recentHistory
+    .map(m => `${m.role === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.text}`)
+    .join('\n');
+  return `Tu es l'assistant business intégré à FacturePro. Réponds UNIQUEMENT en te basant sur les données JSON fournies ci-dessous (vraies données de facturation de l'utilisateur). N'invente jamais un chiffre absent des données. Si l'information demandée n'est pas dans les données, dis-le clairement et propose comment l'obtenir (ex: sauvegarder plus de factures).
+
+Données business (JSON) :
+${JSON.stringify(context)}
+${conversation ? `\nHistorique de conversation récent :\n${conversation}\n` : ''}
+Question de l'utilisateur : ${question}
+
+Réponds UNIQUEMENT avec un objet JSON valide de cette forme exacte :
+{"reply": "réponse claire et concise en français, avec des chiffres précis issus des données quand pertinent"}`;
+}
+
+function renderAiInsights(data) {
+  const healthBox = document.getElementById('ai-health-score');
+  const grid = document.getElementById('ai-insights-grid');
+  const score = Math.max(0, Math.min(100, Math.round(Number(data?.healthScore)) || 0));
+  if (healthBox) {
+    healthBox.innerHTML = `
+      <div class="ai-health-ring" style="--score:${score}"><strong>${score}</strong><span>/100</span></div>
+      <div><strong>${escHtml(data?.healthLabel || 'Score de santé')}</strong><span>Score de santé business, calculé à partir de vos données</span></div>`;
+  }
+  if (grid) {
+    const insights = Array.isArray(data?.insights) ? data.insights.slice(0, 6) : [];
+    grid.innerHTML = insights.length
+      ? insights.map(ins => `
+        <div class="ai-insight-card tone-${escHtml(String(ins.tone || 'neutral'))}">
+          <i class="fa fa-${escHtml(String(ins.icon || 'circle-info'))}"></i>
+          <div><strong>${escHtml(ins.title || '')}</strong><span>${escHtml(ins.detail || '')}</span></div>
+        </div>`).join('')
+      : `<div class="analytics-empty">Sauvegardez des factures pour activer l'analyse IA.</div>`;
+  }
+}
+
+async function generateAiInsights(force = false) {
+  if (!S.authUser) return;
+  if (aiInsightsLoaded && !force) return;
+  const grid = document.getElementById('ai-insights-grid');
+  const model = window.firebaseServices?.aiModel;
+  if (!model) {
+    if (grid) grid.innerHTML = `<div class="analytics-empty">Assistant IA indisponible pour le moment.</div>`;
+    return;
+  }
+  if (grid) grid.innerHTML = `<div class="ai-loading"><span class="spinner"></span> Analyse de vos données en cours...</div>`;
+  try {
+    const context = buildBusinessContext();
+    const result = await model.generateContent(buildAiInsightsPrompt(context));
+    const responseText = result?.response?.text ? result.response.text() : '';
+    const data = parseAiJson(responseText);
+    renderAiInsights(data);
+    aiInsightsLoaded = true;
+  } catch (err) {
+    console.error(err);
+    if (grid) grid.innerHTML = `<div class="analytics-empty">Analyse IA indisponible pour le moment. Réessayez plus tard.</div>`;
+  }
+}
+
+function appendAiChatBubble(role, text) {
+  const thread = document.getElementById('ai-chat-thread');
+  if (!thread) return;
+  const bubble = document.createElement('div');
+  bubble.className = 'ai-chat-bubble ' + (role === 'user' ? 'user' : 'assistant');
+  bubble.textContent = text;
+  thread.appendChild(bubble);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function fillAiChatPrompt(text) {
+  const input = document.getElementById('ai-chat-input');
+  if (!input) return;
+  input.value = text;
+  input.focus();
+}
+
+function handleAiChatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendAiChatMessage();
+  }
+}
+
+async function sendAiChatMessage() {
+  if (aiChatBusy) return;
+  const input = document.getElementById('ai-chat-input');
+  const btn = document.getElementById('ai-chat-send-btn');
+  const question = input?.value?.trim() || '';
+  if (!question) return;
+  const model = window.firebaseServices?.aiModel;
+  if (!model) { showNotif('Assistant IA indisponible pour le moment.', 'info'); return; }
+
+  input.value = '';
+  appendAiChatBubble('user', question);
+  aiChatHistory.push({ role: 'user', text: question });
+
+  const thread = document.getElementById('ai-chat-thread');
+  const typing = document.createElement('div');
+  typing.className = 'ai-chat-bubble assistant typing';
+  typing.id = 'ai-chat-typing';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  thread?.appendChild(typing);
+  if (thread) thread.scrollTop = thread.scrollHeight;
+
+  aiChatBusy = true;
+  if (btn) btn.disabled = true;
+  try {
+    const context = buildBusinessContext();
+    const recentHistory = aiChatHistory.slice(-7, -1);
+    const result = await model.generateContent(buildAiChatPrompt(context, recentHistory, question));
+    const responseText = result?.response?.text ? result.response.text() : '';
+    const data = parseAiJson(responseText);
+    document.getElementById('ai-chat-typing')?.remove();
+    const reply = String(data.reply || '').trim() || 'Je n\'ai pas pu générer de réponse. Réessayez.';
+    appendAiChatBubble('assistant', reply);
+    aiChatHistory.push({ role: 'assistant', text: reply });
+  } catch (err) {
+    console.error(err);
+    document.getElementById('ai-chat-typing')?.remove();
+    appendAiChatBubble('assistant', 'Désolé, je n\'ai pas pu traiter cette question pour le moment. Réessayez.');
+  } finally {
+    aiChatBusy = false;
+    if (btn) btn.disabled = false;
+  }
 }
 
 function loadAccountProfile() {
