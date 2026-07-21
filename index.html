@@ -2375,6 +2375,14 @@ body.home-mode .home-mobile-cta { display: none; }
         <div id="account-products-list"></div>
       </div>
       <div class="account-panel" id="account-panel-profile">
+        <div class="grid-2" style="margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="newSavedProfileForm()"><i class="fa fa-building-circle-plus"></i> Nouvelle société</button>
+          <button class="btn btn-danger btn-sm" onclick="clearSavedProfiles()"><i class="fa fa-trash"></i> Effacer toutes les sociétés</button>
+        </div>
+        <div id="account-profile-list" style="margin-bottom:16px"></div>
+        <div class="account-detail-row" style="margin:4px 0 12px">
+          <strong id="account-profile-form-title">Nouvelle société</strong>
+        </div>
         <div class="grid-2">
           <div class="form-group"><label class="form-label" for="acct-company-name">Nom société</label><input class="form-input" id="acct-company-name" placeholder="Votre société"></div>
           <div class="form-group"><label class="form-label" for="acct-company-status">Statut</label><input class="form-input" id="acct-company-status" placeholder="Auto-entrepreneur, SASU..."></div>
@@ -2395,8 +2403,8 @@ body.home-mode .home-mobile-cta { display: none; }
         <div class="grid-2">
           <button class="btn btn-primary btn-sm" onclick="saveAccountProfileFromEditor()"><i class="fa fa-cloud-arrow-up"></i> Sauver depuis la facture</button>
           <button class="btn btn-ghost btn-sm" onclick="saveAccountProfileFromForm()"><i class="fa fa-floppy-disk"></i> Sauver ce formulaire</button>
-          <button class="btn btn-ghost btn-sm" onclick="applyAccountProfileToEditor()"><i class="fa fa-wand-magic-sparkles"></i> Appliquer à la facture</button>
-          <button class="btn btn-danger btn-sm" onclick="clearAccountProfile()"><i class="fa fa-trash"></i> Effacer société</button>
+          <button class="btn btn-ghost btn-sm" onclick="applyEditingProfileToEditor()"><i class="fa fa-wand-magic-sparkles"></i> Appliquer à la facture</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAccountProfile()"><i class="fa fa-trash"></i> Supprimer cette société</button>
         </div>
       </div>
       <div class="grid-2" style="margin-top:14px">

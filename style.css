@@ -175,6 +175,8 @@
   .saved-item-main strong { display: block; color: var(--ink); font-size: 12px; margin-bottom: 4px; overflow-wrap: anywhere; }
   .saved-item-main span { display: block; color: var(--ink-muted); font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
   .saved-item-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+  .saved-item.active { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand) inset; }
+  .saved-item-badge { display: inline-block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; background: rgba(22,163,74,.15); color: var(--brand); padding: 2px 6px; border-radius: 999px; margin-left: 6px; vertical-align: middle; }
   .panel-note { border: 1px dashed var(--border-strong); border-radius: 10px; padding: 10px 12px; color: var(--ink-muted); font-size: 11px; line-height: 1.55; background: rgba(22,163,74,.06); margin-bottom: 12px; }
   .menu-item { width: 100%; justify-content: flex-start; border-radius: 8px; }
 

@@ -271,6 +271,7 @@ const S = {
 };
 
 let itemId = 0;
+let editingProfileId = null;
 
 // ═══════════════════════════════════════════════════════
 // INIT
@@ -301,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyAppTheme();
   loadAuthUser();
   renderAuth();
-  if (S.authUser) setTimeout(() => applyAccountProfileToEditor(true), 0);
+  if (S.authUser) setTimeout(() => { migrateLegacyCompanyProfile(); applyActiveProfileToEditor(true); }, 0);
   syncLocaleControls();
   renderDocVariant();
   renderLogoState();
@@ -653,7 +654,8 @@ async function saveAuthUser(user) {
   renderAuth();
   if (user) {
     await pullAccountDataFromCloud();
-    applyAccountProfileToEditor(true);
+    migrateLegacyCompanyProfile();
+    applyActiveProfileToEditor(true);
     renderAccountOverview();
   }
 }
@@ -766,7 +768,9 @@ function renderAccountModal() {
   }
   if (sub) sub.textContent = verified ? 'Votre compte est connecté.' : 'Votre compte est connecté, email à vérifier.';
   if (verifyBtn) verifyBtn.style.display = user && user.provider === 'firebase' && !verified ? '' : 'none';
-  fillAccountProfileForm(loadAccountProfile());
+  migrateLegacyCompanyProfile();
+  fillAccountProfileForm(getEditingProfile());
+  renderSavedProfiles();
   renderAccountOverview();
   renderSavedProjects();
   renderSavedClients();
@@ -786,6 +790,7 @@ function showAccountPanel(panel='overview') {
   if (panel === 'history') renderAccountHistory();
   if (panel === 'clients') renderSavedClients();
   if (panel === 'products') renderSavedProducts();
+  if (panel === 'profile') renderSavedProfiles();
 }
 
 function getAccountStorageKey(suffix) {
@@ -1009,11 +1014,13 @@ function exportHistoryCsv() {
 function clearAllAccountLocalData() {
   if (!S.authUser) return;
   if (!confirm('Supprimer profil société, historique, projets, clients et produits de ce navigateur ?')) return;
-  ['profile','history','projects','clients','products','auto-cleanup'].forEach(suffix => {
+  ['profile','profile-active','history','projects','clients','products','auto-cleanup'].forEach(suffix => {
     try { localStorage.removeItem(getAccountStorageKey(suffix)); } catch {}
   });
   S.autoCleanup = false;
+  editingProfileId = null;
   fillAccountProfileForm(null);
+  renderSavedProfiles();
   renderAccountOverview();
   renderSavedProjects();
   renderSavedClients();
@@ -1284,7 +1291,8 @@ function renderAccountOverview() {
 }
 
 function renderProfileCompletionWidget() {
-  const profile = loadAccountProfile() || {};
+  const profiles = loadCompanyProfiles();
+  const profile = profiles.find(p => p.id === getActiveProfileId()) || profiles[0] || {};
   const verified = S.authUser?.emailVerified !== false;
   const checks = [
     ['building', 'Société', Boolean(profile.name && profile.addr)],
@@ -2255,30 +2263,44 @@ async function sendAiChatMessage() {
   }
 }
 
-function loadAccountProfile() {
-  if (!S.authUser) return null;
-  try { return JSON.parse(localStorage.getItem(getAccountStorageKey('profile')) || 'null'); } catch { return null; }
+function migrateLegacyCompanyProfile() {
+  if (!S.authUser) return;
+  const key = getAccountStorageKey('profile');
+  let raw;
+  try { raw = localStorage.getItem(key); } catch { return; }
+  if (!raw) return;
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { return; }
+  if (Array.isArray(parsed) || !parsed || typeof parsed !== 'object') return;
+  const migrated = [{ ...parsed, id: parsed.id || `profile-${Date.now()}` }];
+  try {
+    localStorage.setItem(key, JSON.stringify(migrated));
+    localStorage.setItem(getAccountStorageKey('profile-active'), migrated[0].id);
+  } catch {}
 }
 
-function saveAccountProfile(profile) {
-  if (!S.authUser) { showNotif('Login karein, phir société save karein', 'info'); return false; }
+function loadCompanyProfiles() {
+  return loadAccountList('profile');
+}
+
+function saveCompanyProfiles(list) {
+  return saveAccountList('profile', list);
+}
+
+function getActiveProfileId() {
+  try { return localStorage.getItem(getAccountStorageKey('profile-active')) || ''; } catch { return ''; }
+}
+
+function setActiveProfileId(id) {
   try {
-    const serialized = JSON.stringify({ ...profile, savedAt: new Date().toISOString() });
-    if (getProjectedAccountStorageUsageBytes('profile', serialized) > ACCOUNT_STORAGE_QUOTA_BYTES) {
-      if (!S.autoCleanup || !cleanupOldAccountData(true) || getProjectedAccountStorageUsageBytes('profile', serialized) > ACCOUNT_STORAGE_QUOTA_BYTES) {
-        showNotif('Storage 500 MB full: anciens documents remove karein', 'info');
-        return false;
-      }
-    }
-    localStorage.setItem(getAccountStorageKey('profile'), serialized);
-    queueCloudSync();
-    showNotif('Société profile sauvegardé', 'success');
-    renderAccountModal();
-    return true;
-  } catch {
-    showNotif('Société profile save nahi ho saka', 'info');
-    return false;
-  }
+    if (id) localStorage.setItem(getAccountStorageKey('profile-active'), id);
+    else localStorage.removeItem(getAccountStorageKey('profile-active'));
+  } catch {}
+}
+
+function getEditingProfile() {
+  if (!editingProfileId) return null;
+  return loadCompanyProfiles().find(p => p.id === editingProfileId) || null;
 }
 
 function collectCompanyProfileFromEditor() {
@@ -2305,7 +2327,7 @@ function collectCompanyProfileFromEditor() {
 }
 
 function collectCompanyProfileFromForm() {
-  const current = loadAccountProfile() || {};
+  const current = getEditingProfile() || {};
   return {
     ...current,
     name: document.getElementById('acct-company-name')?.value || '',
@@ -2344,12 +2366,46 @@ function fillAccountProfileForm(profile) {
   ].filter(Boolean);
   const status = document.getElementById('acct-assets-status');
   if (status) status.textContent = assets.length ? assets.join(' + ') : 'Non sauvegardés';
+  const title = document.getElementById('account-profile-form-title');
+  if (title) title.textContent = profile ? `Modifier : ${profile.name || 'Société sans nom'}` : 'Nouvelle société';
 }
 
-function applyAccountProfileToEditor(silent=false) {
-  const p = loadAccountProfile();
+function newSavedProfileForm() {
+  editingProfileId = null;
+  fillAccountProfileForm(null);
+}
+
+function renderProfileItem(item) {
+  const active = item.id === getActiveProfileId();
+  return `
+    <div class="saved-item${active ? ' active' : ''}">
+      <div class="saved-item-main">
+        <strong>${escHtml(item.name || 'Société sans nom')}${active ? ' <span class="saved-item-badge">Active</span>' : ''}</strong>
+        <span>${escHtml(item.status || '')}${item.siret ? ' · ' + escHtml(item.siret) : ''}</span>
+        <span>${escHtml(item.addr || '')}</span>
+      </div>
+      <div class="saved-item-actions">
+        <button class="btn btn-primary btn-sm" onclick="applySavedProfile('${escHtml(item.id)}')"><i class="fa fa-wand-magic-sparkles"></i> Appliquer</button>
+        <button class="btn btn-ghost btn-sm" onclick="editSavedProfile('${escHtml(item.id)}')"><i class="fa fa-pen"></i> Modifier</button>
+        <button class="btn btn-ghost btn-sm" onclick="duplicateSavedProfile('${escHtml(item.id)}')"><i class="fa fa-copy"></i> Copier</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSavedProfile('${escHtml(item.id)}')"><i class="fa fa-trash"></i></button>
+      </div>
+    </div>`;
+}
+
+function renderSavedProfiles() {
+  const box = document.getElementById('account-profile-list');
+  if (!box) return;
+  const list = loadCompanyProfiles().sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  box.innerHTML = list.length
+    ? `<div class="saved-list">${list.map(renderProfileItem).join('')}</div>`
+    : renderEmptyState('building', 'Aucune société sauvegardée', 'Remplissez le formulaire ci-dessous puis sauvez pour créer votre première société.', 'Nouvelle société', 'newSavedProfileForm()');
+}
+
+function applySavedProfile(id, silent=false) {
+  const p = loadCompanyProfiles().find(entry => entry.id === id);
   if (!p) {
-    if (!silent) showNotif('Aucun profil société sauvegardé', 'info');
+    if (!silent) showNotif('Société introuvable', 'info');
     return;
   }
   const map = {
@@ -2363,8 +2419,8 @@ function applyAccountProfileToEditor(silent=false) {
     'e-bic': p.bic,
     'e-rib': p.rib,
   };
-  Object.entries(map).forEach(([id, value]) => {
-    const el = document.getElementById(id);
+  Object.entries(map).forEach(([id2, value]) => {
+    const el = document.getElementById(id2);
     if (el && value !== undefined && value !== null) el.value = value;
   });
   S.logoSrc = p.logoSrc || S.logoSrc;
@@ -2381,23 +2437,96 @@ function applyAccountProfileToEditor(silent=false) {
   renderSignatureImageState();
   renderToggleStates();
   updatePreview();
-  if (!silent) showNotif('Société appliquée à la facture', 'success');
+  setActiveProfileId(id);
+  renderSavedProfiles();
+  if (!silent) showNotif(`${p.name || 'Société'} appliquée à la facture`, 'success');
+}
+
+function applyActiveProfileToEditor(silent=false) {
+  const activeId = getActiveProfileId();
+  const list = loadCompanyProfiles();
+  const target = list.find(p => p.id === activeId) || list[0];
+  if (!target) {
+    if (!silent) showNotif('Aucune société sauvegardée', 'info');
+    return;
+  }
+  applySavedProfile(target.id, silent);
+}
+
+function editSavedProfile(id) {
+  const p = loadCompanyProfiles().find(entry => entry.id === id);
+  if (!p) return showNotif('Société introuvable', 'info');
+  editingProfileId = id;
+  fillAccountProfileForm(p);
+}
+
+function duplicateSavedProfile(id) {
+  const list = loadCompanyProfiles();
+  const p = list.find(entry => entry.id === id);
+  if (!p) return showNotif('Société introuvable', 'info');
+  const copy = { ...p, id: `profile-${Date.now()}`, name: `${p.name || 'Société'} (copie)`, updatedAt: new Date().toISOString() };
+  if (saveCompanyProfiles([copy, ...list])) {
+    editingProfileId = copy.id;
+    fillAccountProfileForm(copy);
+    renderSavedProfiles();
+    showNotif('Société dupliquée', 'success');
+  }
+}
+
+function deleteSavedProfile(id) {
+  if (!confirm('Supprimer cette société sauvegardée ?')) return;
+  const next = loadCompanyProfiles().filter(item => item.id !== id);
+  if (!saveCompanyProfiles(next)) return;
+  if (getActiveProfileId() === id) setActiveProfileId(next[0]?.id || '');
+  if (editingProfileId === id) { editingProfileId = null; fillAccountProfileForm(null); }
+  renderSavedProfiles();
+  renderAccountOverview();
+}
+
+function clearSavedProfiles() {
+  if (!confirm('Effacer toutes les sociétés sauvegardées ?')) return;
+  saveCompanyProfiles([]);
+  setActiveProfileId('');
+  editingProfileId = null;
+  fillAccountProfileForm(null);
+  renderSavedProfiles();
+  renderAccountOverview();
+}
+
+function saveCompanyProfileRecord(fields) {
+  if (!S.authUser) { showNotif('Login karein, phir société save karein', 'info'); return false; }
+  if (!fields.name && !fields.addr) { showNotif('Ajoutez au moins un nom ou une adresse avant de sauvegarder', 'info'); return false; }
+  const list = loadCompanyProfiles();
+  const id = editingProfileId || `profile-${Date.now()}`;
+  const record = { ...fields, id, updatedAt: new Date().toISOString() };
+  const next = [record, ...list.filter(item => item.id !== id)];
+  if (!saveCompanyProfiles(next)) return false;
+  editingProfileId = id;
+  if (!getActiveProfileId()) setActiveProfileId(id);
+  fillAccountProfileForm(record);
+  renderSavedProfiles();
+  renderAccountOverview();
+  showNotif('Société sauvegardée', 'success');
+  return true;
 }
 
 function saveAccountProfileFromEditor() {
-  if (saveAccountProfile(collectCompanyProfileFromEditor())) fillAccountProfileForm(loadAccountProfile());
+  saveCompanyProfileRecord(collectCompanyProfileFromEditor());
 }
 
 function saveAccountProfileFromForm() {
-  saveAccountProfile(collectCompanyProfileFromForm());
+  saveCompanyProfileRecord(collectCompanyProfileFromForm());
+}
+
+function applyEditingProfileToEditor() {
+  if (!editingProfileId) { showNotif('Sauvegardez d\'abord cette société avant de l\'appliquer', 'info'); return; }
+  applySavedProfile(editingProfileId);
 }
 
 function clearAccountProfile() {
   if (!S.authUser) return;
-  try { localStorage.removeItem(getAccountStorageKey('profile')); } catch {}
-  fillAccountProfileForm(null);
-  renderAccountOverview();
-  showNotif('Société effacée du compte', 'info');
+  if (!editingProfileId) { showNotif('Aucune société sélectionnée', 'info'); return; }
+  deleteSavedProfile(editingProfileId);
 }
 
 function loadAccountHistory() {
@@ -2561,6 +2690,18 @@ function applyDraftSnapshot(draft) {
   renderLogoState();
   renderCompanyStampState();
   renderSignatureImageState();
+  ['facture','devis'].forEach(t => {
+    const heroBtn = document.getElementById('hero-tab-'+t);
+    const topBtn = document.getElementById('tab-'+t);
+    if (heroBtn) heroBtn.classList.toggle('active', t === S.docType);
+    if (topBtn) {
+      topBtn.classList.toggle('btn-primary', t === S.docType);
+      topBtn.classList.toggle('btn-ghost', t !== S.docType);
+    }
+  });
+  positionRailPill();
+  const dueGroup = document.getElementById('due-date-group');
+  if (dueGroup) dueGroup.style.display = S.docType === 'devis' ? '' : 'none';
   renderDocVariant();
   setEditorMode(S.editorMode || 'advanced');
   updatePreview();
