@@ -268,6 +268,7 @@ const S = {
   autoCleanup: false,
   editorMode: 'advanced',
   onlineStyleIdx: 0,
+  selectedCompanyFilter: 'all',
 };
 
 let itemId = 0;
@@ -1072,14 +1073,39 @@ function getHistoryAmount(item, key) {
 }
 
 function getHistoryStatus(item) {
-  const raw = String(item?.paymentStatus || item?.status || item?.action || '').toLowerCase();
+  const raw = String(item?.paymentStatus || item?.status || '').toLowerCase();
   const dueDate = item?.dueDate || item?.expiryDate || item?.validUntil || '';
   if (raw.includes('paid') || raw.includes('payé') || raw.includes('paye')) return 'paid';
   if (raw.includes('partial') || raw.includes('partiel')) return 'partial';
   if (raw.includes('draft') || raw.includes('brouillon')) return 'draft';
   if (raw.includes('cancel')) return 'cancelled';
+  if (raw.includes('overdue') || raw.includes('retard')) return 'overdue';
   if (dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate) && dueDate < new Date().toISOString().slice(0,10)) return 'overdue';
   return 'sent';
+}
+
+const HISTORY_STATUS_OPTIONS = [
+  ['sent', 'Envoyée'],
+  ['paid', 'Payée'],
+  ['partial', 'Partiellement payée'],
+  ['overdue', 'En retard'],
+  ['cancelled', 'Annulée'],
+  ['draft', 'Brouillon']
+];
+
+function setHistoryStatus(id, status) {
+  const list = loadAccountHistory();
+  const idx = list.findIndex(item => item.id === id);
+  if (idx === -1) return;
+  const wasPaid = getHistoryStatus(list[idx]) === 'paid';
+  const next = { ...list[idx], status };
+  if (status === 'paid' && !wasPaid) next.paidAt = new Date().toISOString().slice(0,10);
+  if (status !== 'paid') delete next.paidAt;
+  list[idx] = next;
+  saveAccountHistory(list);
+  renderAccountHistory();
+  renderAccountOverview();
+  showNotif('Statut mis à jour', 'success');
 }
 
 function buildAccountAnalytics(history=[]) {
@@ -1157,8 +1183,89 @@ function buildAccountAnalytics(history=[]) {
     monthly,
     topClients,
     conversionRate: totals.quotes ? Math.round((totals.invoices / (totals.invoices + totals.quotes)) * 100) : (totals.invoices ? 100 : 0),
-    avgPaymentDelay: paidDelayCount ? Math.round(paidDelayTotal / paidDelayCount) : 0
+    avgPaymentDelay: paidDelayCount ? Math.round(paidDelayTotal / paidDelayCount) : 0,
+    paidDelayCount
   };
+}
+
+function computeBusinessHealthScore(analytics) {
+  const factors = [];
+  const totalVolume = analytics.paid + analytics.unpaid + analytics.overdue;
+
+  if (totalVolume > 0) {
+    factors.push({
+      key: 'collection',
+      label: 'Encaissement',
+      weight: 25,
+      subscore: Math.round((analytics.paid / totalVolume) * 100),
+    });
+    const overdueRatio = analytics.overdue / totalVolume;
+    factors.push({
+      key: 'overdue',
+      label: 'Factures en retard',
+      weight: 20,
+      subscore: Math.max(0, Math.round(100 - overdueRatio * 200)),
+    });
+  }
+
+  if (analytics.monthly.length >= 2) {
+    const prev = analytics.monthly[analytics.monthly.length - 2];
+    const last = analytics.monthly[analytics.monthly.length - 1];
+    if (prev.total > 0) {
+      const pctChange = ((last.total - prev.total) / prev.total) * 100;
+      factors.push({
+        key: 'growth',
+        label: 'Croissance du revenu',
+        weight: 20,
+        subscore: Math.max(0, Math.min(100, Math.round(50 + pctChange))),
+        pctChange: Math.round(pctChange)
+      });
+    }
+  }
+
+  if (analytics.quotes > 0) {
+    factors.push({
+      key: 'conversion',
+      label: 'Conversion devis',
+      weight: 15,
+      subscore: analytics.conversionRate,
+    });
+  }
+
+  if (analytics.paidDelayCount > 0) {
+    const d = analytics.avgPaymentDelay;
+    const subscore = d <= 7 ? 100 : d <= 15 ? 80 : d <= 30 ? 60 : d <= 45 ? 40 : d <= 60 ? 20 : 0;
+    factors.push({
+      key: 'speed',
+      label: 'Délai de paiement',
+      weight: 20,
+      subscore,
+    });
+  }
+
+  if (!factors.length) return { score: null, factors: [], risks: [], opportunities: [] };
+
+  const weightSum = factors.reduce((s, f) => s + f.weight, 0);
+  const score = Math.round(factors.reduce((s, f) => s + f.subscore * f.weight, 0) / weightSum);
+
+  const risks = [];
+  const opportunities = [];
+  const collection = factors.find(f => f.key === 'collection');
+  const overdue = factors.find(f => f.key === 'overdue');
+  const growth = factors.find(f => f.key === 'growth');
+  const conversion = factors.find(f => f.key === 'conversion');
+  const speed = factors.find(f => f.key === 'speed');
+
+  if (overdue && overdue.subscore < 70) risks.push({ text: `${fmtEur(analytics.overdue)} de factures en retard`, action: 'Voir les factures en retard', run: "closeAccount();openAccount();showAccountPanel('history')" });
+  if (speed && speed.subscore < 60) risks.push({ text: `Délai de paiement moyen de ${analytics.avgPaymentDelay} jours`, action: 'Voir historique', run: "showAccountPanel('history')" });
+  if (growth && growth.pctChange < -10) risks.push({ text: `Revenu en baisse de ${Math.abs(growth.pctChange)}% ce mois vs le mois précédent`, action: 'Voir analytics', run: null });
+  if (conversion && conversion.subscore < 40) risks.push({ text: `Taux de conversion devis faible (${conversion.subscore}%)`, action: 'Voir devis', run: "showAccountPanel('history')" });
+
+  if (collection && collection.subscore >= 85) opportunities.push({ text: 'Bon taux d\'encaissement, continuez ainsi' });
+  if (growth && growth.pctChange > 10) opportunities.push({ text: `Revenu en hausse de ${growth.pctChange}% ce mois` });
+  if (analytics.topClients[0]) opportunities.push({ text: `${escHtml(analytics.topClients[0].name)} est votre meilleur client (${fmtEur(analytics.topClients[0].total)})` });
+
+  return { score, factors, risks, opportunities };
 }
 
 function renderMiniBarChart(monthly=[]) {
@@ -1251,34 +1358,73 @@ function renderAccountAdvancedAnalytics(history, analytics) {
   </div>`;
 }
 
+function renderDeltaBadge(pctChange) {
+  if (pctChange === undefined || pctChange === null || !Number.isFinite(pctChange)) return '';
+  const positive = pctChange >= 0;
+  return `<span class="kpi-delta ${positive ? 'up' : 'down'}"><i class="fa fa-arrow-${positive ? 'up' : 'down'}"></i> ${positive ? '+' : ''}${pctChange}%</span>`;
+}
+
+function renderBusinessHealthScore(health) {
+  if (health.score === null) {
+    return `<div class="health-score-card empty">
+      <div class="health-score-head"><i class="fa fa-heart-pulse"></i> Business Health Score</div>
+      <p>Sauvegardez au moins une facture avec un statut (payée, en retard...) pour calculer votre score de santé business, basé uniquement sur vos vraies données.</p>
+    </div>`;
+  }
+  const tier = health.score >= 75 ? 'good' : health.score >= 50 ? 'mid' : 'bad';
+  const risksHtml = health.risks.length
+    ? health.risks.map(r => `<div class="health-line risk"><i class="fa fa-triangle-exclamation"></i> ${escHtml(r.text)}${r.run ? ` <button class="health-action-btn" onclick="${r.run}">${escHtml(r.action)}</button>` : ''}</div>`).join('')
+    : `<div class="health-line ok"><i class="fa fa-circle-check"></i> Aucun risque majeur détecté sur vos données actuelles.</div>`;
+  const oppsHtml = health.opportunities.length
+    ? health.opportunities.map(o => `<div class="health-line opp"><i class="fa fa-arrow-trend-up"></i> ${escHtml(o.text)}</div>`).join('')
+    : '';
+  return `<div class="health-score-card">
+    <div class="health-score-head"><i class="fa fa-heart-pulse"></i> Business Health Score</div>
+    <div class="health-score-body">
+      <div class="health-score-ring ${tier}" style="--score:${health.score}"><strong>${health.score}</strong><small>/100</small></div>
+      <div class="health-score-lines">
+        ${risksHtml}
+        ${oppsHtml}
+      </div>
+    </div>
+    <p class="health-score-note">Calculé uniquement à partir de vos vraies factures sauvegardées (encaissement, retards, croissance, conversion devis, délai de paiement). Aucune donnée fictive.</p>
+  </div>`;
+}
+
 function renderAccountOverview() {
   const grid = document.getElementById('account-overview-grid');
   const recent = document.getElementById('account-recent-projects');
   if (!grid && !recent) return;
-  const history = loadAccountHistory();
-  const projects = loadAccountList('projects');
-  const clients = loadAccountList('clients');
+  const history = getCompanyFilteredList(loadAccountHistory());
+  const projects = getCompanyFilteredList(loadAccountList('projects'));
+  const clients = getCompanyFilteredList(loadAccountList('clients'));
   const products = loadAccountList('products');
   const storageUsed = getAccountStorageUsageBytes();
   const totals = buildAccountAnalytics(history);
+  const health = computeBusinessHealthScore(totals);
+  const growthFactor = health.factors.find(f => f.key === 'growth');
   if (grid) {
     grid.innerHTML = `
       <div style="grid-column:1 / -1">${renderProfileCompletionWidget()}</div>
+      <div style="grid-column:1 / -1">${renderBusinessHealthScore(health)}</div>
+      <div class="dashboard-section-label" style="grid-column:1 / -1">Vue d'ensemble</div>
       <div class="dashboard-card"><i class="fa fa-sun"></i><strong>${fmtEur(totals.today)}</strong><span>Revenu aujourd'hui</span></div>
-      <div class="dashboard-card"><i class="fa fa-calendar-days"></i><strong>${fmtEur(totals.month)}</strong><span>Total ce mois</span></div>
+      <div class="dashboard-card"><i class="fa fa-calendar-days"></i><strong>${fmtEur(totals.month)}</strong>${renderDeltaBadge(growthFactor?.pctChange)}<span>Total ce mois</span></div>
       <div class="dashboard-card"><i class="fa fa-chart-line"></i><strong>${fmtEur(totals.year)}</strong><span>Revenu cette année</span></div>
       <div class="dashboard-card"><i class="fa fa-file-invoice-dollar"></i><strong>${fmtEur(totals.total)}</strong><span>Total facturé</span></div>
+      <div class="dashboard-card"><i class="fa fa-circle-check"></i><strong>${fmtEur(totals.paid)}</strong><span>Factures payées</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-triangle-exclamation"></i><strong>${fmtEur(totals.unpaid)}</strong><span>Factures impayées</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-clock"></i><strong>${fmtEur(totals.overdue)}</strong><span>Factures en retard</span></div>
+      <div class="dashboard-card"><i class="fa fa-file-pen"></i><strong>${totals.draft}</strong><span>Factures brouillon</span></div>
+      <div class="dashboard-section-label" style="grid-column:1 / -1">Comptabilité</div>
       <div class="dashboard-card"><i class="fa fa-layer-group"></i><strong>${fmtEur(totals.ht)}</strong><span>Total HT</span></div>
       <div class="dashboard-card"><i class="fa fa-percent"></i><strong>${fmtEur(totals.tva)}</strong><span>Total TVA</span></div>
-      <div class="dashboard-card"><i class="fa fa-circle-check"></i><strong>${fmtEur(totals.paid)}</strong><span>Factures payées</span></div>
-      <div class="dashboard-card"><i class="fa fa-triangle-exclamation"></i><strong>${fmtEur(totals.unpaid)}</strong><span>Factures impayées</span></div>
-      <div class="dashboard-card"><i class="fa fa-clock"></i><strong>${fmtEur(totals.overdue)}</strong><span>Factures en retard</span></div>
-      <div class="dashboard-card"><i class="fa fa-file-pen"></i><strong>${totals.draft}</strong><span>Factures brouillon</span></div>
-      <div class="dashboard-card"><i class="fa fa-folder-open"></i><strong>${projects.length}</strong><span>Projets sauvegardés</span></div>
-      <div class="dashboard-card"><i class="fa fa-address-book"></i><strong>${clients.length}</strong><span>Clients enregistrés</span></div>
-      <div class="dashboard-card"><i class="fa fa-box"></i><strong>${products.length}</strong><span>Produits/services</span></div>
-      <div class="dashboard-card"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Factures historique</span></div>
       <div class="dashboard-card"><i class="fa fa-cloud"></i><strong>${formatBytes(storageUsed)}</strong><span>Stockage utilisé</span></div>
+      <div class="dashboard-section-label" style="grid-column:1 / -1">Activité</div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('projects')"><i class="fa fa-folder-open"></i><strong>${projects.length}</strong><span>Projets sauvegardés</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i><strong>${clients.length}</strong><span>Clients enregistrés</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('products')"><i class="fa fa-box"></i><strong>${products.length}</strong><span>Produits/services</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Factures historique</span></div>
       ${renderAccountAdvancedAnalytics(history, totals)}`;
     renderAccountStoragePanel();
   }
@@ -1372,7 +1518,7 @@ function renderProjectItem(item) {
 function renderSavedProjects() {
   const box = document.getElementById('account-projects-list');
   if (!box) return;
-  const list = loadAccountList('projects').sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  const list = getCompanyFilteredList(loadAccountList('projects')).sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
   box.innerHTML = list.length
     ? `<div class="saved-list">${list.map(renderProjectItem).join('')}</div>`
     : renderEmptyState('folder-open', 'Aucun projet sauvegardé', 'Sauvegardez une facture ou un devis en cours pour reprendre depuis le même point.', 'Sauver projet actuel', 'saveCurrentProject()');
@@ -1423,6 +1569,7 @@ function getCurrentClientRecord() {
     siteAddr: document.getElementById('c-site-addr')?.value || '',
     email,
     tel: document.getElementById('c-tel')?.value || '',
+    companyId: getActiveProfileId() || null,
     updatedAt: new Date().toISOString()
   };
 }
@@ -1443,7 +1590,7 @@ function saveCurrentClient() {
 function renderSavedClients() {
   const box = document.getElementById('account-clients-list');
   if (!box) return;
-  const list = loadAccountList('clients').sort((a,b) => String(a.name).localeCompare(String(b.name)));
+  const list = getCompanyFilteredList(loadAccountList('clients')).sort((a,b) => String(a.name).localeCompare(String(b.name)));
   box.innerHTML = list.length
     ? `<div class="saved-list">${list.map(item => `
       <div class="saved-item">
@@ -2283,6 +2430,53 @@ function loadCompanyProfiles() {
   return loadAccountList('profile');
 }
 
+function getCompanyFilteredList(list) {
+  if (S.selectedCompanyFilter === 'all') return list;
+  return list.filter(item => item.companyId === S.selectedCompanyFilter);
+}
+
+function renderCompanySwitcher() {
+  const row = document.getElementById('company-switcher-row');
+  const select = document.getElementById('company-switcher-select');
+  if (!row || !select) return;
+  const companies = loadCompanyProfiles();
+  if (companies.length < 2) {
+    row.style.display = 'none';
+    S.selectedCompanyFilter = 'all';
+    return;
+  }
+  row.style.display = '';
+  const current = S.selectedCompanyFilter;
+  select.innerHTML = [
+    `<option value="all">Toutes les sociétés</option>`,
+    ...companies.map(c => `<option value="${escHtml(c.id)}">${escHtml(c.name || 'Société sans nom')}</option>`),
+    `<option value="__add__">+ Ajouter une société</option>`,
+    `<option value="__manage__">Gérer les sociétés</option>`
+  ].join('');
+  const validValues = ['all', ...companies.map(c => c.id)];
+  select.value = validValues.includes(current) ? current : 'all';
+  S.selectedCompanyFilter = select.value;
+}
+
+function handleCompanySwitcherChange(value) {
+  if (value === '__add__') {
+    showAccountPanel('profile');
+    newSavedProfileForm();
+    renderCompanySwitcher();
+    return;
+  }
+  if (value === '__manage__') {
+    showAccountPanel('profile');
+    renderCompanySwitcher();
+    return;
+  }
+  S.selectedCompanyFilter = value;
+  renderAccountOverview();
+  renderSavedProjects();
+  renderSavedClients();
+  renderAccountHistory();
+}
+
 function saveCompanyProfiles(list) {
   return saveAccountList('profile', list);
 }
@@ -2395,6 +2589,7 @@ function renderProfileItem(item) {
 
 function renderSavedProfiles() {
   const box = document.getElementById('account-profile-list');
+  renderCompanySwitcher();
   if (!box) return;
   const list = loadCompanyProfiles().sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
   box.innerHTML = list.length
@@ -2563,6 +2758,7 @@ function getCurrentDocumentSummary(action='PDF') {
     currency: S.currency || profile.currency,
     country: S.country,
     action,
+    companyId: getActiveProfileId() || null,
     updatedAt: new Date().toISOString()
   };
 }
@@ -2582,7 +2778,7 @@ function recordDocumentHistory(action='PDF') {
 function renderAccountHistory() {
   const box = document.getElementById('account-history-list');
   if (!box) return;
-  const list = loadAccountHistory().sort((a,b) => String(b.date).localeCompare(String(a.date)));
+  const list = getCompanyFilteredList(loadAccountHistory()).sort((a,b) => String(b.date).localeCompare(String(a.date)));
   if (!list.length) {
     box.innerHTML = renderEmptyState('clock-rotate-left', 'Aucune facture sauvegardée', 'Ajoutez la facture actuelle à l’historique pour suivre vos totaux mensuels HT, TVA et TTC.', 'Ajouter facture actuelle', "recordDocumentHistory('manual')");
     return;
@@ -2612,6 +2808,13 @@ function renderAccountHistory() {
               <button class="btn btn-danger btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="deleteHistoryRecord(this.dataset.historyId)"><i class="fa fa-trash"></i></button>
             </div>
             <span style="grid-column:2 / 5;font-size:10px;opacity:.65">${escHtml((item.docType || '').toUpperCase())} · ${escHtml(item.docNum || '')}</span>
+            <div class="history-status-row" style="grid-column:1 / -1">
+              <label for="status-${escHtml(item.id)}">Statut</label>
+              <select id="status-${escHtml(item.id)}" class="history-status-select" data-history-id="${escHtml(item.id)}" onchange="setHistoryStatus(this.dataset.historyId, this.value)">
+                ${HISTORY_STATUS_OPTIONS.map(([val,label]) => `<option value="${val}"${getHistoryStatus(item) === val ? ' selected' : ''}>${escHtml(label)}</option>`).join('')}
+              </select>
+              ${getHistoryStatus(item) === 'paid' && item.paidAt ? `<span class="history-paid-note">Payée le ${fmtDate(item.paidAt)}</span>` : ''}
+            </div>
           </div>
         `).join('')}
         <div class="history-total">

@@ -2323,6 +2323,10 @@ body.home-mode .home-mobile-cta { display: none; }
         <div class="account-detail-row"><span>Provider</span><strong id="account-modal-provider">Firebase</strong></div>
         <div class="account-detail-row"><span>UID</span><strong id="account-modal-uid">-</strong></div>
       </div>
+      <div class="company-switcher-row" id="company-switcher-row" style="display:none">
+        <label for="company-switcher-select"><i class="fa fa-building"></i> Société</label>
+        <select class="form-input" id="company-switcher-select" onchange="handleCompanySwitcherChange(this.value)"></select>
+      </div>
       <div class="account-tabs">
         <button class="btn btn-primary btn-sm" id="account-tab-overview" onclick="showAccountPanel('overview')"><i class="fa fa-chart-line"></i> Dashboard</button>
         <button class="btn btn-ghost btn-sm" id="account-tab-ai" onclick="openAiSidebar();closeAccount()"><i class="fa fa-wand-magic-sparkles"></i> Assistant IA</button>
