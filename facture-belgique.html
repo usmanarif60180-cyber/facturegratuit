@@ -30,6 +30,27 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Facture et devis gratuits pour la Belgique">
 <meta name="twitter:description" content="Créez une facture ou un devis PDF gratuit pour la Belgique : numéro d'entreprise BCE, TVA 21%, IBAN, logo, signature.">
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('consent', 'default', {
+  ad_storage: 'denied',
+  analytics_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied',
+  wait_for_update: 500
+});
+try {
+  if (localStorage.getItem('facturepro-cookie-consent') === 'accepted') {
+    gtag('consent', 'update', {
+      ad_storage: 'granted',
+      analytics_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted'
+    });
+  }
+} catch {}
+</script>
 <meta name="google-adsense-account" content="ca-pub-4956341710070686">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4956341710070686" crossorigin="anonymous"></script>
 <script type="application/ld+json">
