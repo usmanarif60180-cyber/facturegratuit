@@ -1621,9 +1621,9 @@ body.home-mode .home-mobile-cta { display: none; }
         </div>
         <div class="foot-col">
           <h4>Légal</h4>
-          <a href="javascript:void(0)" onclick="openLegal('legal')">Mentions légales</a>
-          <a href="javascript:void(0)" onclick="openLegal('privacy')">Confidentialité</a>
-          <a href="javascript:void(0)" onclick="openLegal('contact')">Contact</a>
+          <a href="/mentions-legales.html">Mentions légales</a>
+          <a href="/privacy.html">Confidentialité</a>
+          <a href="/contact.html">Contact</a>
         </div>
       </div>
     </div>
@@ -2239,20 +2239,20 @@ body.home-mode .home-mobile-cta { display: none; }
       <div class="footer-col">
         <h4>Produit</h4>
         <a class="legal-link" href="/blog.html">Blog</a>
-        <button class="legal-link" onclick="openLegal('about')">À propos</button>
+        <a class="legal-link" href="/a-propos.html">À propos</a>
         <button class="legal-link" onclick="openFeedback()">Feedback</button>
       </div>
       <div class="footer-col">
         <h4>Légal</h4>
-        <button class="legal-link" onclick="openLegal('legal')">Mentions légales</button>
-        <button class="legal-link" onclick="openLegal('privacy')">Confidentialité</button>
+        <a class="legal-link" href="/mentions-legales.html">Mentions légales</a>
+        <a class="legal-link" href="/privacy.html">Confidentialité</a>
         <button class="legal-link" onclick="openLegal('terms')">CGU</button>
         <button class="legal-link" onclick="openLegal('cookies')">Cookies</button>
       </div>
       <div class="footer-col">
         <h4>Support</h4>
         <button class="legal-link" onclick="openLegal('security')">Sécurité</button>
-        <button class="legal-link" onclick="openLegal('contact')">Contact</button>
+        <a class="legal-link" href="/contact.html">Contact</a>
       </div>
     </div>
   </div>
@@ -2324,7 +2324,7 @@ body.home-mode .home-mobile-cta { display: none; }
       </div>
       <div class="account-tabs">
         <button class="btn btn-primary btn-sm" id="account-tab-overview" onclick="showAccountPanel('overview')"><i class="fa fa-chart-line"></i> Dashboard</button>
-        <button class="btn btn-ghost btn-sm" id="account-tab-ai" onclick="showAccountPanel('ai')"><i class="fa fa-wand-magic-sparkles"></i> Assistant IA</button>
+        <button class="btn btn-ghost btn-sm" id="account-tab-ai" onclick="openAiSidebar();closeAccount()"><i class="fa fa-wand-magic-sparkles"></i> Assistant IA</button>
         <button class="btn btn-ghost btn-sm" id="account-tab-projects" onclick="showAccountPanel('projects')"><i class="fa fa-folder-open"></i> Projets</button>
         <button class="btn btn-ghost btn-sm" id="account-tab-history" onclick="showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Factures</button>
         <button class="btn btn-ghost btn-sm" id="account-tab-clients" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i> Clients</button>
@@ -2343,27 +2343,6 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-ghost btn-sm" onclick="showAccountPanel('history')"><i class="fa fa-calculator"></i> Voir totaux mensuels</button>
         </div>
         <div id="account-recent-projects"></div>
-      </div>
-      <div class="account-panel" id="account-panel-ai">
-        <div class="panel-note">Analyse générée uniquement à partir de vos vraies factures, devis, clients et produits sauvegardés — aucune donnée inventée. Vos données business sont envoyées à l'IA (Google Gemini) uniquement pour générer cette analyse ; rien n'est stocké par FacturePro.</div>
-        <div class="ai-health-row" id="ai-health-score"></div>
-        <div class="ai-insights-grid" id="ai-insights-grid">
-          <div class="ai-loading"><span class="spinner"></span> Analyse de vos données en cours...</div>
-        </div>
-        <div class="ai-chat-panel">
-          <div class="ai-chat-head"><i class="fa fa-comments"></i> Posez une question sur votre business</div>
-          <div class="ai-chat-suggestions">
-            <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Quel est mon meilleur client ce mois-ci ?')">Meilleur client</button>
-            <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Qui me doit le plus d\'argent ?')">Qui me doit de l'argent ?</button>
-            <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Quel est mon revenu total ce mois ?')">Revenu de ce mois</button>
-            <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Combien de factures sont en retard ?')">Factures en retard</button>
-          </div>
-          <div class="ai-chat-thread" id="ai-chat-thread"></div>
-          <div class="ai-chat-input-row">
-            <textarea id="ai-chat-input" class="form-input" rows="1" placeholder="Écrivez votre question sur votre business..." onkeydown="handleAiChatKeydown(event)" aria-label="Question pour l'assistant IA"></textarea>
-            <button class="btn btn-primary btn-sm" id="ai-chat-send-btn" onclick="sendAiChatMessage()" aria-label="Envoyer la question"><i class="fa fa-paper-plane"></i></button>
-          </div>
-        </div>
       </div>
       <div class="account-panel" id="account-panel-projects">
         <div class="grid-2" style="margin-bottom:12px">
@@ -2517,6 +2496,62 @@ body.home-mode .home-mobile-cta { display: none; }
         <button class="btn btn-ghost btn-sm" type="button" onclick="openSupportEmail()"><i class="fa fa-envelope"></i> Email support</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- AI ASSISTANT (global, context-aware, one engine for the whole app) -->
+<button class="ai-fab no-print" id="ai-fab" onclick="openAiSidebar()" aria-label="Ouvrir l'assistant IA" title="Assistant IA">
+  <i class="fa fa-wand-magic-sparkles"></i>
+</button>
+
+<div class="ai-sidebar-backdrop no-print" id="ai-sidebar-backdrop" onclick="handleAiSidebarBackdrop(event)">
+  <aside class="ai-sidebar" role="dialog" aria-modal="true" aria-labelledby="ai-sidebar-title">
+    <div class="ai-sidebar-head">
+      <div>
+        <div class="ai-sidebar-title" id="ai-sidebar-title"><i class="fa fa-wand-magic-sparkles"></i> Assistant IA</div>
+        <div class="ai-sidebar-context" id="ai-sidebar-context">Tableau de bord</div>
+      </div>
+      <button class="btn btn-ghost auth-close" onclick="closeAiSidebar()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
+    </div>
+    <div class="ai-sidebar-body">
+      <div id="ai-draft-check-section" style="display:none"></div>
+      <div id="ai-business-section">
+        <div class="panel-note">Analyse générée uniquement à partir de vos vraies factures, devis, clients et produits sauvegardés — aucune donnée inventée. Vos données business sont envoyées à l'IA (Google Gemini) uniquement pour générer cette analyse ; rien n'est stocké par FacturePro.</div>
+        <button class="btn btn-ghost btn-sm" style="margin-bottom:12px" onclick="refreshAiInsights()"><i class="fa fa-rotate"></i> Actualiser l'analyse</button>
+        <div class="ai-health-row" id="ai-health-score"></div>
+        <div class="ai-insights-grid" id="ai-insights-grid">
+          <div class="ai-loading"><span class="spinner"></span> Analyse de vos données en cours...</div>
+        </div>
+      </div>
+      <div id="ai-login-note" class="analytics-empty" style="display:none">Connectez-vous pour activer l'analyse business à partir de vos vraies données.</div>
+      <div class="ai-chat-panel">
+        <div class="ai-chat-head"><i class="fa fa-comments"></i> Posez une question sur votre business</div>
+        <div class="ai-chat-suggestions">
+          <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Quel est mon meilleur client ce mois-ci ?')">Meilleur client</button>
+          <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Qui me doit le plus d\'argent ?')">Qui me doit de l'argent ?</button>
+          <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Quel est mon revenu total ce mois ?')">Revenu de ce mois</button>
+          <button class="ai-chat-chip" type="button" onclick="fillAiChatPrompt('Combien de factures sont en retard ?')">Factures en retard</button>
+        </div>
+        <div class="ai-chat-thread" id="ai-chat-thread"></div>
+        <div class="ai-chat-input-row">
+          <button class="ai-mic-btn" id="ai-mic-btn" type="button" onclick="toggleAiVoiceInput()" title="Dicter votre question" aria-label="Dicter votre question" style="display:none"><i class="fa fa-microphone"></i></button>
+          <textarea id="ai-chat-input" class="form-input" rows="1" placeholder="Écrivez votre question sur votre business..." onkeydown="handleAiChatKeydown(event)" aria-label="Question pour l'assistant IA"></textarea>
+          <button class="btn btn-primary btn-sm" id="ai-chat-send-btn" onclick="sendAiChatMessage()" aria-label="Envoyer la question"><i class="fa fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- AI COMMAND CENTER (Ctrl/Cmd+K) -->
+<div class="cmdk-backdrop no-print" id="cmdk-backdrop" onclick="handleCmdkBackdrop(event)">
+  <div class="cmdk-panel" role="dialog" aria-modal="true" aria-label="Palette de commandes">
+    <div class="cmdk-input-row">
+      <i class="fa fa-magnifying-glass"></i>
+      <input id="cmdk-input" class="cmdk-input" placeholder="Créer une facture, trouver un client..." oninput="filterCmdkResults()" onkeydown="handleCmdkKeydown(event)" autocomplete="off" aria-label="Rechercher une commande">
+      <kbd>Esc</kbd>
+    </div>
+    <div class="cmdk-results" id="cmdk-results"></div>
   </div>
 </div>
 
