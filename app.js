@@ -340,15 +340,15 @@ const LEGAL_PAGES = {
     title: 'Mentions légales',
     html: `
       <h3>Éditeur / Propriétaire du site</h3>
-      <p><strong>Nom ou raison sociale :</strong> À compléter avec votre nom ou votre société</p>
-      <p><strong>Adresse :</strong> À compléter avec votre adresse professionnelle</p>
+      <p><strong>Nom :</strong> Muhammad Usman</p>
+      <p><strong>Adresse :</strong> 1 Rue Armand Houbigant, 60180 Nogent-sur-Oise, France</p>
       <p><strong>Email professionnel :</strong> contact@facturergratuit.com</p>
       <h3>Hébergement</h3>
-      <p><strong>Hébergeur :</strong> Firebase Hosting / Google Cloud</p>
-      <p><strong>Adresse :</strong> Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irlande.</p>
+      <p><strong>Hébergeur :</strong> GitHub Pages (GitHub, Inc.)</p>
+      <p><strong>Adresse :</strong> GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</p>
+      <p>Les services de compte, d'authentification et de synchronisation des données (facultatifs) sont fournis par Firebase (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irlande).</p>
       <h3>Responsabilité</h3>
       <p>Le site fournit un générateur de documents. Les informations saisies, les calculs, les mentions légales, la TVA, les SIRET/SIREN, les VIN, les immatriculations et les coordonnées bancaires doivent être vérifiés par l'utilisateur avant toute utilisation officielle.</p>
-      <p><strong>Important :</strong> remplacez les champs "À compléter" par vos informations réelles avant publication et demande AdSense.</p>
     `
   },
   privacy: {
@@ -427,8 +427,8 @@ const LEGAL_PAGES = {
     html: `
       <h3>Contact professionnel</h3>
       <p><strong>Email :</strong> contact@facturergratuit.com</p>
-      <p><strong>Propriétaire / Éditeur :</strong> À compléter avec votre nom ou société</p>
-      <p><strong>Adresse :</strong> À compléter avec votre adresse professionnelle</p>
+      <p><strong>Propriétaire / Éditeur :</strong> Muhammad Usman</p>
+      <p><strong>Adresse :</strong> 1 Rue Armand Houbigant, 60180 Nogent-sur-Oise, France</p>
       <div class="support-box">
         <strong style="color:var(--ink)">Support rapide :</strong> pour un problème PDF, login, AdSense ou facture, envoyez le type de document, le pays choisi, votre navigateur et une courte description.
       </div>
@@ -775,13 +775,13 @@ function renderAccountModal() {
 }
 
 function showAccountPanel(panel='overview') {
-  ['overview','ai','projects','history','clients','products','profile'].forEach(name => {
+  S.currentAccountPanel = panel;
+  ['overview','projects','history','clients','products','profile'].forEach(name => {
     document.getElementById('account-panel-'+name)?.classList.toggle('active', name === panel);
     const btn = document.getElementById('account-tab-'+name);
     if (btn) btn.className = 'btn btn-sm ' + (name === panel ? 'btn-primary' : 'btn-ghost');
   });
   if (panel === 'overview') renderAccountOverview();
-  if (panel === 'ai') generateAiInsights();
   if (panel === 'projects') renderSavedProjects();
   if (panel === 'history') renderAccountHistory();
   if (panel === 'clients') renderSavedClients();
@@ -1038,6 +1038,7 @@ function saveAccountList(suffix, list, options={}) {
       if (S.autoCleanup && cleanupOldAccountData(true) && getProjectedAccountStorageUsageBytes(suffix, serialized) <= ACCOUNT_STORAGE_QUOTA_BYTES) {
         localStorage.setItem(getAccountStorageKey(suffix), serialized);
         queueCloudSync();
+        if (['history','clients','products'].includes(suffix)) aiInsightsLoaded = false;
         return true;
       }
       showNotif('Storage 500 MB full: pehle history/projets remove karein ya auto-cleanup ON karein', 'info');
@@ -1045,6 +1046,7 @@ function saveAccountList(suffix, list, options={}) {
     }
     localStorage.setItem(getAccountStorageKey(suffix), serialized);
     queueCloudSync();
+    if (['history','clients','products'].includes(suffix)) aiInsightsLoaded = false;
     return true;
   } catch {
     if (!options.silent) showNotif('Sauvegarde impossible sur ce navigateur', 'info');
@@ -1553,12 +1555,48 @@ function clearSavedProducts() {
 }
 
 // ═══════════════════════════════════════════════════════
+// CENTRALIZED AI ENGINE
+// One entry point for every AI call in the app (invoice-line
+// generation, business insights, business chat, draft checks).
+// Nothing else should call window.firebaseServices.aiModel directly.
+// ═══════════════════════════════════════════════════════
+function isAiEngineReady() {
+  return Boolean(window.firebaseServices?.aiModel);
+}
+
+async function callAiEngine(prompt) {
+  const model = window.firebaseServices?.aiModel;
+  if (!model) throw new Error('AI_UNAVAILABLE');
+  const result = await model.generateContent(prompt);
+  const responseText = result?.response?.text ? result.response.text() : '';
+  return parseAiJson(responseText);
+}
+
+function getAiContext() {
+  const inEditor = !document.body.classList.contains('home-mode');
+  const accountOpen = document.getElementById('account-modal')?.classList.contains('open');
+  let page = 'home';
+  if (inEditor) page = S.docType === 'devis' ? 'editor:devis' : 'editor:facture';
+  else if (accountOpen) page = 'account:' + (S.currentAccountPanel || 'overview');
+  return {
+    page,
+    loggedIn: Boolean(S.authUser),
+    userName: S.authUser?.name || null,
+    docType: S.docType,
+    docSector: S.docSector,
+    country: S.country,
+    lang: S.lang,
+    currency: S.currency || getCountryProfile().currency
+  };
+}
+
+// ═══════════════════════════════════════════════════════
 // AI INVOICE ASSISTANT
 // ═══════════════════════════════════════════════════════
 function updateAiStatus() {
   const status = document.getElementById('ai-status');
   if (!status) return;
-  const ready = Boolean(window.firebaseServices?.aiModel);
+  const ready = isAiEngineReady();
   status.innerHTML = ready
     ? '<i class="fa fa-circle-check"></i><span>Assistant AI connecté. Les lignes générées restent modifiables avant PDF.</span>'
     : '<i class="fa fa-triangle-exclamation"></i><span>Assistant AI indisponible pour le moment. Vous pouvez continuer à créer la facture manuellement.</span>';
@@ -1668,8 +1706,7 @@ async function generateAiInvoiceItems() {
     showNotif('AI ke liye description thori detail mein likhein', 'info');
     return;
   }
-  const model = window.firebaseServices?.aiModel;
-  if (!model) {
+  if (!isAiEngineReady()) {
     updateAiStatus();
     showNotif('Assistant AI ready nahi hai. Page reload karein.', 'info');
     return;
@@ -1679,9 +1716,7 @@ async function generateAiInvoiceItems() {
     btn.innerHTML = '<span class="spinner"></span> Génération...';
   }
   try {
-    const result = await model.generateContent(buildAiInvoicePrompt(text));
-    const responseText = result?.response?.text ? result.response.text() : '';
-    const data = parseAiJson(responseText);
+    const data = await callAiEngine(buildAiInvoicePrompt(text));
     const items = normaliseAiItems(data);
     S.aiLastObject = data.object || '';
     S.aiLastItems = items;
@@ -1727,8 +1762,11 @@ function applyAiItemsToInvoice() {
 // AI BUSINESS ASSISTANT (insights + chat over real saved data)
 // ═══════════════════════════════════════════════════════
 let aiInsightsLoaded = false;
+let aiInsightsBusy = false;
 let aiChatHistory = [];
 let aiChatBusy = false;
+const AI_INSIGHT_ICONS = new Set(['chart-line','triangle-exclamation','circle-check','clock','trophy','arrow-trend-up','arrow-trend-down','users','file-invoice']);
+const AI_INSIGHT_TONES = new Set(['good','warn','bad','neutral']);
 
 function buildBusinessContext() {
   const history = loadAccountHistory();
@@ -1759,6 +1797,7 @@ function buildBusinessContext() {
     }));
   return {
     today: new Date().toISOString().slice(0, 10),
+    currentPage: getAiContext().page,
     currency: S.currency || getCountryProfile().currency,
     summary: {
       revenueToday: analytics.today,
@@ -1807,7 +1846,7 @@ function buildAiChatPrompt(context, recentHistory, question) {
   const conversation = recentHistory
     .map(m => `${m.role === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.text}`)
     .join('\n');
-  return `Tu es l'assistant business intégré à FacturePro. Réponds UNIQUEMENT en te basant sur les données JSON fournies ci-dessous (vraies données de facturation de l'utilisateur). N'invente jamais un chiffre absent des données. Si l'information demandée n'est pas dans les données, dis-le clairement et propose comment l'obtenir (ex: sauvegarder plus de factures).
+  return `Tu es l'assistant business intégré à FacturePro. Réponds UNIQUEMENT en te basant sur les données JSON fournies ci-dessous (vraies données de facturation de l'utilisateur). Le champ "currentPage" indique où se trouve l'utilisateur dans l'application en ce moment (ex: "account:clients" = onglet Clients du compte, "editor:facture" = en train d'éditer une facture) — utilise-le pour adapter ta réponse si pertinent, sans jamais demander à l'utilisateur de préciser où il se trouve. N'invente jamais un chiffre absent des données. Si l'information demandée n'est pas dans les données, dis-le clairement et propose comment l'obtenir (ex: sauvegarder plus de factures).
 
 Données business (JSON) :
 ${JSON.stringify(context)}
@@ -1828,37 +1867,283 @@ function renderAiInsights(data) {
       <div><strong>${escHtml(data?.healthLabel || 'Score de santé')}</strong><span>Score de santé business, calculé à partir de vos données</span></div>`;
   }
   if (grid) {
-    const insights = Array.isArray(data?.insights) ? data.insights.slice(0, 6) : [];
+    const insights = Array.isArray(data?.insights) ? data.insights.slice(0, 6).filter(ins => ins && typeof ins === 'object') : [];
     grid.innerHTML = insights.length
-      ? insights.map(ins => `
-        <div class="ai-insight-card tone-${escHtml(String(ins.tone || 'neutral'))}">
-          <i class="fa fa-${escHtml(String(ins.icon || 'circle-info'))}"></i>
+      ? insights.map(ins => {
+          const tone = AI_INSIGHT_TONES.has(String(ins.tone)) ? String(ins.tone) : 'neutral';
+          const icon = AI_INSIGHT_ICONS.has(String(ins.icon)) ? String(ins.icon) : 'circle-info';
+          return `
+        <div class="ai-insight-card tone-${tone}">
+          <i class="fa fa-${icon}"></i>
           <div><strong>${escHtml(ins.title || '')}</strong><span>${escHtml(ins.detail || '')}</span></div>
-        </div>`).join('')
+        </div>`;
+        }).join('')
       : `<div class="analytics-empty">Sauvegardez des factures pour activer l'analyse IA.</div>`;
   }
 }
 
 async function generateAiInsights(force = false) {
   if (!S.authUser) return;
+  if (aiInsightsBusy) return;
   if (aiInsightsLoaded && !force) return;
   const grid = document.getElementById('ai-insights-grid');
-  const model = window.firebaseServices?.aiModel;
-  if (!model) {
+  if (!isAiEngineReady()) {
     if (grid) grid.innerHTML = `<div class="analytics-empty">Assistant IA indisponible pour le moment.</div>`;
     return;
   }
   if (grid) grid.innerHTML = `<div class="ai-loading"><span class="spinner"></span> Analyse de vos données en cours...</div>`;
+  aiInsightsBusy = true;
   try {
     const context = buildBusinessContext();
-    const result = await model.generateContent(buildAiInsightsPrompt(context));
-    const responseText = result?.response?.text ? result.response.text() : '';
-    const data = parseAiJson(responseText);
+    const data = await callAiEngine(buildAiInsightsPrompt(context));
     renderAiInsights(data);
     aiInsightsLoaded = true;
   } catch (err) {
     console.error(err);
     if (grid) grid.innerHTML = `<div class="analytics-empty">Analyse IA indisponible pour le moment. Réessayez plus tard.</div>`;
+  } finally {
+    aiInsightsBusy = false;
+  }
+}
+
+function refreshAiInsights() {
+  generateAiInsights(true);
+}
+
+// ── global AI sidebar (floating button entry point) ──
+function openAiSidebar() {
+  document.getElementById('ai-sidebar-backdrop')?.classList.add('open');
+  updateAiSidebarContext();
+  renderAiDraftCheckCard();
+  const businessSection = document.getElementById('ai-business-section');
+  const loginNote = document.getElementById('ai-login-note');
+  if (S.authUser) {
+    if (businessSection) businessSection.style.display = '';
+    if (loginNote) loginNote.style.display = 'none';
+    generateAiInsights();
+  } else {
+    if (businessSection) businessSection.style.display = 'none';
+    if (loginNote) loginNote.style.display = '';
+  }
+  setTimeout(() => document.getElementById('ai-chat-input')?.focus(), 200);
+}
+
+function closeAiSidebar() {
+  document.getElementById('ai-sidebar-backdrop')?.classList.remove('open');
+}
+
+function handleAiSidebarBackdrop(e) {
+  if (e.target?.id === 'ai-sidebar-backdrop') closeAiSidebar();
+}
+
+function updateAiSidebarContext() {
+  const badge = document.getElementById('ai-sidebar-context');
+  if (!badge) return;
+  const labels = {
+    'editor:facture': 'Facture en cours',
+    'editor:devis': 'Devis en cours',
+    'account:overview': 'Tableau de bord',
+    'account:projects': 'Projets',
+    'account:history': 'Historique des factures',
+    'account:clients': 'Clients',
+    'account:products': 'Produits',
+    'account:profile': 'Société',
+    'home': 'Accueil'
+  };
+  badge.textContent = labels[getAiContext().page] || 'Tableau de bord';
+}
+
+// ── editor-context AI: check the document currently being edited ──
+let aiDraftCheckBusy = false;
+
+function buildDraftContext() {
+  syncItemsFromForm();
+  const profile = getCountryProfile();
+  const subtotal = S.items.reduce((s, i) => s + cleanNumber(i.qty) * cleanNumber(i.price), 0);
+  const tvaAmt = S.tva ? S.items.reduce((s, i) => s + cleanNumber(i.qty) * cleanNumber(i.price) * (cleanNumber(i.tvaRate) / 100), 0) : 0;
+  return {
+    docType: S.docType,
+    docSector: S.docSector,
+    country: S.country,
+    currency: S.currency || profile.currency,
+    tvaEnabled: S.tva,
+    clientName: document.getElementById('c-name')?.value || '',
+    clientAddress: document.getElementById('c-addr')?.value || '',
+    object: document.getElementById('f-object')?.value || '',
+    notes: document.getElementById('f-notes')?.value || '',
+    items: S.items.map(i => ({ desc: i.desc, qty: i.qty, unit: i.unit, price: i.price, tvaRate: i.tvaRate })),
+    subtotal,
+    tva: tvaAmt,
+    total: subtotal + tvaAmt
+  };
+}
+
+function buildAiDraftCheckPrompt(draft) {
+  return `Tu es l'assistant intégré à FacturePro, un générateur de factures. Analyse UNIQUEMENT le document JSON fourni ci-dessous : c'est le brouillon de ${draft.docType === 'devis' ? 'devis' : 'facture'} actuellement en cours de création par l'utilisateur. N'invente aucune information absente du document.
+
+Document (JSON) :
+${JSON.stringify(draft)}
+
+Vérifie : mentions manquantes (client, adresse, objet), cohérence de la TVA, lignes vagues ou peu professionnelles, doublons de lignes, total incohérent. Réponds UNIQUEMENT avec un objet JSON valide de cette forme exacte, en français :
+{
+  "status": "ok ou warning ou issue",
+  "summary": "1 phrase résumant l'état général du document",
+  "findings": [
+    {"severity": "info ou warn ou bad", "message": "observation ou recommandation courte et actionnable"}
+  ]
+}
+Génère entre 1 et 5 findings maximum, les plus importants en premier. Si tout est correct, renvoie status "ok" avec un seul finding "info" confirmant que le document est prêt.`;
+}
+
+function renderAiDraftCheckResult(data) {
+  const box = document.getElementById('ai-draft-check-result');
+  if (!box) return;
+  const findings = Array.isArray(data?.findings) ? data.findings.slice(0, 5) : [];
+  const statusIcon = { ok: 'circle-check', warning: 'triangle-exclamation', issue: 'circle-xmark' }[data?.status] || 'circle-info';
+  box.innerHTML = `
+    <div class="ai-draft-summary"><i class="fa fa-${escHtml(statusIcon)}"></i> ${escHtml(data?.summary || '')}</div>
+    ${findings.map(f => {
+      const sev = ['info', 'warn', 'bad'].includes(String(f.severity)) ? String(f.severity) : 'info';
+      return `<div class="ai-draft-finding sev-${sev}"><i class="fa fa-${sev === 'bad' ? 'circle-xmark' : sev === 'warn' ? 'triangle-exclamation' : 'circle-info'}"></i> ${escHtml(f.message || '')}</div>`;
+    }).join('')}`;
+}
+
+async function checkCurrentDraftWithAi() {
+  if (aiDraftCheckBusy) return;
+  const box = document.getElementById('ai-draft-check-result');
+  if (!isAiEngineReady()) {
+    if (box) box.innerHTML = `<div class="analytics-empty">Assistant IA indisponible pour le moment.</div>`;
+    return;
+  }
+  if (box) box.innerHTML = `<div class="ai-loading"><span class="spinner"></span> Vérification en cours...</div>`;
+  aiDraftCheckBusy = true;
+  try {
+    const draft = buildDraftContext();
+    const data = await callAiEngine(buildAiDraftCheckPrompt(draft));
+    renderAiDraftCheckResult(data);
+  } catch (err) {
+    console.error(err);
+    if (box) box.innerHTML = `<div class="analytics-empty">Vérification IA indisponible pour le moment. Réessayez plus tard.</div>`;
+  } finally {
+    aiDraftCheckBusy = false;
+  }
+}
+
+function renderAiDraftCheckCard() {
+  const section = document.getElementById('ai-draft-check-section');
+  if (!section) return;
+  const inEditor = getAiContext().page.startsWith('editor:');
+  section.style.display = inEditor ? '' : 'none';
+  if (!inEditor) return;
+  section.innerHTML = `
+    <div class="ai-draft-check-card">
+      <div class="ai-draft-check-head"><i class="fa fa-file-circle-check"></i> Vérifier ce document</div>
+      <p>Laissez l'IA relire ${S.docType === 'devis' ? 'ce devis' : 'cette facture'} avant l'envoi : TVA, mentions manquantes, descriptions à améliorer.</p>
+      <button class="btn btn-primary btn-sm" onclick="checkCurrentDraftWithAi()"><i class="fa fa-magnifying-glass"></i> Vérifier maintenant</button>
+      <div id="ai-draft-check-result"></div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// AI COMMAND CENTER (Ctrl/Cmd+K)
+// Real navigation + actions only — no fabricated modules.
+// ═══════════════════════════════════════════════════════
+const AI_COMMANDS = [
+  { label: 'Créer une facture', icon: 'file-invoice', keywords: 'nouvelle facture invoice create', run: () => openEditor('facture') },
+  { label: 'Créer un devis', icon: 'file-lines', keywords: 'nouveau devis quote create', run: () => openEditor('devis') },
+  { label: 'Voir le tableau de bord', icon: 'chart-line', keywords: 'dashboard stats revenue statistiques', run: () => { openAccount(); showAccountPanel('overview'); } },
+  { label: 'Voir mes factures / impayées / en retard', icon: 'clock-rotate-left', keywords: 'unpaid overdue impaye retard historique factures', run: () => { openAccount(); showAccountPanel('history'); } },
+  { label: 'Voir mes clients', icon: 'address-book', keywords: 'clients customers', run: () => { openAccount(); showAccountPanel('clients'); } },
+  { label: 'Voir mes produits', icon: 'box', keywords: 'produits products services', run: () => { openAccount(); showAccountPanel('products'); } },
+  { label: 'Voir mes projets sauvegardés', icon: 'folder-open', keywords: 'projects projets', run: () => { openAccount(); showAccountPanel('projects'); } },
+  { label: 'Exporter l\'historique en CSV', icon: 'file-csv', keywords: 'export csv historique', run: () => { openAccount(); showAccountPanel('history'); exportHistoryCsv(); } },
+  { label: 'Ouvrir l\'assistant IA', icon: 'wand-magic-sparkles', keywords: 'ai assistant ia chat', run: () => openAiSidebar() },
+  { label: 'Ajouter les mentions légales obligatoires', icon: 'scale-balanced', keywords: 'mentions legales tva penalite retard', run: () => addLegalMentions() },
+  { label: 'Changer le thème clair / sombre', icon: 'circle-half-stroke', keywords: 'dark light theme mode sombre clair', run: () => toggleAppTheme() },
+  { label: 'Ouvrir mon compte', icon: 'user', keywords: 'account compte profil', run: () => openAccount() },
+];
+
+let cmdkFlatResults = [];
+let cmdkActiveIdx = -1;
+
+function getCmdkClientMatches(query) {
+  if (!S.authUser || query.length < 2) return [];
+  const q = query.toLowerCase();
+  return loadAccountList('clients')
+    .filter(c => String(c.name || '').toLowerCase().includes(q) || String(c.email || '').toLowerCase().includes(q))
+    .slice(0, 5);
+}
+
+function filterCmdkResults() {
+  const input = document.getElementById('cmdk-input');
+  const query = (input?.value || '').trim().toLowerCase();
+  const results = document.getElementById('cmdk-results');
+  if (!results) return;
+  const commandMatches = !query
+    ? AI_COMMANDS
+    : AI_COMMANDS.filter(c => (c.label + ' ' + c.keywords).toLowerCase().includes(query));
+  const clientMatches = getCmdkClientMatches(query);
+  cmdkFlatResults = [];
+  let html = '';
+  if (commandMatches.length) {
+    html += `<div class="cmdk-group-label">Actions</div>`;
+    commandMatches.forEach(c => {
+      cmdkFlatResults.push(c.run);
+      const idx = cmdkFlatResults.length - 1;
+      html += `<button class="cmdk-item" type="button" onclick="runCmdkResult(${idx})"><i class="fa fa-${escHtml(c.icon)}"></i> <span>${escHtml(c.label)}</span></button>`;
+    });
+  }
+  if (clientMatches.length) {
+    html += `<div class="cmdk-group-label">Clients</div>`;
+    clientMatches.forEach(cl => {
+      cmdkFlatResults.push(() => applySavedClient(cl.id));
+      const idx = cmdkFlatResults.length - 1;
+      html += `<button class="cmdk-item" type="button" onclick="runCmdkResult(${idx})"><i class="fa fa-user"></i> <span>${escHtml(cl.name || cl.email || 'Client')}</span></button>`;
+    });
+  }
+  results.innerHTML = html || `<div class="analytics-empty">Aucun résultat pour « ${escHtml(query)} »</div>`;
+  cmdkActiveIdx = -1;
+}
+
+function runCmdkResult(idx) {
+  const action = cmdkFlatResults[idx];
+  if (!action) return;
+  closeCmdk();
+  action();
+}
+
+function openCmdk() {
+  document.getElementById('cmdk-backdrop')?.classList.add('open');
+  const input = document.getElementById('cmdk-input');
+  if (input) input.value = '';
+  filterCmdkResults();
+  setTimeout(() => input?.focus(), 50);
+}
+
+function closeCmdk() {
+  document.getElementById('cmdk-backdrop')?.classList.remove('open');
+}
+
+function handleCmdkBackdrop(e) {
+  if (e.target?.id === 'cmdk-backdrop') closeCmdk();
+}
+
+function moveCmdkSelection(delta) {
+  if (!cmdkFlatResults.length) return;
+  cmdkActiveIdx = (cmdkActiveIdx + delta + cmdkFlatResults.length) % cmdkFlatResults.length;
+  const items = document.querySelectorAll('#cmdk-results .cmdk-item');
+  items.forEach((el, i) => el.classList.toggle('active', i === cmdkActiveIdx));
+  items[cmdkActiveIdx]?.scrollIntoView({ block: 'nearest' });
+}
+
+function handleCmdkKeydown(e) {
+  if (e.key === 'Escape') { closeCmdk(); return; }
+  if (e.key === 'ArrowDown') { e.preventDefault(); moveCmdkSelection(1); return; }
+  if (e.key === 'ArrowUp') { e.preventDefault(); moveCmdkSelection(-1); return; }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (!cmdkFlatResults.length) return;
+    runCmdkResult(cmdkActiveIdx >= 0 ? cmdkActiveIdx : 0);
   }
 }
 
@@ -1886,14 +2171,57 @@ function handleAiChatKeydown(e) {
   }
 }
 
+// ── voice input for the AI chat (Web Speech API, client-side only) ──
+const AI_VOICE_LOCALES = { fr: 'fr-FR', en: 'en-US', es: 'es-ES', de: 'de-DE', it: 'it-IT' };
+let aiRecognition = null;
+let aiListening = false;
+
+function isAiVoiceInputSupported() {
+  return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+
+function toggleAiVoiceInput() {
+  if (!isAiVoiceInputSupported()) return;
+  const micBtn = document.getElementById('ai-mic-btn');
+  if (aiListening) {
+    aiRecognition?.stop();
+    return;
+  }
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  aiRecognition = new SpeechRecognitionCtor();
+  aiRecognition.lang = AI_VOICE_LOCALES[S.lang] || 'fr-FR';
+  aiRecognition.interimResults = false;
+  aiRecognition.maxAlternatives = 1;
+  aiRecognition.onstart = () => { aiListening = true; micBtn?.classList.add('listening'); };
+  aiRecognition.onend = () => { aiListening = false; micBtn?.classList.remove('listening'); };
+  aiRecognition.onerror = (event) => {
+    aiListening = false;
+    micBtn?.classList.remove('listening');
+    if (event?.error === 'no-speech') return;
+    const message = event?.error === 'not-allowed' || event?.error === 'service-not-allowed'
+      ? 'Micro refusé. Autorisez l\'accès au micro dans votre navigateur pour dicter votre question.'
+      : 'Dictée vocale indisponible pour le moment.';
+    showNotif(message, 'info');
+  };
+  aiRecognition.onresult = (event) => {
+    const transcript = event.results?.[0]?.[0]?.transcript || '';
+    const input = document.getElementById('ai-chat-input');
+    if (input && transcript) { input.value = transcript; input.focus(); }
+  };
+  try { aiRecognition.start(); } catch {
+    aiListening = false;
+    micBtn?.classList.remove('listening');
+    showNotif('Dictée vocale indisponible pour le moment.', 'info');
+  }
+}
+
 async function sendAiChatMessage() {
   if (aiChatBusy) return;
   const input = document.getElementById('ai-chat-input');
   const btn = document.getElementById('ai-chat-send-btn');
   const question = input?.value?.trim() || '';
   if (!question) return;
-  const model = window.firebaseServices?.aiModel;
-  if (!model) { showNotif('Assistant IA indisponible pour le moment.', 'info'); return; }
+  if (!isAiEngineReady()) { showNotif('Assistant IA indisponible pour le moment.', 'info'); return; }
 
   input.value = '';
   appendAiChatBubble('user', question);
@@ -1912,9 +2240,7 @@ async function sendAiChatMessage() {
   try {
     const context = buildBusinessContext();
     const recentHistory = aiChatHistory.slice(-7, -1);
-    const result = await model.generateContent(buildAiChatPrompt(context, recentHistory, question));
-    const responseText = result?.response?.text ? result.response.text() : '';
-    const data = parseAiJson(responseText);
+    const data = await callAiEngine(buildAiChatPrompt(context, recentHistory, question));
     document.getElementById('ai-chat-typing')?.remove();
     const reply = String(data.reply || '').trim() || 'Je n\'ai pas pu générer de réponse. Réessayez.';
     appendAiChatBubble('assistant', reply);
@@ -2249,6 +2575,7 @@ function formatMonthLabel(key) {
 function clearAccountHistory() {
   if (!S.authUser) return;
   try { localStorage.removeItem(getAccountStorageKey('history')); } catch {}
+  aiInsightsLoaded = false;
   renderAccountHistory();
   renderAccountOverview();
   showNotif('Historique effacé', 'info');
@@ -4154,6 +4481,13 @@ document.addEventListener('DOMContentLoaded', () => {
         undoLastAction();
       }
     }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      const cmdkOpen = document.getElementById('cmdk-backdrop')?.classList.contains('open');
+      if (cmdkOpen) { closeCmdk(); return; }
+      if (document.getElementById('ai-sidebar-backdrop')?.classList.contains('open')) closeAiSidebar();
+      openCmdk();
+    }
     if (e.key === 'Escape') {
       const modalClosers = {
         'auth-modal': closeAuth,
@@ -4161,6 +4495,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'pdf-success-modal': closePdfSuccess,
         'legal-modal': closeLegal,
         'feedback-modal': closeFeedback,
+        'ai-sidebar-backdrop': closeAiSidebar,
+        'cmdk-backdrop': closeCmdk,
       };
       Object.entries(modalClosers).forEach(([id, closeFn]) => {
         const modal = document.getElementById(id);
@@ -4169,4 +4505,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   if (typeof updateUndoButtonState === 'function') updateUndoButtonState();
+  const micBtn = document.getElementById('ai-mic-btn');
+  if (micBtn) micBtn.style.display = isAiVoiceInputSupported() ? '' : 'none';
 });
