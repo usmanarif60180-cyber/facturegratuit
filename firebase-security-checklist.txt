@@ -22,10 +22,23 @@ FacturePro Firebase security checklist
 - Keep per-file upload size small, for example 10 MB.
 - Use app/dashboard cleanup for old documents.
 
-4. 500 MB quota
-- Client UI already displays a 500 MB account quota and optional auto-cleanup.
-- Real cloud quota enforcement requires a server check or Cloud Function.
-- If staying on free Spark plan, keep cloud uploads conservative.
+4. Account storage quota (800 KB)
+- The whole account (profile/history/projects/clients/products) syncs to a
+  single Firestore document at users/{uid}, which has a hard, non-negotiable
+  1 MB (1,048,576 byte) limit per document - this is a Firestore platform
+  limit, not something rules or app code can raise.
+- Client UI enforces an 800 KB quota (ACCOUNT_STORAGE_QUOTA_BYTES in app.js)
+  with a safety margin under that 1 MB ceiling, plus optional auto-cleanup.
+- Per-image uploads (logo/stamp/signature) are capped client-side to stay
+  well under this budget even across multiple saved companies.
+- This is enforced entirely client-side; a technical user could bypass the
+  JS check, but Firestore's own 1 MB document limit is the real backstop -
+  any write beyond it is rejected by Firestore itself, not by our code.
+- If genuinely large per-user storage (hundreds of MB) is needed later, the
+  account data model needs to move from one big document to per-record
+  Firestore subcollections (and large binary assets like logos into Firebase
+  Storage instead of inline base64) - that is a real architecture change,
+  not a config tweak.
 
 5. App Check
 - Enable App Check for Web app if available on your plan/settings.
