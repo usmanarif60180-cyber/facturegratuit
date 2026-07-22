@@ -1,5 +1,8 @@
 rules_version = '2';
 
+// IVOXA data model: every business document lives under
+// organizations/{organizationId}/{collection}/{docId}, scoped by the
+// requesting user's organizationId on their /users/{uid} profile.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
@@ -10,31 +13,153 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
-    function validAccountDoc() {
-      return request.resource.data.keys().hasOnly([
-        'profile',
-        'history',
-        'projects',
-        'clients',
-        'products',
-        'storageUsedBytes',
-        'updatedAt'
-      ]);
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    match /users/{userId} {
-      allow create, read, update, delete: if isOwner(userId) && validAccountDoc();
+    function belongsToOrg(organizationId) {
+      return signedIn() && userDoc().organizationId == organizationId;
+    }
 
-      match /{collectionName}/{docId} {
-        allow read, create, update, delete: if isOwner(userId)
-          && collectionName in ['history', 'projects', 'clients', 'products', 'feedback'];
+    function isOrgAdmin(organizationId) {
+      return belongsToOrg(organizationId) && userDoc().role in ['owner', 'admin'];
+    }
+
+    function canWrite(organizationId) {
+      return belongsToOrg(organizationId) && userDoc().role != 'viewer';
+    }
+
+    // --- User profiles ---
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      // Users may edit their own profile. organizationId ("active workspace")
+      // may only be reassigned to an org this user owns — this is what lets
+      // the workspace switcher work while still blocking self-reassignment
+      // into someone else's org. A future memberIds-on-org model can widen
+      // this to "owns OR is a member of" without touching anything else.
+      allow update: if isOwner(userId)
+        && (request.resource.data.organizationId == resource.data.organizationId
+            || get(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)).data.ownerId == request.auth.uid);
+      allow delete: if false;
+    }
+
+    // --- Organizations + org-scoped business data ---
+    match /organizations/{organizationId} {
+      // Readable by the currently-active member, or by the owner listing
+      // their other workspaces for the switcher (before switching into them).
+      allow read: if belongsToOrg(organizationId) || (signedIn() && resource.data.ownerId == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update: if isOrgAdmin(organizationId);
+      allow delete: if false;
+
+      match /clients/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /products/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /invoices/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /quotes/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /expenses/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /notifications/{docId} {
+        allow read, update, delete: if belongsToOrg(organizationId);
+        // No Cloud Functions backend exists yet — notifications are
+        // created client-side as a side effect of other actions (invoice
+        // paid, quote accepted, ...), same trust level as any other
+        // org-scoped write. Revisit if/when a server-side trigger lands.
+        allow create: if canWrite(organizationId);
+      }
+
+      match /activity_logs/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create: if belongsToOrg(organizationId);
+        allow update, delete: if false;
+      }
+
+      match /leads/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /companies/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /contact_persons/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /tasks/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if canWrite(organizationId);
+      }
+
+      match /payments/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if isOrgAdmin(organizationId);
+      }
+
+      match /inventory_movements/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create: if canWrite(organizationId);
+        allow update, delete: if false;
+      }
+
+      match /subscriptions/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow write: if false; // managed server-side (Cloud Functions / billing webhook) only
+      }
+
+      match /saved_designs/{docId} {
+        allow read: if belongsToOrg(organizationId);
+        allow create, update: if canWrite(organizationId);
+        allow delete: if canWrite(organizationId);
       }
     }
 
-    match /publicFeedback/{feedbackId} {
-      allow create: if signedIn()
-        && request.resource.data.message is string
-        && request.resource.data.message.size() <= 3000;
+    // Public marketing contact form — write-only, no auth required.
+    match /contact_messages/{messageId} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'email', 'message', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 200
+        && request.resource.data.email is string && request.resource.data.email.size() <= 200
+        && request.resource.data.message is string && request.resource.data.message.size() <= 5000;
+      allow read, update, delete: if false;
+    }
+
+    // Public newsletter signup — write-only, no auth required.
+    match /newsletter_subscribers/{subscriberId} {
+      allow create: if request.resource.data.keys().hasOnly(['email', 'source', 'createdAt'])
+        && request.resource.data.email is string && request.resource.data.email.size() <= 200
+        && request.resource.data.source is string && request.resource.data.source.size() <= 100;
       allow read, update, delete: if false;
     }
 

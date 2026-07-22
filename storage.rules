@@ -6,8 +6,9 @@ service firebase.storage {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return signedIn() && request.auth.uid == userId;
+    function belongsToOrg(organizationId) {
+      return signedIn() &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.organizationId == organizationId;
     }
 
     function allowedImage() {
@@ -18,12 +19,13 @@ service firebase.storage {
       return request.resource.contentType == 'application/pdf';
     }
 
-    match /users/{userId}/{allPaths=**} {
-      allow read: if isOwner(userId);
-      allow write: if isOwner(userId)
+    // organizations/{organizationId}/logos|receipts|signatures/**
+    match /organizations/{organizationId}/{allPaths=**} {
+      allow read: if belongsToOrg(organizationId);
+      allow write: if belongsToOrg(organizationId)
         && request.resource.size <= 10 * 1024 * 1024
         && (allowedImage() || allowedPdf());
-      allow delete: if isOwner(userId);
+      allow delete: if belongsToOrg(organizationId);
     }
 
     match /{allPaths=**} {
