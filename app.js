@@ -808,7 +808,7 @@ function renderAccountModal() {
   renderAccountHistory();
 }
 
-const ACCOUNT_PANELS = ['overview','projects','history','clients','products','profile','personal','security','appearance','language','storage','privacy','danger'];
+const ACCOUNT_PANELS = ['overview','projects','history','clients','products','profile','personal','security','appearance','language','storage','payments','privacy','danger'];
 
 function showAccountPanel(panel='overview') {
   S.currentAccountPanel = panel;

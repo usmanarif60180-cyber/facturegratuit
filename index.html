@@ -2347,6 +2347,7 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-ghost btn-sm" id="account-tab-appearance" onclick="showAccountPanel('appearance')"><i class="fa fa-circle-half-stroke"></i> Apparence</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-language" onclick="showAccountPanel('language')"><i class="fa fa-language"></i> Langue &amp; Région</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-storage" onclick="showAccountPanel('storage')"><i class="fa fa-cloud"></i> Stockage</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-payments" onclick="showAccountPanel('payments')"><i class="fa fa-credit-card"></i> Paiements</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-privacy" onclick="showAccountPanel('privacy')"><i class="fa fa-user-shield"></i> Confidentialité</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-danger" onclick="showAccountPanel('danger')"><i class="fa fa-triangle-exclamation"></i> Supprimer le compte</button>
         </div>
@@ -2519,6 +2520,42 @@ body.home-mode .home-mobile-cta { display: none; }
 
       <div class="account-panel" id="account-panel-storage">
         <div id="account-storage-panel"></div>
+      </div>
+
+      <div class="account-panel" id="account-panel-payments">
+        <div class="panel-note">FacturePro reste 100% gratuit pour le moment — aucune carte requise. Ces moyens de paiement arriveront avec les offres Pro/Business, via un prestataire sécurisé (Stripe ou équivalent). Aucune information de paiement n'est collectée ni stockée aujourd'hui.</div>
+        <div class="payment-methods-grid">
+          <div class="payment-method-card">
+            <div class="payment-method-icon"><i class="fa fa-credit-card"></i></div>
+            <div class="payment-method-body">
+              <strong>Carte bancaire</strong>
+              <div class="payment-method-networks"><i class="fa-brands fa-cc-visa" title="Visa"></i><i class="fa-brands fa-cc-mastercard" title="Mastercard"></i><i class="fa-brands fa-cc-amex" title="American Express"></i></div>
+            </div>
+            <span class="soon-badge">Bientôt disponible</span>
+          </div>
+          <div class="payment-method-card">
+            <div class="payment-method-icon"><i class="fa-brands fa-paypal"></i></div>
+            <div class="payment-method-body"><strong>PayPal</strong></div>
+            <span class="soon-badge">Bientôt disponible</span>
+          </div>
+          <div class="payment-method-card">
+            <div class="payment-method-icon"><i class="fa-brands fa-apple-pay"></i></div>
+            <div class="payment-method-body"><strong>Apple Pay</strong></div>
+            <span class="soon-badge">Bientôt disponible</span>
+          </div>
+          <div class="payment-method-card">
+            <div class="payment-method-icon"><i class="fa-brands fa-google-pay"></i></div>
+            <div class="payment-method-body"><strong>Google Pay</strong></div>
+            <span class="soon-badge">Bientôt disponible</span>
+          </div>
+        </div>
+        <div class="account-detail-row" style="margin:20px 0 12px"><strong>Abonnement</strong></div>
+        <div class="plan-mini-grid">
+          <div class="plan-mini-card active"><strong>Free</strong><span>Plan actuel</span></div>
+          <div class="plan-mini-card"><strong>Pro</strong><span class="soon-badge">Bientôt disponible</span></div>
+          <div class="plan-mini-card"><strong>Business</strong><span class="soon-badge">Bientôt disponible</span></div>
+          <div class="plan-mini-card"><strong>Enterprise</strong><span class="soon-badge">Bientôt disponible</span></div>
+        </div>
       </div>
 
       <div class="account-panel" id="account-panel-privacy">
