@@ -105,6 +105,13 @@
   .auth-actions { position: relative; display: flex; align-items: center; gap: 8px; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--border); }
   .account-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; overflow: hidden; }
   .account-avatar { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg,var(--brand),var(--brand-2)); color: #fff; font-weight: 800; font-size: 13px; }
+  .account-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .personal-avatar-row { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .personal-avatar-frame { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; flex: 0 0 auto; border: 1px solid var(--border-strong); }
+  .personal-avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .personal-avatar-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.05); color: var(--ink-dim); font-size: 24px; }
+  .personal-avatar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .personal-avatar-hint { font-size: 10px; color: var(--ink-dim); width: 100%; }
   .account-menu { position: absolute; top: 40px; right: 0; min-width: 210px; background: rgba(15,23,42,.98); border: 1px solid var(--border-strong); border-radius: 10px; padding: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.45); display: none; z-index: 80; }
   body.light .account-menu, body.light .auth-modal { background: rgba(255,255,255,.98); }
   .account-menu.open { display: block; animation: fadeUp .16s ease both; }
