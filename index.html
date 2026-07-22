@@ -2335,6 +2335,7 @@ body.home-mode .home-mobile-cta { display: none; }
         <button class="btn btn-ghost btn-sm" id="account-tab-clients" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i> Clients</button>
         <button class="btn btn-ghost btn-sm" id="account-tab-products" onclick="showAccountPanel('products')"><i class="fa fa-box"></i> Produits</button>
         <button class="btn btn-ghost btn-sm" id="account-tab-profile" onclick="showAccountPanel('profile')"><i class="fa fa-building"></i> Société</button>
+        <button class="btn btn-ghost btn-sm" id="account-tab-personal" onclick="showAccountPanel('personal')"><i class="fa fa-id-badge"></i> Profil</button>
       </div>
       <div class="account-panel active" id="account-panel-overview">
         <div class="panel-note">Dashboard privé: visible seulement après login. Les projets, clients, produits, société et historique sont synchronisés avec votre compte Firebase quand la connexion cloud est disponible. Les analytics utilisent uniquement vos vraies factures sauvegardées, sans données fake. Limite compte: 800 KB par utilisateur.</div>
@@ -2410,6 +2411,40 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-ghost btn-sm" onclick="applyEditingProfileToEditor()"><i class="fa fa-wand-magic-sparkles"></i> Appliquer à la facture</button>
           <button class="btn btn-danger btn-sm" onclick="clearAccountProfile()"><i class="fa fa-trash"></i> Supprimer cette société</button>
         </div>
+      </div>
+      <div class="account-panel" id="account-panel-personal">
+        <div class="personal-avatar-row">
+          <div class="personal-avatar-frame">
+            <img id="acct-avatar-preview" alt="Photo de profil" style="display:none">
+            <div id="acct-avatar-placeholder" class="personal-avatar-placeholder"><i class="fa fa-user"></i></div>
+          </div>
+          <div class="personal-avatar-actions">
+            <label class="btn btn-ghost btn-sm" for="acct-avatar-file"><i class="fa fa-camera"></i> Changer la photo</label>
+            <input type="file" id="acct-avatar-file" accept="image/*" style="display:none" onchange="handlePersonalAvatarUpload(event)">
+            <button class="btn btn-ghost btn-sm" onclick="removePersonalAvatar()"><i class="fa fa-trash"></i> Retirer</button>
+            <span class="personal-avatar-hint">PNG, JPG, WebP · Max 300 KB</span>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label" for="acct-personal-name">Nom</label><input class="form-input" id="acct-personal-name" placeholder="Votre nom"></div>
+          <div class="form-group"><label class="form-label" for="acct-personal-address">Adresse personnelle</label><input class="form-input" id="acct-personal-address" placeholder="Votre adresse"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="savePersonalProfileForm()"><i class="fa fa-floppy-disk"></i> Sauvegarder le profil</button>
+
+        <div class="account-detail-row" style="margin:20px 0 12px">
+          <strong>Changer le mot de passe</strong>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label" for="acct-current-password">Mot de passe actuel</label><input class="form-input" id="acct-current-password" type="password" autocomplete="current-password"></div>
+          <div class="form-group"><label class="form-label" for="acct-new-password">Nouveau mot de passe</label><input class="form-input" id="acct-new-password" type="password" autocomplete="new-password"></div>
+        </div>
+        <div class="form-group"><label class="form-label" for="acct-confirm-password">Confirmer le nouveau mot de passe</label><input class="form-input" id="acct-confirm-password" type="password" autocomplete="new-password"></div>
+        <button class="btn btn-primary btn-sm" id="change-password-btn" onclick="changeAccountPassword()"><i class="fa fa-key"></i> Changer le mot de passe</button>
+
+        <div class="account-detail-row" style="margin:20px 0 12px">
+          <strong>Moyens de paiement</strong>
+        </div>
+        <div class="panel-note">Carte bancaire, PayPal, Apple Pay et Google Pay arriveront avec les offres Pro/Business, marquées <strong>Bientôt disponible</strong> sur la page tarifs. FacturePro reste 100% gratuit pour le moment, aucune carte n'est requise.</div>
       </div>
       <div class="grid-2" style="margin-top:14px">
         <button class="btn btn-ghost btn-sm" id="verify-email-btn" onclick="sendVerificationEmail()"><i class="fa fa-envelope-circle-check"></i> Vérifier email</button>
@@ -2604,7 +2639,10 @@ import {
   sendEmailVerification,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import {
   getAI,
@@ -2660,6 +2698,9 @@ window.firebaseServices = {
   sendEmailVerification,
   signOut,
   updateProfile,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
   aiModel: firebaseAIModel
 };
 window.firestoreDoc = doc;
