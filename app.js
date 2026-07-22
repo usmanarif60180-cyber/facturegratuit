@@ -362,7 +362,7 @@ const LEGAL_PAGES = {
       <h3>Compte utilisateur Firebase</h3>
       <p>Si vous utilisez signup/login, Firebase Authentication peut traiter votre email, identifiant utilisateur et informations de connexion pour permettre l'accès au compte.</p>
       <h3>Sauvegarde compte et limite de stockage</h3>
-      <p>Le compte peut sauvegarder le profil société, projets, clients, produits/services et historique dans le cloud Firebase associé à l'utilisateur connecté. Une limite de 500 MB par utilisateur est prévue afin de garder le stockage Firebase maîtrisé.</p>
+      <p>Le compte peut sauvegarder le profil société, projets, clients, produits/services et historique dans le cloud Firebase associé à l'utilisateur connecté. Une limite de 800 KB par utilisateur est appliquée (marge de sécurité sous la limite technique de 1 MB par document Firestore) afin de garder le stockage Firebase fonctionnel.</p>
       <p>Les fichiers uploadés, comme logo, signature ou cachet, doivent être des fichiers raisonnables et utiles au document. Les anciens projets ou assets peuvent être supprimés depuis le compte pour libérer de l'espace.</p>
       <h3>Google Analytics et Google AdSense</h3>
       <p>Nous utilisons Google Analytics pour mesurer l'audience et pouvons utiliser Google AdSense pour afficher des annonces. Google et ses partenaires peuvent utiliser des cookies ou technologies similaires pour diffuser, mesurer et personnaliser les annonces selon leurs propres règles.</p>
@@ -380,7 +380,7 @@ const LEGAL_PAGES = {
       <p>FacturePro utilise Firebase Authentication pour la connexion email/mot de passe. Chaque utilisateur doit protéger son mot de passe et utiliser une adresse email valide pour récupérer son compte.</p>
       <div class="security-list">
         <div class="security-item"><i class="fa fa-user-lock"></i><span><strong style="color:var(--ink)">Accès privé :</strong> les données de compte doivent rester associées à l'utilisateur connecté.</span></div>
-        <div class="security-item"><i class="fa fa-cloud"></i><span><strong style="color:var(--ink)">Stockage maîtrisé :</strong> une limite de 500 MB par utilisateur est prévue pour éviter les abus et garder Firebase manageable.</span></div>
+        <div class="security-item"><i class="fa fa-cloud"></i><span><strong style="color:var(--ink)">Stockage maîtrisé :</strong> une limite de 800 KB par utilisateur est appliquée pour éviter les abus et rester sous la limite technique de Firestore.</span></div>
         <div class="security-item"><i class="fa fa-file-shield"></i><span><strong style="color:var(--ink)">Uploads contrôlés :</strong> logo, signature et cachet doivent rester limités aux fichiers utiles, comme PNG, JPG, WebP ou SVG raisonnables.</span></div>
         <div class="security-item"><i class="fa fa-ban"></i><span><strong style="color:var(--ink)">Aucun secret public :</strong> les clés privées, tokens serveur ou clés API sensibles ne doivent jamais être placés dans le fichier index.html.</span></div>
       </div>
@@ -799,7 +799,17 @@ function getAccountStorageKey(suffix) {
   return `facturepro-account-${key}-${suffix}`;
 }
 
-const ACCOUNT_STORAGE_QUOTA_BYTES = 500 * 1024 * 1024;
+// Le compte cloud est un seul document Firestore par utilisateur (users/{uid}),
+// dont la limite réelle et non négociable est 1 MiB (1 048 576 octets) par
+// document — c'est Firestore qui l'impose, pas un choix de l'app. Le quota
+// ci-dessous reste sous cette limite avec une marge de sécurité, afin que ce
+// contrôle côté client (et le nettoyage auto) se déclenche AVANT que Firestore
+// ne refuse l'écriture. Ne jamais fixer cette valeur au-dessus de ~950 KB.
+const ACCOUNT_STORAGE_QUOTA_BYTES = 800 * 1024;
+// Logo/cachet/signature raw file size cap, kept small so that saving a
+// company profile with all three assets (plus multiple saved companies)
+// still fits comfortably under ACCOUNT_STORAGE_QUOTA_BYTES once base64-encoded.
+const ACCOUNT_IMAGE_UPLOAD_MAX_BYTES = 300 * 1024;
 
 function getTextBytes(text='') {
   try { return new TextEncoder().encode(String(text)).length; } catch { return String(text).length; }
@@ -874,7 +884,7 @@ function renderAccountStoragePanel() {
       </div>
       <div class="storage-bar"><div class="storage-fill" style="width:${pct}%;background:${nearLimit?'linear-gradient(90deg,#f59e0b,#ef4444)':'linear-gradient(90deg,#22c55e,#8b5cf6)'}"></div></div>
       <div class="storage-text">
-        <span>Limite compte: 500 MB par utilisateur.</span>
+        <span>Limite compte: ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)} par utilisateur.</span>
         <span>${pct}% utilisé${nearLimit?' · supprimez anciens projets/assets':''}</span>
       </div>
       <div class="storage-actions">
@@ -891,8 +901,8 @@ function collectAccountDataBundle() {
   const suffixes = ['profile','history','projects','clients','products'];
   const data = {};
   suffixes.forEach(suffix => {
-    try { data[suffix] = JSON.parse(localStorage.getItem(getAccountStorageKey(suffix)) || (suffix === 'profile' ? 'null' : '[]')); }
-    catch { data[suffix] = suffix === 'profile' ? null : []; }
+    try { data[suffix] = JSON.parse(localStorage.getItem(getAccountStorageKey(suffix)) || '[]'); }
+    catch { data[suffix] = []; }
   });
   return {
     exportedAt: new Date().toISOString(),
@@ -937,6 +947,10 @@ async function syncAccountDataToCloud() {
     return true;
   } catch (err) {
     console.warn('Cloud sync failed, data reste sauvegardé localement', err);
+    const code = String(err?.code || err?.message || '').toLowerCase();
+    if (code.includes('invalid-argument') || code.includes('resource-exhausted') || code.includes('too large') || code.includes('exceeds')) {
+      showNotif('Compte trop volumineux pour la sauvegarde cloud. Supprimez d\'anciens documents ou activez le nettoyage auto (vos données restent sauvegardées sur cet appareil).', 'info');
+    }
     return false;
   }
 }
@@ -1049,7 +1063,7 @@ function saveAccountList(suffix, list, options={}) {
         if (['history','clients','products'].includes(suffix)) aiInsightsLoaded = false;
         return true;
       }
-      showNotif('Storage 500 MB full: pehle history/projets remove karein ya auto-cleanup ON karein', 'info');
+      showNotif(`Storage ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)} full: pehle history/projets remove karein ya auto-cleanup ON karein`, 'info');
       return false;
     }
     localStorage.setItem(getAccountStorageKey(suffix), serialized);
@@ -3809,7 +3823,7 @@ function getGrandTotal() {
 // ═══════════════════════════════════════════════════════
 function handleLogo(e) {
   const file = e.target.files[0]; if (!file) return;
-  if (file.size > 2*1024*1024) { showNotif('Le fichier est trop lourd (max 2MB)', 'info'); return; }
+  if (file.size > ACCOUNT_IMAGE_UPLOAD_MAX_BYTES) { showNotif('Le fichier est trop lourd (max 300 KB)', 'info'); return; }
   const reader = new FileReader();
   reader.onload = ev => {
     S.logoSrc = ev.target.result;
@@ -3844,8 +3858,8 @@ function setLogoPos(pos) {
 function readUploadImage(e, done) {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 2*1024*1024) {
-    showNotif('Le fichier est trop lourd (max 2MB)', 'info');
+  if (file.size > ACCOUNT_IMAGE_UPLOAD_MAX_BYTES) {
+    showNotif('Le fichier est trop lourd (max 300 KB)', 'info');
     e.target.value = '';
     return;
   }
