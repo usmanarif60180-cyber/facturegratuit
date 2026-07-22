@@ -13,6 +13,7 @@ service cloud.firestore {
     function validAccountDoc() {
       return request.resource.data.keys().hasOnly([
         'profile',
+        'personal',
         'history',
         'projects',
         'clients',

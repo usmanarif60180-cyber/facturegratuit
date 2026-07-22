@@ -601,19 +601,41 @@ function loadAppTheme() {
   }
 }
 
+function resolveEffectiveTheme() {
+  if (S.appTheme === 'system') {
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+  }
+  return S.appTheme;
+}
+
 function applyAppTheme() {
-  const isLight = S.appTheme === 'light';
+  const isLight = resolveEffectiveTheme() === 'light';
   document.body.classList.toggle('light', isLight);
   const icon = document.getElementById('theme-icon');
   const label = document.getElementById('theme-label');
   if (icon) icon.className = isLight ? 'fa fa-sun' : 'fa fa-moon';
   if (label) label.textContent = isLight ? 'Clair' : 'Sombre';
+  document.querySelectorAll('.theme-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === S.appTheme);
+  });
+}
+
+function setAppTheme(mode) {
+  S.appTheme = ['dark','light','system'].includes(mode) ? mode : 'dark';
+  try { localStorage.setItem('facturepro-theme', S.appTheme); } catch {}
+  applyAppTheme();
 }
 
 function toggleAppTheme() {
-  S.appTheme = S.appTheme === 'light' ? 'dark' : 'light';
-  try { localStorage.setItem('facturepro-theme', S.appTheme); } catch {}
-  applyAppTheme();
+  setAppTheme(resolveEffectiveTheme() === 'light' ? 'dark' : 'light');
+}
+
+if (window.matchMedia) {
+  try {
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+      if (S.appTheme === 'system') applyAppTheme();
+    });
+  } catch {}
 }
 
 document.addEventListener('click', e => {
@@ -675,8 +697,11 @@ function renderAuth() {
   if (signupBtn) signupBtn.style.display = loggedIn ? 'none' : '';
   if (accountBtn) {
     accountBtn.style.display = loggedIn ? '' : 'none';
+    const avatarSrc = loggedIn ? loadPersonalProfile()?.avatarSrc : null;
     const initial = (S.authUser?.name || S.authUser?.email || '?').trim().charAt(0).toUpperCase();
-    accountBtn.innerHTML = loggedIn ? `<span class="account-avatar">${initial}</span>` : '<i class="fa fa-user"></i>';
+    accountBtn.innerHTML = !loggedIn ? '<i class="fa fa-user"></i>'
+      : avatarSrc ? `<img class="account-avatar-img" src="${avatarSrc}" alt="">`
+      : `<span class="account-avatar">${escHtml(initial)}</span>`;
   }
   if (accountName) accountName.textContent = S.authUser?.name || 'Compte';
   if (accountEmail) accountEmail.textContent = S.authUser?.email || '';
@@ -755,6 +780,7 @@ function renderAccountModal() {
   const fields = {
     'account-modal-name': user?.name || 'Compte',
     'account-modal-email': user?.email || '',
+    'account-modal-email-2': user?.email || '',
     'account-modal-verified': verified ? 'Connecté' : 'Email non vérifié',
     'account-modal-provider': user?.provider || 'firebase',
     'account-modal-uid': user?.uid || '-',
@@ -771,6 +797,9 @@ function renderAccountModal() {
   if (verifyBtn) verifyBtn.style.display = user && user.provider === 'firebase' && !verified ? '' : 'none';
   migrateLegacyCompanyProfile();
   fillAccountProfileForm(getEditingProfile());
+  fillPersonalProfileForm();
+  applyAppTheme();
+  syncLocaleControls();
   renderSavedProfiles();
   renderAccountOverview();
   renderSavedProjects();
@@ -779,9 +808,11 @@ function renderAccountModal() {
   renderAccountHistory();
 }
 
+const ACCOUNT_PANELS = ['overview','projects','history','clients','products','profile','personal','security','appearance','language','storage','privacy','danger'];
+
 function showAccountPanel(panel='overview') {
   S.currentAccountPanel = panel;
-  ['overview','projects','history','clients','products','profile'].forEach(name => {
+  ACCOUNT_PANELS.forEach(name => {
     document.getElementById('account-panel-'+name)?.classList.toggle('active', name === panel);
     const btn = document.getElementById('account-tab-'+name);
     if (btn) btn.className = 'btn btn-sm ' + (name === panel ? 'btn-primary' : 'btn-ghost');
@@ -792,6 +823,10 @@ function showAccountPanel(panel='overview') {
   if (panel === 'clients') renderSavedClients();
   if (panel === 'products') renderSavedProducts();
   if (panel === 'profile') renderSavedProfiles();
+  if (panel === 'personal') fillPersonalProfileForm();
+  if (panel === 'appearance') applyAppTheme();
+  if (panel === 'language') syncLocaleControls();
+  if (panel === 'storage') renderAccountStoragePanel();
 }
 
 function getAccountStorageKey(suffix) {
@@ -835,7 +870,7 @@ function setAutoCleanup(on) {
 
 function getAccountStorageUsageBytes() {
   if (!S.authUser) return 0;
-  const suffixes = ['profile','history','projects','clients','products'];
+  const suffixes = ['profile','personal','history','projects','clients','products'];
   return suffixes.reduce((sum, suffix) => {
     try { return sum + getTextBytes(localStorage.getItem(getAccountStorageKey(suffix)) || ''); } catch { return sum; }
   }, 0);
@@ -843,7 +878,7 @@ function getAccountStorageUsageBytes() {
 
 function getProjectedAccountStorageUsageBytes(suffix, serialized) {
   if (!S.authUser) return 0;
-  const suffixes = ['profile','history','projects','clients','products'];
+  const suffixes = ['profile','personal','history','projects','clients','products'];
   return suffixes.reduce((sum, key) => {
     try {
       const text = key === suffix ? serialized : (localStorage.getItem(getAccountStorageKey(key)) || '');
@@ -870,35 +905,50 @@ function cleanupOldAccountData(silent=false) {
 }
 
 function renderAccountStoragePanel() {
-  const panel = document.getElementById('account-storage-panel');
-  if (!panel) return;
   const used = getAccountStorageUsageBytes();
   const pct = Math.min(100, Math.round((used / ACCOUNT_STORAGE_QUOTA_BYTES) * 1000) / 10);
   const nearLimit = pct >= 90;
   const auto = Boolean(S.autoCleanup);
-  panel.innerHTML = `
-    <div class="storage-panel">
-      <div class="storage-head">
-        <span><i class="fa fa-cloud"></i> Quota de stockage cloud</span>
-        <span>${formatBytes(used)} / ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)}</span>
-      </div>
-      <div class="storage-bar"><div class="storage-fill" style="width:${pct}%;background:${nearLimit?'linear-gradient(90deg,#f59e0b,#ef4444)':'linear-gradient(90deg,#22c55e,#8b5cf6)'}"></div></div>
-      <div class="storage-text">
-        <span>Limite compte: ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)} par utilisateur.</span>
-        <span>${pct}% utilisé${nearLimit?' · supprimez anciens projets/assets':''}</span>
-      </div>
-      <div class="storage-actions">
-        <button class="btn btn-ghost btn-sm" onclick="cleanupOldAccountData()"><i class="fa fa-broom"></i> Nettoyer anciens</button>
-        <button class="btn btn-ghost btn-sm" onclick="setAutoCleanup(${auto ? 'false' : 'true'})"><i class="fa fa-rotate"></i> Nettoyage auto ${auto ? 'activé' : 'désactivé'}</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportAccountData()"><i class="fa fa-file-export"></i> Exporter les données</button>
-        <button class="btn btn-danger btn-sm" onclick="clearAllAccountLocalData()"><i class="fa fa-shield-halved"></i> Supprimer les données</button>
-      </div>
-    </div>`;
+
+  const compact = document.getElementById('account-storage-compact');
+  if (compact) {
+    compact.innerHTML = `
+      <div class="storage-panel storage-panel-compact">
+        <div class="storage-head">
+          <span><i class="fa fa-cloud"></i> Stockage</span>
+          <span>${formatBytes(used)} / ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)}</span>
+        </div>
+        <div class="storage-bar"><div class="storage-fill" style="width:${pct}%;background:${nearLimit?'linear-gradient(90deg,#f59e0b,#ef4444)':'linear-gradient(90deg,#22c55e,#8b5cf6)'}"></div></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="showAccountPanel('storage')"><i class="fa fa-gear"></i> Gérer le stockage</button>
+      </div>`;
+  }
+
+  const panel = document.getElementById('account-storage-panel');
+  if (panel) {
+    panel.innerHTML = `
+      <div class="storage-panel">
+        <div class="storage-head">
+          <span><i class="fa fa-cloud"></i> Quota de stockage cloud</span>
+          <span>${formatBytes(used)} / ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)}</span>
+        </div>
+        <div class="storage-bar"><div class="storage-fill" style="width:${pct}%;background:${nearLimit?'linear-gradient(90deg,#f59e0b,#ef4444)':'linear-gradient(90deg,#22c55e,#8b5cf6)'}"></div></div>
+        <div class="storage-text">
+          <span>Limite compte: ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)} par utilisateur.</span>
+          <span>${pct}% utilisé${nearLimit?' · supprimez anciens projets/assets':''}</span>
+        </div>
+        <div class="storage-actions">
+          <button class="btn btn-ghost btn-sm" onclick="cleanupOldAccountData()"><i class="fa fa-broom"></i> Nettoyer anciens</button>
+          <button class="btn btn-ghost btn-sm" onclick="setAutoCleanup(${auto ? 'false' : 'true'})"><i class="fa fa-rotate"></i> Nettoyage auto ${auto ? 'activé' : 'désactivé'}</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportAccountData()"><i class="fa fa-file-export"></i> Exporter les données</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAllAccountLocalData()"><i class="fa fa-shield-halved"></i> Supprimer les données</button>
+        </div>
+      </div>`;
+  }
 }
 
 function collectAccountDataBundle() {
   if (!S.authUser) return null;
-  const suffixes = ['profile','history','projects','clients','products'];
+  const suffixes = ['profile','personal','history','projects','clients','products'];
   const data = {};
   suffixes.forEach(suffix => {
     try { data[suffix] = JSON.parse(localStorage.getItem(getAccountStorageKey(suffix)) || '[]'); }
@@ -937,6 +987,7 @@ async function syncAccountDataToCloud() {
     const ref = window.firestoreDoc(services.db, 'users', S.authUser.uid);
     await window.firestoreSetDoc(ref, {
       profile: bundle.data.profile,
+      personal: bundle.data.personal,
       history: bundle.data.history,
       projects: bundle.data.projects,
       clients: bundle.data.clients,
@@ -964,7 +1015,7 @@ async function pullAccountDataFromCloud() {
     const snap = await window.firestoreGetDoc(ref);
     if (!snap.exists()) return false;
     const cloud = snap.data() || {};
-    ['profile','history','projects','clients','products'].forEach(suffix => {
+    ['profile','personal','history','projects','clients','products'].forEach(suffix => {
       if (cloud[suffix] !== undefined && cloud[suffix] !== null) {
         try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(cloud[suffix])); } catch {}
       }
@@ -1028,13 +1079,14 @@ function exportHistoryCsv() {
 
 function clearAllAccountLocalData() {
   if (!S.authUser) return;
-  if (!confirm('Supprimer profil société, historique, projets, clients et produits de ce navigateur ?')) return;
-  ['profile','profile-active','history','projects','clients','products','auto-cleanup'].forEach(suffix => {
+  if (!confirm('Supprimer profil personnel, société, historique, projets, clients et produits de ce navigateur ?')) return;
+  ['profile','profile-active','personal','history','projects','clients','products','auto-cleanup'].forEach(suffix => {
     try { localStorage.removeItem(getAccountStorageKey(suffix)); } catch {}
   });
   S.autoCleanup = false;
   editingProfileId = null;
   fillAccountProfileForm(null);
+  fillPersonalProfileForm();
   renderSavedProfiles();
   renderAccountOverview();
   renderSavedProjects();
@@ -2738,6 +2790,223 @@ function clearAccountProfile() {
   deleteSavedProfile(editingProfileId);
 }
 
+// ═══════════════════════════════════════════════════════
+// PERSONAL PROFILE (nom, adresse personnelle, photo)
+// ═══════════════════════════════════════════════════════
+function loadPersonalProfile() {
+  if (!S.authUser) return null;
+  try { return JSON.parse(localStorage.getItem(getAccountStorageKey('personal')) || 'null'); } catch { return null; }
+}
+
+function savePersonalProfile(fields) {
+  if (!S.authUser) return false;
+  try {
+    const serialized = JSON.stringify({ ...fields, updatedAt: new Date().toISOString() });
+    if (getProjectedAccountStorageUsageBytes('personal', serialized) > ACCOUNT_STORAGE_QUOTA_BYTES) {
+      if (!S.autoCleanup || !cleanupOldAccountData(true) || getProjectedAccountStorageUsageBytes('personal', serialized) > ACCOUNT_STORAGE_QUOTA_BYTES) {
+        showNotif(`Storage ${formatBytes(ACCOUNT_STORAGE_QUOTA_BYTES)} full: pehle history/projets remove karein ya auto-cleanup ON karein`, 'info');
+        return false;
+      }
+    }
+    localStorage.setItem(getAccountStorageKey('personal'), serialized);
+    queueCloudSync();
+    return true;
+  } catch {
+    showNotif('Profil non sauvegardé', 'info');
+    return false;
+  }
+}
+
+function fillPersonalProfileForm() {
+  const p = loadPersonalProfile() || {};
+  const nameInput = document.getElementById('acct-personal-name');
+  const addrInput = document.getElementById('acct-personal-address');
+  const telInput = document.getElementById('acct-personal-tel');
+  if (nameInput && document.activeElement !== nameInput) nameInput.value = S.authUser?.name || p.name || '';
+  if (addrInput && document.activeElement !== addrInput) addrInput.value = p.address || '';
+  if (telInput && document.activeElement !== telInput) telInput.value = p.tel || '';
+  const avatarPreview = document.getElementById('acct-avatar-preview');
+  const avatarPlaceholder = document.getElementById('acct-avatar-placeholder');
+  if (avatarPreview && avatarPlaceholder) {
+    if (p.avatarSrc) {
+      avatarPreview.src = p.avatarSrc;
+      avatarPreview.style.display = 'block';
+      avatarPlaceholder.style.display = 'none';
+    } else {
+      avatarPreview.src = '';
+      avatarPreview.style.display = 'none';
+      avatarPlaceholder.style.display = 'flex';
+    }
+  }
+  renderProfileCompletionMini();
+}
+
+function renderProfileCompletionMini() {
+  const box = document.getElementById('acct-profile-completion');
+  if (!box) return;
+  const p = loadPersonalProfile() || {};
+  const verified = S.authUser?.emailVerified !== false;
+  const checks = [
+    ['user', 'Photo de profil', Boolean(p.avatarSrc)],
+    ['id-badge', 'Nom', Boolean(S.authUser?.name || p.name)],
+    ['envelope-circle-check', 'Email vérifié', verified],
+    ['phone', 'Téléphone', Boolean(p.tel)],
+    ['location-dot', 'Adresse', Boolean(p.address)],
+  ];
+  const done = checks.filter(c => c[2]).length;
+  const pct = Math.round((done / checks.length) * 100);
+  box.innerHTML = `
+    <div class="profile-pct-head"><span>Complétez votre profil</span><strong>${pct}%</strong></div>
+    <div class="profile-pct-bar"><div class="profile-pct-fill" style="width:${pct}%"></div></div>
+    <div class="profile-pct-list">${checks.map(([icon,label,ok]) => `<span class="${ok ? 'done' : ''}"><i class="fa fa-${ok ? 'circle-check' : 'circle'}"></i> ${escHtml(label)}</span>`).join('')}</div>`;
+}
+
+function handlePersonalAvatarUpload(e) {
+  readUploadImage(e, src => {
+    const current = loadPersonalProfile() || {};
+    if (savePersonalProfile({ ...current, avatarSrc: src })) {
+      fillPersonalProfileForm();
+      renderAuth();
+      showNotif('Photo de profil mise à jour', 'success');
+    }
+  });
+}
+
+function removePersonalAvatar() {
+  const current = loadPersonalProfile() || {};
+  delete current.avatarSrc;
+  savePersonalProfile(current);
+  const input = document.getElementById('acct-avatar-file');
+  if (input) input.value = '';
+  fillPersonalProfileForm();
+  renderAuth();
+}
+
+async function savePersonalProfileForm() {
+  const name = document.getElementById('acct-personal-name')?.value.trim() || '';
+  const address = document.getElementById('acct-personal-address')?.value.trim() || '';
+  const tel = document.getElementById('acct-personal-tel')?.value.trim() || '';
+  if (!name) { showNotif('Ajoutez au moins votre nom', 'info'); return; }
+
+  const current = loadPersonalProfile() || {};
+  if (!savePersonalProfile({ ...current, name, address, tel })) return;
+
+  if (S.authUser) {
+    S.authUser.name = name;
+    try { localStorage.setItem('facturepro-user', JSON.stringify(S.authUser)); } catch {}
+    const fb = window.firebaseServices;
+    if (fb?.auth?.currentUser && fb?.updateProfile) {
+      try { await fb.updateProfile(fb.auth.currentUser, { displayName: name }); } catch {}
+    }
+  }
+  renderAuth();
+  renderAccountModal();
+  showNotif('Profil mis à jour', 'success');
+}
+
+async function changeAccountPassword() {
+  const current = document.getElementById('acct-current-password')?.value || '';
+  const next = document.getElementById('acct-new-password')?.value || '';
+  const confirmNext = document.getElementById('acct-confirm-password')?.value || '';
+  if (!current || !next) { showNotif('Renseignez le mot de passe actuel et le nouveau', 'info'); return; }
+  if (next.length < 6) { showNotif('Le nouveau mot de passe doit faire au moins 6 caractères', 'info'); return; }
+  if (next !== confirmNext) { showNotif('Les deux mots de passe ne correspondent pas', 'info'); return; }
+
+  const fb = window.firebaseServices;
+  if (!fb?.auth?.currentUser || S.authUser?.provider !== 'firebase') {
+    showNotif('Changement de mot de passe disponible uniquement pour les comptes email/mot de passe', 'info');
+    return;
+  }
+
+  const btn = document.getElementById('change-password-btn');
+  const original = btn?.innerHTML;
+  if (btn) { btn.innerHTML = '<div class="spinner" style="display:inline-block"></div> Changement...'; btn.disabled = true; }
+  try {
+    const credential = fb.EmailAuthProvider.credential(S.authUser.email, current);
+    await fb.reauthenticateWithCredential(fb.auth.currentUser, credential);
+    await fb.updatePassword(fb.auth.currentUser, next);
+    ['acct-current-password','acct-new-password','acct-confirm-password'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    showNotif('Mot de passe changé avec succès', 'success');
+  } catch (err) {
+    showNotif(firebaseAuthMessage(err), 'info');
+  } finally {
+    if (btn) { btn.innerHTML = original; btn.disabled = false; }
+  }
+}
+
+async function changeAccountEmail() {
+  const newEmail = document.getElementById('acct-new-email')?.value.trim() || '';
+  const currentPassword = document.getElementById('acct-email-password')?.value || '';
+  if (!newEmail || !currentPassword) { showNotif('Renseignez le nouvel email et votre mot de passe actuel', 'info'); return; }
+
+  const fb = window.firebaseServices;
+  if (!fb?.auth?.currentUser || S.authUser?.provider !== 'firebase') {
+    showNotif('Changement d\'email disponible uniquement pour les comptes email/mot de passe', 'info');
+    return;
+  }
+  const btn = document.getElementById('change-email-btn');
+  const original = btn?.innerHTML;
+  if (btn) { btn.innerHTML = '<div class="spinner" style="display:inline-block"></div> Envoi...'; btn.disabled = true; }
+  try {
+    const credential = fb.EmailAuthProvider.credential(S.authUser.email, currentPassword);
+    await fb.reauthenticateWithCredential(fb.auth.currentUser, credential);
+    await fb.verifyBeforeUpdateEmail(fb.auth.currentUser, newEmail);
+    document.getElementById('acct-new-email').value = '';
+    document.getElementById('acct-email-password').value = '';
+    showNotif(`Email de confirmation envoyé à ${newEmail}. Cliquez le lien pour finaliser le changement.`, 'success');
+  } catch (err) {
+    showNotif(firebaseAuthMessage(err), 'info');
+  } finally {
+    if (btn) { btn.innerHTML = original; btn.disabled = false; }
+  }
+}
+
+function confirmDeleteAccount() {
+  const box = document.getElementById('delete-account-confirm-box');
+  const input = document.getElementById('delete-account-confirm-input');
+  if (box) box.style.display = '';
+  input?.focus();
+}
+
+async function deleteMyAccount() {
+  const input = document.getElementById('delete-account-confirm-input');
+  const password = document.getElementById('delete-account-password')?.value || '';
+  if ((input?.value || '').trim().toUpperCase() !== 'SUPPRIMER') {
+    showNotif('Tapez SUPPRIMER pour confirmer', 'info');
+    return;
+  }
+  if (!S.authUser) return;
+
+  const fb = window.firebaseServices;
+  const btn = document.getElementById('delete-account-btn');
+  const original = btn?.innerHTML;
+  if (btn) { btn.innerHTML = '<div class="spinner" style="display:inline-block"></div> Suppression...'; btn.disabled = true; }
+  try {
+    if (fb?.auth?.currentUser && S.authUser.provider === 'firebase') {
+      if (!password) { showNotif('Renseignez votre mot de passe pour confirmer', 'info'); if (btn) { btn.innerHTML = original; btn.disabled = false; } return; }
+      const credential = fb.EmailAuthProvider.credential(S.authUser.email, password);
+      await fb.reauthenticateWithCredential(fb.auth.currentUser, credential);
+    }
+    ['profile','profile-active','personal','history','projects','clients','products','auto-cleanup'].forEach(suffix => {
+      try { localStorage.removeItem(getAccountStorageKey(suffix)); } catch {}
+    });
+    if (fb?.auth?.currentUser && fb?.deleteUser) {
+      await fb.deleteUser(fb.auth.currentUser);
+    }
+    try { localStorage.removeItem('facturepro-user'); } catch {}
+    showNotif('Compte supprimé', 'info');
+    saveAuthUser(null);
+    closeAccount();
+  } catch (err) {
+    showNotif(firebaseAuthMessage(err), 'info');
+  } finally {
+    if (btn) { btn.innerHTML = original; btn.disabled = false; }
+  }
+}
+
 function loadAccountHistory() {
   if (!S.authUser) return [];
   try {
@@ -3056,9 +3325,11 @@ function firebaseAuthMessage(err) {
   const code = err?.code || '';
   if (code.includes('email-already-in-use')) return 'Cet email est déjà utilisé';
   if (code.includes('invalid-email')) return 'Email invalide';
-  if (code.includes('weak-password')) return 'Mot de passe trop court';
-  if (code.includes('wrong-password') || code.includes('invalid-credential')) return 'Email ou mot de passe incorrect';
+  if (code.includes('weak-password')) return 'Mot de passe trop court (6 caractères minimum)';
+  if (code.includes('wrong-password') || code.includes('invalid-credential')) return 'Mot de passe actuel incorrect';
   if (code.includes('user-not-found')) return 'Compte introuvable';
+  if (code.includes('requires-recent-login')) return 'Reconnectez-vous puis réessayez ce changement de mot de passe';
+  if (code.includes('too-many-requests')) return 'Trop de tentatives, réessayez dans quelques minutes';
   return 'Connexion impossible pour le moment';
 }
 
@@ -3144,8 +3415,8 @@ function getLangPack() {
 }
 
 function syncLocaleControls() {
-  const countryIds = ['country-select', 'top-country-select'];
-  const langIds = ['language-select', 'top-language-select'];
+  const countryIds = ['country-select', 'top-country-select', 'acct-country-select'];
+  const langIds = ['language-select', 'top-language-select', 'acct-language-select'];
   countryIds.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = S.country;
@@ -3154,8 +3425,10 @@ function syncLocaleControls() {
     const el = document.getElementById(id);
     if (el) el.value = S.lang;
   });
-  const currency = document.getElementById('currency-select');
-  if (currency) currency.value = S.currency || getCountryProfile().currency;
+  ['currency-select', 'acct-currency-select'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = S.currency || getCountryProfile().currency;
+  });
   updateCountryFormatTooltip();
 
   const countrySel = document.getElementById('top-country-select');
@@ -3197,14 +3470,17 @@ function updateCountryFormatTooltip() {
 }
 
 function buildCurrencySelect() {
-  const select = document.getElementById('currency-select');
-  if (!select) return;
   let codes = FALLBACK_CURRENCIES;
   try {
     if (Intl.supportedValuesOf) codes = Intl.supportedValuesOf('currency');
   } catch {}
-  select.innerHTML = codes.map(code => `<option value="${code}">${code}</option>`).join('');
-  select.value = S.currency || getCountryProfile().currency;
+  const html = codes.map(code => `<option value="${code}">${code}</option>`).join('');
+  ['currency-select', 'acct-currency-select'].forEach(id => {
+    const select = document.getElementById(id);
+    if (!select) return;
+    select.innerHTML = html;
+    select.value = S.currency || getCountryProfile().currency;
+  });
 }
 
 function setCurrency(currency) {
