@@ -307,6 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyAccountLocalePrefsAtBoot();
     setTimeout(() => { migrateLegacyCompanyProfile(); applyActiveProfileToEditor(true); checkOverdueReminders(); }, 0);
   }
+  checkPendingMuInviteInUrl();
   syncLocaleControls();
   renderDocVariant();
   renderLogoState();
@@ -845,7 +846,7 @@ function renderAccountModal() {
   renderAccountHistory();
 }
 
-const ACCOUNT_PANELS = ['overview','projects','team','history','clients','products','leads','profile','personal','security','appearance','language','storage','payments','privacy','danger'];
+const ACCOUNT_PANELS = ['overview','projects','team','multiuser','history','clients','products','leads','profile','personal','security','appearance','language','storage','payments','privacy','danger'];
 
 function showAccountPanel(panel='overview') {
   S.currentAccountPanel = panel;
@@ -857,6 +858,7 @@ function showAccountPanel(panel='overview') {
   if (panel === 'overview') renderAccountOverview();
   if (panel === 'projects') renderSavedProjects();
   if (panel === 'team') renderTeamWorkspace();
+  if (panel === 'multiuser') renderMultiUserPanel();
   if (panel === 'history') renderAccountHistory();
   if (panel === 'clients') renderSavedClients();
   if (panel === 'products') renderSavedProducts();
@@ -3831,6 +3833,272 @@ function clearAccountProfile() {
   if (!S.authUser) return;
   if (!editingProfileId) { showNotif('Aucune société sélectionnée', 'info'); return; }
   deleteSavedProfile(editingProfileId);
+}
+
+// ═══════════════════════════════════════════════════════
+// MULTI-USER WORKSPACE — real, separate-login collaboration on a company
+// (distinct from the lightweight single-account "Équipe" roster/task tracker).
+// All membership/role/invitation mutations go through Cloud Functions
+// (window.multiUserFunctions, wired in index.html) which run the actual
+// permission checks server-side; this code is just the client entry point
+// and UI. See functions/index.js and firestore.rules for the enforcement.
+// ═══════════════════════════════════════════════════════
+const MULTIUSER_ROLES = [
+  ['owner', 'Propriétaire'],
+  ['admin', 'Admin'],
+  ['manager', 'Manager'],
+  ['employee', 'Employé'],
+  ['accountant', 'Comptable'],
+  ['viewer', 'Lecteur']
+];
+
+let muMembersCache = [];
+let muInvitesCache = [];
+
+function getMultiUserCompanyProfile() {
+  const profiles = loadCompanyProfiles();
+  if (!profiles.length) return null;
+  const activeId = getActiveProfileId();
+  return profiles.find(p => p.id === activeId) || profiles[0];
+}
+
+function multiUserErrorMessage(err) {
+  const code = String(err?.code || '').toLowerCase();
+  if (code.includes('unauthenticated')) return 'Connexion requise.';
+  if (code.includes('not-found')) return err.message || 'Introuvable.';
+  if (code.includes('already-exists')) return err.message || 'Déjà existant.';
+  if (code.includes('permission-denied')) return err.message || 'Action non autorisée.';
+  if (code.includes('failed-precondition')) return err.message || 'Action impossible dans cet état.';
+  if (code.includes('unavailable') || code.includes('internal') || code.includes('not-found-function')) {
+    return "Le service multi-utilisateur n'est pas encore déployé sur ce compte.";
+  }
+  return err?.message || 'Une erreur est survenue.';
+}
+
+async function enableMultiUserWorkspace() {
+  if (!S.authUser) return showNotif('Login karein, phir espace multi-utilisateur activate karein', 'info');
+  const profile = getMultiUserCompanyProfile();
+  if (!profile) return showNotif("Créez d'abord une société dans l'onglet Société", 'info');
+  if (profile.multiUserCompanyId) return showNotif("L'accès multi-utilisateur est déjà activé pour cette société", 'info');
+  if (!window.multiUserFunctions?.createCompany) return showNotif('Fonction indisponible pour le moment', 'info');
+
+  const btn = document.getElementById('multiuser-enable-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Activation…'; }
+  try {
+    const result = await window.multiUserFunctions.createCompany({ name: profile.name || 'Ma société' });
+    const companyId = result.data.companyId;
+    const profiles = loadCompanyProfiles();
+    const idx = profiles.findIndex(p => p.id === profile.id);
+    if (idx !== -1) {
+      profiles[idx] = { ...profiles[idx], multiUserCompanyId: companyId };
+      saveCompanyProfiles(profiles);
+    }
+    showNotif("Accès multi-utilisateur activé", 'success');
+    renderMultiUserPanel();
+  } catch (err) {
+    showNotif(multiUserErrorMessage(err), 'info');
+    if (btn) { btn.disabled = false; btn.textContent = "Activer l'accès multi-utilisateur"; }
+  }
+}
+
+async function renderMultiUserPanel() {
+  const box = document.getElementById('account-panel-multiuser');
+  if (!box) return;
+  const profile = getMultiUserCompanyProfile();
+
+  if (!profile) {
+    box.innerHTML = renderEmptyState('building', 'Aucune société', "Créez d'abord une société dans l'onglet Société pour activer l'accès multi-utilisateur.", 'Aller à Société', "showAccountPanel('profile')");
+    return;
+  }
+
+  if (!profile.multiUserCompanyId) {
+    box.innerHTML = `
+      <div class="panel-note">L'accès multi-utilisateur permet à de vrais comptes séparés (manager, employé, comptable…) de travailler avec vous sur <strong>${escHtml(profile.name || 'cette société')}</strong>, avec des permissions par rôle appliquées côté serveur (pas seulement dans l'interface).</div>
+      <button class="btn btn-primary btn-sm" id="multiuser-enable-btn" onclick="enableMultiUserWorkspace()"><i class="fa fa-people-group"></i> Activer l'accès multi-utilisateur</button>
+    `;
+    return;
+  }
+
+  const services = window.firebaseServices;
+  if (!services?.db || !window.firestoreCollection || !window.firestoreGetDocs) {
+    box.innerHTML = `<div class="panel-note">Service cloud indisponible pour le moment.</div>`;
+    return;
+  }
+
+  box.innerHTML = `<div class="panel-note">Chargement de l'espace multi-utilisateur…</div>`;
+  const companyId = profile.multiUserCompanyId;
+  try {
+    const [membersSnap, invitesSnap] = await Promise.all([
+      window.firestoreGetDocs(window.firestoreCollection(services.db, 'companies', companyId, 'members')),
+      window.firestoreGetDocs(window.firestoreCollection(services.db, 'companies', companyId, 'invitations'))
+    ]);
+    muMembersCache = membersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    muInvitesCache = invitesSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(i => i.status === 'pending');
+  } catch (err) {
+    box.innerHTML = `<div class="panel-note">${escHtml(multiUserErrorMessage(err))}</div>`;
+    return;
+  }
+
+  const myMembership = muMembersCache.find(m => m.uid === S.authUser.uid);
+  const myRole = myMembership?.role || 'viewer';
+  const canManage = ['owner', 'admin'].includes(myRole);
+
+  box.innerHTML = `
+    <div class="panel-note"><i class="fa fa-people-group"></i> Espace multi-utilisateur de <strong>${escHtml(profile.name)}</strong> — ${muMembersCache.length} membre${muMembersCache.length > 1 ? 's' : ''}${muInvitesCache.length ? `, ${muInvitesCache.length} invitation${muInvitesCache.length > 1 ? 's' : ''} en attente` : ''}</div>
+    ${canManage ? `
+    <div class="mu-invite-form">
+      <input class="form-input" id="mu-invite-email" type="email" placeholder="Email du collaborateur">
+      <select class="form-input" id="mu-invite-role">
+        ${MULTIUSER_ROLES.filter(([r]) => r !== 'owner').map(([val, label]) => `<option value="${val}">${escHtml(label)}</option>`).join('')}
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="sendMuInvitation('${escHtml(companyId)}')"><i class="fa fa-paper-plane"></i> Inviter</button>
+    </div>` : ''}
+    ${muInvitesCache.length ? `
+    <div class="dashboard-section-label">Invitations en attente</div>
+    <div class="saved-list">${muInvitesCache.map(inv => renderMuInviteItem(inv, companyId, canManage)).join('')}</div>` : ''}
+    <div class="dashboard-section-label">Membres</div>
+    <div class="saved-list">${muMembersCache.map(m => renderMuMemberItem(m, companyId, canManage)).join('')}</div>
+    ${!canManage ? `<button class="btn btn-danger btn-sm" style="margin-top:12px" onclick="leaveMuCompanyAction('${escHtml(companyId)}')"><i class="fa fa-right-from-bracket"></i> Quitter la société</button>` : ''}
+  `;
+}
+
+function renderMuInviteItem(inv, companyId, canManage) {
+  return `
+    <div class="saved-item">
+      <div class="saved-item-main">
+        <strong>${escHtml(inv.email)}</strong>
+        <span>Rôle : ${escHtml(MULTIUSER_ROLES.find(([r]) => r === inv.role)?.[1] || inv.role)}</span>
+        <span>Invité par ${escHtml(inv.invitedByName || '')}</span>
+      </div>
+      ${canManage ? `
+      <div class="saved-item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="resendMuInvitation('${escHtml(companyId)}','${escHtml(inv.id)}')" title="Renvoyer"><i class="fa fa-paper-plane"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="cancelMuInvitation('${escHtml(companyId)}','${escHtml(inv.id)}')" title="Annuler"><i class="fa fa-xmark"></i></button>
+      </div>` : ''}
+    </div>`;
+}
+
+function renderMuMemberItem(m, companyId, canManage) {
+  const roleOptions = MULTIUSER_ROLES.map(([val, label]) => `<option value="${val}"${m.role === val ? ' selected' : ''}>${escHtml(label)}</option>`).join('');
+  const isMe = m.uid === S.authUser?.uid;
+  const canEditThis = canManage && !isMe && m.role !== 'owner';
+  return `
+    <div class="saved-item mu-member-item${m.status === 'inactive' ? ' inactive' : ''}">
+      <div class="saved-item-main">
+        <strong>${escHtml(m.name || m.email)}${isMe ? ' (vous)' : ''}</strong>
+        <span>${escHtml(m.email)}</span>
+        <span>${m.status === 'inactive' ? 'Inactif' : 'Actif'}</span>
+      </div>
+      <div class="saved-item-actions">
+        ${canEditThis
+          ? `<select class="recurrence-select" onchange="changeMuMemberRole('${escHtml(companyId)}','${escHtml(m.uid)}', this.value)">${roleOptions}</select>
+             <button class="btn btn-ghost btn-sm" onclick="toggleMuMemberStatusAction('${escHtml(companyId)}','${escHtml(m.uid)}','${m.status === 'active' ? 'inactive' : 'active'}')" title="${m.status === 'active' ? 'Désactiver' : 'Activer'}"><i class="fa fa-power-off"></i></button>
+             <button class="btn btn-danger btn-sm" onclick="removeMuMemberAction('${escHtml(companyId)}','${escHtml(m.uid)}')" title="Retirer"><i class="fa fa-trash"></i></button>`
+          : `<span class="saved-item-badge">${escHtml(MULTIUSER_ROLES.find(([r]) => r === m.role)?.[1] || m.role)}</span>`
+        }
+      </div>
+    </div>`;
+}
+
+async function sendMuInvitation(companyId) {
+  const email = document.getElementById('mu-invite-email')?.value.trim();
+  const role = document.getElementById('mu-invite-role')?.value;
+  if (!email) return showNotif('Email requis', 'info');
+  try {
+    await window.multiUserFunctions.sendInvitation({ companyId, email, role });
+    showNotif('Invitation envoyée', 'success');
+    pushNotification({ type: 'multiuser', icon: 'user-plus', title: 'Invitation envoyée', body: email, link: { panel: 'multiuser' } });
+    renderMultiUserPanel();
+  } catch (err) {
+    showNotif(multiUserErrorMessage(err), 'info');
+  }
+}
+
+async function resendMuInvitation(companyId, invitationId) {
+  try {
+    await window.multiUserFunctions.resendInvitation({ companyId, invitationId });
+    showNotif('Invitation renvoyée', 'success');
+  } catch (err) {
+    showNotif(multiUserErrorMessage(err), 'info');
+  }
+}
+
+async function cancelMuInvitation(companyId, invitationId) {
+  if (!confirm('Annuler cette invitation ?')) return;
+  try {
+    await window.multiUserFunctions.cancelInvitation({ companyId, invitationId });
+    showNotif('Invitation annulée', 'info');
+    renderMultiUserPanel();
+  } catch (err) {
+    showNotif(multiUserErrorMessage(err), 'info');
+  }
+}
+
+async function changeMuMemberRole(companyId, memberUid, role) {
+  try {
+    await window.multiUserFunctions.updateMemberRole({ companyId, memberUid, role });
+    showNotif('Rôle mis à jour', 'success');
+  } catch (err) {
+    showNotif(multiUserErrorMessage(err), 'info');
+  } finally {
+    renderMultiUserPanel();
+  }
+}
+
+async function toggleMuMemberStatusAction(companyId, memberUid, status) {
+  try {
+    await window.multiUserFunctions.toggleMemberStatus({ companyId, memberUid, status });
+    showNotif(status === 'active' ? 'Membre activé' : 'Membre désactivé', 'success');
+  } catch (err) {
+    showNotif(multiUserErrorMessage(err), 'info');
+  } finally {
+    renderMultiUserPanel();
+  }
+}
+
+async function removeMuMemberAction(companyId, memberUid) {
+  if (!confirm('Retirer ce membre de la société ?')) return;
+  try {
+    await window.multiUserFunctions.removeMember({ companyId, memberUid });
+    showNotif('Membre retiré', 'info');
+  } catch (err) {
+    showNotif(multiUserErrorMessage(err), 'info');
+  } finally {
+    renderMultiUserPanel();
+  }
+}
+
+async function leaveMuCompanyAction(companyId) {
+  if (!confirm('Quitter cette société ?')) return;
+  try {
+    await window.multiUserFunctions.leaveCompany({ companyId });
+    showNotif('Vous avez quitté la société', 'info');
+    closeAccount();
+  } catch (err) {
+    showNotif(multiUserErrorMessage(err), 'info');
+  }
+}
+
+async function checkPendingMuInviteInUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const inviteId = params.get('invite');
+  const companyId = params.get('company');
+  const token = params.get('token');
+  if (!inviteId || !companyId || !token) return;
+  window.history.replaceState({}, '', window.location.pathname);
+  if (!S.authUser) {
+    showNotif('Connectez-vous, puis ouvrez à nouveau le lien d\'invitation reçu par email', 'info');
+    return;
+  }
+  if (!window.multiUserFunctions?.acceptInvitation) return;
+  if (!confirm('Accepter cette invitation à rejoindre une société ?')) return;
+  try {
+    await window.multiUserFunctions.acceptInvitation({ companyId, invitationId: inviteId, token });
+    showNotif('Invitation acceptée, bienvenue dans l\'espace multi-utilisateur', 'success');
+    pushNotification({ type: 'multiuser', icon: 'people-group', title: 'Invitation acceptée', body: 'Vous avez rejoint une nouvelle société', link: { panel: 'multiuser' } });
+  } catch (err) {
+    showNotif(multiUserErrorMessage(err), 'info');
+  }
 }
 
 // ═══════════════════════════════════════════════════════

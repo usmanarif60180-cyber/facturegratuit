@@ -2358,6 +2358,7 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-ghost btn-sm" id="account-tab-clients" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i> Clients</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-products" onclick="showAccountPanel('products')"><i class="fa fa-box"></i> Produits</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-leads" onclick="showAccountPanel('leads')"><i class="fa fa-bullhorn"></i> Prospects</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-multiuser" onclick="showAccountPanel('multiuser')"><i class="fa fa-people-group"></i> Multi-utilisateur</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-profile" onclick="showAccountPanel('profile')"><i class="fa fa-building"></i> Société</button>
         </div>
       </div>
@@ -2527,6 +2528,8 @@ body.home-mode .home-mobile-cta { display: none; }
         </div>
         <div class="pipeline-stage-grid" id="leads-pipeline-stats"></div>
         <div id="account-leads-list" style="margin-top:12px"></div>
+      </div>
+      <div class="account-panel" id="account-panel-multiuser">
       </div>
       <div class="account-panel" id="account-panel-profile">
         <div class="grid-2" style="margin-bottom:12px">
@@ -2931,6 +2934,10 @@ import {
   uploadString,
   getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-storage.js";
+import {
+  getFunctions,
+  httpsCallable
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
@@ -2946,6 +2953,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(firebaseApp);
 const firebaseDb = getFirestore(firebaseApp);
 const firebaseStorage = getStorage(firebaseApp);
+const firebaseFunctions = getFunctions(firebaseApp);
 let firebaseAIModel = null;
 
 try {
@@ -2981,7 +2989,8 @@ window.firebaseServices = {
   updatePassword,
   verifyBeforeUpdateEmail,
   deleteUser,
-  aiModel: firebaseAIModel
+  aiModel: firebaseAIModel,
+  functions: firebaseFunctions
 };
 window.firestoreDoc = doc;
 window.firestoreSetDoc = setDoc;
@@ -2993,6 +3002,22 @@ window.firestoreServerTimestamp = serverTimestamp;
 window.firebaseStorageRef = storageRef;
 window.firebaseUploadString = uploadString;
 window.firebaseGetDownloadURL = getDownloadURL;
+// Multi-user workspace Cloud Functions (see functions/index.js) — distinct
+// from the lightweight single-account "Équipe" roster/task tracker. Each
+// throws if the caller lacks permission — the server-side check is the real
+// enforcement, this is just the client entry point.
+window.multiUserFunctions = {
+  createCompany: httpsCallable(firebaseFunctions, 'createCompany'),
+  sendInvitation: httpsCallable(firebaseFunctions, 'sendInvitation'),
+  resendInvitation: httpsCallable(firebaseFunctions, 'resendInvitation'),
+  cancelInvitation: httpsCallable(firebaseFunctions, 'cancelInvitation'),
+  acceptInvitation: httpsCallable(firebaseFunctions, 'acceptInvitation'),
+  declineInvitation: httpsCallable(firebaseFunctions, 'declineInvitation'),
+  updateMemberRole: httpsCallable(firebaseFunctions, 'updateMemberRole'),
+  toggleMemberStatus: httpsCallable(firebaseFunctions, 'toggleMemberStatus'),
+  removeMember: httpsCallable(firebaseFunctions, 'removeMember'),
+  leaveCompany: httpsCallable(firebaseFunctions, 'leaveCompany')
+};
 window.__firebaseModuleStatus = 'ready';
 
 onAuthStateChanged(firebaseAuth, user => {
