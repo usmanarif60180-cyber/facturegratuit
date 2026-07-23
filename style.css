@@ -749,7 +749,7 @@
   .feedback-meter label { cursor: pointer; border: 1px solid var(--border); border-radius: 9px; padding: 9px 6px; text-align: center; color: var(--ink-muted); font-size: 12px; font-weight: 800; background: rgba(255,255,255,.03); }
   .feedback-meter input { display: none; }
   .feedback-meter label:has(input:checked) { color: #fff; border-color: rgba(22,163,74,.55); background: linear-gradient(135deg,var(--brand),var(--brand-2)); }
-  .cookie-banner { position: fixed; left: 20px; right: 20px; bottom: 18px; z-index: 10001; display: none; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: 12px; background: rgba(15,23,42,.96); box-shadow: 0 24px 80px rgba(0,0,0,.45); color: var(--ink-muted); font-size: 12px; }
+  .cookie-banner { position: fixed; left: 20px; right: 20px; bottom: 18px; z-index: 9000; display: none; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: 12px; background: rgba(15,23,42,.96); box-shadow: 0 24px 80px rgba(0,0,0,.45); color: var(--ink-muted); font-size: 12px; }
   .cookie-banner.open { display: flex; animation: fadeUp .2s ease both; }
   .cookie-banner strong { color: var(--ink); }
   .cookie-copy { max-width: 780px; line-height: 1.55; }
