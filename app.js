@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAuth();
   if (S.authUser) {
     applyAccountLocalePrefsAtBoot();
-    setTimeout(() => { migrateLegacyCompanyProfile(); applyActiveProfileToEditor(true); }, 0);
+    setTimeout(() => { migrateLegacyCompanyProfile(); applyActiveProfileToEditor(true); checkOverdueReminders(); }, 0);
   }
   syncLocaleControls();
   renderDocVariant();
@@ -695,6 +695,7 @@ async function saveAuthUser(user) {
     migrateLegacyCompanyProfile();
     applyActiveProfileToEditor(true);
     renderAccountOverview();
+    checkOverdueReminders();
   }
 }
 
@@ -1205,12 +1206,13 @@ function buildAccountAnalytics(history=[]) {
   const empty = {
     today:0, month:0, year:0, ht:0, tva:0, total:0,
     paid:0, unpaid:0, overdue:0, draft:0, quotes:0, invoices:0,
-    monthly:[], topClients:[], conversionRate:0, avgPaymentDelay:0
+    monthly:[], topClients:[], currencyBreakdown:[], currencies:[], conversionRate:0, avgPaymentDelay:0
   };
   if (!history.length) return empty;
 
   const monthlyMap = {};
   const clientMap = {};
+  const currencyMap = {};
   let paidDelayTotal = 0;
   let paidDelayCount = 0;
 
@@ -1223,12 +1225,19 @@ function buildAccountAnalytics(history=[]) {
     const status = getHistoryStatus(item);
     const isQuote = String(item.docType || '').toLowerCase() === 'devis';
     const client = item.clientName || 'Client';
+    const currencyCode = item.currency || S.currency || getCountryProfile().currency;
 
     monthlyMap[month] ||= { month, subtotal:0, tva:0, total:0, count:0 };
     monthlyMap[month].subtotal += subtotal;
     monthlyMap[month].tva += tva;
     monthlyMap[month].total += total;
     monthlyMap[month].count += 1;
+
+    currencyMap[currencyCode] ||= { code: currencyCode, subtotal:0, tva:0, total:0, count:0 };
+    currencyMap[currencyCode].subtotal += subtotal;
+    currencyMap[currencyCode].tva += tva;
+    currencyMap[currencyCode].total += total;
+    currencyMap[currencyCode].count += 1;
 
     clientMap[client] ||= { name: client, total:0, count:0 };
     clientMap[client].total += total;
@@ -1266,11 +1275,14 @@ function buildAccountAnalytics(history=[]) {
   const topClients = Object.values(clientMap)
     .sort((a,b) => b.total - a.total)
     .slice(0,5);
+  const currencyBreakdown = Object.values(currencyMap).sort((a,b) => b.total - a.total);
 
   return {
     ...totals,
     monthly,
     topClients,
+    currencyBreakdown,
+    currencies: currencyBreakdown.map(c => c.code),
     conversionRate: totals.quotes ? Math.round((totals.invoices / (totals.invoices + totals.quotes)) * 100) : (totals.invoices ? 100 : 0),
     avgPaymentDelay: paidDelayCount ? Math.round(paidDelayTotal / paidDelayCount) : 0,
     paidDelayCount
@@ -1495,6 +1507,8 @@ function renderAccountOverview() {
   const totals = buildAccountAnalytics(history);
   const health = computeBusinessHealthScore(totals);
   const growthFactor = health.factors.find(f => f.key === 'growth');
+  const today = new Date().toISOString().slice(0,10);
+  const dueRecurring = projects.filter(p => p.recurrenceInterval && p.nextInvoiceAt && p.nextInvoiceAt <= today);
   if (grid) {
     grid.innerHTML = `
       <div style="grid-column:1 / -1">${renderProfileCompletionWidget()}</div>
@@ -1512,6 +1526,9 @@ function renderAccountOverview() {
       <div class="dashboard-card"><i class="fa fa-layer-group"></i><strong>${fmtEur(totals.ht)}</strong><span>Total HT</span></div>
       <div class="dashboard-card"><i class="fa fa-percent"></i><strong>${fmtEur(totals.tva)}</strong><span>Total TVA</span></div>
       <div class="dashboard-card"><i class="fa fa-cloud"></i><strong>${formatBytes(storageUsed)}</strong><span>Stockage utilisé</span></div>
+      ${totals.currencies.length > 1 ? `
+      <div class="dashboard-section-label" style="grid-column:1 / -1">Répartition par devise</div>
+      <div style="grid-column:1 / -1">${renderCurrencyBreakdown(totals.currencyBreakdown)}</div>` : ''}
       <div class="dashboard-section-label" style="grid-column:1 / -1">Activité</div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('projects')"><i class="fa fa-folder-open"></i><strong>${projects.length}</strong><span>Projets sauvegardés</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i><strong>${clients.length}</strong><span>Clients enregistrés</span></div>
@@ -1519,6 +1536,7 @@ function renderAccountOverview() {
       <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Factures historique</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('leads')"><i class="fa fa-bullhorn"></i><strong>${openLeads.length}</strong><span>Leads en cours</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('leads')"><i class="fa fa-sack-dollar"></i><strong>${fmtEur(pipelineValue)}</strong><span>Valeur pipeline</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('projects')"><i class="fa fa-rotate"></i><strong>${dueRecurring.length}</strong><span>Factures récurrentes à générer</span></div>
       ${renderAccountAdvancedAnalytics(history, totals)}`;
     renderAccountStoragePanel();
   }
@@ -1528,6 +1546,15 @@ function renderAccountOverview() {
       ? `<div class="saved-list">${latest.map(renderProjectItem).join('')}</div>`
       : renderEmptyState('folder-open', 'Aucun projet récent', 'Sauvegardez le projet actuel pour le reprendre plus tard.', 'Sauver projet actuel', 'saveCurrentProject()');
   }
+}
+
+function renderCurrencyBreakdown(breakdown=[]) {
+  return `<div class="currency-breakdown-grid">${breakdown.map(c => `
+    <div class="currency-breakdown-card">
+      <strong>${escHtml(c.code)}</strong>
+      <span>${c.count} document${c.count>1?'s':''}</span>
+      <span>${fmtCurrencyAmount(c.total, c.code)} TTC</span>
+    </div>`).join('')}</div>`;
 }
 
 function renderProfileCompletionWidget() {
@@ -1573,6 +1600,12 @@ function saveCurrentProject(forceNew=false) {
   if (!S.authUser) { showNotif('Login karein, phir project save karein', 'info'); return; }
   const record = getCurrentProjectRecord(forceNew);
   const list = loadAccountList('projects');
+  const existing = list.find(item => item.id === record.id);
+  if (existing) {
+    if (existing.recurrenceInterval) record.recurrenceInterval = existing.recurrenceInterval;
+    if (existing.nextInvoiceAt) record.nextInvoiceAt = existing.nextInvoiceAt;
+    if (existing.lastGeneratedAt) record.lastGeneratedAt = existing.lastGeneratedAt;
+  }
   const next = [record, ...list.filter(item => item.id !== record.id)].slice(0, 200);
   if (saveAccountList('projects', next)) {
     renderSavedProjects();
@@ -1593,21 +1626,81 @@ function getSectorLabel(sector) {
   return local || fallback[sector] || 'Document';
 }
 
+const RECURRENCE_OPTIONS = [
+  ['', 'Pas de récurrence'],
+  ['weekly', 'Hebdomadaire'],
+  ['monthly', 'Mensuelle'],
+  ['quarterly', 'Trimestrielle'],
+  ['yearly', 'Annuelle']
+];
+
 function renderProjectItem(item) {
   const type = `${String(item.docType || 'document').toUpperCase()} · ${getSectorLabel(item.sector || 'batiment')}`;
+  const today = new Date().toISOString().slice(0,10);
+  const isDue = Boolean(item.recurrenceInterval) && item.nextInvoiceAt && item.nextInvoiceAt <= today;
+  const recOptions = RECURRENCE_OPTIONS.map(([val,label]) => `<option value="${val}"${(item.recurrenceInterval||'') === val ? ' selected' : ''}>${escHtml(label)}</option>`).join('');
   return `
-    <div class="saved-item">
+    <div class="saved-item${isDue ? ' due-recurring' : ''}">
       <div class="saved-item-main">
         <strong>${escHtml(item.title || item.clientName || 'Projet')}</strong>
         <span>${escHtml(type)} · ${fmtDate(item.date)} · ${escHtml(item.docNum || '')}</span>
-        <span>${escHtml(item.objectName || 'Sans objet')} · ${fmtEur(item.total)}</span>
+        <span>${escHtml(item.objectName || 'Sans objet')} · ${fmtCurrencyAmount(item.total, item.currency)}</span>
+        ${item.recurrenceInterval ? `<span class="recurrence-note"><i class="fa fa-rotate"></i> ${isDue ? 'À refacturer maintenant' : 'Prochaine facture : ' + fmtDate(item.nextInvoiceAt)}</span>` : ''}
       </div>
       <div class="saved-item-actions">
-        <button class="btn btn-primary btn-sm" onclick="openSavedProject('${escHtml(item.id)}')"><i class="fa fa-play"></i> Continuer</button>
+        ${isDue ? `<button class="btn btn-primary btn-sm" onclick="generateRecurringInvoice('${escHtml(item.id)}')"><i class="fa fa-rotate"></i> Générer facture</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="openSavedProject('${escHtml(item.id)}')"><i class="fa fa-play"></i> Continuer</button>
         <button class="btn btn-ghost btn-sm" onclick="duplicateSavedProject('${escHtml(item.id)}')"><i class="fa fa-copy"></i> Copier</button>
         <button class="btn btn-danger btn-sm" onclick="deleteSavedProject('${escHtml(item.id)}')"><i class="fa fa-trash"></i></button>
+        <select class="recurrence-select" data-project-id="${escHtml(item.id)}" onchange="setProjectRecurrence(this.dataset.projectId, this.value)" title="Facturation récurrente">${recOptions}</select>
       </div>
     </div>`;
+}
+
+function setProjectRecurrence(id, interval) {
+  const list = loadAccountList('projects');
+  const idx = list.findIndex(entry => entry.id === id);
+  if (idx === -1) return;
+  const item = list[idx];
+  list[idx] = interval
+    ? { ...item, recurrenceInterval: interval, nextInvoiceAt: item.nextInvoiceAt || new Date().toISOString().slice(0,10) }
+    : { ...item, recurrenceInterval: '', nextInvoiceAt: '' };
+  saveAccountList('projects', list);
+  renderSavedProjects();
+  renderAccountOverview();
+  showNotif(interval ? 'Facturation récurrente activée' : 'Facturation récurrente désactivée', 'success');
+}
+
+function computeNextRecurrenceDate(interval) {
+  const d = new Date();
+  if (interval === 'weekly') d.setDate(d.getDate() + 7);
+  else if (interval === 'quarterly') d.setMonth(d.getMonth() + 3);
+  else if (interval === 'yearly') d.setFullYear(d.getFullYear() + 1);
+  else d.setMonth(d.getMonth() + 1);
+  return d.toISOString().slice(0,10);
+}
+
+function generateRecurringInvoice(id) {
+  const item = loadAccountList('projects').find(entry => entry.id === id);
+  if (!item?.snapshot) return showNotif('Projet introuvable', 'info');
+  applyDraftSnapshot(item.snapshot);
+  const dateEl = document.getElementById('f-date');
+  if (dateEl) dateEl.value = new Date().toISOString().slice(0,10);
+  const cycle = (item.recurrenceCycle || 0) + 1;
+  const numEl = document.getElementById('f-number');
+  if (numEl) numEl.value = `${getUniqueDocNumber(S.docType, S.docSector)}-C${cycle}`;
+  updatePreview();
+  recordDocumentHistory('manual');
+  const next = computeNextRecurrenceDate(item.recurrenceInterval);
+  const updatedList = loadAccountList('projects').map(entry => entry.id === id ? { ...entry, nextInvoiceAt: next, lastGeneratedAt: new Date().toISOString(), recurrenceCycle: cycle } : entry);
+  saveAccountList('projects', updatedList);
+  renderSavedProjects();
+  renderAccountOverview();
+  pushNotification({ type:'document', icon:'rotate', title:'Facture récurrente générée', body: item.title || item.clientName || '', link:{ panel:'projects' } });
+  closeAccount();
+  scrollToEditor();
+  showSection('infos');
+  showNotif('Nouvelle facture générée depuis le projet récurrent — vérifiez et téléchargez', 'success');
 }
 
 function renderSavedProjects() {
@@ -1896,6 +1989,31 @@ function pushNotification({ type='info', icon='bell', title='', body='', link=nu
   const next = [record, ...list].slice(0, 50);
   saveAccountList('notifications', next, { skipQuotaCheck:true, silent:true });
   renderNotifBell();
+}
+
+function checkOverdueReminders() {
+  if (!S.authUser) return;
+  const remindedKey = getAccountStorageKey('overdue-reminded');
+  let reminded = [];
+  try { reminded = JSON.parse(localStorage.getItem(remindedKey) || '[]'); } catch { reminded = []; }
+  const remindedSet = new Set(reminded);
+  let changed = false;
+  loadAccountHistory().forEach(item => {
+    if (getHistoryStatus(item) === 'overdue' && !remindedSet.has(item.id)) {
+      pushNotification({
+        type: 'reminder',
+        icon: 'triangle-exclamation',
+        title: 'Facture en retard de paiement',
+        body: `${item.docNum || ''} · ${item.clientName || ''}`.trim(),
+        link: { panel: 'history' }
+      });
+      remindedSet.add(item.id);
+      changed = true;
+    }
+  });
+  if (changed) {
+    try { localStorage.setItem(remindedKey, JSON.stringify([...remindedSet])); } catch {}
+  }
 }
 
 function getUnreadNotifCount() {
@@ -3350,6 +3468,7 @@ function getCurrentDocumentSummary(action='PDF') {
     currency: S.currency || profile.currency,
     country: S.country,
     action,
+    dueDate: document.getElementById('f-due')?.value || '',
     companyId: getActiveProfileId() || null,
     updatedAt: new Date().toISOString()
   };
@@ -3398,8 +3517,13 @@ function renderAccountHistory() {
           <div class="history-row">
             <span>${fmtDate(item.date)}</span>
             <strong>${escHtml(item.clientName || 'Client')}</strong>
-            <span style="text-align:right">${fmtEur(item.total)}</span>
+            <span style="text-align:right">${fmtCurrencyAmount(item.total, item.currency)}</span>
             <div class="saved-item-actions">
+              ${String(item.docType||'').toLowerCase() === 'devis' ? (
+                item.convertedToId
+                  ? `<span class="converted-badge" title="Converti en facture"><i class="fa fa-check"></i> Converti</span>`
+                  : `<button class="btn btn-primary btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="convertDevisToInvoice(this.dataset.historyId)" title="Convertir en facture"><i class="fa fa-file-invoice-dollar"></i> Facturer</button>`
+              ) : ''}
               <button class="btn btn-ghost btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="editHistoryRecord(this.dataset.historyId)"><i class="fa fa-pen"></i></button>
               <button class="btn btn-ghost btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="duplicateHistoryRecord(this.dataset.historyId)"><i class="fa fa-copy"></i></button>
               <button class="btn btn-danger btn-sm" style="height:28px;font-size:10px;padding:4px 8px" data-history-id="${escHtml(item.id)}" onclick="deleteHistoryRecord(this.dataset.historyId)"><i class="fa fa-trash"></i></button>
@@ -3453,6 +3577,35 @@ function duplicateHistoryRecord(id) {
   recordDocumentHistory('duplicate');
   renderAccountHistory();
   showNotif('Facture copiée dans l’historique', 'success');
+}
+
+function convertDevisToInvoice(id) {
+  const item = loadAccountHistory().find(entry => entry.id === id);
+  if (!item) return showNotif('Devis introuvable', 'info');
+  if (String(item.docType||'').toLowerCase() !== 'devis') return showNotif('Seuls les devis peuvent être convertis en facture', 'info');
+  if (item.convertedToId) return showNotif('Ce devis a déjà été converti en facture', 'info');
+  if (item.snapshot) {
+    applyDraftSnapshot(item.snapshot);
+  } else {
+    document.getElementById('c-name').value = item.clientName || '';
+  }
+  setDocVariant('facture', item.sector || 'batiment');
+  const dateEl = document.getElementById('f-date');
+  if (dateEl) dateEl.value = new Date().toISOString().slice(0,10);
+  const numEl = document.getElementById('f-number');
+  if (numEl) numEl.value = getUniqueDocNumber('facture', item.sector || 'batiment');
+  updatePreview();
+  recordDocumentHistory('manual');
+  const newRecord = loadAccountHistory()[0];
+  const updatedList = loadAccountHistory().map(entry => entry.id === id ? { ...entry, convertedToId: newRecord?.id || '', convertedAt: new Date().toISOString() } : entry);
+  saveAccountHistory(updatedList);
+  renderAccountHistory();
+  renderAccountOverview();
+  pushNotification({ type:'document', icon:'file-invoice-dollar', title:'Devis converti en facture', body: `${item.docNum || ''} → ${newRecord?.docNum || ''}`.trim(), link:{ panel:'history' } });
+  closeAccount();
+  scrollToEditor();
+  showSection('infos');
+  showNotif('Devis converti en facture — vérifiez et téléchargez', 'success');
 }
 
 function deleteHistoryRecord(id) {
@@ -3968,6 +4121,20 @@ function getDefaultDocNumber(type, sector) {
   const prefix = profile.docPrefix[type] || (type === 'facture' ? 'FAC' : 'DEV');
   const suffix = sector === 'automobile' ? 'AUTO' : (sector === 'online' ? 'MKT' : 'BAT');
   return `${prefix}-${suffix}-${new Date().getFullYear()}-001`;
+}
+
+// getDefaultDocNumber() always returns the same static "-001" suffix, so
+// generating multiple documents of the same type/sector/year (e.g. several
+// converted devis, or several cycles of a recurring invoice) would collide
+// on id ("${docType}-${docNum}") and silently overwrite an earlier history
+// record instead of creating a new one. This finds the next free number.
+function getUniqueDocNumber(type, sector) {
+  const base = getDefaultDocNumber(type, sector);
+  const existingIds = new Set(loadAccountHistory().map(item => item.id));
+  if (!existingIds.has(`${type}-${base}`)) return base;
+  let n = 2;
+  while (existingIds.has(`${type}-${base}-${n}`)) n++;
+  return `${base}-${n}`;
 }
 
 function renderDocVariant() {
@@ -5382,6 +5549,16 @@ window.addEventListener('beforeprint', () => {
 function fmtEur(n) {
   const profile = getCountryProfile();
   return new Intl.NumberFormat(profile.locale, { style:'currency', currency:S.currency || profile.currency }).format(n||0);
+}
+
+function fmtCurrencyAmount(amount, currencyCode) {
+  const profile = getCountryProfile();
+  const code = currencyCode || S.currency || profile.currency;
+  try {
+    return new Intl.NumberFormat(profile.locale, { style:'currency', currency: code }).format(amount || 0);
+  } catch {
+    return fmtEur(amount);
+  }
 }
 
 function fmtDate(iso) {
