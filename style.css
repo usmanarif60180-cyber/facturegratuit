@@ -157,6 +157,35 @@
     .payment-methods-grid { grid-template-columns: 1fr; }
     .plan-mini-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   }
+  .lead-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  @media(max-width:520px) { .lead-form-grid { grid-template-columns: 1fr; } }
+  .pipeline-stage-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(90px,1fr)); gap: 8px; }
+  .pipeline-stage-card { border: 1px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; background: rgba(255,255,255,.03); display: flex; flex-direction: column; gap: 3px; }
+  .pipeline-stage-card strong { font-size: 16px; color: var(--ink); }
+  .pipeline-stage-card span { font-size: 9.5px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .03em; }
+  .pipeline-stage-card em { font-size: 10px; color: var(--brand); font-style: normal; font-weight: 700; }
+  .lead-item .saved-item-actions { align-items: center; }
+  .lead-stage-select { font-size: 10.5px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-2, rgba(255,255,255,.04)); color: var(--ink); padding: 5px 6px; }
+
+  .notif-bell-btn { position: relative; }
+  .notif-badge { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .notif-panel { position: fixed; width: 320px; max-width: calc(100vw - 24px); max-height: 420px; flex-direction: column; background: rgba(15,23,42,.98); border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.45); display: none; z-index: 210; }
+  .notif-panel.open { display: flex; animation: fadeUp .16s ease both; }
+  .notif-panel-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .notif-panel-head strong { color: var(--ink); }
+  .notif-panel-head-actions { display: flex; gap: 4px; }
+  .notif-panel-list { overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .notif-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 8px; border-radius: 9px; cursor: pointer; transition: background .12s ease; }
+  .notif-item:hover { background: rgba(255,255,255,.04); }
+  .notif-item.unread { background: rgba(22,163,74,.07); }
+  .notif-item-icon { width: 28px; height: 28px; flex: 0 0 auto; border-radius: 8px; background: rgba(255,255,255,.06); display: flex; align-items: center; justify-content: center; color: var(--brand); font-size: 12px; }
+  .notif-item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .notif-item-body strong { font-size: 11.5px; color: var(--ink); overflow-wrap: anywhere; }
+  .notif-item-body span { font-size: 10.5px; color: var(--ink-muted); overflow-wrap: anywhere; }
+  .notif-item-body time { font-size: 9.5px; color: var(--ink-dim); }
+  .notif-item-del { background: none; border: none; color: var(--ink-dim); cursor: pointer; padding: 2px 4px; font-size: 11px; }
+  .notif-item-del:hover { color: #f87171; }
+  .notif-empty { padding: 24px 14px; text-align: center; font-size: 11.5px; color: var(--ink-dim); }
   .account-panel { display: none; }
   .account-panel.active { display: block; }
   .history-month { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; background: rgba(255,255,255,.025); }

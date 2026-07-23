@@ -645,6 +645,17 @@ document.addEventListener('click', e => {
   const menu = document.getElementById('account-menu');
   const wrap = document.querySelector('.auth-actions');
   if (menu && wrap && !wrap.contains(e.target)) menu.classList.remove('open');
+  const notifPanel = document.getElementById('notif-panel');
+  if (notifPanel && notifPanel.classList.contains('open')) {
+    const insidePanel = notifPanel.contains(e.target);
+    const onBell = e.target.closest?.('.notif-bell-btn');
+    if (!insidePanel && !onBell) notifPanel.classList.remove('open');
+  }
+});
+
+window.addEventListener('resize', () => {
+  const panel = document.getElementById('notif-panel');
+  if (panel && panel.classList.contains('open')) positionNotifPanel();
 });
 
 document.addEventListener('keydown', e => {
@@ -653,6 +664,7 @@ document.addEventListener('keydown', e => {
     closeAccount();
     closeLegal();
     document.getElementById('account-menu')?.classList.remove('open');
+    document.getElementById('notif-panel')?.classList.remove('open');
   }
 });
 
@@ -706,6 +718,7 @@ function renderAuth() {
       : avatarSrc ? `<img class="account-avatar-img" src="${avatarSrc}" alt="">`
       : `<span class="account-avatar">${escHtml(initial)}</span>`;
   }
+  renderNotifBell();
   if (accountName) accountName.textContent = S.authUser?.name || 'Compte';
   if (accountEmail) accountEmail.textContent = S.authUser?.email || '';
   if (accountStatus) {
@@ -812,7 +825,7 @@ function renderAccountModal() {
   renderAccountHistory();
 }
 
-const ACCOUNT_PANELS = ['overview','projects','history','clients','products','profile','personal','security','appearance','language','storage','payments','privacy','danger'];
+const ACCOUNT_PANELS = ['overview','projects','history','clients','products','leads','profile','personal','security','appearance','language','storage','payments','privacy','danger'];
 
 function showAccountPanel(panel='overview') {
   S.currentAccountPanel = panel;
@@ -826,6 +839,7 @@ function showAccountPanel(panel='overview') {
   if (panel === 'history') renderAccountHistory();
   if (panel === 'clients') renderSavedClients();
   if (panel === 'products') renderSavedProducts();
+  if (panel === 'leads') renderSavedLeads();
   if (panel === 'profile') renderSavedProfiles();
   if (panel === 'personal') fillPersonalProfileForm();
   if (panel === 'appearance') applyAppTheme();
@@ -874,7 +888,7 @@ function setAutoCleanup(on) {
 
 function getAccountStorageUsageBytes() {
   if (!S.authUser) return 0;
-  const suffixes = ['profile','personal','history','projects','clients','products'];
+  const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications'];
   return suffixes.reduce((sum, suffix) => {
     try { return sum + getTextBytes(localStorage.getItem(getAccountStorageKey(suffix)) || ''); } catch { return sum; }
   }, 0);
@@ -882,7 +896,7 @@ function getAccountStorageUsageBytes() {
 
 function getProjectedAccountStorageUsageBytes(suffix, serialized) {
   if (!S.authUser) return 0;
-  const suffixes = ['profile','personal','history','projects','clients','products'];
+  const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications'];
   return suffixes.reduce((sum, key) => {
     try {
       const text = key === suffix ? serialized : (localStorage.getItem(getAccountStorageKey(key)) || '');
@@ -952,7 +966,7 @@ function renderAccountStoragePanel() {
 
 function collectAccountDataBundle() {
   if (!S.authUser) return null;
-  const suffixes = ['profile','personal','history','projects','clients','products'];
+  const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications'];
   const data = {};
   suffixes.forEach(suffix => {
     try { data[suffix] = JSON.parse(localStorage.getItem(getAccountStorageKey(suffix)) || '[]'); }
@@ -996,6 +1010,8 @@ async function syncAccountDataToCloud() {
       projects: bundle.data.projects,
       clients: bundle.data.clients,
       products: bundle.data.products,
+      leads: bundle.data.leads,
+      notifications: bundle.data.notifications,
       storageUsedBytes: bundle.storageUsedBytes,
       updatedAt: new Date().toISOString()
     });
@@ -1019,7 +1035,7 @@ async function pullAccountDataFromCloud() {
     const snap = await window.firestoreGetDoc(ref);
     if (!snap.exists()) return false;
     const cloud = snap.data() || {};
-    ['profile','personal','history','projects','clients','products'].forEach(suffix => {
+    ['profile','personal','history','projects','clients','products','leads','notifications'].forEach(suffix => {
       if (cloud[suffix] !== undefined && cloud[suffix] !== null) {
         try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(cloud[suffix])); } catch {}
       }
@@ -1175,6 +1191,9 @@ function setHistoryStatus(id, status) {
   saveAccountHistory(list);
   renderAccountHistory();
   renderAccountOverview();
+  if (status === 'paid' && !wasPaid) {
+    pushNotification({ type:'payment', icon:'circle-check', title:'Facture payée', body: `${next.docNum || ''} · ${next.clientName || ''}`.trim(), link:{ panel:'history' } });
+  }
   showNotif('Statut mis à jour', 'success');
 }
 
@@ -1469,6 +1488,9 @@ function renderAccountOverview() {
   const projects = getCompanyFilteredList(loadAccountList('projects'));
   const clients = getCompanyFilteredList(loadAccountList('clients'));
   const products = loadAccountList('products');
+  const leads = loadLeads();
+  const openLeads = leads.filter(l => !['won','lost'].includes(l.stage || 'new'));
+  const pipelineValue = openLeads.reduce((s, l) => s + (Number(l.value) || 0), 0);
   const storageUsed = getAccountStorageUsageBytes();
   const totals = buildAccountAnalytics(history);
   const health = computeBusinessHealthScore(totals);
@@ -1495,6 +1517,8 @@ function renderAccountOverview() {
       <div class="dashboard-card clickable" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i><strong>${clients.length}</strong><span>Clients enregistrés</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('products')"><i class="fa fa-box"></i><strong>${products.length}</strong><span>Produits/services</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Factures historique</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('leads')"><i class="fa fa-bullhorn"></i><strong>${openLeads.length}</strong><span>Leads en cours</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('leads')"><i class="fa fa-sack-dollar"></i><strong>${fmtEur(pipelineValue)}</strong><span>Valeur pipeline</span></div>
       ${renderAccountAdvancedAnalytics(history, totals)}`;
     renderAccountStoragePanel();
   }
@@ -1553,6 +1577,7 @@ function saveCurrentProject(forceNew=false) {
   if (saveAccountList('projects', next)) {
     renderSavedProjects();
     renderAccountOverview();
+    if (forceNew) pushNotification({ type:'project', icon:'diagram-project', title:'Nouveau projet créé', body: record.title || record.clientName || '', link:{ panel:'projects' } });
     showNotif('Projet sauvegardé', 'success');
   }
 }
@@ -1649,10 +1674,12 @@ function saveCurrentClient() {
   const record = getCurrentClientRecord();
   if (!record.name && !record.email) return showNotif('Client ka naam ya email add karein', 'info');
   const list = loadAccountList('clients');
+  const isNew = !list.some(item => item.id === record.id);
   const next = [record, ...list.filter(item => item.id !== record.id)].slice(0, 500);
   if (saveAccountList('clients', next)) {
     renderSavedClients();
     renderAccountOverview();
+    if (isNew) pushNotification({ type:'client', icon:'address-book', title:'Nouveau client ajouté', body: record.name || record.email, link:{ panel:'clients' } });
     showNotif('Client sauvegardé', 'success');
   }
 }
@@ -1711,6 +1738,281 @@ function clearSavedClients() {
   saveAccountList('clients', []);
   renderSavedClients();
   renderAccountOverview();
+}
+
+// ═══════════════════════════════════════════════════════
+// CRM & LEADS (solo pipeline — no team/assignment, since no
+// multi-user system exists in this app)
+// ═══════════════════════════════════════════════════════
+const LEAD_STAGES = [
+  ['new', 'Nouveau'],
+  ['contacted', 'Contacté'],
+  ['qualified', 'Qualifié'],
+  ['proposal', 'Proposition'],
+  ['negotiation', 'Négociation'],
+  ['won', 'Gagné'],
+  ['lost', 'Perdu']
+];
+
+function loadLeads() {
+  return getCompanyFilteredList(loadAccountList('leads'));
+}
+
+function getCurrentLeadFormRecord(existingId) {
+  const name = document.getElementById('lead-name')?.value.trim() || '';
+  const company = document.getElementById('lead-company')?.value.trim() || '';
+  const email = document.getElementById('lead-email')?.value.trim() || '';
+  const tel = document.getElementById('lead-tel')?.value.trim() || '';
+  const value = cleanNumber(document.getElementById('lead-value')?.value);
+  const source = document.getElementById('lead-source')?.value.trim() || '';
+  const notes = document.getElementById('lead-notes')?.value.trim() || '';
+  const id = existingId || `lead-${Date.now()}`;
+  return { id, name, company, email, tel, value, source, notes, companyId: getActiveProfileId() || null };
+}
+
+function clearLeadForm() {
+  ['lead-name','lead-company','lead-email','lead-tel','lead-value','lead-source','lead-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function saveLeadFromForm() {
+  if (!S.authUser) { showNotif('Login karein, phir lead save karein', 'info'); return; }
+  const record = getCurrentLeadFormRecord();
+  if (!record.name && !record.company) { showNotif('Ajoutez au moins un nom ou une société', 'info'); return; }
+  const list = loadAccountList('leads');
+  const next = [{ ...record, stage: 'new', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, ...list].slice(0, 500);
+  if (saveAccountList('leads', next)) {
+    clearLeadForm();
+    renderSavedLeads();
+    renderAccountOverview();
+    pushNotification({ type: 'lead', icon: 'user-plus', title: 'Nouveau lead ajouté', body: record.name || record.company, link: { panel: 'leads' } });
+    showNotif('Lead ajouté', 'success');
+  }
+}
+
+function setLeadStage(id, stage) {
+  const list = loadAccountList('leads');
+  const idx = list.findIndex(item => item.id === id);
+  if (idx === -1) return;
+  list[idx] = { ...list[idx], stage, updatedAt: new Date().toISOString() };
+  saveAccountList('leads', list);
+  renderSavedLeads();
+  renderAccountOverview();
+}
+
+function deleteLead(id) {
+  if (!confirm('Supprimer ce lead ?')) return;
+  saveAccountList('leads', loadAccountList('leads').filter(item => item.id !== id));
+  renderSavedLeads();
+  renderAccountOverview();
+}
+
+function clearSavedLeads() {
+  if (!confirm('Effacer tous les leads ?')) return;
+  saveAccountList('leads', []);
+  renderSavedLeads();
+  renderAccountOverview();
+}
+
+function convertLeadToClient(id) {
+  const lead = loadAccountList('leads').find(item => item.id === id);
+  if (!lead) return showNotif('Lead introuvable', 'info');
+  const clientRecord = {
+    id: (lead.name || lead.company || `client-${Date.now()}`).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9@._-]+/g, '-'),
+    name: lead.company || lead.name,
+    siret: '',
+    addr: '',
+    siteAddr: '',
+    email: lead.email,
+    tel: lead.tel,
+    companyId: lead.companyId,
+    updatedAt: new Date().toISOString()
+  };
+  const clients = loadAccountList('clients');
+  saveAccountList('clients', [clientRecord, ...clients.filter(c => c.id !== clientRecord.id)].slice(0, 500));
+  setLeadStage(id, 'won');
+  renderSavedClients();
+  pushNotification({ type: 'lead', icon: 'circle-check', title: 'Lead converti en client', body: clientRecord.name, link: { panel: 'clients' } });
+  showNotif('Lead converti en client', 'success');
+}
+
+function renderLeadsPipelineStats() {
+  const box = document.getElementById('leads-pipeline-stats');
+  if (!box) return;
+  const leads = loadLeads();
+  box.innerHTML = LEAD_STAGES.map(([key, label]) => {
+    const inStage = leads.filter(l => (l.stage || 'new') === key);
+    const value = inStage.reduce((s, l) => s + (Number(l.value) || 0), 0);
+    return `<div class="pipeline-stage-card"><strong>${inStage.length}</strong><span>${escHtml(label)}</span>${value ? `<em>${fmtEur(value)}</em>` : ''}</div>`;
+  }).join('');
+}
+
+function renderLeadItem(item) {
+  const stageOptions = LEAD_STAGES.map(([key, label]) => `<option value="${key}"${(item.stage || 'new') === key ? ' selected' : ''}>${escHtml(label)}</option>`).join('');
+  return `
+    <div class="saved-item lead-item">
+      <div class="saved-item-main">
+        <strong>${escHtml(item.name || item.company || 'Lead')}${item.company && item.name ? ' · ' + escHtml(item.company) : ''}</strong>
+        <span>${escHtml(item.email || '')}${item.tel ? ' · ' + escHtml(item.tel) : ''}</span>
+        <span>${item.value ? fmtEur(item.value) + ' estimé' : ''}${item.source ? ' · Source: ' + escHtml(item.source) : ''}</span>
+      </div>
+      <div class="saved-item-actions">
+        <select class="lead-stage-select" data-lead-id="${escHtml(item.id)}" onchange="setLeadStage(this.dataset.leadId, this.value)">${stageOptions}</select>
+        <button class="btn btn-ghost btn-sm" onclick="convertLeadToClient('${escHtml(item.id)}')" title="Convertir en client"><i class="fa fa-user-check"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLead('${escHtml(item.id)}')"><i class="fa fa-trash"></i></button>
+      </div>
+    </div>`;
+}
+
+function renderSavedLeads() {
+  const box = document.getElementById('account-leads-list');
+  renderLeadsPipelineStats();
+  if (!box) return;
+  const list = loadLeads().sort((a,b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)));
+  box.innerHTML = list.length
+    ? `<div class="saved-list">${list.map(renderLeadItem).join('')}</div>`
+    : renderEmptyState('bullhorn', 'Aucun lead', 'Ajoutez un prospect pour commencer à suivre votre pipeline commercial.', 'Ajouter un lead', "document.getElementById('lead-name')?.focus()");
+}
+
+// ═══════════════════════════════════════════════════════
+// NOTIFICATIONS (persisted, triggered by real account events)
+// ═══════════════════════════════════════════════════════
+function loadNotifications() {
+  if (!S.authUser) return [];
+  return loadAccountList('notifications').sort((a,b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+function pushNotification({ type='info', icon='bell', title='', body='', link=null } = {}) {
+  if (!S.authUser || !title) return;
+  const list = loadAccountList('notifications');
+  const record = {
+    id: `notif-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+    type, icon, title, body: body || '', link,
+    read: false,
+    createdAt: new Date().toISOString()
+  };
+  const next = [record, ...list].slice(0, 50);
+  saveAccountList('notifications', next, { skipQuotaCheck:true, silent:true });
+  renderNotifBell();
+}
+
+function getUnreadNotifCount() {
+  return loadNotifications().filter(n => !n.read).length;
+}
+
+function renderNotifBell() {
+  const unread = S.authUser ? getUnreadNotifCount() : 0;
+  [['notif-bell-btn','notif-badge'], ['hp-notif-bell-btn','hp-notif-badge']].forEach(([btnId, badgeId]) => {
+    const btn = document.getElementById(btnId);
+    const badge = document.getElementById(badgeId);
+    if (btn) btn.style.display = S.authUser ? '' : 'none';
+    if (badge) {
+      badge.style.display = unread > 0 ? '' : 'none';
+      badge.textContent = unread > 99 ? '99+' : String(unread);
+    }
+  });
+}
+
+function getVisibleNotifBell() {
+  return ['notif-bell-btn', 'hp-notif-bell-btn']
+    .map(id => document.getElementById(id))
+    .find(btn => btn && btn.offsetParent !== null) || null;
+}
+
+function positionNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  const bell = getVisibleNotifBell();
+  if (!panel || !bell) return;
+  const rect = bell.getBoundingClientRect();
+  const width = Math.min(320, window.innerWidth - 24);
+  let left = rect.right - width;
+  left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
+  panel.style.width = width + 'px';
+  panel.style.left = left + 'px';
+  panel.style.top = Math.round(rect.bottom + 8) + 'px';
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  if (!panel) return;
+  const willOpen = !panel.classList.contains('open');
+  if (willOpen) positionNotifPanel();
+  panel.classList.toggle('open', willOpen);
+  if (willOpen) renderNotifPanel();
+}
+
+function closeNotifPanel() {
+  document.getElementById('notif-panel')?.classList.remove('open');
+}
+
+function renderNotifPanel() {
+  const box = document.getElementById('notif-panel-list');
+  if (!box) return;
+  const list = loadNotifications();
+  box.innerHTML = list.length
+    ? list.map(n => `
+      <div class="notif-item${n.read ? '' : ' unread'}" onclick="openNotification('${escHtml(n.id)}')">
+        <div class="notif-item-icon"><i class="fa fa-${escHtml(n.icon || 'bell')}"></i></div>
+        <div class="notif-item-body">
+          <strong>${escHtml(n.title)}</strong>
+          ${n.body ? `<span>${escHtml(n.body)}</span>` : ''}
+          <time>${formatRelativeTime(n.createdAt)}</time>
+        </div>
+        <button class="notif-item-del" onclick="event.stopPropagation(); deleteNotification('${escHtml(n.id)}')" title="Supprimer"><i class="fa fa-xmark"></i></button>
+      </div>`).join('')
+    : `<div class="notif-empty">Aucune notification pour le moment.</div>`;
+  renderNotifBell();
+}
+
+function formatRelativeTime(iso) {
+  const then = new Date(iso).getTime();
+  if (!then) return '';
+  const diffMin = Math.round((Date.now() - then) / 60000);
+  if (diffMin < 1) return 'À l\'instant';
+  if (diffMin < 60) return `Il y a ${diffMin} min`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `Il y a ${diffH} h`;
+  const diffD = Math.round(diffH / 24);
+  return `Il y a ${diffD} j`;
+}
+
+function markNotificationRead(id) {
+  const list = loadAccountList('notifications');
+  const idx = list.findIndex(n => n.id === id);
+  if (idx === -1) return;
+  list[idx] = { ...list[idx], read:true };
+  saveAccountList('notifications', list, { skipQuotaCheck:true, silent:true });
+}
+
+function markAllNotificationsRead() {
+  const list = loadAccountList('notifications').map(n => ({ ...n, read:true }));
+  saveAccountList('notifications', list, { skipQuotaCheck:true, silent:true });
+  renderNotifPanel();
+}
+
+function deleteNotification(id) {
+  saveAccountList('notifications', loadAccountList('notifications').filter(n => n.id !== id), { skipQuotaCheck:true, silent:true });
+  renderNotifPanel();
+}
+
+function clearAllNotifications() {
+  if (!confirm('Effacer toutes les notifications ?')) return;
+  saveAccountList('notifications', [], { skipQuotaCheck:true, silent:true });
+  renderNotifPanel();
+}
+
+function openNotification(id) {
+  markNotificationRead(id);
+  renderNotifPanel();
+  const notif = loadAccountList('notifications').find(n => n.id === id);
+  const panel = notif?.link?.panel;
+  if (panel) {
+    closeNotifPanel();
+    openAccount();
+    showAccountPanel(panel);
+  }
 }
 
 function saveFirstProduct() {
@@ -2281,6 +2583,9 @@ const AI_COMMANDS = [
   { label: 'Voir mes clients', icon: 'address-book', keywords: 'clients customers', run: () => { openAccount(); showAccountPanel('clients'); } },
   { label: 'Voir mes produits', icon: 'box', keywords: 'produits products services', run: () => { openAccount(); showAccountPanel('products'); } },
   { label: 'Voir mes projets sauvegardés', icon: 'folder-open', keywords: 'projects projets', run: () => { openAccount(); showAccountPanel('projects'); } },
+  { label: 'Voir mes leads / pipeline commercial', icon: 'bullhorn', keywords: 'leads prospects pipeline crm', run: () => { openAccount(); showAccountPanel('leads'); } },
+  { label: 'Ajouter un lead', icon: 'user-plus', keywords: 'nouveau lead prospect create', run: () => { openAccount(); showAccountPanel('leads'); document.getElementById('lead-name')?.focus(); } },
+  { label: 'Voir mes notifications', icon: 'bell', keywords: 'notifications alertes', run: () => toggleNotifPanel() },
   { label: 'Exporter l\'historique en CSV', icon: 'file-csv', keywords: 'export csv historique', run: () => { openAccount(); showAccountPanel('history'); exportHistoryCsv(); } },
   { label: 'Ouvrir l\'assistant IA', icon: 'wand-magic-sparkles', keywords: 'ai assistant ia chat', run: () => openAiSidebar() },
   { label: 'Ajouter les mentions légales obligatoires', icon: 'scale-balanced', keywords: 'mentions legales tva penalite retard', run: () => addLegalMentions() },
@@ -3055,10 +3360,15 @@ function recordDocumentHistory(action='PDF') {
   const record = getCurrentDocumentSummary(action);
   record.snapshot = collectDraft();
   const list = loadAccountHistory();
+  const isNew = !list.some(item => item.id === record.id);
   const next = [record, ...list.filter(item => item.id !== record.id)].slice(0, 300);
   saveAccountHistory(next);
   renderAccountHistory();
   renderAccountOverview();
+  if (isNew) {
+    const docLabel = record.docType === 'devis' ? 'Devis' : 'Facture';
+    pushNotification({ type:'document', icon:'file-invoice', title:`${docLabel} ajouté à l'historique`, body: `${record.docNum} · ${record.clientName}`, link:{ panel:'history' } });
+  }
   if (action === 'manual') showNotif('Facture ajoutée à l’historique', 'success');
 }
 

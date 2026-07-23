@@ -18,6 +18,8 @@ service cloud.firestore {
         'projects',
         'clients',
         'products',
+        'leads',
+        'notifications',
         'storageUsedBytes',
         'updatedAt'
       ]);
