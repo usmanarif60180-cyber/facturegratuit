@@ -303,7 +303,10 @@ document.addEventListener('DOMContentLoaded', () => {
   applyAppTheme();
   loadAuthUser();
   renderAuth();
-  if (S.authUser) setTimeout(() => { migrateLegacyCompanyProfile(); applyActiveProfileToEditor(true); }, 0);
+  if (S.authUser) {
+    applyAccountLocalePrefsAtBoot();
+    setTimeout(() => { migrateLegacyCompanyProfile(); applyActiveProfileToEditor(true); }, 0);
+  }
   syncLocaleControls();
   renderDocVariant();
   renderLogoState();
@@ -800,6 +803,7 @@ function renderAccountModal() {
   fillPersonalProfileForm();
   applyAppTheme();
   syncLocaleControls();
+  renderAccountLocalePrefsSelects();
   renderSavedProfiles();
   renderAccountOverview();
   renderSavedProjects();
@@ -825,7 +829,7 @@ function showAccountPanel(panel='overview') {
   if (panel === 'profile') renderSavedProfiles();
   if (panel === 'personal') fillPersonalProfileForm();
   if (panel === 'appearance') applyAppTheme();
-  if (panel === 'language') syncLocaleControls();
+  if (panel === 'language') renderAccountLocalePrefsSelects();
   if (panel === 'storage') renderAccountStoragePanel();
 }
 
@@ -3415,8 +3419,8 @@ function getLangPack() {
 }
 
 function syncLocaleControls() {
-  const countryIds = ['country-select', 'top-country-select', 'acct-country-select'];
-  const langIds = ['language-select', 'top-language-select', 'acct-language-select'];
+  const countryIds = ['country-select', 'top-country-select'];
+  const langIds = ['language-select', 'top-language-select'];
   countryIds.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = S.country;
@@ -3425,10 +3429,8 @@ function syncLocaleControls() {
     const el = document.getElementById(id);
     if (el) el.value = S.lang;
   });
-  ['currency-select', 'acct-currency-select'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = S.currency || getCountryProfile().currency;
-  });
+  const currency = document.getElementById('currency-select');
+  if (currency) currency.value = S.currency || getCountryProfile().currency;
   updateCountryFormatTooltip();
 
   const countrySel = document.getElementById('top-country-select');
@@ -3494,6 +3496,64 @@ function setLanguage(lang) {
   S.lang = I18N[lang] ? lang : getCountryProfile().lang;
   syncLocaleControls();
   updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// ACCOUNT-LEVEL LOCALE PREFERENCE (Mon Compte > Langue & Région)
+// Deliberately separate from setCountry/setLanguage/setCurrency above:
+// those act on the document currently being edited (reset TVA rates,
+// regenerate the document number, etc.), which is correct in the editor
+// but would silently corrupt an in-progress draft if triggered from the
+// account settings panel. This only saves a preference, applied to a
+// fresh session at next page load — it never touches a live draft.
+// ═══════════════════════════════════════════════════════
+function getAccountLocalePrefs() {
+  if (!S.authUser) return null;
+  try { return JSON.parse(localStorage.getItem(getAccountStorageKey('locale-prefs')) || 'null'); } catch { return null; }
+}
+
+function saveAccountLocalePrefs(prefs) {
+  if (!S.authUser) return;
+  try { localStorage.setItem(getAccountStorageKey('locale-prefs'), JSON.stringify(prefs)); } catch {}
+}
+
+function applyAccountLocalePrefsAtBoot() {
+  const prefs = getAccountLocalePrefs();
+  if (!prefs) return;
+  if (prefs.country && COUNTRY_PROFILES[prefs.country]) S.country = prefs.country;
+  if (prefs.lang && I18N[prefs.lang]) S.lang = prefs.lang;
+  if (prefs.currency) S.currency = prefs.currency;
+}
+
+function renderAccountLocalePrefsSelects() {
+  const prefs = getAccountLocalePrefs() || { country: S.country, lang: S.lang, currency: S.currency };
+  const countrySel = document.getElementById('acct-country-select');
+  const langSel = document.getElementById('acct-language-select');
+  const currSel = document.getElementById('acct-currency-select');
+  if (countrySel) countrySel.value = prefs.country || 'FR';
+  if (langSel) langSel.value = prefs.lang || 'fr';
+  if (currSel) currSel.value = prefs.currency || 'EUR';
+}
+
+function setDefaultCountry(country) {
+  const prefs = getAccountLocalePrefs() || {};
+  prefs.country = COUNTRY_PROFILES[country] ? country : 'FR';
+  saveAccountLocalePrefs(prefs);
+  showNotif('Préférence enregistrée pour vos prochains documents', 'success');
+}
+
+function setDefaultLanguage(lang) {
+  const prefs = getAccountLocalePrefs() || {};
+  prefs.lang = I18N[lang] ? lang : 'fr';
+  saveAccountLocalePrefs(prefs);
+  showNotif('Préférence enregistrée pour vos prochains documents', 'success');
+}
+
+function setDefaultCurrency(currency) {
+  const prefs = getAccountLocalePrefs() || {};
+  prefs.currency = currency;
+  saveAccountLocalePrefs(prefs);
+  showNotif('Préférence enregistrée pour vos prochains documents', 'success');
 }
 
 function setDocType(type) {

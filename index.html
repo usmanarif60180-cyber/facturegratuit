@@ -2488,11 +2488,11 @@ body.home-mode .home-mobile-cta { display: none; }
       </div>
 
       <div class="account-panel" id="account-panel-language">
-        <div class="panel-note">Langue, pays et devise utilisés par défaut pour vos nouveaux documents. L'interface de l'application reste en français.</div>
+        <div class="panel-note">Langue, pays et devise appliqués par défaut à votre prochaine visite. Cela ne modifie pas le document en cours d'édition. L'interface de l'application reste en français.</div>
         <div class="grid-3">
           <div class="form-group" style="margin:0">
             <label class="form-label" for="acct-country-select">Pays / Format</label>
-            <select class="form-input form-select" id="acct-country-select" onchange="setCountry(this.value)">
+            <select class="form-input form-select" id="acct-country-select" onchange="setDefaultCountry(this.value)">
               <option value="FR">France - Facture / Devis</option>
               <option value="DE">Germany - Rechnung / Angebot</option>
               <option value="ES">Spain - Factura / Presupuesto</option>
@@ -2503,7 +2503,7 @@ body.home-mode .home-mobile-cta { display: none; }
           </div>
           <div class="form-group" style="margin:0">
             <label class="form-label" for="acct-language-select">Langue</label>
-            <select class="form-input form-select" id="acct-language-select" onchange="setLanguage(this.value)">
+            <select class="form-input form-select" id="acct-language-select" onchange="setDefaultLanguage(this.value)">
               <option value="fr">Français</option>
               <option value="de">Deutsch</option>
               <option value="es">Español</option>
@@ -2513,7 +2513,7 @@ body.home-mode .home-mobile-cta { display: none; }
           </div>
           <div class="form-group" style="margin:0">
             <label class="form-label" for="acct-currency-select">Devise</label>
-            <select class="form-input form-select" id="acct-currency-select" onchange="setCurrency(this.value)"></select>
+            <select class="form-input form-select" id="acct-currency-select" onchange="setDefaultCurrency(this.value)"></select>
           </div>
         </div>
       </div>
