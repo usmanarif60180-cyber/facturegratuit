@@ -3311,9 +3311,28 @@ function toggleToolRail() {
 </script>
 <script>
 if ('serviceWorker' in navigator) {
+  // A controller already present at load time (not this visitor's first ever
+  // service-worker install) means any later 'controllerchange' is a genuine
+  // update taking over, not the initial claim of a fresh page.
+  const hadControllerAtLoad = Boolean(navigator.serviceWorker.controller);
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    // updateViaCache:'none' stops the browser's own HTTP cache from serving a
+    // stale sw.js on the update check, which would otherwise make it look
+    // byte-identical to the old worker and skip the update entirely.
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+      .then(reg => reg.update().catch(() => {}))
+      .catch(() => {});
   });
+  if (hadControllerAtLoad) {
+    // Don't force-reload: the editor has no autosave, so an unprompted reload
+    // could destroy an in-progress invoice/devis draft. Just let the visitor
+    // know a fresh version is ready whenever they choose to refresh.
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (typeof showNotif === 'function') {
+        showNotif('Nouvelle version disponible. Actualisez la page pour la charger.', 'info');
+      }
+    });
+  }
 }
 </script>
 </body>
