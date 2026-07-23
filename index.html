@@ -2327,19 +2327,35 @@ body.home-mode .home-mobile-cta { display: none; }
         <label for="company-switcher-select"><i class="fa fa-building"></i> Société</label>
         <select class="form-input" id="company-switcher-select" onchange="handleCompanySwitcherChange(this.value)"></select>
       </div>
-      <div class="account-tabs">
-        <button class="btn btn-primary btn-sm" id="account-tab-overview" onclick="showAccountPanel('overview')"><i class="fa fa-chart-line"></i> Dashboard</button>
-        <button class="btn btn-ghost btn-sm" id="account-tab-ai" onclick="openAiSidebar();closeAccount()"><i class="fa fa-wand-magic-sparkles"></i> Assistant IA</button>
-        <button class="btn btn-ghost btn-sm" id="account-tab-projects" onclick="showAccountPanel('projects')"><i class="fa fa-folder-open"></i> Projets</button>
-        <button class="btn btn-ghost btn-sm" id="account-tab-history" onclick="showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Factures</button>
-        <button class="btn btn-ghost btn-sm" id="account-tab-clients" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i> Clients</button>
-        <button class="btn btn-ghost btn-sm" id="account-tab-products" onclick="showAccountPanel('products')"><i class="fa fa-box"></i> Produits</button>
-        <button class="btn btn-ghost btn-sm" id="account-tab-profile" onclick="showAccountPanel('profile')"><i class="fa fa-building"></i> Société</button>
+      <div class="account-tabs-group">
+        <div class="account-tabs-label"><i class="fa fa-briefcase"></i> Mon Espace</div>
+        <div class="account-tabs">
+          <button class="btn btn-primary btn-sm" id="account-tab-overview" onclick="showAccountPanel('overview')"><i class="fa fa-chart-line"></i> Dashboard</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-ai" onclick="openAiSidebar();closeAccount()"><i class="fa fa-wand-magic-sparkles"></i> Assistant IA</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-projects" onclick="showAccountPanel('projects')"><i class="fa fa-folder-open"></i> Projets</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-history" onclick="showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Factures</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-clients" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i> Clients</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-products" onclick="showAccountPanel('products')"><i class="fa fa-box"></i> Produits</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-profile" onclick="showAccountPanel('profile')"><i class="fa fa-building"></i> Société</button>
+        </div>
+      </div>
+      <div class="account-tabs-group">
+        <div class="account-tabs-label"><i class="fa fa-user-gear"></i> Mon Compte</div>
+        <div class="account-tabs">
+          <button class="btn btn-ghost btn-sm" id="account-tab-personal" onclick="showAccountPanel('personal')"><i class="fa fa-id-badge"></i> Mon Profil</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-security" onclick="showAccountPanel('security')"><i class="fa fa-shield-halved"></i> Sécurité</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-appearance" onclick="showAccountPanel('appearance')"><i class="fa fa-circle-half-stroke"></i> Apparence</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-language" onclick="showAccountPanel('language')"><i class="fa fa-language"></i> Langue &amp; Région</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-storage" onclick="showAccountPanel('storage')"><i class="fa fa-cloud"></i> Stockage</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-payments" onclick="showAccountPanel('payments')"><i class="fa fa-credit-card"></i> Paiements</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-privacy" onclick="showAccountPanel('privacy')"><i class="fa fa-user-shield"></i> Confidentialité</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-danger" onclick="showAccountPanel('danger')"><i class="fa fa-triangle-exclamation"></i> Supprimer le compte</button>
+        </div>
       </div>
       <div class="account-panel active" id="account-panel-overview">
-        <div class="panel-note">Dashboard privé: visible seulement après login. Les projets, clients, produits, société et historique sont synchronisés avec votre compte Firebase quand la connexion cloud est disponible. Les analytics utilisent uniquement vos vraies factures sauvegardées, sans données fake. Limite compte: 800 KB par utilisateur.</div>
+        <div class="panel-note">Dashboard privé: visible seulement après login. Les projets, clients, produits, société et historique sont synchronisés avec votre compte Firebase quand la connexion cloud est disponible. Les analytics utilisent uniquement vos vraies factures sauvegardées, sans données fake.</div>
         <div class="dashboard-grid" id="account-overview-grid"></div>
-        <div id="account-storage-panel"></div>
+        <div id="account-storage-compact"></div>
         <div class="support-box"><strong style="color:var(--ink)">Sécurité :</strong> ne partagez pas votre mot de passe, supprimez les anciens documents inutiles, et signalez tout bug via Feedback. <button class="legal-link" onclick="closeAccount();openLegal('security')">Voir sécurité</button></div>
         <div class="grid-2" style="margin-bottom:12px">
           <button class="btn btn-primary btn-sm" onclick="saveCurrentProject()"><i class="fa fa-folder-plus"></i> Sauver projet actuel</button>
@@ -2411,9 +2427,158 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-danger btn-sm" onclick="clearAccountProfile()"><i class="fa fa-trash"></i> Supprimer cette société</button>
         </div>
       </div>
+
+      <div class="account-panel" id="account-panel-personal">
+        <div id="acct-profile-completion" class="profile-pct-widget"></div>
+        <div class="personal-avatar-row">
+          <div class="personal-avatar-frame">
+            <img id="acct-avatar-preview" alt="Photo de profil" style="display:none">
+            <div id="acct-avatar-placeholder" class="personal-avatar-placeholder"><i class="fa fa-user"></i></div>
+          </div>
+          <div class="personal-avatar-actions">
+            <label class="btn btn-ghost btn-sm" for="acct-avatar-file"><i class="fa fa-camera"></i> Changer la photo</label>
+            <input type="file" id="acct-avatar-file" accept="image/*" style="display:none" onchange="handlePersonalAvatarUpload(event)">
+            <button class="btn btn-ghost btn-sm" onclick="removePersonalAvatar()"><i class="fa fa-trash"></i> Retirer</button>
+            <span class="personal-avatar-hint">PNG, JPG, WebP · Max 300 KB</span>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label" for="acct-personal-name">Nom</label><input class="form-input" id="acct-personal-name" placeholder="Votre nom"></div>
+          <div class="form-group"><label class="form-label" for="acct-personal-tel">Téléphone</label><input class="form-input" id="acct-personal-tel" placeholder="06 00 00 00 00"></div>
+        </div>
+        <div class="form-group"><label class="form-label" for="acct-personal-address">Adresse personnelle</label><input class="form-input" id="acct-personal-address" placeholder="Votre adresse"></div>
+        <button class="btn btn-primary btn-sm" onclick="savePersonalProfileForm()"><i class="fa fa-floppy-disk"></i> Sauvegarder le profil</button>
+      </div>
+
+      <div class="account-panel" id="account-panel-security">
+        <div class="account-detail-row" style="margin-bottom:12px">
+          <span>Email</span>
+          <strong id="account-modal-email-2"></strong>
+        </div>
+        <div class="grid-2" style="margin-bottom:16px">
+          <button class="btn btn-ghost btn-sm" id="verify-email-btn" onclick="sendVerificationEmail()"><i class="fa fa-envelope-circle-check"></i> Vérifier email</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeAccount();openAuth('login')"><i class="fa fa-key"></i> Mot de passe oublié</button>
+        </div>
+
+        <div class="account-detail-row" style="margin:4px 0 12px"><strong>Changer le mot de passe</strong></div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label" for="acct-current-password">Mot de passe actuel</label><input class="form-input" id="acct-current-password" type="password" autocomplete="current-password"></div>
+          <div class="form-group"><label class="form-label" for="acct-new-password">Nouveau mot de passe</label><input class="form-input" id="acct-new-password" type="password" autocomplete="new-password"></div>
+        </div>
+        <div class="form-group"><label class="form-label" for="acct-confirm-password">Confirmer le nouveau mot de passe</label><input class="form-input" id="acct-confirm-password" type="password" autocomplete="new-password"></div>
+        <button class="btn btn-primary btn-sm" id="change-password-btn" onclick="changeAccountPassword()"><i class="fa fa-key"></i> Changer le mot de passe</button>
+
+        <div class="account-detail-row" style="margin:20px 0 12px"><strong>Changer l'email</strong></div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label" for="acct-new-email">Nouvel email</label><input class="form-input" id="acct-new-email" type="email" autocomplete="email"></div>
+          <div class="form-group"><label class="form-label" for="acct-email-password">Mot de passe actuel</label><input class="form-input" id="acct-email-password" type="password" autocomplete="current-password"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="change-email-btn" onclick="changeAccountEmail()"><i class="fa fa-envelope"></i> Changer l'email</button>
+        <p class="panel-hint">Un email de confirmation sera envoyé à la nouvelle adresse ; le changement prend effet après avoir cliqué le lien.</p>
+      </div>
+
+      <div class="account-panel" id="account-panel-appearance">
+        <div class="account-detail-row" style="margin-bottom:12px"><strong>Thème</strong></div>
+        <div class="theme-mode-row">
+          <button class="theme-mode-btn" data-mode="dark" onclick="setAppTheme('dark')"><i class="fa fa-moon"></i> Sombre</button>
+          <button class="theme-mode-btn" data-mode="light" onclick="setAppTheme('light')"><i class="fa fa-sun"></i> Clair</button>
+          <button class="theme-mode-btn" data-mode="system" onclick="setAppTheme('system')"><i class="fa fa-desktop"></i> Système</button>
+        </div>
+        <p class="panel-hint">"Système" suit automatiquement le réglage clair/sombre de votre appareil.</p>
+      </div>
+
+      <div class="account-panel" id="account-panel-language">
+        <div class="panel-note">Langue, pays et devise utilisés par défaut pour vos nouveaux documents. L'interface de l'application reste en français.</div>
+        <div class="grid-3">
+          <div class="form-group" style="margin:0">
+            <label class="form-label" for="acct-country-select">Pays / Format</label>
+            <select class="form-input form-select" id="acct-country-select" onchange="setCountry(this.value)">
+              <option value="FR">France - Facture / Devis</option>
+              <option value="DE">Germany - Rechnung / Angebot</option>
+              <option value="ES">Spain - Factura / Presupuesto</option>
+              <option value="IT">Italy - Fattura / Preventivo</option>
+              <option value="UK">United Kingdom - Invoice / Quote</option>
+              <option value="US">USA - Invoice / Estimate</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label" for="acct-language-select">Langue</label>
+            <select class="form-input form-select" id="acct-language-select" onchange="setLanguage(this.value)">
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="es">Español</option>
+              <option value="it">Italiano</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label" for="acct-currency-select">Devise</label>
+            <select class="form-input form-select" id="acct-currency-select" onchange="setCurrency(this.value)"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="account-panel" id="account-panel-storage">
+        <div id="account-storage-panel"></div>
+      </div>
+
+      <div class="account-panel" id="account-panel-payments">
+        <div class="panel-note">FacturePro reste 100% gratuit pour le moment — aucune carte requise. Ces moyens de paiement arriveront avec les offres Pro/Business, via un prestataire sécurisé (Stripe ou équivalent). Aucune information de paiement n'est collectée ni stockée aujourd'hui.</div>
+        <div class="payment-methods-grid">
+          <div class="payment-method-card">
+            <div class="payment-method-icon"><i class="fa fa-credit-card"></i></div>
+            <div class="payment-method-body">
+              <strong>Carte bancaire</strong>
+              <div class="payment-method-networks"><i class="fa-brands fa-cc-visa" title="Visa"></i><i class="fa-brands fa-cc-mastercard" title="Mastercard"></i><i class="fa-brands fa-cc-amex" title="American Express"></i></div>
+            </div>
+            <span class="soon-badge">Bientôt disponible</span>
+          </div>
+          <div class="payment-method-card">
+            <div class="payment-method-icon"><i class="fa-brands fa-paypal"></i></div>
+            <div class="payment-method-body"><strong>PayPal</strong></div>
+            <span class="soon-badge">Bientôt disponible</span>
+          </div>
+          <div class="payment-method-card">
+            <div class="payment-method-icon"><i class="fa-brands fa-apple-pay"></i></div>
+            <div class="payment-method-body"><strong>Apple Pay</strong></div>
+            <span class="soon-badge">Bientôt disponible</span>
+          </div>
+          <div class="payment-method-card">
+            <div class="payment-method-icon"><i class="fa-brands fa-google-pay"></i></div>
+            <div class="payment-method-body"><strong>Google Pay</strong></div>
+            <span class="soon-badge">Bientôt disponible</span>
+          </div>
+        </div>
+        <div class="account-detail-row" style="margin:20px 0 12px"><strong>Abonnement</strong></div>
+        <div class="plan-mini-grid">
+          <div class="plan-mini-card active"><strong>Free</strong><span>Plan actuel</span></div>
+          <div class="plan-mini-card"><strong>Pro</strong><span class="soon-badge">Bientôt disponible</span></div>
+          <div class="plan-mini-card"><strong>Business</strong><span class="soon-badge">Bientôt disponible</span></div>
+          <div class="plan-mini-card"><strong>Enterprise</strong><span class="soon-badge">Bientôt disponible</span></div>
+        </div>
+      </div>
+
+      <div class="account-panel" id="account-panel-privacy">
+        <div class="panel-note">Vos données de compte (société, historique, projets, clients, produits, profil) restent privées et associées uniquement à votre compte.</div>
+        <div class="grid-2">
+          <button class="btn btn-ghost btn-sm" onclick="exportAccountData()"><i class="fa fa-file-export"></i> Exporter mes données (JSON)</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeAccount();openLegal('privacy')"><i class="fa fa-shield-halved"></i> Politique de confidentialité</button>
+        </div>
+      </div>
+
+      <div class="account-panel" id="account-panel-danger">
+        <div class="panel-note" style="border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.06)">
+          <strong style="color:#f87171">Attention :</strong> supprimer votre compte efface définitivement votre société, projets, clients, produits, historique et profil sur cet appareil et dans le cloud. Cette action est irréversible.
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="confirmDeleteAccount()"><i class="fa fa-triangle-exclamation"></i> Supprimer mon compte</button>
+        <div id="delete-account-confirm-box" style="display:none;margin-top:16px">
+          <div class="form-group"><label class="form-label" for="delete-account-confirm-input">Tapez SUPPRIMER pour confirmer</label><input class="form-input" id="delete-account-confirm-input" placeholder="SUPPRIMER"></div>
+          <div class="form-group"><label class="form-label" for="delete-account-password">Mot de passe actuel</label><input class="form-input" id="delete-account-password" type="password" autocomplete="current-password"></div>
+          <button class="btn btn-danger btn-sm" id="delete-account-btn" onclick="deleteMyAccount()"><i class="fa fa-trash"></i> Supprimer définitivement</button>
+        </div>
+      </div>
+
       <div class="grid-2" style="margin-top:14px">
-        <button class="btn btn-ghost btn-sm" id="verify-email-btn" onclick="sendVerificationEmail()"><i class="fa fa-envelope-circle-check"></i> Vérifier email</button>
-        <button class="btn btn-ghost btn-sm" onclick="closeAccount();openAuth('login')"><i class="fa fa-key"></i> Récupérer</button>
         <button class="btn btn-danger btn-sm" onclick="logoutUser();closeAccount()"><i class="fa fa-right-from-bracket"></i> Déconnexion</button>
         <button class="btn btn-primary btn-sm" onclick="closeAccount()"><i class="fa fa-check"></i> OK</button>
       </div>
@@ -2604,7 +2769,12 @@ import {
   sendEmailVerification,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  verifyBeforeUpdateEmail,
+  deleteUser
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import {
   getAI,
@@ -2660,6 +2830,11 @@ window.firebaseServices = {
   sendEmailVerification,
   signOut,
   updateProfile,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  verifyBeforeUpdateEmail,
+  deleteUser,
   aiModel: firebaseAIModel
 };
 window.firestoreDoc = doc;
