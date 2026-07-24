@@ -384,7 +384,7 @@ const LEGAL_PAGES = {
       <div class="security-list">
         <div class="security-item"><i class="fa fa-user-lock"></i><span><strong style="color:var(--ink)">Accès privé :</strong> les données de compte doivent rester associées à l'utilisateur connecté.</span></div>
         <div class="security-item"><i class="fa fa-cloud"></i><span><strong style="color:var(--ink)">Stockage maîtrisé :</strong> une limite de 800 KB par utilisateur est appliquée pour éviter les abus et rester sous la limite technique de Firestore.</span></div>
-        <div class="security-item"><i class="fa fa-file-shield"></i><span><strong style="color:var(--ink)">Uploads contrôlés :</strong> logo, signature et cachet doivent rester limités aux fichiers utiles, comme PNG, JPG, WebP ou SVG raisonnables.</span></div>
+        <div class="security-item"><i class="fa fa-file-shield"></i><span><strong style="color:var(--ink)">Uploads contrôlés :</strong> logo, signature et cachet doivent rester limités aux fichiers utiles, comme PNG, JPG ou WebP raisonnables.</span></div>
         <div class="security-item"><i class="fa fa-ban"></i><span><strong style="color:var(--ink)">Aucun secret public :</strong> les clés privées, tokens serveur ou clés API sensibles ne doivent jamais être placés dans le fichier index.html.</span></div>
       </div>
       <h3>Conseils utilisateur</h3>
@@ -503,6 +503,24 @@ function saveFeedbackRecord(record) {
   } catch {}
 }
 
+async function saveFeedbackRecordToCloud(record) {
+  const services = window.firebaseServices;
+  if (!S.authUser?.uid || !services?.db || !window.firestoreDoc || !window.firestoreSetDoc) return false;
+  try {
+    const ref = window.firestoreDoc(services.db, 'publicFeedback', safeFirebaseDocId(record.id));
+    await window.firestoreSetDoc(ref, removeUndefinedDeep({
+      ...record,
+      message: String(record.message || '').slice(0, 3000),
+      email: String(record.email || '').slice(0, 160),
+      userEmail: String(record.userEmail || '').slice(0, 160)
+    }));
+    return true;
+  } catch (err) {
+    console.warn('Feedback cloud save failed', err);
+    return false;
+  }
+}
+
 function buildSupportMailto(record) {
   const subject = `FacturePro feedback - ${record.type}`;
   const body = [
@@ -520,7 +538,7 @@ function buildSupportMailto(record) {
   return `mailto:contact@facturergratuit.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-function submitFeedback(e) {
+async function submitFeedback(e) {
   e.preventDefault();
   const record = collectFeedbackRecord();
   if (record.message.length < 5) {
@@ -528,6 +546,7 @@ function submitFeedback(e) {
     return;
   }
   saveFeedbackRecord(record);
+  await saveFeedbackRecordToCloud(record);
   closeFeedback();
   showNotif('Feedback sauvegardé, email support ouvert', 'success');
   window.location.href = buildSupportMailto(record);
@@ -860,10 +879,55 @@ function getAccountStorageKey(suffix) {
 // contrôle côté client (et le nettoyage auto) se déclenche AVANT que Firestore
 // ne refuse l'écriture. Ne jamais fixer cette valeur au-dessus de ~950 KB.
 const ACCOUNT_STORAGE_QUOTA_BYTES = 800 * 1024;
-// Logo/cachet/signature raw file size cap, kept small so that saving a
-// company profile with all three assets (plus multiple saved companies)
-// still fits comfortably under ACCOUNT_STORAGE_QUOTA_BYTES once base64-encoded.
-const ACCOUNT_IMAGE_UPLOAD_MAX_BYTES = 300 * 1024;
+const ACCOUNT_IMAGE_UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
+const ACCOUNT_COLLECTIONS = ['history','projects','clients','products','leads','notifications'];
+
+function hasCloudCollectionSupport() {
+  return Boolean(window.firestoreCollection && window.firestoreGetDocs && window.firestoreWriteBatch);
+}
+
+function safeFirebaseDocId(id='') {
+  const safe = String(id || '').trim().replace(/[\/#?\[\]]+/g, '-').slice(0, 120);
+  return safe || `item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function removeUndefinedDeep(value) {
+  if (Array.isArray(value)) return value.map(removeUndefinedDeep);
+  if (value && typeof value === 'object') {
+    return Object.entries(value).reduce((acc, [key, val]) => {
+      if (val !== undefined) acc[key] = removeUndefinedDeep(val);
+      return acc;
+    }, {});
+  }
+  return value;
+}
+
+function stripCloudInternalFields(value) {
+  if (!value || typeof value !== 'object') return value;
+  const copy = { ...value };
+  delete copy._cloudUpdatedAt;
+  return copy;
+}
+
+function isDataUrlImage(src='') {
+  return /^data:image\/(png|jpe?g|webp);base64,/i.test(String(src || '').trim());
+}
+
+function dataUrlExtension(src='') {
+  const match = String(src || '').match(/^data:image\/(png|jpe?g|webp);base64,/i);
+  if (!match) return 'png';
+  const type = match[1].toLowerCase();
+  return type === 'jpeg' ? 'jpg' : type;
+}
+
+function sanitizeImageSrc(value='') {
+  const src = String(value || '').trim();
+  if (isDataUrlImage(src)) return src;
+  if (/^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\//i.test(src)) return src;
+  if (/^https:\/\/storage\.googleapis\.com\//i.test(src)) return src;
+  if (/^https:\/\/[^/]+\.firebasestorage\.app\//i.test(src)) return src;
+  return '';
+}
 
 function getTextBytes(text='') {
   try { return new TextEncoder().encode(String(text)).length; } catch { return String(text).length; }
@@ -965,6 +1029,69 @@ function renderAccountStoragePanel() {
   }
 }
 
+async function uploadAccountAssetIfNeeded(value, assetKey='asset') {
+  if (!isDataUrlImage(value)) return value || '';
+  const services = window.firebaseServices;
+  if (!S.authUser?.uid || !services?.storage || !window.firebaseStorageRef || !window.firebaseUploadString || !window.firebaseGetDownloadURL) {
+    return value;
+  }
+  const ext = dataUrlExtension(value);
+  const contentType = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
+  const path = `users/${S.authUser.uid}/assets/${assetKey}-${Date.now()}.${ext}`;
+  const ref = window.firebaseStorageRef(services.storage, path);
+  await window.firebaseUploadString(ref, value, 'data_url', { contentType });
+  return window.firebaseGetDownloadURL(ref);
+}
+
+async function normalizeAssetFieldsForCloud(value, namespace='asset') {
+  if (Array.isArray(value)) {
+    return Promise.all(value.map((item, idx) => normalizeAssetFieldsForCloud(item, `${namespace}-${idx}`)));
+  }
+  if (value && typeof value === 'object') {
+    const copy = {};
+    for (const [key, val] of Object.entries(value)) {
+      if (['logoSrc','companyStampSrc','signatureSrc','avatarSrc'].includes(key)) {
+        copy[key] = await uploadAccountAssetIfNeeded(val, `${namespace}-${key}`);
+      } else {
+        copy[key] = await normalizeAssetFieldsForCloud(val, `${namespace}-${key}`);
+      }
+    }
+    return removeUndefinedDeep(copy);
+  }
+  return value;
+}
+
+async function syncCloudCollection(suffix, list=[]) {
+  const services = window.firebaseServices;
+  if (!services?.db || !hasCloudCollectionSupport()) throw new Error('Firestore collection helpers unavailable');
+  const colRef = window.firestoreCollection(services.db, 'users', S.authUser.uid, suffix);
+  const batch = window.firestoreWriteBatch(services.db);
+  const activeIds = [];
+  const snap = await window.firestoreGetDocs(colRef);
+  const existing = new Set();
+  snap.forEach(docSnap => existing.add(docSnap.id));
+
+  for (const item of Array.isArray(list) ? list : []) {
+    const rawId = item?.id || item?.docNum || item?.createdAt || `item-${Date.now()}-${activeIds.length}`;
+    const id = safeFirebaseDocId(rawId);
+    activeIds.push(id);
+    const docRef = window.firestoreDoc(services.db, 'users', S.authUser.uid, suffix, id);
+    const clean = await normalizeAssetFieldsForCloud({ ...item, id }, `${suffix}-${id}`);
+    batch.set(docRef, {
+      ...removeUndefinedDeep(clean),
+      _cloudUpdatedAt: window.firestoreServerTimestamp ? window.firestoreServerTimestamp() : new Date().toISOString()
+    });
+    existing.delete(id);
+  }
+
+  existing.forEach(id => {
+    const docRef = window.firestoreDoc(services.db, 'users', S.authUser.uid, suffix, id);
+    batch.delete(docRef);
+  });
+  await batch.commit();
+  return activeIds;
+}
+
 function collectAccountDataBundle() {
   if (!S.authUser) return null;
   const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications'];
@@ -999,23 +1126,29 @@ function queueCloudSync() {
 async function syncAccountDataToCloud() {
   if (!S.authUser?.uid) return false;
   const services = window.firebaseServices;
-  if (!services?.db || !window.firestoreDoc || !window.firestoreSetDoc) return false;
+  if (!services?.db || !window.firestoreDoc || !window.firestoreSetDoc || !hasCloudCollectionSupport()) return false;
   try {
     const bundle = collectAccountDataBundle();
     if (!bundle) return false;
+    const profile = await normalizeAssetFieldsForCloud(bundle.data.profile, 'profile');
+    const personal = await normalizeAssetFieldsForCloud(bundle.data.personal, 'personal');
+    const collectionsIndex = {};
+    for (const suffix of ACCOUNT_COLLECTIONS) {
+      collectionsIndex[suffix] = await syncCloudCollection(suffix, bundle.data[suffix] || []);
+    }
     const ref = window.firestoreDoc(services.db, 'users', S.authUser.uid);
     await window.firestoreSetDoc(ref, {
-      profile: bundle.data.profile,
-      personal: bundle.data.personal,
-      history: bundle.data.history,
-      projects: bundle.data.projects,
-      clients: bundle.data.clients,
-      products: bundle.data.products,
-      leads: bundle.data.leads,
-      notifications: bundle.data.notifications,
+      profile: removeUndefinedDeep(profile),
+      personal: removeUndefinedDeep(personal),
+      collectionsIndex,
+      storageVersion: 'subcollections-v2',
       storageUsedBytes: bundle.storageUsedBytes,
+      email: S.authUser.email || '',
+      name: S.authUser.name || '',
       updatedAt: new Date().toISOString()
-    });
+    }, { merge:false });
+    try { localStorage.setItem(getAccountStorageKey('profile'), JSON.stringify(profile)); } catch {}
+    try { localStorage.setItem(getAccountStorageKey('personal'), JSON.stringify(personal)); } catch {}
     return true;
   } catch (err) {
     console.warn('Cloud sync failed, data reste sauvegardé localement', err);
@@ -1036,11 +1169,34 @@ async function pullAccountDataFromCloud() {
     const snap = await window.firestoreGetDoc(ref);
     if (!snap.exists()) return false;
     const cloud = snap.data() || {};
-    ['profile','personal','history','projects','clients','products','leads','notifications'].forEach(suffix => {
+    ['profile','personal'].forEach(suffix => {
       if (cloud[suffix] !== undefined && cloud[suffix] !== null) {
         try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(cloud[suffix])); } catch {}
       }
     });
+    if (cloud.storageVersion === 'subcollections-v2' && window.firestoreCollection && window.firestoreGetDocs) {
+      for (const suffix of ACCOUNT_COLLECTIONS) {
+        const colSnap = await window.firestoreGetDocs(window.firestoreCollection(services.db, 'users', S.authUser.uid, suffix));
+        const activeIds = Array.isArray(cloud.collectionsIndex?.[suffix]) ? cloud.collectionsIndex[suffix] : null;
+        const order = new Map((activeIds || []).map((id, i) => [id, i]));
+        let list = [];
+        colSnap.forEach(docSnap => {
+          if (!activeIds || order.has(docSnap.id)) {
+            const data = stripCloudInternalFields(docSnap.data());
+            list.push({ ...data, id: data?.id || docSnap.id });
+          }
+        });
+        if (activeIds) list.sort((a, b) => (order.get(safeFirebaseDocId(a.id)) ?? 999999) - (order.get(safeFirebaseDocId(b.id)) ?? 999999));
+        else list.sort((a, b) => String(b.updatedAt || b.savedAt || b.date || '').localeCompare(String(a.updatedAt || a.savedAt || a.date || '')));
+        try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(list)); } catch {}
+      }
+    } else {
+      ['history','projects','clients','products','leads','notifications'].forEach(suffix => {
+        if (cloud[suffix] !== undefined && cloud[suffix] !== null) {
+          try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(cloud[suffix])); } catch {}
+        }
+      });
+    }
     return true;
   } catch (err) {
     console.warn('Cloud data introuvable ou inaccessible, données locales utilisées', err);
@@ -1101,7 +1257,7 @@ function exportHistoryCsv() {
 function clearAllAccountLocalData() {
   if (!S.authUser) return;
   if (!confirm('Supprimer profil personnel, société, historique, projets, clients et produits de ce navigateur ?')) return;
-  ['profile','profile-active','personal','history','projects','clients','products','auto-cleanup'].forEach(suffix => {
+  ['profile','profile-active','personal','history','projects','clients','products','leads','notifications','auto-cleanup'].forEach(suffix => {
     try { localStorage.removeItem(getAccountStorageKey(suffix)); } catch {}
   });
   S.autoCleanup = false;
@@ -3288,15 +3444,15 @@ function renderProfileCompletionMini() {
     <div class="profile-pct-list">${checks.map(([icon,label,ok]) => `<span class="${ok ? 'done' : ''}"><i class="fa fa-${ok ? 'circle-check' : 'circle'}"></i> ${escHtml(label)}</span>`).join('')}</div>`;
 }
 
-function handlePersonalAvatarUpload(e) {
-  readUploadImage(e, src => {
-    const current = loadPersonalProfile() || {};
-    if (savePersonalProfile({ ...current, avatarSrc: src })) {
-      fillPersonalProfileForm();
-      renderAuth();
-      showNotif('Photo de profil mise à jour', 'success');
-    }
-  });
+async function handlePersonalAvatarUpload(e) {
+  const src = await readUploadImage(e, 'avatar');
+  if (!src) return;
+  const current = loadPersonalProfile() || {};
+  if (savePersonalProfile({ ...current, avatarSrc: src })) {
+    fillPersonalProfileForm();
+    renderAuth();
+    showNotif('Photo de profil mise à jour', 'success');
+  }
 }
 
 function removePersonalAvatar() {
@@ -3417,7 +3573,7 @@ async function deleteMyAccount() {
       const credential = fb.EmailAuthProvider.credential(S.authUser.email, password);
       await fb.reauthenticateWithCredential(fb.auth.currentUser, credential);
     }
-    ['profile','profile-active','personal','history','projects','clients','products','auto-cleanup'].forEach(suffix => {
+    ['profile','profile-active','personal','history','projects','clients','products','leads','notifications','auto-cleanup'].forEach(suffix => {
       try { localStorage.removeItem(getAccountStorageKey(suffix)); } catch {}
     });
     if (fb?.auth?.currentUser && fb?.deleteUser) {
@@ -4482,12 +4638,13 @@ function renderLogoState() {
   const actions = document.getElementById('logo-actions');
   const size = document.getElementById('logo-size-range');
   const label = document.getElementById('logo-size-val');
+  const safeSrc = sanitizeImageSrc(S.logoSrc);
   if (img) {
-    img.src = S.logoSrc || '';
-    img.style.display = S.logoSrc ? 'block' : 'none';
+    img.src = safeSrc;
+    img.style.display = safeSrc ? 'block' : 'none';
   }
-  if (placeholder) placeholder.style.display = S.logoSrc ? 'none' : '';
-  if (actions) actions.style.display = S.logoSrc ? 'block' : 'none';
+  if (placeholder) placeholder.style.display = safeSrc ? 'none' : '';
+  if (actions) actions.style.display = safeSrc ? 'block' : 'none';
   if (size) size.value = S.logoSize || 80;
   if (label) label.textContent = S.logoSize || 80;
   setLogoPos(S.logoPos || 'left');
@@ -4501,12 +4658,13 @@ function renderCompanyStampState() {
   const sizeLabel = document.getElementById('company-stamp-size-val');
   const opacity = document.getElementById('company-stamp-opacity-range');
   const opacityLabel = document.getElementById('company-stamp-opacity-val');
+  const safeSrc = sanitizeImageSrc(S.companyStampSrc);
   if (img) {
-    img.src = S.companyStampSrc || '';
-    img.style.display = S.companyStampSrc ? 'block' : 'none';
+    img.src = safeSrc;
+    img.style.display = safeSrc ? 'block' : 'none';
   }
-  if (placeholder) placeholder.style.display = S.companyStampSrc ? 'none' : '';
-  if (actions) actions.style.display = S.companyStampSrc ? 'block' : 'none';
+  if (placeholder) placeholder.style.display = safeSrc ? 'none' : '';
+  if (actions) actions.style.display = safeSrc ? 'block' : 'none';
   if (size) size.value = S.companyStampSize || 115;
   if (sizeLabel) sizeLabel.textContent = S.companyStampSize || 115;
   if (opacity) opacity.value = S.companyStampOpacity || 90;
@@ -4519,12 +4677,13 @@ function renderSignatureImageState() {
   const actions = document.getElementById('signature-actions');
   const size = document.getElementById('signature-size-range');
   const label = document.getElementById('signature-size-val');
+  const safeSrc = sanitizeImageSrc(S.signatureSrc);
   if (img) {
-    img.src = S.signatureSrc || '';
-    img.style.display = S.signatureSrc ? 'block' : 'none';
+    img.src = safeSrc;
+    img.style.display = safeSrc ? 'block' : 'none';
   }
-  if (placeholder) placeholder.style.display = S.signatureSrc ? 'none' : '';
-  if (actions) actions.style.display = S.signatureSrc ? 'block' : 'none';
+  if (placeholder) placeholder.style.display = safeSrc ? 'none' : '';
+  if (actions) actions.style.display = safeSrc ? 'block' : 'none';
   if (size) size.value = S.signatureSize || 135;
   if (label) label.textContent = S.signatureSize || 135;
 }
@@ -4634,19 +4793,13 @@ function getGrandTotal() {
 // ═══════════════════════════════════════════════════════
 // LOGO
 // ═══════════════════════════════════════════════════════
-function handleLogo(e) {
-  const file = e.target.files[0]; if (!file) return;
-  if (file.size > ACCOUNT_IMAGE_UPLOAD_MAX_BYTES) { showNotif('Le fichier est trop lourd (max 300 KB)', 'info'); return; }
-  const reader = new FileReader();
-  reader.onload = ev => {
-    S.logoSrc = ev.target.result;
-    document.getElementById('logo-preview').src = S.logoSrc;
-    document.getElementById('logo-preview').style.display = 'block';
-    document.getElementById('logo-placeholder').style.display = 'none';
-    document.getElementById('logo-actions').style.display = 'block';
-    updatePreview();
-  };
-  reader.readAsDataURL(file);
+async function handleLogo(e) {
+  const src = await readUploadImage(e, 'logo');
+  if (!src) return;
+  S.logoSrc = src;
+  renderLogoState();
+  queueCloudSync();
+  updatePreview();
 }
 
 function removeLogo() {
@@ -4668,31 +4821,45 @@ function setLogoPos(pos) {
   updatePreview();
 }
 
-function readUploadImage(e, done) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > ACCOUNT_IMAGE_UPLOAD_MAX_BYTES) {
-    showNotif('Le fichier est trop lourd (max 300 KB)', 'info');
-    e.target.value = '';
-    return;
-  }
-  if (!file.type.startsWith('image/')) {
-    showNotif('Ajoutez une image PNG, JPG, WebP ou SVG', 'info');
-    e.target.value = '';
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = ev => done(ev.target.result);
-  reader.readAsDataURL(file);
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = ev => resolve(ev.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
-function handleCompanyStamp(e) {
-  readUploadImage(e, src => {
-    S.companyStampSrc = src;
-    renderCompanyStampState();
-    updatePreview();
-    showNotif('Cachet société ajouté au document', 'success');
-  });
+async function readUploadImage(e, assetKey='asset') {
+  const file = e.target.files[0];
+  if (!file) return '';
+  if (file.size > ACCOUNT_IMAGE_UPLOAD_MAX_BYTES) {
+    showNotif('Le fichier est trop lourd (max 2 MB)', 'info');
+    e.target.value = '';
+    return '';
+  }
+  if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
+    showNotif('Ajoutez une image PNG, JPG ou WebP', 'info');
+    e.target.value = '';
+    return '';
+  }
+  const dataUrl = await readFileAsDataUrl(file);
+  try {
+    return await uploadAccountAssetIfNeeded(dataUrl, assetKey);
+  } catch (err) {
+    console.warn('Image upload failed, local data URL used', err);
+    return dataUrl;
+  }
+}
+
+async function handleCompanyStamp(e) {
+  const src = await readUploadImage(e, 'company-stamp');
+  if (!src) return;
+  S.companyStampSrc = src;
+  renderCompanyStampState();
+  queueCloudSync();
+  updatePreview();
+  showNotif('Cachet société ajouté au document', 'success');
 }
 
 function removeCompanyStamp() {
@@ -4703,15 +4870,16 @@ function removeCompanyStamp() {
   updatePreview();
 }
 
-function handleSignatureImage(e) {
-  readUploadImage(e, src => {
-    S.signatureSrc = src;
-    S.signature = true;
-    renderSignatureImageState();
-    renderToggleStates();
-    updatePreview();
-    showNotif('Signature ajoutée au document', 'success');
-  });
+async function handleSignatureImage(e) {
+  const src = await readUploadImage(e, 'signature');
+  if (!src) return;
+  S.signatureSrc = src;
+  S.signature = true;
+  renderSignatureImageState();
+  renderToggleStates();
+  queueCloudSync();
+  updatePreview();
+  showNotif('Signature ajoutée au document', 'success');
 }
 
 function removeSignatureImage() {
@@ -4845,8 +5013,15 @@ function updateItem(id, field, val) {
 }
 
 function cleanNumber(val) {
-  if (val === '' || val === null || Number.isNaN(Number(val))) return 0;
-  return Math.max(0, Number(val));
+  if (val === '' || val === null || val === undefined) return 0;
+  if (typeof val === 'number') return Number.isFinite(val) ? Math.max(0, val) : 0;
+  let raw = String(val).trim().replace(/\s/g, '');
+  const comma = raw.lastIndexOf(',');
+  const dot = raw.lastIndexOf('.');
+  if (comma > dot) raw = raw.replace(/\./g, '').replace(',', '.');
+  else raw = raw.replace(/,/g, '');
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.max(0, n) : 0;
 }
 
 function updateRowTotal(id) {
@@ -4967,7 +5142,7 @@ function updatePreview() {
 
   const docSectorLabel = profile.sector[S.docSector] || (S.docSector === 'automobile' ? 'AUTOMOTIVE' : (S.docSector === 'online' ? 'FREELANCE / MARKETPLACE' : 'BUILDING'));
   const docLabel  = `${S.docType === 'facture' ? L.invoice : L.quote} ${docSectorLabel}`;
-  const docNum    = document.getElementById('f-number')?.value || '';
+  const docNum    = escHtml(document.getElementById('f-number')?.value || '');
   const fDate     = fmtDate(document.getElementById('f-date')?.value);
   const fDue      = fmtDate(document.getElementById('f-due')?.value);
   const fObj      = document.getElementById('f-object')?.value || '';
@@ -5019,8 +5194,9 @@ function updatePreview() {
   if (infoBar) infoBar.textContent = `${font.name} · ${layout.label} · ${theme.name}`;
 
   // Build logo HTML
-  const logoHtml = S.logoSrc
-    ? `<img src="${S.logoSrc}" style="height:${logoSz*0.42}px;max-width:140px;object-fit:contain" alt="Logo">`
+  const safeLogoSrc = sanitizeImageSrc(S.logoSrc);
+  const logoHtml = safeLogoSrc
+    ? `<img src="${escHtml(safeLogoSrc)}" style="height:${logoSz*0.42}px;max-width:140px;object-fit:contain" alt="Logo">`
     : '';
 
   // Header by layout
@@ -5229,13 +5405,15 @@ function updatePreview() {
     </div>`;
 
   // Signature and company stamp
-  const customStampImg = S.companyStampSrc
-    ? `<img src="${S.companyStampSrc}" alt="Cachet société" style="width:${companyStampSize}px;max-width:100%;height:auto;object-fit:contain;opacity:${companyStampOpacity/100};margin-top:${S.signatureSrc ? '-10px' : '0'}">`
+  const companyStampSrc = sanitizeImageSrc(S.companyStampSrc);
+  const signatureSrc = sanitizeImageSrc(S.signatureSrc);
+  const customStampImg = companyStampSrc
+    ? `<img src="${escHtml(companyStampSrc)}" alt="Cachet société" style="width:${companyStampSize}px;max-width:100%;height:auto;object-fit:contain;opacity:${companyStampOpacity/100};margin-top:${signatureSrc ? '-10px' : '0'}">`
     : '';
-  const signatureImg = S.signatureSrc
-    ? `<img src="${S.signatureSrc}" alt="Signature" style="width:${signatureSize}px;max-width:100%;height:auto;object-fit:contain;margin-bottom:${customStampImg ? '0' : '3px'}">`
+  const signatureImg = signatureSrc
+    ? `<img src="${escHtml(signatureSrc)}" alt="Signature" style="width:${signatureSize}px;max-width:100%;height:auto;object-fit:contain;margin-bottom:${customStampImg ? '0' : '3px'}">`
     : `<div style="height:44px;border-bottom:1px solid ${theme.p}40;margin-bottom:5px"></div>`;
-  const sigHtml = (S.signature || S.signatureSrc || S.companyStampSrc) ? `
+  const sigHtml = (S.signature || signatureSrc || companyStampSrc) ? `
     <div style="display:flex;justify-content:flex-end;margin-bottom:14px;padding-left:${padLeft};break-inside:avoid;page-break-inside:avoid">
       <div style="width:${Math.max(190, companyStampSize + 24, signatureSize + 24)}px;padding:9px;border:1px dashed ${theme.p}60;border-radius:8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:82px">
         ${signatureImg}
@@ -5346,7 +5524,7 @@ async function generatePDF() {
 }
 
 function showPdfSuccess(docNum='document') {
-  const title = document.getElementById('pdf-success-title');
+  const title = document.getElementById('pdf-success-main-title');
   const sub = document.getElementById('pdf-success-sub');
   if (title) title.textContent = `${docNum} prêt`;
   if (sub) sub.textContent = `${S.docType === 'devis' ? 'Devis' : 'Facture'} téléchargé en PDF`;
@@ -5414,9 +5592,9 @@ async function createInvoicePdfBlob(el) {
   const rawImgH = canvas.height * imgW / canvas.width;
   const pageContentH = pageH - margin * 2;
 
-  if (rawImgH <= pageContentH * 1.28) {
+  if (rawImgH <= pageContentH) {
     const imgData = canvas.toDataURL('image/jpeg', 1);
-    pdf.addImage(imgData, 'JPEG', margin, margin, imgW, Math.min(rawImgH, pageContentH));
+    pdf.addImage(imgData, 'JPEG', margin, margin, imgW, rawImgH);
     return pdf.output('blob');
   }
 
@@ -5426,7 +5604,11 @@ async function createInvoicePdfBlob(el) {
     const ctx = sourceCanvas.getContext('2d', { willReadFrequently:true });
     if (!ctx) return sourceCanvas.height;
     const { data, width, height } = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-    const baseR = data[0], baseG = data[1], baseB = data[2];
+    const bg = PAGE_COLORS[S.pageColorIdx]?.bg || '#ffffff';
+    const parsed = bg.match(/^#?([0-9a-f]{6})$/i);
+    const baseR = parsed ? parseInt(parsed[1].slice(0,2), 16) : 255;
+    const baseG = parsed ? parseInt(parsed[1].slice(2,4), 16) : 255;
+    const baseB = parsed ? parseInt(parsed[1].slice(4,6), 16) : 255;
     const xStep = Math.max(1, Math.floor(width / 90));
     for (let y = height - 1; y >= 0; y -= 3) {
       let rowInk = 0;

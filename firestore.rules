@@ -20,13 +20,18 @@ service cloud.firestore {
         'products',
         'leads',
         'notifications',
+        'collectionsIndex',
+        'storageVersion',
         'storageUsedBytes',
+        'email',
+        'name',
         'updatedAt'
       ]);
     }
 
     match /users/{userId} {
-      allow create, read, update, delete: if isOwner(userId) && validAccountDoc();
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && validAccountDoc();
 
       match /{collectionName}/{docId} {
         allow read, create, update, delete: if isOwner(userId)

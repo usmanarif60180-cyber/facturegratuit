@@ -11,7 +11,7 @@ service firebase.storage {
     }
 
     function allowedImage() {
-      return request.resource.contentType.matches('image/(png|jpeg|jpg|webp|svg\\+xml)');
+      return request.resource.contentType.matches('image/(png|jpeg|jpg|webp)');
     }
 
     function allowedPdf() {
