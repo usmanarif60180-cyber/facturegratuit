@@ -845,7 +845,7 @@ function renderAccountModal() {
   renderAccountHistory();
 }
 
-const ACCOUNT_PANELS = ['overview','projects','history','clients','products','leads','profile','personal','security','appearance','language','storage','payments','privacy','danger'];
+const ACCOUNT_PANELS = ['overview','projects','team','history','clients','products','leads','profile','personal','security','appearance','language','storage','payments','privacy','danger'];
 
 function showAccountPanel(panel='overview') {
   S.currentAccountPanel = panel;
@@ -856,6 +856,7 @@ function showAccountPanel(panel='overview') {
   });
   if (panel === 'overview') renderAccountOverview();
   if (panel === 'projects') renderSavedProjects();
+  if (panel === 'team') renderTeamWorkspace();
   if (panel === 'history') renderAccountHistory();
   if (panel === 'clients') renderSavedClients();
   if (panel === 'products') renderSavedProducts();
@@ -880,7 +881,7 @@ function getAccountStorageKey(suffix) {
 // ne refuse l'écriture. Ne jamais fixer cette valeur au-dessus de ~950 KB.
 const ACCOUNT_STORAGE_QUOTA_BYTES = 800 * 1024;
 const ACCOUNT_IMAGE_UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
-const ACCOUNT_COLLECTIONS = ['history','projects','clients','products','leads','notifications'];
+const ACCOUNT_COLLECTIONS = ['history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity'];
 
 function hasCloudCollectionSupport() {
   return Boolean(window.firestoreCollection && window.firestoreGetDocs && window.firestoreWriteBatch);
@@ -953,7 +954,7 @@ function setAutoCleanup(on) {
 
 function getAccountStorageUsageBytes() {
   if (!S.authUser) return 0;
-  const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications'];
+  const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity'];
   return suffixes.reduce((sum, suffix) => {
     try { return sum + getTextBytes(localStorage.getItem(getAccountStorageKey(suffix)) || ''); } catch { return sum; }
   }, 0);
@@ -961,7 +962,7 @@ function getAccountStorageUsageBytes() {
 
 function getProjectedAccountStorageUsageBytes(suffix, serialized) {
   if (!S.authUser) return 0;
-  const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications'];
+  const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity'];
   return suffixes.reduce((sum, key) => {
     try {
       const text = key === suffix ? serialized : (localStorage.getItem(getAccountStorageKey(key)) || '');
@@ -1094,7 +1095,7 @@ async function syncCloudCollection(suffix, list=[]) {
 
 function collectAccountDataBundle() {
   if (!S.authUser) return null;
-  const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications'];
+  const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity'];
   const data = {};
   suffixes.forEach(suffix => {
     try { data[suffix] = JSON.parse(localStorage.getItem(getAccountStorageKey(suffix)) || '[]'); }
@@ -1191,7 +1192,7 @@ async function pullAccountDataFromCloud() {
         try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(list)); } catch {}
       }
     } else {
-      ['history','projects','clients','products','leads','notifications'].forEach(suffix => {
+      ['history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity'].forEach(suffix => {
         if (cloud[suffix] !== undefined && cloud[suffix] !== null) {
           try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(cloud[suffix])); } catch {}
         }
@@ -1256,8 +1257,8 @@ function exportHistoryCsv() {
 
 function clearAllAccountLocalData() {
   if (!S.authUser) return;
-  if (!confirm('Supprimer profil personnel, société, historique, projets, clients et produits de ce navigateur ?')) return;
-  ['profile','profile-active','personal','history','projects','clients','products','leads','notifications','auto-cleanup'].forEach(suffix => {
+  if (!confirm('Supprimer profil personnel, société, historique, projets, équipe, tâches, clients et produits de ce navigateur ?')) return;
+  ['profile','profile-active','personal','history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity','auto-cleanup'].forEach(suffix => {
     try { localStorage.removeItem(getAccountStorageKey(suffix)); } catch {}
   });
   S.autoCleanup = false;
@@ -1657,6 +1658,9 @@ function renderAccountOverview() {
   const clients = getCompanyFilteredList(loadAccountList('clients'));
   const products = loadAccountList('products');
   const leads = loadLeads();
+  const teamMembers = loadTeamMembers();
+  const teamTasks = loadTeamTasks();
+  const openTeamTasks = teamTasks.filter(t => (t.status || 'todo') !== 'done');
   const openLeads = leads.filter(l => !['won','lost'].includes(l.stage || 'new'));
   const pipelineValue = openLeads.reduce((s, l) => s + (Number(l.value) || 0), 0);
   const storageUsed = getAccountStorageUsageBytes();
@@ -1692,6 +1696,8 @@ function renderAccountOverview() {
       <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Factures historique</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('leads')"><i class="fa fa-bullhorn"></i><strong>${openLeads.length}</strong><span>Leads en cours</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('leads')"><i class="fa fa-sack-dollar"></i><strong>${fmtEur(pipelineValue)}</strong><span>Valeur pipeline</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('team')"><i class="fa fa-users"></i><strong>${teamMembers.length}</strong><span>Membres équipe</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('team')"><i class="fa fa-list-check"></i><strong>${openTeamTasks.length}</strong><span>Tâches équipe ouvertes</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('projects')"><i class="fa fa-rotate"></i><strong>${dueRecurring.length}</strong><span>Factures récurrentes à générer</span></div>
       ${renderAccountAdvancedAnalytics(history, totals)}`;
     renderAccountStoragePanel();
@@ -2123,6 +2129,460 @@ function renderSavedLeads() {
   box.innerHTML = list.length
     ? `<div class="saved-list">${list.map(renderLeadItem).join('')}</div>`
     : renderEmptyState('bullhorn', 'Aucun lead', 'Ajoutez un prospect pour commencer à suivre votre pipeline commercial.', 'Ajouter un lead', "document.getElementById('lead-name')?.focus()");
+}
+
+// ═══════════════════════════════════════════════════════
+// TEAM WORKSPACE (members, roles, tasks, activity)
+// ═══════════════════════════════════════════════════════
+const TEAM_ROLES = {
+  owner: { label: 'Owner', icon: 'crown', hint: 'Accès complet au compte et aux réglages.' },
+  admin: { label: 'Admin', icon: 'shield-halved', hint: 'Gère équipe, projets, documents et clients.' },
+  manager: { label: 'Manager', icon: 'user-tie', hint: 'Gère projets, tâches et documents.' },
+  employee: { label: 'Employé', icon: 'helmet-safety', hint: 'Travaille sur les tâches et projets assignés.' },
+  accountant: { label: 'Comptable', icon: 'calculator', hint: 'Accès factures, TVA, exports et rapports.' },
+  viewer: { label: 'Lecture seule', icon: 'eye', hint: 'Consultation sans modification.' }
+};
+
+const TEAM_TASK_STATUSES = {
+  todo: 'À faire',
+  doing: 'En cours',
+  review: 'À vérifier',
+  done: 'Terminée'
+};
+
+const TEAM_TASK_PRIORITIES = {
+  low: 'Basse',
+  normal: 'Normale',
+  high: 'Haute',
+  urgent: 'Urgente'
+};
+
+function teamNow() {
+  return new Date().toISOString();
+}
+
+function loadTeamMembers() {
+  return loadAccountList('teamMembers');
+}
+
+function loadTeamInvites() {
+  return loadAccountList('teamInvites');
+}
+
+function loadTeamTasks() {
+  return loadAccountList('teamTasks');
+}
+
+function loadTeamActivity() {
+  return loadAccountList('teamActivity');
+}
+
+function getTeamRoleLabel(role='viewer') {
+  return TEAM_ROLES[role]?.label || 'Lecture seule';
+}
+
+function getTeamStatusLabel(status='active') {
+  if (status === 'pending') return 'Invitation';
+  if (status === 'inactive') return 'Désactivé';
+  return 'Actif';
+}
+
+function getCurrentOwnerMember() {
+  return {
+    id: `owner-${safeFirebaseDocId(S.authUser?.uid || S.authUser?.email || 'account')}`,
+    name: S.authUser?.name || 'Owner',
+    email: S.authUser?.email || '',
+    role: 'owner',
+    status: 'active',
+    assignedProjects: [],
+    createdAt: S.authUser?.createdAt || teamNow(),
+    updatedAt: teamNow()
+  };
+}
+
+function ensureOwnerTeamMember() {
+  if (!S.authUser) return [];
+  const owner = getCurrentOwnerMember();
+  const members = loadTeamMembers();
+  const hasOwner = members.some(m => m.role === 'owner' || (owner.email && String(m.email).toLowerCase() === owner.email.toLowerCase()));
+  if (hasOwner) return members.map(m => {
+    if (owner.email && String(m.email).toLowerCase() === owner.email.toLowerCase()) {
+      return { ...m, role: 'owner', status: 'active', name: m.name || owner.name, email: m.email || owner.email };
+    }
+    return m;
+  });
+  const next = [owner, ...members];
+  saveAccountList('teamMembers', next, { silent:true });
+  return next;
+}
+
+function getTeamProjects() {
+  return getCompanyFilteredList(loadAccountList('projects'))
+    .sort((a,b) => String(b.updatedAt || b.savedAt || '').localeCompare(String(a.updatedAt || a.savedAt || '')));
+}
+
+function projectNameById(projectId='') {
+  if (!projectId) return 'Aucun projet';
+  const project = getTeamProjects().find(p => p.id === projectId);
+  return project?.title || project?.objectName || project?.docNum || 'Projet';
+}
+
+function populateTeamSelects(members=loadTeamMembers(), projects=getTeamProjects()) {
+  const projectOptions = ['<option value="">Aucun projet spécifique</option>']
+    .concat(projects.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.title || p.objectName || p.docNum || 'Projet')}</option>`))
+    .join('');
+  ['team-invite-project','team-task-project'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const current = el.value;
+      el.innerHTML = projectOptions;
+      if ([...el.options].some(o => o.value === current)) el.value = current;
+    }
+  });
+  const activeMembers = members.filter(m => (m.status || 'active') !== 'inactive');
+  const assigneeOptions = ['<option value="">Non assignée</option>']
+    .concat(activeMembers.map(m => `<option value="${escHtml(m.id)}">${escHtml(m.name || m.email || 'Membre')} · ${escHtml(getTeamRoleLabel(m.role))}</option>`))
+    .join('');
+  const assignee = document.getElementById('team-task-assignee');
+  if (assignee) {
+    const current = assignee.value;
+    assignee.innerHTML = assigneeOptions;
+    if ([...assignee.options].some(o => o.value === current)) assignee.value = current;
+  }
+}
+
+function logTeamActivity(type, text, meta={}) {
+  if (!S.authUser || !text) return;
+  const record = {
+    id: `activity-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+    type,
+    text,
+    actorName: S.authUser.name || S.authUser.email || 'Compte',
+    meta,
+    createdAt: teamNow()
+  };
+  saveAccountList('teamActivity', [record, ...loadTeamActivity()].slice(0, 120), { skipQuotaCheck:true, silent:true });
+}
+
+function inviteTeamMember() {
+  if (!S.authUser) { showNotif('Login karein, phir équipe invite karein', 'info'); return; }
+  const name = (document.getElementById('team-invite-name')?.value || '').trim();
+  const email = (document.getElementById('team-invite-email')?.value || '').trim().toLowerCase();
+  const role = document.getElementById('team-invite-role')?.value || 'employee';
+  const projectId = document.getElementById('team-invite-project')?.value || '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showNotif('Email équipe invalide', 'info');
+    return;
+  }
+  if (email === String(S.authUser.email || '').toLowerCase()) {
+    showNotif('Aap owner account ko invite nahi kar sakte', 'info');
+    return;
+  }
+  const members = ensureOwnerTeamMember();
+  if (members.some(m => String(m.email || '').toLowerCase() === email)) {
+    showNotif('Ce membre existe déjà dans l\'équipe', 'info');
+    return;
+  }
+  const id = `member-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+  const invite = {
+    id: `invite-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+    memberId: id,
+    name,
+    email,
+    role,
+    projectId,
+    status: 'pending',
+    createdAt: teamNow(),
+    expiresAt: new Date(Date.now() + 7 * 86400000).toISOString()
+  };
+  const member = {
+    id,
+    name: name || email.split('@')[0],
+    email,
+    role,
+    status: 'pending',
+    assignedProjects: projectId ? [projectId] : [],
+    createdAt: invite.createdAt,
+    updatedAt: invite.createdAt
+  };
+  saveAccountList('teamInvites', [invite, ...loadTeamInvites()].slice(0, 100));
+  saveAccountList('teamMembers', [member, ...members].slice(0, 100));
+  logTeamActivity('invite', `${member.name} invité comme ${getTeamRoleLabel(role)}`, { email, role, projectId });
+  pushNotification({ type:'team', icon:'user-plus', title:'Invitation équipe créée', body:`${member.name} · ${getTeamRoleLabel(role)}`, link:{ panel:'team' } });
+  ['team-invite-name','team-invite-email'].forEach(idName => { const el = document.getElementById(idName); if (el) el.value = ''; });
+  renderTeamWorkspace();
+  showNotif('Invitation équipe créée', 'success');
+}
+
+function buildTeamInviteMailto(inviteId) {
+  const invite = loadTeamInvites().find(i => i.id === inviteId);
+  if (!invite) return '#';
+  const subject = encodeURIComponent('Invitation FacturePro');
+  const body = encodeURIComponent(`Bonjour ${invite.name || ''},\n\nVous avez été invité sur le workspace FacturePro avec le rôle ${getTeamRoleLabel(invite.role)}.\n\nConnectez-vous sur https://facturergratuit.com/ avec cette adresse email pour rejoindre l'équipe.\n\nMerci.`);
+  return `mailto:${encodeURIComponent(invite.email)}?subject=${subject}&body=${body}`;
+}
+
+function cancelTeamInvite(id) {
+  const invite = loadTeamInvites().find(i => i.id === id);
+  saveAccountList('teamInvites', loadTeamInvites().filter(i => i.id !== id));
+  if (invite?.memberId) {
+    saveAccountList('teamMembers', loadTeamMembers().filter(m => m.id !== invite.memberId));
+  }
+  logTeamActivity('invite_cancelled', `Invitation annulée: ${invite?.email || id}`);
+  renderTeamWorkspace();
+}
+
+function activatePendingMember(id) {
+  const members = loadTeamMembers().map(m => m.id === id ? { ...m, status:'active', updatedAt: teamNow() } : m);
+  const member = members.find(m => m.id === id);
+  saveAccountList('teamMembers', members);
+  saveAccountList('teamInvites', loadTeamInvites().filter(i => i.memberId !== id));
+  logTeamActivity('member_active', `${member?.name || 'Membre'} activé`);
+  renderTeamWorkspace();
+}
+
+function setTeamMemberRole(id, role) {
+  const members = loadTeamMembers();
+  const target = members.find(m => m.id === id);
+  if (!target || target.role === 'owner') return;
+  saveAccountList('teamMembers', members.map(m => m.id === id ? { ...m, role, updatedAt: teamNow() } : m));
+  logTeamActivity('role_change', `${target.name || target.email} devient ${getTeamRoleLabel(role)}`);
+  renderTeamWorkspace();
+}
+
+function toggleTeamMemberStatus(id) {
+  const members = loadTeamMembers();
+  const target = members.find(m => m.id === id);
+  if (!target || target.role === 'owner') return;
+  const nextStatus = (target.status || 'active') === 'inactive' ? 'active' : 'inactive';
+  saveAccountList('teamMembers', members.map(m => m.id === id ? { ...m, status: nextStatus, updatedAt: teamNow() } : m));
+  logTeamActivity('member_status', `${target.name || target.email}: ${getTeamStatusLabel(nextStatus)}`);
+  renderTeamWorkspace();
+}
+
+function removeTeamMember(id) {
+  const target = loadTeamMembers().find(m => m.id === id);
+  if (!target || target.role === 'owner') return;
+  if (!confirm(`Retirer ${target.name || target.email} de l'équipe ?`)) return;
+  saveAccountList('teamMembers', loadTeamMembers().filter(m => m.id !== id));
+  saveAccountList('teamInvites', loadTeamInvites().filter(i => i.memberId !== id));
+  saveAccountList('teamTasks', loadTeamTasks().map(t => t.assigneeId === id ? { ...t, assigneeId:'', updatedAt: teamNow() } : t));
+  logTeamActivity('member_removed', `${target.name || target.email} retiré de l'équipe`);
+  renderTeamWorkspace();
+}
+
+function saveTeamTask() {
+  if (!S.authUser) { showNotif('Login karein, phir tâche save karein', 'info'); return; }
+  const title = (document.getElementById('team-task-title')?.value || '').trim();
+  if (!title) { showNotif('Titre de tâche requis', 'info'); return; }
+  const projectId = document.getElementById('team-task-project')?.value || '';
+  const assigneeId = document.getElementById('team-task-assignee')?.value || '';
+  const priority = document.getElementById('team-task-priority')?.value || 'normal';
+  const dueDate = document.getElementById('team-task-due')?.value || '';
+  const notes = (document.getElementById('team-task-notes')?.value || '').trim();
+  const task = {
+    id: `task-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+    title,
+    projectId,
+    assigneeId,
+    priority,
+    dueDate,
+    notes,
+    status: 'todo',
+    createdBy: S.authUser.email || S.authUser.uid || '',
+    createdAt: teamNow(),
+    updatedAt: teamNow()
+  };
+  saveAccountList('teamTasks', [task, ...loadTeamTasks()].slice(0, 300));
+  logTeamActivity('task_created', `Tâche créée: ${title}`, { projectId, assigneeId, priority });
+  pushNotification({ type:'team', icon:'list-check', title:'Nouvelle tâche équipe', body:title, link:{ panel:'team' } });
+  ['team-task-title','team-task-due','team-task-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  renderTeamWorkspace();
+  showNotif('Tâche ajoutée', 'success');
+}
+
+function setTeamTaskStatus(id, status) {
+  const tasks = loadTeamTasks();
+  const task = tasks.find(t => t.id === id);
+  if (!task || !TEAM_TASK_STATUSES[status]) return;
+  saveAccountList('teamTasks', tasks.map(t => t.id === id ? { ...t, status, updatedAt: teamNow(), completedAt: status === 'done' ? teamNow() : t.completedAt || '' } : t));
+  logTeamActivity('task_status', `${task.title}: ${TEAM_TASK_STATUSES[status]}`);
+  renderTeamWorkspace();
+}
+
+function deleteTeamTask(id) {
+  const task = loadTeamTasks().find(t => t.id === id);
+  if (!task) return;
+  if (!confirm('Supprimer cette tâche ?')) return;
+  saveAccountList('teamTasks', loadTeamTasks().filter(t => t.id !== id));
+  logTeamActivity('task_deleted', `Tâche supprimée: ${task.title}`);
+  renderTeamWorkspace();
+}
+
+function assignTeamTask(id, assigneeId) {
+  const tasks = loadTeamTasks();
+  const task = tasks.find(t => t.id === id);
+  saveAccountList('teamTasks', tasks.map(t => t.id === id ? { ...t, assigneeId, updatedAt: teamNow() } : t));
+  logTeamActivity('task_assigned', `${task?.title || 'Tâche'} assignée`);
+  renderTeamWorkspace();
+}
+
+function getFilteredTeamData() {
+  const query = (document.getElementById('team-search')?.value || '').trim().toLowerCase();
+  const roleFilter = document.getElementById('team-filter-role')?.value || '';
+  const statusFilter = document.getElementById('team-filter-status')?.value || '';
+  const members = ensureOwnerTeamMember();
+  const tasks = loadTeamTasks();
+  const memberById = new Map(members.map(m => [m.id, m]));
+  const memberMatch = m => {
+    const text = `${m.name || ''} ${m.email || ''} ${getTeamRoleLabel(m.role)} ${getTeamStatusLabel(m.status)}`.toLowerCase();
+    return (!query || text.includes(query)) && (!roleFilter || m.role === roleFilter);
+  };
+  const taskMatch = t => {
+    const assignee = memberById.get(t.assigneeId);
+    const text = `${t.title || ''} ${t.notes || ''} ${projectNameById(t.projectId)} ${assignee?.name || ''} ${assignee?.email || ''} ${TEAM_TASK_PRIORITIES[t.priority] || ''}`.toLowerCase();
+    return (!query || text.includes(query)) && (!statusFilter || (t.status || 'todo') === statusFilter);
+  };
+  return {
+    members,
+    filteredMembers: members.filter(memberMatch),
+    tasks,
+    filteredTasks: tasks.filter(taskMatch),
+    memberById
+  };
+}
+
+function renderTeamOverviewStats(members, tasks, invites) {
+  const grid = document.getElementById('team-overview-grid');
+  if (!grid) return;
+  const today = new Date().toISOString().slice(0,10);
+  const active = members.filter(m => (m.status || 'active') === 'active').length;
+  const pending = invites.filter(i => (i.status || 'pending') === 'pending').length;
+  const openTasks = tasks.filter(t => (t.status || 'todo') !== 'done').length;
+  const overdue = tasks.filter(t => (t.status || 'todo') !== 'done' && t.dueDate && t.dueDate < today).length;
+  const done = tasks.filter(t => (t.status || 'todo') === 'done').length;
+  grid.innerHTML = `
+    <div class="dashboard-card"><i class="fa fa-users"></i><strong>${active}</strong><span>Membres actifs</span></div>
+    <div class="dashboard-card"><i class="fa fa-envelope-open-text"></i><strong>${pending}</strong><span>Invitations</span></div>
+    <div class="dashboard-card"><i class="fa fa-list-check"></i><strong>${openTasks}</strong><span>Tâches ouvertes</span></div>
+    <div class="dashboard-card"><i class="fa fa-triangle-exclamation"></i><strong>${overdue}</strong><span>En retard</span></div>
+    <div class="dashboard-card"><i class="fa fa-circle-check"></i><strong>${done}</strong><span>Tâches terminées</span></div>
+    <div class="dashboard-card"><i class="fa fa-lock"></i><strong>Privé</strong><span>Données compte connecté</span></div>`;
+}
+
+function renderTeamMembersList(members) {
+  const box = document.getElementById('team-members-list');
+  if (!box) return;
+  box.innerHTML = members.length ? `<div class="team-card-list">${members.map(member => {
+    const role = TEAM_ROLES[member.role] || TEAM_ROLES.viewer;
+    const roleOptions = Object.keys(TEAM_ROLES).filter(key => key !== 'owner').map(key => `<option value="${key}" ${member.role === key ? 'selected' : ''}>${escHtml(TEAM_ROLES[key].label)}</option>`).join('');
+    const readonly = member.role === 'owner';
+    return `<div class="team-member-card ${escHtml(member.status || 'active')}">
+      <div class="team-avatar"><i class="fa fa-${escHtml(role.icon)}"></i></div>
+      <div class="team-member-main">
+        <strong>${escHtml(member.name || member.email || 'Membre')}</strong>
+        <span>${escHtml(member.email || '')}</span>
+        <small>${escHtml(role.hint)} ${member.assignedProjects?.length ? '· ' + member.assignedProjects.map(projectNameById).map(escHtml).join(', ') : ''}</small>
+      </div>
+      <div class="team-member-actions">
+        <span class="team-badge ${escHtml(member.status || 'active')}">${escHtml(getTeamStatusLabel(member.status))}</span>
+        ${readonly ? `<span class="team-badge owner">Owner</span>` : `<select class="team-role-select" onchange="setTeamMemberRole('${escHtml(member.id)}', this.value)">${roleOptions}</select>`}
+        ${member.status === 'pending' ? `<button class="btn btn-ghost btn-sm" onclick="activatePendingMember('${escHtml(member.id)}')" title="Activer"><i class="fa fa-user-check"></i></button>` : ''}
+        ${readonly ? '' : `<button class="btn btn-ghost btn-sm" onclick="toggleTeamMemberStatus('${escHtml(member.id)}')" title="Activer/désactiver"><i class="fa fa-power-off"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="removeTeamMember('${escHtml(member.id)}')" title="Retirer"><i class="fa fa-trash"></i></button>`}
+      </div>
+    </div>`;
+  }).join('')}</div>` : renderEmptyState('users', 'Aucun membre', 'Invitez votre première personne pour créer le workspace équipe.', 'Inviter un membre', "document.getElementById('team-invite-email')?.focus()");
+}
+
+function renderTeamInvites(invites) {
+  const box = document.getElementById('team-pending-invites');
+  if (!box) return;
+  const pending = invites.filter(i => (i.status || 'pending') === 'pending');
+  box.innerHTML = pending.length ? `<div class="team-card-list">${pending.map(invite => `
+    <div class="team-mini-card">
+      <div>
+        <strong>${escHtml(invite.name || invite.email)}</strong>
+        <span>${escHtml(invite.email)} · ${escHtml(getTeamRoleLabel(invite.role))}</span>
+        <small>${invite.projectId ? escHtml(projectNameById(invite.projectId)) + ' · ' : ''}Expire: ${fmtDate(invite.expiresAt)}</small>
+      </div>
+      <div class="saved-item-actions">
+        <a class="btn btn-ghost btn-sm" href="${buildTeamInviteMailto(invite.id)}"><i class="fa fa-envelope"></i></a>
+        <button class="btn btn-danger btn-sm" onclick="cancelTeamInvite('${escHtml(invite.id)}')"><i class="fa fa-xmark"></i></button>
+      </div>
+    </div>`).join('')}</div>` : `<div class="team-empty-inline">Aucune invitation en attente</div>`;
+}
+
+function renderTeamTasksList(tasks, memberById, members) {
+  const box = document.getElementById('team-tasks-list');
+  if (!box) return;
+  const assigneeOptions = ['<option value="">Non assignée</option>'].concat(
+    members.filter(m => (m.status || 'active') !== 'inactive').map(m => `<option value="${escHtml(m.id)}">${escHtml(m.name || m.email || 'Membre')}</option>`)
+  ).join('');
+  box.innerHTML = tasks.length ? `<div class="team-card-list">${tasks.map(task => {
+    const assignee = memberById.get(task.assigneeId);
+    const overdue = task.dueDate && task.dueDate < new Date().toISOString().slice(0,10) && (task.status || 'todo') !== 'done';
+    return `<div class="team-task-card ${overdue ? 'overdue' : ''}">
+      <div class="team-task-main">
+        <div class="team-task-title">
+          <strong>${escHtml(task.title || 'Tâche')}</strong>
+          <span class="team-priority ${escHtml(task.priority || 'normal')}">${escHtml(TEAM_TASK_PRIORITIES[task.priority] || 'Normale')}</span>
+        </div>
+        <span>${escHtml(projectNameById(task.projectId))} · ${escHtml(assignee?.name || 'Non assignée')}</span>
+        ${task.notes ? `<small>${escHtml(task.notes)}</small>` : ''}
+        ${task.dueDate ? `<small class="${overdue ? 'team-overdue-text' : ''}">Échéance: ${fmtDate(task.dueDate)}</small>` : ''}
+      </div>
+      <div class="team-task-actions">
+        <select class="team-role-select" onchange="setTeamTaskStatus('${escHtml(task.id)}', this.value)">
+          ${Object.entries(TEAM_TASK_STATUSES).map(([key,label]) => `<option value="${key}" ${(task.status || 'todo') === key ? 'selected' : ''}>${escHtml(label)}</option>`).join('')}
+        </select>
+        <select class="team-role-select" onchange="assignTeamTask('${escHtml(task.id)}', this.value)">
+          ${assigneeOptions.replace(`value="${escHtml(task.assigneeId || '')}"`, `value="${escHtml(task.assigneeId || '')}" selected`)}
+        </select>
+        <button class="btn btn-danger btn-sm" onclick="deleteTeamTask('${escHtml(task.id)}')"><i class="fa fa-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('')}</div>` : renderEmptyState('list-check', 'Aucune tâche', 'Créez une tâche et assignez-la à un membre ou à un projet.', 'Créer tâche', "document.getElementById('team-task-title')?.focus()");
+}
+
+function renderTeamWorkload(members, tasks) {
+  const box = document.getElementById('team-workload-list');
+  if (!box) return;
+  const openTasks = tasks.filter(t => (t.status || 'todo') !== 'done');
+  const rows = members.filter(m => (m.status || 'active') !== 'inactive').map(member => {
+    const count = openTasks.filter(t => t.assigneeId === member.id).length;
+    const pct = Math.min(100, count * 20);
+    return { member, count, pct };
+  }).sort((a,b) => b.count - a.count);
+  box.innerHTML = rows.length ? `<div class="team-workload-list">${rows.map(row => `
+    <div class="team-workload-row">
+      <div><strong>${escHtml(row.member.name || row.member.email || 'Membre')}</strong><span>${row.count} tâche${row.count>1?'s':''} ouverte${row.count>1?'s':''}</span></div>
+      <div class="team-workload-bar"><i style="width:${row.pct}%"></i></div>
+    </div>`).join('')}</div>` : `<div class="team-empty-inline">Aucun membre actif</div>`;
+}
+
+function renderTeamActivityList() {
+  const box = document.getElementById('team-activity-list');
+  if (!box) return;
+  const list = loadTeamActivity().slice(0, 12);
+  box.innerHTML = list.length ? `<div class="team-activity-list">${list.map(item => `
+    <div class="team-activity-item">
+      <i class="fa fa-circle-dot"></i>
+      <div><strong>${escHtml(item.text || 'Activité')}</strong><span>${escHtml(item.actorName || 'Compte')} · ${fmtDate(item.createdAt)}</span></div>
+    </div>`).join('')}</div>` : `<div class="team-empty-inline">Aucune activité équipe pour le moment</div>`;
+}
+
+function renderTeamWorkspace() {
+  if (!S.authUser) return;
+  const data = getFilteredTeamData();
+  const invites = loadTeamInvites();
+  populateTeamSelects(data.members, getTeamProjects());
+  renderTeamOverviewStats(data.members, data.tasks, invites);
+  renderTeamInvites(invites);
+  renderTeamMembersList(data.filteredMembers);
+  renderTeamTasksList(data.filteredTasks, data.memberById, data.members);
+  renderTeamWorkload(data.members, data.tasks);
+  renderTeamActivityList();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3573,7 +4033,7 @@ async function deleteMyAccount() {
       const credential = fb.EmailAuthProvider.credential(S.authUser.email, password);
       await fb.reauthenticateWithCredential(fb.auth.currentUser, credential);
     }
-    ['profile','profile-active','personal','history','projects','clients','products','leads','notifications','auto-cleanup'].forEach(suffix => {
+    ['profile','profile-active','personal','history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity','auto-cleanup'].forEach(suffix => {
       try { localStorage.removeItem(getAccountStorageKey(suffix)); } catch {}
     });
     if (fb?.auth?.currentUser && fb?.deleteUser) {

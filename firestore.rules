@@ -20,6 +20,10 @@ service cloud.firestore {
         'products',
         'leads',
         'notifications',
+        'teamMembers',
+        'teamInvites',
+        'teamTasks',
+        'teamActivity',
         'collectionsIndex',
         'storageVersion',
         'storageUsedBytes',
@@ -35,7 +39,7 @@ service cloud.firestore {
 
       match /{collectionName}/{docId} {
         allow read, create, update, delete: if isOwner(userId)
-          && collectionName in ['history', 'projects', 'clients', 'products', 'feedback'];
+          && collectionName in ['history', 'projects', 'clients', 'products', 'leads', 'notifications', 'teamMembers', 'teamInvites', 'teamTasks', 'teamActivity', 'feedback'];
       }
     }
 

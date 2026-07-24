@@ -2353,6 +2353,7 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-primary btn-sm" id="account-tab-overview" onclick="showAccountPanel('overview')"><i class="fa fa-chart-line"></i> Dashboard</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-ai" onclick="openAiSidebar();closeAccount()"><i class="fa fa-wand-magic-sparkles"></i> Assistant IA</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-projects" onclick="showAccountPanel('projects')"><i class="fa fa-folder-open"></i> Projets</button>
+          <button class="btn btn-ghost btn-sm" id="account-tab-team" onclick="showAccountPanel('team')"><i class="fa fa-users"></i> Équipe</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-history" onclick="showAccountPanel('history')"><i class="fa fa-clock-rotate-left"></i> Factures</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-clients" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i> Clients</button>
           <button class="btn btn-ghost btn-sm" id="account-tab-products" onclick="showAccountPanel('products')"><i class="fa fa-box"></i> Produits</button>
@@ -2392,6 +2393,100 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-danger btn-sm" onclick="clearSavedProjects()"><i class="fa fa-trash"></i> Effacer projets</button>
         </div>
         <div id="account-projects-list"></div>
+      </div>
+      <div class="account-panel" id="account-panel-team">
+        <div class="panel-note">Workspace équipe: invitations, rôles, tâches, charge de travail et activité. Les données restent liées au compte connecté; les invitations email automatiques pourront être activées plus tard avec Cloud Functions.</div>
+        <div class="dashboard-grid" id="team-overview-grid"></div>
+        <div class="team-toolbar">
+          <div class="form-group" style="margin:0">
+            <label class="form-label" for="team-search">Recherche</label>
+            <input class="form-input" id="team-search" placeholder="Nom, email, rôle, tâche..." oninput="renderTeamWorkspace()">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label" for="team-filter-role">Filtrer rôle</label>
+            <select class="form-input form-select" id="team-filter-role" onchange="renderTeamWorkspace()">
+              <option value="">Tous les rôles</option>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="employee">Employé</option>
+              <option value="accountant">Comptable</option>
+              <option value="viewer">Lecture seule</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label" for="team-filter-status">Filtrer tâches</label>
+            <select class="form-input form-select" id="team-filter-status" onchange="renderTeamWorkspace()">
+              <option value="">Toutes les tâches</option>
+              <option value="todo">À faire</option>
+              <option value="doing">En cours</option>
+              <option value="review">À vérifier</option>
+              <option value="done">Terminées</option>
+            </select>
+          </div>
+        </div>
+        <div class="team-layout-grid">
+          <div class="team-block">
+            <div class="team-block-head">
+              <strong><i class="fa fa-user-plus"></i> Inviter un membre</strong>
+              <span>Rôle et projet</span>
+            </div>
+            <div class="grid-2">
+              <input class="form-input" id="team-invite-name" placeholder="Nom">
+              <input class="form-input" id="team-invite-email" type="email" placeholder="email@entreprise.com">
+              <select class="form-input form-select" id="team-invite-role">
+                <option value="employee">Employé</option>
+                <option value="manager">Manager</option>
+                <option value="accountant">Comptable</option>
+                <option value="viewer">Lecture seule</option>
+                <option value="admin">Admin</option>
+              </select>
+              <select class="form-input form-select" id="team-invite-project"></select>
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="inviteTeamMember()"><i class="fa fa-paper-plane"></i> Créer invitation</button>
+          </div>
+          <div class="team-block">
+            <div class="team-block-head">
+              <strong><i class="fa fa-list-check"></i> Nouvelle tâche</strong>
+              <span>Assignation équipe</span>
+            </div>
+            <input class="form-input" id="team-task-title" placeholder="Titre de la tâche">
+            <div class="grid-2" style="margin-top:8px">
+              <select class="form-input form-select" id="team-task-project"></select>
+              <select class="form-input form-select" id="team-task-assignee"></select>
+              <select class="form-input form-select" id="team-task-priority">
+                <option value="normal">Priorité normale</option>
+                <option value="high">Priorité haute</option>
+                <option value="urgent">Urgent</option>
+                <option value="low">Priorité basse</option>
+              </select>
+              <input class="form-input" id="team-task-due" type="date">
+            </div>
+            <textarea class="form-input" id="team-task-notes" rows="2" style="margin-top:8px" placeholder="Notes, client, document ou chantier lié"></textarea>
+            <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="saveTeamTask()"><i class="fa fa-plus"></i> Ajouter tâche</button>
+          </div>
+        </div>
+        <div class="team-split-grid">
+          <div class="team-section">
+            <div class="team-section-title"><i class="fa fa-clock"></i> Invitations en attente</div>
+            <div id="team-pending-invites"></div>
+          </div>
+          <div class="team-section">
+            <div class="team-section-title"><i class="fa fa-chart-pie"></i> Charge de travail</div>
+            <div id="team-workload-list"></div>
+          </div>
+        </div>
+        <div class="team-section">
+          <div class="team-section-title"><i class="fa fa-users"></i> Membres</div>
+          <div id="team-members-list"></div>
+        </div>
+        <div class="team-section">
+          <div class="team-section-title"><i class="fa fa-list-check"></i> Tâches</div>
+          <div id="team-tasks-list"></div>
+        </div>
+        <div class="team-section">
+          <div class="team-section-title"><i class="fa fa-timeline"></i> Activité récente</div>
+          <div id="team-activity-list"></div>
+        </div>
       </div>
       <div class="account-panel" id="account-panel-history">
         <div class="grid-3" style="margin-bottom:12px">
@@ -2607,7 +2702,7 @@ body.home-mode .home-mobile-cta { display: none; }
 
       <div class="account-panel" id="account-panel-danger">
         <div class="panel-note" style="border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.06)">
-          <strong style="color:#f87171">Attention :</strong> supprimer votre compte efface définitivement votre société, projets, clients, produits, historique et profil sur cet appareil et dans le cloud. Cette action est irréversible.
+          <strong style="color:#f87171">Attention :</strong> supprimer votre compte efface définitivement votre société, projets, équipe, tâches, clients, produits, historique et profil sur cet appareil et dans le cloud. Cette action est irréversible.
         </div>
         <button class="btn btn-danger btn-sm" onclick="confirmDeleteAccount()"><i class="fa fa-triangle-exclamation"></i> Supprimer mon compte</button>
         <div id="delete-account-confirm-box" style="display:none;margin-top:16px">
