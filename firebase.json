@@ -1,7 +1,10 @@
 {
-  "_comment": "Hosting is intentionally NOT configured here: this site is served by GitHub Pages (see CNAME). Deploy with 'firebase deploy --only functions,firestore:rules' — never a bare 'firebase deploy', which would try to touch Hosting too.",
+  "_comment": "Hosting is intentionally NOT configured here: this site is served by GitHub Pages (see CNAME). Deploy with 'firebase deploy --only functions,firestore:rules,storage' — never a bare 'firebase deploy', which would try to touch Hosting too.",
   "firestore": {
     "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
   },
   "functions": [
     {
