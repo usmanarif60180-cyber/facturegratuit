@@ -954,11 +954,43 @@ function setAutoCleanup(on) {
   showNotif(S.autoCleanup ? 'Auto-cleanup activé' : 'Auto-cleanup désactivé', 'success');
 }
 
+// logoSrc/companyStampSrc/signatureSrc/avatarSrc get uploaded to Firebase
+// Storage and swapped for a short download URL as soon as a cloud sync
+// succeeds (see uploadAccountAssetIfNeeded/normalizeAssetFieldsForCloud) —
+// they never end up inline in the Firestore document that
+// ACCOUNT_STORAGE_QUOTA_BYTES protects. Counting the raw pre-upload base64
+// (up to ACCOUNT_IMAGE_UPLOAD_MAX_BYTES = 2MB) against that 800KB quota would
+// reject a perfectly legitimate image with a "storage full" error that has
+// nothing to do with the real constraint, and silently drop the whole
+// profile save (name/address included) along with it.
+const ACCOUNT_IMAGE_FIELD_NAMES = ['logoSrc','companyStampSrc','signatureSrc','avatarSrc'];
+
+function stripImageDataUrls(value) {
+  if (Array.isArray(value)) return value.map(stripImageDataUrls);
+  if (value && typeof value === 'object') {
+    const copy = { ...value };
+    ACCOUNT_IMAGE_FIELD_NAMES.forEach(key => {
+      if (isDataUrlImage(copy[key])) copy[key] = '';
+    });
+    return copy;
+  }
+  return value;
+}
+
+function getQuotaRelevantBytes(suffix, rawText) {
+  if (!['profile','personal'].includes(suffix) || !rawText) return getTextBytes(rawText);
+  try {
+    return getTextBytes(JSON.stringify(stripImageDataUrls(JSON.parse(rawText))));
+  } catch {
+    return getTextBytes(rawText);
+  }
+}
+
 function getAccountStorageUsageBytes() {
   if (!S.authUser) return 0;
   const suffixes = ['profile','personal','history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity'];
   return suffixes.reduce((sum, suffix) => {
-    try { return sum + getTextBytes(localStorage.getItem(getAccountStorageKey(suffix)) || ''); } catch { return sum; }
+    try { return sum + getQuotaRelevantBytes(suffix, localStorage.getItem(getAccountStorageKey(suffix)) || ''); } catch { return sum; }
   }, 0);
 }
 
@@ -968,7 +1000,7 @@ function getProjectedAccountStorageUsageBytes(suffix, serialized) {
   return suffixes.reduce((sum, key) => {
     try {
       const text = key === suffix ? serialized : (localStorage.getItem(getAccountStorageKey(key)) || '');
-      return sum + getTextBytes(text);
+      return sum + getQuotaRelevantBytes(key, text);
     } catch { return sum; }
   }, 0);
 }

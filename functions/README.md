@@ -46,7 +46,7 @@ From the repository root:
 cd functions
 npm install
 cd ..
-firebase deploy --only functions,firestore:rules
+firebase deploy --only functions,firestore:rules,storage
 ```
 
 **Do not run a bare `firebase deploy`** — this repo's hosting is GitHub
