@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCompanyStampState();
   renderSignatureImageState();
   renderCookieBanner();
-  initAdsenseSlots();
+  initAdSlots();
   applyCountryDocumentFormat();
   loadAutoCleanupPreference();
   setEditorMode(S.editorMode);
@@ -583,7 +583,7 @@ function acceptCookies() {
   try { localStorage.setItem('facturepro-cookie-consent', 'accepted'); } catch {}
   updateGoogleConsent(true);
   document.getElementById('cookie-banner')?.classList.remove('open');
-  initAdsenseSlots();
+  initAdSlots();
   showNotif('Cookies analytics/publicité acceptés', 'success');
 }
 
@@ -601,10 +601,11 @@ function resetCookieConsent() {
   showNotif('Choix cookies réinitialisé', 'info');
 }
 
-function initAdsenseSlots() {
+function initAdSlots() {
   let accepted = false;
   try { accepted = localStorage.getItem('facturepro-cookie-consent') === 'accepted'; } catch {}
   if (!accepted) return;
+  if (window.ezstandalone?.cmd) return;
   if (!window.adsbygoogle) return;
   document.querySelectorAll('ins.adsbygoogle').forEach(slot => {
     const adSlot = slot.getAttribute('data-ad-slot') || '';
@@ -614,6 +615,10 @@ function initAdsenseSlots() {
       slot.dataset.loaded = 'true';
     } catch {}
   });
+}
+
+function initAdsenseSlots() {
+  initAdSlots();
 }
 
 function loadAppTheme() {

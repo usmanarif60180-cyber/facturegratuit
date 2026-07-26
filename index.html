@@ -2,6 +2,15 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<!-- Ezoic Ads: privacy scripts must load before the Ezoic header script. -->
+<script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js"></script>
+<script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js"></script>
+<script async src="https://www.ezojs.com/ezoic/sa.min.js"></script>
+<script>
+window.ezstandalone = window.ezstandalone || {};
+ezstandalone.cmd = ezstandalone.cmd || [];
+</script>
+<script src="https://ezoicanalytics.com/analytics.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
@@ -245,7 +254,6 @@ try {
 } catch {}
 </script>
 <meta name="google-adsense-account" content="ca-pub-4956341710070686">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4956341710070686" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -606,7 +614,7 @@ try {
     position: relative;
   }
   .ad-slot::before { content: "Publicité"; position: absolute; top: 8px; left: 12px; font-size: 10px; opacity: .7; }
-  .ad-slot ins { width: 100%; min-height: 96px; }
+  .ad-slot ins, .ad-slot .ezoic-ad-placeholder { width: 100%; min-height: 96px; display: block; }
   .ad-fallback { color: var(--ink-faint); font-size: 11.5px; letter-spacing: .04em; }
 
   /* ===== Before / after compare ===== */
@@ -1000,7 +1008,7 @@ body.home-mode #app > .topbar { display: none; }
 .home-redesign .hp-topbar .hp-btn { white-space: nowrap; }
 .home-redesign .cat-cta, .home-redesign .foot a, .home-redesign .nav-links a { cursor: pointer; }
 .home-redesign .ad-slot { min-height: 94px; }
-.home-redesign .ad-slot ins { min-height: 90px; }
+.home-redesign .ad-slot ins, .home-redesign .ad-slot .ezoic-ad-placeholder { min-height: 90px; }
 @media (max-width: 760px) { .home-redesign .hp-topbar { top: 10px; width: calc(100% - 20px); } }
 .home-mobile-cta {
   position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 80;
@@ -1250,8 +1258,11 @@ body.home-mode .home-mobile-cta { display: none; }
 
 <div class="ad-slot-wrap reveal">
   <div class="ad-slot">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4956341710070686" data-ad-slot="" data-ad-pending="home-1" data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <span class="ad-fallback">Emplacement Google AdSense — bannière</span>
+    <div class="ezoic-ad-placeholder" data-ezoic-placement="home-1"></div>
+    <script>
+      ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
+    </script>
+    <span class="ad-fallback">Emplacement Ezoic — bannière</span>
   </div>
 </div>
 
@@ -1392,8 +1403,11 @@ body.home-mode .home-mobile-cta { display: none; }
 </section>
 <div class="ad-slot-wrap reveal" data-local-ad="country">
   <div class="ad-slot">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4956341710070686" data-ad-slot="" data-ad-pending="home-2" data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <span class="ad-fallback">Emplacement Google AdSense — bannière</span>
+    <div class="ezoic-ad-placeholder" data-ezoic-placement="home-2"></div>
+    <script>
+      ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
+    </script>
+    <span class="ad-fallback">Emplacement Ezoic — bannière</span>
   </div>
 </div>
 
@@ -1538,8 +1552,11 @@ body.home-mode .home-mobile-cta { display: none; }
 </div>
 <div class="ad-slot-wrap reveal" data-local-ad="categories">
   <div class="ad-slot">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4956341710070686" data-ad-slot="" data-ad-pending="home-3" data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <span class="ad-fallback">Emplacement Google AdSense — bannière</span>
+    <div class="ezoic-ad-placeholder" data-ezoic-placement="home-3"></div>
+    <script>
+      ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
+    </script>
+    <span class="ad-fallback">Emplacement Ezoic — bannière</span>
   </div>
 </div>
 
@@ -1580,8 +1597,11 @@ body.home-mode .home-mobile-cta { display: none; }
 
 <div class="ad-slot-wrap reveal">
   <div class="ad-slot">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4956341710070686" data-ad-slot="" data-ad-pending="home-4" data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <span class="ad-fallback">Emplacement Google AdSense — bannière</span>
+    <div class="ezoic-ad-placeholder" data-ezoic-placement="home-4"></div>
+    <script>
+      ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
+    </script>
+    <span class="ad-fallback">Emplacement Ezoic — bannière</span>
   </div>
 </div>
 
@@ -2233,13 +2253,11 @@ body.home-mode .home-mobile-cta { display: none; }
     </div>
     <div class="ad-band no-print" data-ad-position="preview-banner">
       <div class="ad-slot ad-slot-sm" data-ad-format="leaderboard">
-        <ins class="adsbygoogle"
-          style="display:block"
-          data-ad-client="ca-pub-4956341710070686"
-          data-ad-slot=""
-          data-ad-pending="preview"
-          data-ad-format="auto"
-          data-full-width-responsive="true"></ins>
+        <div class="ezoic-ad-placeholder" data-ezoic-placement="preview-banner"></div>
+        <script>
+          ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
+        </script>
+        <span class="ad-fallback">Emplacement Ezoic — aperçu</span>
       </div>
     </div>
     <div class="preview-wrap">
@@ -2249,13 +2267,11 @@ body.home-mode .home-mobile-cta { display: none; }
     </div>
     <div class="ad-band no-print" data-ad-position="bottom-banner">
       <div class="ad-slot" data-ad-format="leaderboard">
-        <ins class="adsbygoogle"
-          style="display:block"
-          data-ad-client="ca-pub-4956341710070686"
-          data-ad-slot=""
-          data-ad-pending="bottom"
-          data-ad-format="auto"
-          data-full-width-responsive="true"></ins>
+        <div class="ezoic-ad-placeholder" data-ezoic-placement="bottom-banner"></div>
+        <script>
+          ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
+        </script>
+        <span class="ad-fallback">Emplacement Ezoic — bas de page</span>
       </div>
     </div>
   </section>
