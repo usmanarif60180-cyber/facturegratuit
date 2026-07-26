@@ -209,7 +209,7 @@
     align-items: stretch;
     justify-content: stretch;
     padding: 0;
-    background: var(--bg);
+    background: var(--app-bg);
     backdrop-filter: none;
     overflow: hidden;
   }
@@ -224,7 +224,7 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    background: var(--bg);
+    background: var(--app-bg);
     display: grid;
     grid-template-rows: 74px minmax(0,1fr);
     overflow: hidden;
@@ -252,7 +252,7 @@
     padding: 0;
     display: grid;
     grid-template-columns: 284px minmax(0,1fr);
-    background: var(--bg);
+    background: var(--app-bg);
     overflow: hidden;
   }
   .account-dashboard-sidebar {
@@ -727,7 +727,7 @@
     align-items: stretch;
     justify-content: stretch;
     padding: 0;
-    background: var(--bg);
+    background: var(--app-bg);
     backdrop-filter: none;
     overflow: hidden;
   }
@@ -745,7 +745,7 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    background: var(--bg);
+    background: var(--app-bg);
     display: grid;
     grid-template-rows: 74px minmax(0,1fr);
     overflow: hidden;
@@ -767,7 +767,7 @@
     padding: 0;
     display: grid;
     grid-template-columns: 284px minmax(0,1fr);
-    background: var(--bg);
+    background: var(--app-bg);
     overflow: hidden;
   }
   .auth-close { width: 30px; height: 30px; padding: 0; border-radius: 8px; }
