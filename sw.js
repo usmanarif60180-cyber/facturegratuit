@@ -3,4 +3,92 @@ self.options = {
   "zoneId": 11417480
 }
 self.lary = ""
-importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
+// Wrapped in try/catch so an ad-blocker or transient CDN failure on this
+// import can't abort the whole service-worker evaluation below (a bare
+// importScripts() throw here would otherwise also take out the PWA
+// caching logic that follows, since both live in the same script).
+try {
+  importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
+} catch (e) {}
+
+// ─────────────────────────────────────────────────────────────
+// PWA offline app-shell caching (kept alongside the Monetag push
+// worker above — this only adds install/activate/fetch handling,
+// it never touches the Monetag registration or its listeners).
+// Bump CACHE_NAME on every deploy that touches the app shell
+// (index.html/app.js/style.css); activate purges any other cache.
+// ─────────────────────────────────────────────────────────────
+const CACHE_NAME = 'facturepro-v3';
+const APP_SHELL = [
+  '/',
+  '/index.html',
+  '/style.css',
+  '/app.js',
+  '/manifest.json',
+  '/favicon.ico',
+  '/favicon-16.png',
+  '/favicon-32.png',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Navigations and the app shell's JS/CSS must always try the network first:
+  // these are the files that carry bug fixes, and a cache-first strategy here
+  // would silently trap returning visitors on an old, possibly-broken build
+  // until some unrelated future reload happened to catch the background
+  // revalidation. Cache is only a fallback for when the device is offline.
+  const isAppShellCode = request.mode === 'navigate' || /\.(?:js|css)$/.test(url.pathname);
+  if (isAppShellCode) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || (request.mode === 'navigate' ? caches.match('/index.html') : undefined)))
+    );
+    return;
+  }
+
+  // Other static assets (icons, manifest, etc.) rarely change and aren't
+  // correctness-critical, so they can stay cache-first for speed.
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      const fetchPromise = fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => cached);
+      return cached || fetchPromise;
+    })
+  );
+});
