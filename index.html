@@ -3076,6 +3076,19 @@ body.home-mode .home-mobile-cta { display: none; }
 </div><!-- /app -->
 
 <script>
+// #app has its own stacking context (position:relative + z-index), which silently
+// caps every descendant's effective z-index — even 2147483647 on .modal-backdrop
+// only wins *inside* #app, not against anything outside it (a third-party script's
+// own overlay, e.g. Ezoic's consent-management widget, appended straight to <body>).
+// Moving these modals to be direct children of <body> removes that trap entirely,
+// so .modal-backdrop's z-index competes at the root stacking context as intended.
+['auth-modal', 'account-modal', 'pdf-success-modal', 'legal-modal', 'feedback-modal'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el && el.parentElement !== document.body) document.body.appendChild(el);
+});
+</script>
+
+<script>
 window.__firebaseModuleStatus = 'loading';
 window.addEventListener('error', e => {
   window.__firebaseModuleError = e.message || String(e.error || e);
