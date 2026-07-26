@@ -327,6 +327,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (location.hash === '#editor') {
     document.body.classList.add('editor-mode');
     document.body.classList.remove('home-mode');
+  } else if (location.hash === '#dashboard') {
+    document.body.classList.add('home-mode');
+    document.body.classList.remove('editor-mode');
+    setTimeout(() => {
+      if (S.authUser) openAccount();
+      else openAuth('login');
+    }, 0);
   } else {
     document.body.classList.add('home-mode');
     document.body.classList.remove('editor-mode');
@@ -788,10 +795,14 @@ function openAccount() {
   renderAccountModal();
   document.getElementById('account-menu')?.classList.remove('open');
   document.getElementById('account-modal')?.classList.add('open');
+  document.body.classList.add('account-dashboard-open');
+  if (location.hash !== '#dashboard') history.replaceState(null, '', '#dashboard');
 }
 
 function closeAccount() {
   document.getElementById('account-modal')?.classList.remove('open');
+  document.body.classList.remove('account-dashboard-open');
+  if (location.hash === '#dashboard') history.replaceState(null, '', document.body.classList.contains('home-mode') ? '#home' : '#editor');
 }
 
 function handleAccountBackdrop(e) {
@@ -834,12 +845,37 @@ function renderAccountModal() {
   renderSavedClients();
   renderSavedProducts();
   renderAccountHistory();
+  showAccountPanel(S.currentAccountPanel || 'overview');
 }
 
 const ACCOUNT_PANELS = ['overview','projects','team','multiuser','history','clients','products','leads','profile','personal','security','appearance','language','storage','payments','privacy','danger'];
+const ACCOUNT_PANEL_LABELS = {
+  overview: ['Dashboard', 'Vue plein écran de votre activité réelle'],
+  projects: ['Projets sauvegardés', 'Reprendre, dupliquer ou supprimer vos brouillons'],
+  team: ['Équipe', 'Invitations, rôles, tâches et activité'],
+  multiuser: ['Multi-utilisateur', 'Collaboration serveur par société'],
+  history: ['Factures', 'Historique par mois avec HT, TVA, TTC et édition'],
+  clients: ['Clients', 'Base clients réutilisable et supprimable'],
+  products: ['Produits', 'Articles et services sauvegardés'],
+  leads: ['Prospects', 'Pipeline commercial sans données inventées'],
+  profile: ['Société', 'Logo, signature, cachet, IBAN/RIB et coordonnées'],
+  personal: ['Mon profil', 'Photo, nom, téléphone et adresse personnelle'],
+  security: ['Sécurité', 'Email, mot de passe et vérification'],
+  appearance: ['Apparence', 'Mode clair, sombre ou système'],
+  language: ['Langue & Région', 'Pays, format facture et devise par défaut'],
+  storage: ['Stockage', 'Quota, nettoyage optionnel et export de données'],
+  payments: ['Paiements', 'Préparation des futurs plans payants'],
+  privacy: ['Confidentialité', 'Export et politique de données'],
+  danger: ['Supprimer le compte', 'Zone sensible et suppression définitive']
+};
 
 function showAccountPanel(panel='overview') {
   S.currentAccountPanel = panel;
+  const [title, subtitle] = ACCOUNT_PANEL_LABELS[panel] || ACCOUNT_PANEL_LABELS.overview;
+  const titleEl = document.getElementById('account-modal-title');
+  const subEl = document.getElementById('account-modal-sub');
+  if (titleEl) titleEl.textContent = title;
+  if (subEl) subEl.textContent = subtitle;
   ACCOUNT_PANELS.forEach(name => {
     document.getElementById('account-panel-'+name)?.classList.toggle('active', name === panel);
     const btn = document.getElementById('account-tab-'+name);

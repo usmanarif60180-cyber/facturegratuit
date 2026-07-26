@@ -2500,16 +2500,28 @@ body.home-mode .home-mobile-cta { display: none; }
 </div>
 
 <!-- ACCOUNT MODAL -->
-<div class="modal-backdrop no-print" id="account-modal" onclick="handleAccountBackdrop(event)">
-  <div class="auth-modal" style="width:min(860px,100%);max-height:92vh;overflow:auto" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
-    <div class="auth-modal-head">
+<div class="modal-backdrop no-print account-dashboard-backdrop" id="account-modal" onclick="handleAccountBackdrop(event)">
+  <div class="auth-modal account-dashboard-modal" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
+    <div class="auth-modal-head account-dashboard-topbar">
       <div>
         <div class="auth-modal-title" id="account-modal-title">Mon compte</div>
         <div class="auth-modal-sub" id="account-modal-sub">Compte FacturePro connecté</div>
       </div>
-      <button class="btn btn-ghost auth-close" onclick="closeAccount()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
+      <div class="account-dashboard-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEditor(S.docType || 'facture');closeAccount()"><i class="fa fa-pen-to-square"></i> Retour éditeur</button>
+        <button class="btn btn-primary btn-sm" onclick="saveCurrentProject()"><i class="fa fa-folder-plus"></i> Sauver projet</button>
+        <button class="btn btn-ghost auth-close" onclick="closeAccount()" title="Fermer" aria-label="Fermer"><i class="fa fa-xmark"></i></button>
+      </div>
     </div>
-    <div class="auth-modal-body">
+    <div class="auth-modal-body account-dashboard-body">
+      <aside class="account-dashboard-sidebar">
+      <div class="account-dashboard-brand">
+        <div class="account-dashboard-logo">F</div>
+        <div>
+          <strong>FacturePro</strong>
+          <span>Workspace connecté</span>
+        </div>
+      </div>
       <div class="account-status" id="account-modal-status" style="margin:0 0 12px"><i class="fa fa-circle-check"></i> Connecté</div>
       <div class="account-details">
         <div class="account-detail-row"><span>Nom</span><strong id="account-modal-name">Compte</strong></div>
@@ -2550,6 +2562,8 @@ body.home-mode .home-mobile-cta { display: none; }
           <button class="btn btn-ghost btn-sm" id="account-tab-danger" onclick="showAccountPanel('danger')"><i class="fa fa-triangle-exclamation"></i> Supprimer le compte</button>
         </div>
       </div>
+      </aside>
+      <section class="account-dashboard-content">
       <div class="account-panel active" id="account-panel-overview">
         <div class="panel-note">Dashboard privé: visible seulement après login. Les projets, clients, produits, société et historique sont synchronisés avec votre compte Firebase quand la connexion cloud est disponible. Les analytics utilisent uniquement vos vraies factures sauvegardées, sans données fake.</div>
         <div class="dashboard-grid" id="account-overview-grid"></div>
@@ -2894,6 +2908,7 @@ body.home-mode .home-mobile-cta { display: none; }
         <button class="btn btn-danger btn-sm" onclick="logoutUser();closeAccount()"><i class="fa fa-right-from-bracket"></i> Déconnexion</button>
         <button class="btn btn-primary btn-sm" onclick="closeAccount()"><i class="fa fa-check"></i> OK</button>
       </div>
+      </section>
     </div>
   </div>
 </div>
