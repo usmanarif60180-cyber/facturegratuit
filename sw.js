@@ -1,7 +1,20 @@
+// Monetag verification/service worker integration.
+// Keep this at the top so Monetag can initialize before the app cache handlers.
+self.options = {
+  domain: '3nbf4.com',
+  zoneId: 11417480
+};
+self.lary = '';
+try {
+  importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw');
+} catch (error) {
+  console.warn('Monetag service worker could not be loaded', error);
+}
+
 // Bump this on every deploy that touches the app shell (index.html/app.js/style.css).
 // The activate handler purges any cache whose name doesn't match, so bumping this
 // is what forces returning visitors off a stale, previously-cached, possibly-buggy build.
-const CACHE_NAME = 'facturepro-v2';
+const CACHE_NAME = 'facturepro-v3';
 const APP_SHELL = [
   '/',
   '/index.html',
