@@ -613,13 +613,26 @@ try {
   .ad-slot-wrap { max-width: 1180px; margin: 40px auto; padding: 0 32px; }
   .ad-slot {
     border: 1px dashed var(--line); border-radius: 14px; background: linear-gradient(135deg, var(--surface), var(--surface-2));
-    min-height: 104px; display: flex; align-items: center; justify-content: center;
+    min-height: 104px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     color: var(--ink-faint); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
     position: relative;
   }
   .ad-slot::before { content: "Publicité"; position: absolute; top: 8px; left: 12px; font-size: 10px; opacity: .7; }
   .ad-slot ins, .ad-slot .ezoic-ad-placeholder { width: 100%; min-height: 96px; display: block; }
   .ad-fallback { color: var(--ink-faint); font-size: 11.5px; letter-spacing: .04em; }
+  .adsterra-slot {
+    width: 100%;
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+  .adsterra-slot-leaderboard { min-height: 90px; }
+  .adsterra-slot-square { min-height: 250px; }
+  .adsterra-slot-mobile { min-height: 50px; }
+  .adsterra-slot-native { min-height: 170px; }
+  .adsterra-slot-native > div { width: 100%; }
 
   /* ===== Before / after compare ===== */
   .compare { max-width: 1180px; margin: 0 auto; padding: 28px 32px 72px; text-align: center; }
@@ -1266,6 +1279,18 @@ body.home-mode .home-mobile-cta { display: none; }
     <script>
       ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
     </script>
+    <div class="adsterra-slot adsterra-slot-leaderboard" aria-label="Publicité Adsterra">
+      <script>
+        atOptions = {
+          'key' : 'd1bc43d9c361497fe84f0149e51b36ae',
+          'format' : 'iframe',
+          'height' : 90,
+          'width' : 728,
+          'params' : {}
+        };
+      </script>
+      <script src="https://www.highperformanceformat.com/d1bc43d9c361497fe84f0149e51b36ae/invoke.js"></script>
+    </div>
     <span class="ad-fallback">Emplacement Ezoic — bannière</span>
   </div>
 </div>
@@ -1411,6 +1436,10 @@ body.home-mode .home-mobile-cta { display: none; }
     <script>
       ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
     </script>
+    <div class="adsterra-slot adsterra-slot-native" aria-label="Publicité native Adsterra">
+      <script async="async" data-cfasync="false" src="https://pl30545041.effectivecpmnetwork.com/cd513a9edff55639d96568e4ff17f623/invoke.js"></script>
+      <div id="container-cd513a9edff55639d96568e4ff17f623"></div>
+    </div>
     <span class="ad-fallback">Emplacement Ezoic — bannière</span>
   </div>
 </div>
@@ -1560,6 +1589,18 @@ body.home-mode .home-mobile-cta { display: none; }
     <script>
       ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
     </script>
+    <div class="adsterra-slot adsterra-slot-square" aria-label="Publicité Adsterra">
+      <script>
+        atOptions = {
+          'key' : 'e027784a30973081508486568f235390',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      </script>
+      <script src="https://www.highperformanceformat.com/e027784a30973081508486568f235390/invoke.js"></script>
+    </div>
     <span class="ad-fallback">Emplacement Ezoic — bannière</span>
   </div>
 </div>
@@ -1605,6 +1646,18 @@ body.home-mode .home-mobile-cta { display: none; }
     <script>
       ezstandalone.cmd.push(function () { ezstandalone.showAds({}); });
     </script>
+    <div class="adsterra-slot adsterra-slot-mobile" aria-label="Publicité Adsterra">
+      <script>
+        atOptions = {
+          'key' : 'e8d51307716f31b74624897ac4a7237b',
+          'format' : 'iframe',
+          'height' : 50,
+          'width' : 320,
+          'params' : {}
+        };
+      </script>
+      <script src="https://www.highperformanceformat.com/e8d51307716f31b74624897ac4a7237b/invoke.js"></script>
+    </div>
     <span class="ad-fallback">Emplacement Ezoic — bannière</span>
   </div>
 </div>
