@@ -602,23 +602,8 @@ function resetCookieConsent() {
 }
 
 function initAdSlots() {
-  let accepted = false;
-  try { accepted = localStorage.getItem('facturepro-cookie-consent') === 'accepted'; } catch {}
-  if (!accepted) return;
-  if (window.ezstandalone?.cmd) return;
-  if (!window.adsbygoogle) return;
-  document.querySelectorAll('ins.adsbygoogle').forEach(slot => {
-    const adSlot = slot.getAttribute('data-ad-slot') || '';
-    if (!adSlot || adSlot.startsWith('REPLACE_') || slot.dataset.loaded === 'true') return;
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-      slot.dataset.loaded = 'true';
-    } catch {}
-  });
-}
-
-function initAdsenseSlots() {
-  initAdSlots();
+  // Ezoic ad placements are queued inline with ezstandalone.cmd in the HTML.
+  // This hook remains for the cookie banner flow without loading legacy ad code.
 }
 
 function loadAppTheme() {
