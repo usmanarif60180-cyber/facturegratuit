@@ -1178,7 +1178,7 @@ try {
         <a href="#" data-goto="landing">Contact</a>
       </nav>
       <div class="m-actions">
-        <select class="lang-select m-lang-select" id="landing-lang-select" aria-label="Language"></select>
+        <select class="lang-select m-lang-select" id="landing-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select>
         <button class="btn btn-ghost btn-sm" id="theme-toggle-1" aria-label="Toggle theme">◐</button>
         <span class="m-auth-links"><a href="#" class="btn btn-ghost btn-sm" data-goto="login">Sign in</a>
         <a href="#" class="btn btn-primary btn-sm" data-goto="register">Commencer gratuitement</a></span>
@@ -1363,7 +1363,7 @@ try {
         <a href="#" data-goto="landing">Contact</a>
       </nav>
       <div class="m-actions">
-        <select class="lang-select m-lang-select" id="pricing-lang-select" aria-label="Language"></select>
+        <select class="lang-select m-lang-select" id="pricing-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select>
         <button class="btn btn-ghost btn-sm" id="theme-toggle-2" aria-label="Toggle theme">◐</button>
         <span class="m-auth-links"><a href="#" class="btn btn-ghost btn-sm" data-goto="login">Sign in</a>
         <a href="#" class="btn btn-primary btn-sm" data-goto="register">Commencer gratuitement</a></span>
@@ -1823,7 +1823,7 @@ try {
       btn_new_invoice: "New invoice", btn_new_quote: "New quote", btn_change_design: "Change design",
       btn_add_logo: "Add logo", btn_add_signature: "Add stamp/signature", btn_print_pdf: "Print / Save PDF",
       btn_create_quote: "Create quote", btn_create_account: "Create account", btn_sign_in: "Sign in",
-      btn_get_started: "Commencer gratuitement", btn_send_reminder: "Send reminder",
+      btn_get_started: "Start free", btn_send_reminder: "Send reminder",
       fld_client: "Client", fld_company: "Company", fld_name: "Name", fld_email: "Email", fld_phone: "Phone", fld_password: "Password",
       fld_status: "Status", fld_address: "Address", fld_billing_address: "Billing address",
       fld_client_address: "Client address", fld_site_address: "Chantier / jobsite address", fld_issue_date: "Issue date",
@@ -2915,6 +2915,183 @@ try {
     var lang = getI18nLang(currentLang);
     return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
   }
+  var I18N_PATCHES = {
+    en: {
+      auth_your_account: "Your account", ph_ai_message: "Message AI Business Assistant…",
+      txt_ai_welcome: "Hi — ask me about invoices, cash flow, inventory, tasks or performance, or try one of the suggestions below.",
+      ai_invoice_generator: "AI Invoice Generator", ai_email_writer: "AI Email Writer", ai_reminder_writer: "AI Reminder Writer",
+      ai_tax_assistant: "AI Tax Assistant", ai_contract_generator: "AI Contract Generator", ai_inventory_analyst: "AI Inventory Analyst",
+      lbl_soon: "Soon", lbl_optional: "optional"
+    },
+    fr: {
+      auth_your_account: "Votre compte", ph_ai_message: "Message à l'assistant IA…",
+      txt_ai_welcome: "Bonjour — posez-moi des questions sur les factures, la trésorerie, le stock, les tâches ou la performance, ou essayez une suggestion ci-dessous.",
+      ai_invoice_generator: "Générateur de factures IA", ai_email_writer: "Rédacteur d'e-mails IA", ai_reminder_writer: "Rédacteur de rappels IA",
+      ai_tax_assistant: "Assistant fiscal IA", ai_contract_generator: "Générateur de contrats IA", ai_inventory_analyst: "Analyste inventaire IA",
+      lbl_soon: "Bientôt", lbl_optional: "facultatif"
+    },
+    it: {
+      auth_your_account: "Il tuo account", ph_ai_message: "Messaggio all'assistente IA…",
+      txt_ai_welcome: "Ciao — chiedimi di fatture, flusso di cassa, magazzino, attività o performance, oppure prova un suggerimento qui sotto.",
+      ai_invoice_generator: "Generatore fatture IA", ai_email_writer: "Redattore email IA", ai_reminder_writer: "Redattore promemoria IA",
+      ai_tax_assistant: "Assistente fiscale IA", ai_contract_generator: "Generatore contratti IA", ai_inventory_analyst: "Analista inventario IA",
+      lbl_soon: "Presto", lbl_optional: "facoltativo"
+    },
+    es: {
+      auth_your_account: "Tu cuenta", ph_ai_message: "Mensaje al asistente IA…",
+      txt_ai_welcome: "Hola — pregúntame sobre facturas, flujo de caja, inventario, tareas o rendimiento, o prueba una sugerencia abajo.",
+      ai_invoice_generator: "Generador de facturas IA", ai_email_writer: "Redactor de emails IA", ai_reminder_writer: "Redactor de recordatorios IA",
+      ai_tax_assistant: "Asistente fiscal IA", ai_contract_generator: "Generador de contratos IA", ai_inventory_analyst: "Analista de inventario IA",
+      lbl_soon: "Pronto", lbl_optional: "opcional"
+    },
+    de: {
+      auth_your_account: "Ihr Konto", ph_ai_message: "Nachricht an den KI-Assistenten…",
+      txt_ai_welcome: "Hallo — fragen Sie mich zu Rechnungen, Cashflow, Lagerbestand, Aufgaben oder Leistung, oder nutzen Sie unten einen Vorschlag.",
+      ai_invoice_generator: "KI-Rechnungsgenerator", ai_email_writer: "KI-E-Mail-Schreiber", ai_reminder_writer: "KI-Erinnerungsschreiber",
+      ai_tax_assistant: "KI-Steuerassistent", ai_contract_generator: "KI-Vertragsgenerator", ai_inventory_analyst: "KI-Inventaranalyst",
+      lbl_soon: "Bald", lbl_optional: "optional"
+    },
+    nl: {
+      auth_your_account: "Uw account", ph_ai_message: "Bericht aan de AI-assistent…",
+      txt_ai_welcome: "Hallo — vraag me over facturen, cashflow, voorraad, taken of prestaties, of probeer hieronder een suggestie.",
+      ai_invoice_generator: "AI-factuurgenerator", ai_email_writer: "AI-e-mailschrijver", ai_reminder_writer: "AI-herinneringsschrijver",
+      ai_tax_assistant: "AI-belastingassistent", ai_contract_generator: "AI-contractgenerator", ai_inventory_analyst: "AI-voorraadanalist",
+      lbl_soon: "Binnenkort", lbl_optional: "optioneel"
+    },
+    pt: {
+      auth_your_account: "A sua conta", ph_ai_message: "Mensagem para o assistente IA…",
+      txt_ai_welcome: "Olá — pergunte-me sobre faturas, fluxo de caixa, inventário, tarefas ou desempenho, ou experimente uma sugestão abaixo.",
+      ai_invoice_generator: "Gerador de faturas IA", ai_email_writer: "Redator de emails IA", ai_reminder_writer: "Redator de lembretes IA",
+      ai_tax_assistant: "Assistente fiscal IA", ai_contract_generator: "Gerador de contratos IA", ai_inventory_analyst: "Analista de inventário IA",
+      lbl_soon: "Em breve", lbl_optional: "opcional"
+    },
+    pl: {
+      auth_your_account: "Twoje konto", ph_ai_message: "Wiadomość do asystenta AI…",
+      txt_ai_welcome: "Cześć — zapytaj mnie o faktury, przepływy pieniężne, magazyn, zadania lub wyniki, albo wypróbuj sugestię poniżej.",
+      ai_invoice_generator: "Generator faktur AI", ai_email_writer: "Autor e-maili AI", ai_reminder_writer: "Autor przypomnień AI",
+      ai_tax_assistant: "Asystent podatkowy AI", ai_contract_generator: "Generator umów AI", ai_inventory_analyst: "Analityk magazynu AI",
+      lbl_soon: "Wkrótce", lbl_optional: "opcjonalnie"
+    },
+  };
+  Object.keys(I18N_PATCHES).forEach(function (lang) {
+    I18N[lang] = Object.assign(I18N[lang] || {}, I18N_PATCHES[lang]);
+  });
+  var STATIC_COPY_TRANSLATIONS = {
+    "The AI Business Platform": { fr: "La plateforme business IA", it: "La piattaforma business IA", es: "La plataforma empresarial IA", de: "Die KI-Business-Plattform", nl: "Het AI-businessplatform", pt: "A plataforma empresarial IA", pl: "Platforma biznesowa AI" },
+    "Explore pricing": { fr: "Voir les tarifs", it: "Vedi i prezzi", es: "Ver precios", de: "Preise ansehen", nl: "Prijzen bekijken", pt: "Ver preços", pl: "Zobacz ceny" },
+    "Revenue this month": { fr: "Revenus ce mois-ci", it: "Ricavi questo mese", es: "Ingresos este mes", de: "Umsatz diesen Monat", nl: "Omzet deze maand", pt: "Receita deste mês", pl: "Przychód w tym miesiącu" },
+    "Paid": { fr: "Payée", it: "Pagata", es: "Pagada", de: "Bezahlt", nl: "Betaald", pt: "Paga", pl: "Opłacona" },
+    "Pending": { fr: "En attente", it: "In attesa", es: "Pendiente", de: "Ausstehend", nl: "In behandeling", pt: "Pendente", pl: "Oczekująca" },
+    "Invoice paid": { fr: "Facture payée", it: "Fattura pagata", es: "Factura pagada", de: "Rechnung bezahlt", nl: "Factuur betaald", pt: "Fatura paga", pl: "Faktura opłacona" },
+    "AI suggestion": { fr: "Suggestion IA", it: "Suggerimento IA", es: "Sugerencia IA", de: "KI-Vorschlag", nl: "AI-suggestie", pt: "Sugestão IA", pl: "Sugestia AI" },
+    "Offer a 2% early discount": { fr: "Proposez 2 % de remise pour paiement anticipé", it: "Offri uno sconto del 2% per pagamento anticipato", es: "Ofrece un 2% de descuento por pronto pago", de: "Bieten Sie 2 % Frühzahlerrabatt an", nl: "Bied 2% korting voor vroege betaling", pt: "Ofereça 2% de desconto por pagamento antecipado", pl: "Zaproponuj 2% rabatu za wcześniejszą płatność" },
+    "From details to paid, in four steps": { fr: "Des détails au paiement, en quatre étapes", it: "Dai dettagli al pagamento, in quattro passaggi", es: "De los datos al pago, en cuatro pasos", de: "Von Details zur Zahlung in vier Schritten", nl: "Van details naar betaald in vier stappen", pt: "Dos dados ao pagamento em quatro passos", pl: "Od danych do płatności w czterech krokach" },
+    "Watch how a business goes from entering details to getting paid.": { fr: "Voyez comment une entreprise passe de la saisie des détails à l'encaissement.", it: "Guarda come un'azienda passa dai dettagli all'incasso.", es: "Mira cómo una empresa pasa de introducir datos a cobrar.", de: "Sehen Sie, wie ein Unternehmen von der Eingabe zur Zahlung kommt.", nl: "Bekijk hoe een bedrijf van invoer naar betaling gaat.", pt: "Veja como uma empresa passa dos dados ao pagamento.", pl: "Zobacz, jak firma przechodzi od danych do płatności." },
+    "Enter business info": { fr: "Saisissez les informations société", it: "Inserisci i dati aziendali", es: "Introduce los datos de la empresa", de: "Geschäftsdaten eingeben", nl: "Bedrijfsgegevens invoeren", pt: "Introduza os dados da empresa", pl: "Wprowadź dane firmy" },
+    "Pick a client, add line items — or let AI draft them from a quick description.": { fr: "Choisissez un client, ajoutez des lignes — ou laissez l'IA les préparer à partir d'une courte description.", it: "Scegli un cliente, aggiungi righe — oppure lascia che l'IA le prepari da una breve descrizione.", es: "Elige un cliente, añade líneas — o deja que la IA las redacte desde una descripción breve.", de: "Wählen Sie einen Kunden, fügen Sie Positionen hinzu — oder lassen Sie die KI sie aus einer kurzen Beschreibung erstellen.", nl: "Kies een klant, voeg regels toe — of laat AI ze maken vanuit een korte beschrijving.", pt: "Escolha um cliente, adicione linhas — ou deixe a IA criá-las a partir de uma breve descrição.", pl: "Wybierz klienta, dodaj pozycje — albo pozwól AI przygotować je z krótkiego opisu." },
+    "AI generates the invoice": { fr: "L'IA génère la facture", it: "L'IA genera la fattura", es: "La IA genera la factura", de: "KI erstellt die Rechnung", nl: "AI maakt de factuur", pt: "A IA gera a fatura", pl: "AI generuje fakturę" },
+    "Line items, tax and totals are structured automatically, ready to review.": { fr: "Lignes, taxes et totaux sont structurés automatiquement, prêts à vérifier.", it: "Righe, tasse e totali sono strutturati automaticamente, pronti da rivedere.", es: "Líneas, impuestos y totales se estructuran automáticamente, listos para revisar.", de: "Positionen, Steuern und Summen werden automatisch strukturiert und sind prüfbereit.", nl: "Regels, belasting en totalen worden automatisch gestructureerd.", pt: "Linhas, impostos e totais são estruturados automaticamente.", pl: "Pozycje, podatki i sumy są automatycznie uporządkowane." },
+    "Preview & fine-tune": { fr: "Prévisualisez et ajustez", it: "Anteprima e rifinitura", es: "Previsualiza y ajusta", de: "Vorschau und Feinschliff", nl: "Voorbeeld en verfijnen", pt: "Pré-visualize e ajuste", pl: "Podgląd i dopracowanie" },
+    "Send — and track payment": { fr: "Envoyez — puis suivez le paiement", it: "Invia — e monitora il pagamento", es: "Envía — y sigue el pago", de: "Senden — und Zahlung verfolgen", nl: "Verstuur — en volg betaling", pt: "Envie — e acompanhe o pagamento", pl: "Wyślij — i śledź płatność" },
+    "Professional invoicing": { fr: "Facturation professionnelle", it: "Fatturazione professionale", es: "Facturación profesional", de: "Professionelle Rechnungen", nl: "Professioneel factureren", pt: "Faturação profissional", pl: "Profesjonalne fakturowanie" },
+    "Beautiful, pixel-perfect invoices with multi-currency, multi-language and every tax system covered.": { fr: "Des factures élégantes et précises avec multi-devise, multilingue et prise en charge des taxes.", it: "Fatture eleganti e precise con multivaluta, multilingua e sistemi fiscali coperti.", es: "Facturas elegantes y precisas con multimoneda, multiidioma y sistemas fiscales cubiertos.", de: "Schöne, präzise Rechnungen mit Mehrwährung, Mehrsprachigkeit und Steuersystemen.", nl: "Mooie, strakke facturen met meerdere valuta, talen en belastingstelsels.", pt: "Faturas elegantes e precisas com multimoeda, multilingue e sistemas fiscais.", pl: "Estetyczne faktury z wieloma walutami, językami i systemami podatkowymi." },
+    "Quotes that convert": { fr: "Des devis qui convertissent", it: "Preventivi che convertono", es: "Presupuestos que convierten", de: "Angebote, die überzeugen", nl: "Offertes die converteren", pt: "Orçamentos que convertem", pl: "Oferty, które konwertują" },
+    "Send polished quotations and turn accepted ones into invoices in a single click.": { fr: "Envoyez des devis soignés et transformez ceux acceptés en factures en un clic.", it: "Invia preventivi curati e trasformali in fatture con un clic.", es: "Envía presupuestos profesionales y conviértelos en facturas con un clic.", de: "Senden Sie professionelle Angebote und wandeln Sie angenommene mit einem Klick in Rechnungen um.", nl: "Verstuur nette offertes en zet geaccepteerde offertes met één klik om in facturen.", pt: "Envie orçamentos profissionais e transforme-os em faturas com um clique.", pl: "Wysyłaj dopracowane oferty i zamieniaj zaakceptowane w faktury jednym kliknięciem." },
+    "Client & product hub": { fr: "Hub clients et produits", it: "Hub clienti e prodotti", es: "Centro de clientes y productos", de: "Kunden- und Produktzentrale", nl: "Klant- en producthub", pt: "Centro de clientes e produtos", pl: "Centrum klientów i produktów" },
+    "Keep every client, product and service organized in one searchable workspace.": { fr: "Gardez clients, produits et services organisés dans un espace consultable.", it: "Tieni clienti, prodotti e servizi organizzati in uno spazio ricercabile.", es: "Mantén clientes, productos y servicios organizados en un espacio buscable.", de: "Organisieren Sie Kunden, Produkte und Services in einem durchsuchbaren Workspace.", nl: "Houd klanten, producten en diensten georganiseerd in één doorzoekbare werkruimte.", pt: "Mantenha clientes, produtos e serviços organizados num espaço pesquisável.", pl: "Organizuj klientów, produkty i usługi w jednej przeszukiwalnej przestrzeni." },
+    "AI built in": { fr: "IA intégrée", it: "IA integrata", es: "IA integrada", de: "KI integriert", nl: "AI ingebouwd", pt: "IA integrada", pl: "AI wbudowana" },
+    "An AI assistant woven into the platform, ready to draft, summarize and automate.": { fr: "Un assistant IA intégré, prêt à rédiger, résumer et automatiser.", it: "Un assistente IA integrato, pronto a scrivere, riassumere e automatizzare.", es: "Un asistente IA integrado, listo para redactar, resumir y automatizar.", de: "Ein integrierter KI-Assistent zum Entwerfen, Zusammenfassen und Automatisieren.", nl: "Een ingebouwde AI-assistent om te schrijven, samen te vatten en te automatiseren.", pt: "Um assistente IA integrado para redigir, resumir e automatizar.", pl: "Wbudowany asystent AI do pisania, podsumowań i automatyzacji." },
+    "Built for the world": { fr: "Conçu pour le monde", it: "Creato per il mondo", es: "Creado para el mundo", de: "Für die Welt gebaut", nl: "Gemaakt voor de wereld", pt: "Criado para o mundo", pl: "Stworzone dla świata" },
+    "Any country, currency, language or tax system — nothing is hardcoded.": { fr: "Tout pays, devise, langue ou système fiscal — rien n'est figé.", it: "Qualsiasi paese, valuta, lingua o sistema fiscale — nulla è rigido.", es: "Cualquier país, moneda, idioma o sistema fiscal — nada está fijo.", de: "Jedes Land, jede Währung, Sprache oder Steuerlogik — nichts ist hartcodiert.", nl: "Elk land, valuta, taal of belastingstelsel — niets is vast gecodeerd.", pt: "Qualquer país, moeda, idioma ou sistema fiscal — nada é fixo.", pl: "Dowolny kraj, waluta, język lub system podatkowy — nic nie jest na sztywno." },
+    "Enterprise-grade security": { fr: "Sécurité niveau entreprise", it: "Sicurezza aziendale", es: "Seguridad empresarial", de: "Sicherheit auf Enterprise-Niveau", nl: "Enterprise-beveiliging", pt: "Segurança empresarial", pl: "Bezpieczeństwo klasy enterprise" },
+    "Firebase-backed authentication and strict, organization-scoped data access.": { fr: "Authentification Firebase et accès aux données strictement limité par organisation.", it: "Autenticazione Firebase e accesso dati rigoroso per organizzazione.", es: "Autenticación Firebase y acceso a datos limitado por organización.", de: "Firebase-Authentifizierung und streng organisationsbezogener Datenzugriff.", nl: "Firebase-authenticatie en strikte data-toegang per organisatie.", pt: "Autenticação Firebase e acesso a dados limitado por organização.", pl: "Uwierzytelnianie Firebase i ścisły dostęp do danych w obrębie organizacji." },
+    "Free to start. Built to grow with you.": { fr: "Gratuit pour commencer. Conçu pour grandir avec vous.", it: "Gratis per iniziare. Creato per crescere con te.", es: "Gratis para empezar. Creado para crecer contigo.", de: "Kostenlos starten. Bereit zum Wachsen.", nl: "Gratis om te starten. Gebouwd om mee te groeien.", pt: "Grátis para começar. Criado para crescer consigo.", pl: "Darmowy start. Gotowe na rozwój." },
+    "Version 1 is completely free — every core tool, no credit card required.": { fr: "La version 1 est entièrement gratuite — tous les outils essentiels, sans carte bancaire.", it: "La versione 1 è completamente gratuita — strumenti principali inclusi, senza carta.", es: "La versión 1 es totalmente gratuita — herramientas clave, sin tarjeta.", de: "Version 1 ist komplett kostenlos — alle Kernwerkzeuge, keine Kreditkarte.", nl: "Versie 1 is helemaal gratis — alle kerntools, geen creditcard.", pt: "A versão 1 é totalmente gratuita — ferramentas essenciais, sem cartão.", pl: "Wersja 1 jest całkowicie darmowa — wszystkie podstawowe narzędzia, bez karty." },
+    "Create your workspace": { fr: "Créez votre espace de travail", it: "Crea il tuo spazio di lavoro", es: "Crea tu espacio de trabajo", de: "Workspace erstellen", nl: "Maak uw werkruimte", pt: "Crie o seu espaço de trabalho", pl: "Utwórz przestrzeń roboczą" },
+    "The AI Business Platform — invoicing, quotations and more, in one intelligent workspace.": { fr: "La plateforme business IA — factures, devis et plus encore dans un espace intelligent.", it: "La piattaforma business IA — fatture, preventivi e altro in uno spazio intelligente.", es: "La plataforma empresarial IA — facturas, presupuestos y más en un espacio inteligente.", de: "Die KI-Business-Plattform — Rechnungen, Angebote und mehr in einem intelligenten Workspace.", nl: "Het AI-businessplatform — facturen, offertes en meer in één slimme werkruimte.", pt: "A plataforma empresarial IA — faturas, orçamentos e muito mais num espaço inteligente.", pl: "Platforma biznesowa AI — faktury, oferty i więcej w inteligentnej przestrzeni." },
+    "Help Center": { fr: "Centre d'aide", it: "Centro assistenza", es: "Centro de ayuda", de: "Hilfezentrum", nl: "Helpcentrum", pt: "Centro de ajuda", pl: "Centrum pomocy" },
+    "Privacy Policy": { fr: "Politique de confidentialité", it: "Informativa sulla privacy", es: "Política de privacidad", de: "Datenschutzrichtlinie", nl: "Privacybeleid", pt: "Política de privacidade", pl: "Polityka prywatności" },
+    "Terms of Service": { fr: "Conditions d'utilisation", it: "Termini di servizio", es: "Términos del servicio", de: "Nutzungsbedingungen", nl: "Servicevoorwaarden", pt: "Termos de serviço", pl: "Warunki korzystania" },
+    "All rights reserved.": { fr: "Tous droits réservés.", it: "Tutti i diritti riservati.", es: "Todos los derechos reservados.", de: "Alle Rechte vorbehalten.", nl: "Alle rechten voorbehouden.", pt: "Todos os direitos reservados.", pl: "Wszelkie prawa zastrzeżone." },
+    "Simple, transparent pricing": { fr: "Tarifs simples et transparents", it: "Prezzi semplici e trasparenti", es: "Precios simples y transparentes", de: "Einfache, transparente Preise", nl: "Eenvoudige, transparante prijzen", pt: "Preços simples e transparentes", pl: "Proste, przejrzyste ceny" },
+    "Start free today. Upgrade only when your business needs more.": { fr: "Commencez gratuitement aujourd'hui. Passez à l'offre supérieure seulement quand votre activité en a besoin.", it: "Inizia gratis oggi. Passa di piano solo quando serve.", es: "Empieza gratis hoy. Actualiza solo cuando lo necesites.", de: "Starten Sie heute kostenlos. Upgraden Sie nur bei Bedarf.", nl: "Start vandaag gratis. Upgrade alleen wanneer nodig.", pt: "Comece grátis hoje. Atualize apenas quando precisar.", pl: "Zacznij dziś za darmo. Ulepsz dopiero, gdy będzie potrzeba." },
+    "Everything you need to get started": { fr: "Tout ce qu'il faut pour démarrer", it: "Tutto ciò che serve per iniziare", es: "Todo lo necesario para empezar", de: "Alles für den Start", nl: "Alles om te beginnen", pt: "Tudo para começar", pl: "Wszystko, czego potrzebujesz na start" },
+    "20 invoices / month": { fr: "20 factures / mois", it: "20 fatture / mese", es: "20 facturas / mes", de: "20 Rechnungen / Monat", nl: "20 facturen / maand", pt: "20 faturas / mês", pl: "20 faktur / miesiąc" },
+    "20 quotes / month": { fr: "20 devis / mois", it: "20 preventivi / mese", es: "20 presupuestos / mes", de: "20 Angebote / Monat", nl: "20 offertes / maand", pt: "20 orçamentos / mês", pl: "20 ofert / miesiąc" },
+    "Unlimited clients & products": { fr: "Clients et produits illimités", it: "Clienti e prodotti illimitati", es: "Clientes y productos ilimitados", de: "Unbegrenzte Kunden und Produkte", nl: "Onbeperkte klanten en producten", pt: "Clientes e produtos ilimitados", pl: "Nieograniczeni klienci i produkty" },
+    "1 team member": { fr: "1 membre d'équipe", it: "1 membro del team", es: "1 miembro del equipo", de: "1 Teammitglied", nl: "1 teamlid", pt: "1 membro da equipa", pl: "1 członek zespołu" },
+    "Most popular": { fr: "Le plus populaire", it: "Più popolare", es: "Más popular", de: "Am beliebtesten", nl: "Meest populair", pt: "Mais popular", pl: "Najpopularniejsze" },
+    "For freelancers going full-time": { fr: "Pour les freelances à plein temps", it: "Per freelance a tempo pieno", es: "Para freelancers a tiempo completo", de: "Für Vollzeit-Freelancer", nl: "Voor fulltime freelancers", pt: "Para freelancers a tempo inteiro", pl: "Dla freelancerów na pełny etat" },
+    "Unlimited invoices & quotes": { fr: "Factures et devis illimités", it: "Fatture e preventivi illimitati", es: "Facturas y presupuestos ilimitados", de: "Unbegrenzte Rechnungen und Angebote", nl: "Onbeperkte facturen en offertes", pt: "Faturas e orçamentos ilimitados", pl: "Nieograniczone faktury i oferty" },
+    "3 team members": { fr: "3 membres d'équipe", it: "3 membri del team", es: "3 miembros del equipo", de: "3 Teammitglieder", nl: "3 teamleden", pt: "3 membros da equipa", pl: "3 członków zespołu" },
+    "Premium templates": { fr: "Modèles premium", it: "Modelli premium", es: "Plantillas premium", de: "Premium-Vorlagen", nl: "Premium sjablonen", pt: "Modelos premium", pl: "Szablony premium" },
+    "For growing agencies": { fr: "Pour les agences en croissance", it: "Per agenzie in crescita", es: "Para agencias en crecimiento", de: "Für wachsende Agenturen", nl: "Voor groeiende bureaus", pt: "Para agências em crescimento", pl: "Dla rozwijających się agencji" },
+    "Everything in Starter": { fr: "Tout dans Starter", it: "Tutto in Starter", es: "Todo en Starter", de: "Alles in Starter", nl: "Alles in Starter", pt: "Tudo no Starter", pl: "Wszystko ze Starter" },
+    "API access": { fr: "Accès API", it: "Accesso API", es: "Acceso API", de: "API-Zugriff", nl: "API-toegang", pt: "Acesso API", pl: "Dostęp API" },
+    "For established teams": { fr: "Pour les équipes établies", it: "Per team consolidati", es: "Para equipos establecidos", de: "Für etablierte Teams", nl: "Voor gevestigde teams", pt: "Para equipas estabelecidas", pl: "Dla doświadczonych zespołów" },
+    "Everything in Professional": { fr: "Tout dans Professional", it: "Tutto in Professional", es: "Todo en Professional", de: "Alles in Professional", nl: "Alles in Professional", pt: "Tudo no Professional", pl: "Wszystko z Professional" },
+    "Dedicated support": { fr: "Support dédié", it: "Supporto dedicato", es: "Soporte dedicado", de: "Dedizierter Support", nl: "Toegewijde support", pt: "Suporte dedicado", pl: "Dedykowane wsparcie" },
+    "Coming soon": { fr: "Bientôt disponible", it: "Prossimamente", es: "Próximamente", de: "Demnächst", nl: "Binnenkort", pt: "Em breve", pl: "Wkrótce" },
+    "Recover your account": { fr: "Récupérer votre compte", it: "Recupera il tuo account", es: "Recupera tu cuenta", de: "Konto wiederherstellen", nl: "Account herstellen", pt: "Recuperar a conta", pl: "Odzyskaj konto" },
+    "Choose a secure recovery method.": { fr: "Choisissez une méthode de récupération sécurisée.", it: "Scegli un metodo di recupero sicuro.", es: "Elige un método de recuperación seguro.", de: "Wählen Sie eine sichere Wiederherstellungsmethode.", nl: "Kies een veilige herstelmethode.", pt: "Escolha um método seguro de recuperação.", pl: "Wybierz bezpieczną metodę odzyskiwania." },
+    "Send reset link": { fr: "Envoyer le lien de réinitialisation", it: "Invia link di reset", es: "Enviar enlace de restablecimiento", de: "Reset-Link senden", nl: "Resetlink verzenden", pt: "Enviar link de reposição", pl: "Wyślij link resetowania" },
+    "Phone number": { fr: "Numéro de téléphone", it: "Numero di telefono", es: "Número de teléfono", de: "Telefonnummer", nl: "Telefoonnummer", pt: "Número de telefone", pl: "Numer telefonu" },
+    "Verify and sign in": { fr: "Vérifier et se connecter", it: "Verifica e accedi", es: "Verificar e iniciar sesión", de: "Prüfen und anmelden", nl: "Verifiëren en aanmelden", pt: "Verificar e iniciar sessão", pl: "Zweryfikuj i zaloguj" },
+    "Home": { fr: "Accueil", it: "Home", es: "Inicio", de: "Startseite", nl: "Home", pt: "Início", pl: "Strona główna" },
+    "Blog": { fr: "Blog", it: "Blog", es: "Blog", de: "Blog", nl: "Blog", pt: "Blog", pl: "Blog" },
+    "Invoices": { fr: "Factures", it: "Fatture", es: "Facturas", de: "Rechnungen", nl: "Facturen", pt: "Faturas", pl: "Faktury" },
+    "Free Business Resources": { fr: "Ressources business gratuites", it: "Risorse business gratuite", es: "Recursos empresariales gratuitos", de: "Kostenlose Business-Ressourcen", nl: "Gratis zakelijke bronnen", pt: "Recursos empresariais gratuitos", pl: "Darmowe zasoby biznesowe" },
+    "Resources": { fr: "Ressources", it: "Risorse", es: "Recursos", de: "Ressourcen", nl: "Bronnen", pt: "Recursos", pl: "Zasoby" }
+  };
+  var autoTextOriginals = typeof WeakMap !== "undefined" ? new WeakMap() : null;
+  function translateStaticValue(value) {
+    if (!value) return value;
+    var lang = getI18nLang(currentLang);
+    var entry = STATIC_COPY_TRANSLATIONS[value];
+    return lang === "en" ? value : entry && entry[lang] ? entry[lang] : value;
+  }
+  function hasAncestorI18n(el) {
+    while (el && el.nodeType === 1) {
+      if (el.hasAttribute && el.hasAttribute("data-i18n")) return true;
+      el = el.parentElement;
+    }
+    return false;
+  }
+  function applyStaticCopyTranslations() {
+    document.documentElement.lang = currentLang === "fr" ? "fr" : currentLang;
+    var contentLang = document.querySelector('meta[http-equiv="content-language"]');
+    if (contentLang) contentLang.setAttribute("content", currentLang === "fr" ? "fr-FR" : currentLang);
+    document.querySelectorAll("[data-i18n-title]").forEach(function (el) { el.setAttribute("title", t(el.getAttribute("data-i18n-title"))); });
+    document.querySelectorAll("[data-i18n-aria]").forEach(function (el) { el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria"))); });
+    document.querySelectorAll("input[placeholder], textarea[placeholder]").forEach(function (el) {
+      if (el.hasAttribute("data-i18n-placeholder")) return;
+      var original = el.getAttribute("data-auto-placeholder-original") || el.getAttribute("placeholder");
+      if (!STATIC_COPY_TRANSLATIONS[original]) return;
+      el.setAttribute("data-auto-placeholder-original", original);
+      el.setAttribute("placeholder", translateStaticValue(original));
+    });
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        var parent = node.parentElement;
+        if (!parent || hasAncestorI18n(parent)) return NodeFilter.FILTER_REJECT;
+        if (/^(SCRIPT|STYLE|TEXTAREA|OPTION|SELECT|INPUT)$/.test(parent.tagName)) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var textNode;
+    while ((textNode = walker.nextNode())) {
+      var raw = textNode.nodeValue;
+      var trimmed = raw.replace(/\s+/g, " ").trim();
+      if (!trimmed) continue;
+      var originalText = autoTextOriginals && autoTextOriginals.get(textNode);
+      if (!originalText && STATIC_COPY_TRANSLATIONS[trimmed]) {
+        originalText = trimmed;
+        if (autoTextOriginals) autoTextOriginals.set(textNode, originalText);
+      }
+      if (!originalText || !STATIC_COPY_TRANSLATIONS[originalText]) continue;
+      textNode.nodeValue = raw.replace(trimmed, translateStaticValue(originalText));
+    }
+  }
   document.write(''); // no-op to keep this a plain script block
 </script>
 
@@ -3041,7 +3218,7 @@ try {
               <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;">
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="inv-new-client"></select></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="inv-new-issue" /></div>
-                <div><label class="field-label"><span data-i18n="fld_due_date">Due date</span> <span style="color:hsl(var(--muted-fg));font-weight:600;">(optional)</span></label><input class="field" type="date" id="inv-new-due" /></div>
+                <div><label class="field-label"><span data-i18n="fld_due_date">Due date</span> <span style="color:hsl(var(--muted-fg));font-weight:600;">(<span data-i18n="lbl_optional">optional</span>)</span></label><input class="field" type="date" id="inv-new-due" /></div>
                 <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="inv-new-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>
                 <div><label class="field-label" data-i18n="fld_compliance_country">Compliance country</label><select class="field" id="inv-compliance-country"></select></div>
               </div>
@@ -3701,20 +3878,20 @@ try {
         <div class="ai-layout">
           <div class="card card-pad">
             <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:hsl(var(--muted-fg));margin-bottom:0.5rem;" data-i18n="lbl_capabilities">Capabilities</div>
-            <button class="ai-cap current">AI Business Assistant</button>
-            <button class="ai-cap">AI Invoice Generator <span class="badge badge-default">Soon</span></button>
-            <button class="ai-cap">AI Email Writer <span class="badge badge-default">Soon</span></button>
-            <button class="ai-cap">AI Reminder Writer <span class="badge badge-default">Soon</span></button>
-            <button class="ai-cap">AI Tax Assistant <span class="badge badge-default">Soon</span></button>
-            <button class="ai-cap">AI Contract Generator <span class="badge badge-default">Soon</span></button>
-            <button class="ai-cap">AI Inventory Analyst <span class="badge badge-default">Soon</span></button>
+            <button class="ai-cap current" data-i18n="page_ai_title">AI Business Assistant</button>
+            <button class="ai-cap"><span data-i18n="ai_invoice_generator">AI Invoice Generator</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
+            <button class="ai-cap"><span data-i18n="ai_email_writer">AI Email Writer</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
+            <button class="ai-cap"><span data-i18n="ai_reminder_writer">AI Reminder Writer</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
+            <button class="ai-cap"><span data-i18n="ai_tax_assistant">AI Tax Assistant</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
+            <button class="ai-cap"><span data-i18n="ai_contract_generator">AI Contract Generator</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
+            <button class="ai-cap"><span data-i18n="ai_inventory_analyst">AI Inventory Analyst</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
           </div>
           <div class="card">
             <div class="ai-chat" id="ai-chat" aria-live="polite">
-              <div class="msg bot">Hi — ask me about invoices, cash flow, inventory, tasks or performance, or try one of the suggestions below.</div>
+              <div class="msg bot" data-i18n="txt_ai_welcome">Hi — ask me about invoices, cash flow, inventory, tasks or performance, or try one of the suggestions below.</div>
             </div>
             <div class="chip-row" id="ai-suggest-chips" style="margin:0 1.25rem 0.75rem;"></div>
-            <div class="ai-input-row"><input class="field" id="ai-input" placeholder="Message AI Business Assistant…" autocomplete="off" /><button class="btn btn-primary btn-icon" id="ai-send" aria-label="Send AI message">➤</button></div>
+            <div class="ai-input-row"><input class="field" id="ai-input" placeholder="Message AI Business Assistant…" data-i18n-placeholder="ph_ai_message" autocomplete="off" /><button class="btn btn-primary btn-icon" id="ai-send" aria-label="Send AI message">➤</button></div>
           </div>
         </div>
       </div>
@@ -4207,12 +4384,12 @@ try {
     // marketing page. Its content (photo/initials/generic icon) is filled in by the auth module's
     // renderAuthAvatars() via the shared [data-auth-avatar] elements.
     var lastKnownAuthState = false;
-    function updateMarketingHeaders(loggedIn) {
-      lastKnownAuthState = loggedIn;
-      document.querySelectorAll(".m-auth-links").forEach(function (el) {
-        el.innerHTML = '<a href="#" class="m-auth-icon" data-goto="' + (loggedIn ? "dashboard" : "login") + '" title="' + (loggedIn ? "Your account" : "Sign in") + '"><span class="avatar" data-auth-avatar>👤</span></a>';
-      });
-    }
+	    function updateMarketingHeaders(loggedIn) {
+	      lastKnownAuthState = loggedIn;
+	      document.querySelectorAll(".m-auth-links").forEach(function (el) {
+	        el.innerHTML = '<a href="#" class="m-auth-icon" data-goto="' + (loggedIn ? "dashboard" : "login") + '" title="' + (loggedIn ? t("auth_your_account") : t("btn_sign_in")) + '"><span class="avatar" data-auth-avatar>👤</span></a>';
+	      });
+	    }
     updateMarketingHeaders(false);
     window.profactureSetMarketingAuthState = updateMarketingHeaders;
     window.ivoxaSetMarketingAuthState = updateMarketingHeaders;
@@ -4365,10 +4542,13 @@ try {
       currentLang = lang;
       try { localStorage.setItem("profacture_lang", lang); } catch (e) { /* ignore */ }
       refreshAllChrome();
-      document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = t(el.getAttribute("data-i18n")); });
-      document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) { el.setAttribute("placeholder", t(el.getAttribute("data-i18n-placeholder"))); });
-      document.querySelectorAll(".lang-select").forEach(function (sel) { sel.value = currentLang; });
-      var activeView = document.querySelector(".view.active");
+	      document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = t(el.getAttribute("data-i18n")); });
+	      document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) { el.setAttribute("placeholder", t(el.getAttribute("data-i18n-placeholder"))); });
+	      document.querySelectorAll("[data-i18n-title]").forEach(function (el) { el.setAttribute("title", t(el.getAttribute("data-i18n-title"))); });
+	      document.querySelectorAll("[data-i18n-aria]").forEach(function (el) { el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria"))); });
+	      document.querySelectorAll(".lang-select").forEach(function (sel) { sel.value = currentLang; });
+	      if (typeof applyStaticCopyTranslations === "function") applyStaticCopyTranslations();
+	      var activeView = document.querySelector(".view.active");
       if (activeView) {
         if (activeView.id === "view-invoice-new" && typeof initInvoiceNewForm === "function") initInvoiceNewForm();
         if (activeView.id === "view-quote-new" && typeof initQuoteNewForm === "function") initQuoteNewForm();
