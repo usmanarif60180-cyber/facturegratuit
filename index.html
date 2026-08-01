@@ -1976,6 +1976,9 @@ try {
 <script>
   var APP_NAV = [
     { id: "dashboard", i18nKey: "nav_dashboard", ic: "▦" },
+    { id: "tools", i18nKey: "nav_tools", ic: "🧮" },
+    { id: "resources", i18nKey: "nav_resources", ic: "📚" },
+    { id: "country", i18nKey: "nav_country", ic: "🌍" },
     { id: "crm", i18nKey: "nav_crm", ic: "💼" },
     { id: "leads", i18nKey: "nav_leads", ic: "🎯" },
     { id: "clients", i18nKey: "nav_clients", ic: "👥" },
@@ -3224,7 +3227,7 @@ try {
 	  });
 	  var ACCOUNT_I18N_PATCHES = {
 	    en: {
-	      nav_profile: "My Profile", page_profile_title: "My Profile", page_profile_sub: "Account, security, billing address and future payment settings.",
+	      nav_profile: "My Profile", nav_tools: "Free Tools", nav_resources: "Resources", nav_country: "Countries", page_profile_title: "My Profile", page_profile_sub: "Account, security, billing address and future payment settings.",
 	      card_account_profile: "Account profile", card_account_security: "Password & security", card_billing_profile: "Billing profile", card_future_payment: "Future payment method",
 	      fld_display_name: "Display name", fld_account_email: "Account email", fld_personal_phone: "Phone", fld_personal_address: "Personal address",
 	      fld_city: "City", fld_postal_code: "Postal code", fld_country: "Country", fld_billing_name: "Billing name",
@@ -3237,7 +3240,7 @@ try {
 	      lbl_connected_account: "Connected account", lbl_email_verified: "Email verified", lbl_provider: "Provider", lbl_user_id: "User ID"
 	    },
 	    fr: {
-	      nav_profile: "Mon profil", page_profile_title: "Mon profil", page_profile_sub: "Compte, sécurité, adresse de facturation et futurs paiements.",
+	      nav_profile: "Mon profil", nav_tools: "Outils gratuits", nav_resources: "Ressources", nav_country: "Pays", page_profile_title: "Mon profil", page_profile_sub: "Compte, sécurité, adresse de facturation et futurs paiements.",
 	      card_account_profile: "Profil du compte", card_account_security: "Mot de passe et sécurité", card_billing_profile: "Profil de facturation", card_future_payment: "Moyen de paiement futur",
 	      fld_display_name: "Nom affiché", fld_account_email: "E-mail du compte", fld_personal_phone: "Téléphone", fld_personal_address: "Adresse personnelle",
 	      fld_city: "Ville", fld_postal_code: "Code postal", fld_country: "Pays", fld_billing_name: "Nom de facturation",
@@ -3249,12 +3252,12 @@ try {
 	      txt_password_reset_note: "Un lien sécurisé de réinitialisation sera envoyé à l'e-mail du compte.",
 	      lbl_connected_account: "Compte connecté", lbl_email_verified: "E-mail vérifié", lbl_provider: "Fournisseur", lbl_user_id: "ID utilisateur"
 	    },
-	    it: { nav_profile: "Profilo", page_profile_title: "Profilo", page_profile_sub: "Account, sicurezza, fatturazione e pagamenti futuri.", card_account_profile: "Profilo account", card_account_security: "Password e sicurezza", card_billing_profile: "Profilo fatturazione", card_future_payment: "Metodo di pagamento futuro" },
-	    es: { nav_profile: "Mi perfil", page_profile_title: "Mi perfil", page_profile_sub: "Cuenta, seguridad, facturación y pagos futuros.", card_account_profile: "Perfil de cuenta", card_account_security: "Contraseña y seguridad", card_billing_profile: "Perfil de facturación", card_future_payment: "Método de pago futuro" },
-	    de: { nav_profile: "Mein Profil", page_profile_title: "Mein Profil", page_profile_sub: "Konto, Sicherheit, Rechnungsadresse und zukünftige Zahlungen.", card_account_profile: "Kontoprofil", card_account_security: "Passwort und Sicherheit", card_billing_profile: "Abrechnungsprofil", card_future_payment: "Zukünftige Zahlungsmethode" },
-	    nl: { nav_profile: "Mijn profiel", page_profile_title: "Mijn profiel", page_profile_sub: "Account, beveiliging, facturatie en toekomstige betalingen.", card_account_profile: "Accountprofiel", card_account_security: "Wachtwoord en beveiliging", card_billing_profile: "Facturatieprofiel", card_future_payment: "Toekomstige betaalmethode" },
-	    pt: { nav_profile: "Meu perfil", page_profile_title: "Meu perfil", page_profile_sub: "Conta, segurança, faturação e pagamentos futuros.", card_account_profile: "Perfil da conta", card_account_security: "Palavra-passe e segurança", card_billing_profile: "Perfil de faturação", card_future_payment: "Método de pagamento futuro" },
-	    pl: { nav_profile: "Mój profil", page_profile_title: "Mój profil", page_profile_sub: "Konto, bezpieczeństwo, rozliczenia i przyszłe płatności.", card_account_profile: "Profil konta", card_account_security: "Hasło i bezpieczeństwo", card_billing_profile: "Profil rozliczeniowy", card_future_payment: "Przyszła metoda płatności" }
+	    it: { nav_profile: "Profilo", nav_tools: "Strumenti gratuiti", nav_resources: "Risorse", nav_country: "Paesi", page_profile_title: "Profilo", page_profile_sub: "Account, sicurezza, fatturazione e pagamenti futuri.", card_account_profile: "Profilo account", card_account_security: "Password e sicurezza", card_billing_profile: "Profilo fatturazione", card_future_payment: "Metodo di pagamento futuro" },
+	    es: { nav_profile: "Mi perfil", nav_tools: "Herramientas gratis", nav_resources: "Recursos", nav_country: "Países", page_profile_title: "Mi perfil", page_profile_sub: "Cuenta, seguridad, facturación y pagos futuros.", card_account_profile: "Perfil de cuenta", card_account_security: "Contraseña y seguridad", card_billing_profile: "Perfil de facturación", card_future_payment: "Método de pago futuro" },
+	    de: { nav_profile: "Mein Profil", nav_tools: "Kostenlose Tools", nav_resources: "Ressourcen", nav_country: "Länder", page_profile_title: "Mein Profil", page_profile_sub: "Konto, Sicherheit, Rechnungsadresse und zukünftige Zahlungen.", card_account_profile: "Kontoprofil", card_account_security: "Passwort und Sicherheit", card_billing_profile: "Abrechnungsprofil", card_future_payment: "Zukünftige Zahlungsmethode" },
+	    nl: { nav_profile: "Mijn profiel", nav_tools: "Gratis tools", nav_resources: "Bronnen", nav_country: "Landen", page_profile_title: "Mijn profiel", page_profile_sub: "Account, beveiliging, facturatie en toekomstige betalingen.", card_account_profile: "Accountprofiel", card_account_security: "Wachtwoord en beveiliging", card_billing_profile: "Facturatieprofiel", card_future_payment: "Toekomstige betaalmethode" },
+	    pt: { nav_profile: "Meu perfil", nav_tools: "Ferramentas grátis", nav_resources: "Recursos", nav_country: "Países", page_profile_title: "Meu perfil", page_profile_sub: "Conta, segurança, faturação e pagamentos futuros.", card_account_profile: "Perfil da conta", card_account_security: "Palavra-passe e segurança", card_billing_profile: "Perfil de faturação", card_future_payment: "Método de pagamento futuro" },
+	    pl: { nav_profile: "Mój profil", nav_tools: "Darmowe narzędzia", nav_resources: "Zasoby", nav_country: "Kraje", page_profile_title: "Mój profil", page_profile_sub: "Konto, bezpieczeństwo, rozliczenia i przyszłe płatności.", card_account_profile: "Profil konta", card_account_security: "Hasło i bezpieczeństwo", card_billing_profile: "Profil rozliczeniowy", card_future_payment: "Przyszła metoda płatności" }
 	  };
 	  Object.keys(ACCOUNT_I18N_PATCHES).forEach(function (lang) {
 	    I18N[lang] = Object.assign(I18N[lang] || {}, ACCOUNT_I18N_PATCHES[lang]);
@@ -3419,12 +3422,6 @@ try {
           <a href="#" class="qa-item" data-goto="clients"><span>👥+</span><span data-i18n="btn_add_client">Add client</span></a>
           <a href="#" class="qa-item" data-goto="inventory"><span>📦+</span><span data-i18n="btn_add_product">Add product</span></a>
         </div>
-        <div class="card quick-actions" style="margin-top:0.75rem;grid-template-columns:repeat(3,1fr);">
-          <a href="#" class="qa-item" data-goto="tools"><span>🧮</span><span>Free tools</span></a>
-          <a href="#" class="qa-item" data-goto="resources"><span>📚</span><span>Resources</span></a>
-          <a href="#" class="qa-item" data-goto="country"><span>🌍</span><span>Countries</span></a>
-        </div>
-
         <div class="dash-grid">
           <div class="card chart-wrap">
             <div class="card-title" data-i18n="stat_revenue">Revenue</div>
