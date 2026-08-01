@@ -3027,7 +3027,7 @@ try {
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="inv-new-client"></select></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="inv-new-issue" /></div>
                 <div><label class="field-label" data-i18n="fld_due_date">Due date</label><input class="field" type="date" id="inv-new-due" /></div>
-                <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="inv-new-currency"><option value="USD">USD — US Dollar</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British Pound</option></select></div>
+                <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="inv-new-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>
                 <div><label class="field-label" data-i18n="fld_compliance_country">Compliance country</label><select class="field" id="inv-compliance-country"></select></div>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem;">
@@ -3089,7 +3089,7 @@ try {
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="q-new-client"></select></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="q-new-issue" /></div>
                 <div><label class="field-label" data-i18n="fld_valid_until">Valid until</label><input class="field" type="date" id="q-new-valid" /></div>
-                <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="q-new-currency"><option value="USD">USD — US Dollar</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British Pound</option></select></div>
+                <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="q-new-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem;">
                 <div><label class="field-label" data-i18n="fld_client_address">Client address</label><textarea class="field" id="q-new-client-address" rows="2" placeholder="Street, city, postal code, country"></textarea></div>
@@ -4746,13 +4746,13 @@ try {
     var liBody = document.getElementById("li-body");
     var nextRow = 0;
 
-    function currency(n) {
-      return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
     var CURRENCY_SYMBOLS = { USD: "$", EUR: "€", GBP: "£" };
     function formatCurrency(n, code) {
       var symbol = CURRENCY_SYMBOLS[code] || "$";
       return symbol + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function currency(n) {
+      return formatCurrency(n, currentCurrency || "USD");
     }
 
     function addRow(desc, qty, price, tax) {
@@ -5113,7 +5113,7 @@ try {
           '<h3 style="text-align:left;">Set up your workspace</h3><p class="desc" style="text-align:left;margin-left:0;">You can change these anytime in Settings.</p>' +
           '<div class="ob-fields">' +
           '<div><label class="field-label">Business name</label><input class="field" value="Acme Inc." /></div>' +
-          '<div><label class="field-label">Default currency</label><select class="field"><option>USD — US Dollar</option><option>EUR — Euro</option><option>GBP — British Pound</option></select></div>' +
+          '<div><label class="field-label">Default currency</label><select class="field"><option>USD ($) — US Dollar</option><option>EUR (€) — Euro</option><option>GBP (£) — British Pound</option></select></div>' +
           "</div>";
       } else if (s === "theme") {
         body = '<h3>Choose your look</h3><p class="desc">You can switch anytime from the top bar.</p><div class="ob-theme-row">' +
@@ -5508,7 +5508,7 @@ try {
           "</select></div>" +
           '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">' +
           '<div><label class="field-label">Country</label><select class="field" id="cw-country"><option>United States</option><option>United Kingdom</option><option>Germany</option><option>France</option><option>United Arab Emirates</option><option>Pakistan</option></select></div>' +
-          '<div><label class="field-label">Currency</label><select class="field" id="cw-currency"><option>USD</option><option>EUR</option><option>GBP</option><option>AED</option><option>PKR</option></select></div>' +
+          '<div><label class="field-label">Currency</label><select class="field" id="cw-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="GBP">GBP (£)</option><option value="AED">AED</option><option value="PKR">PKR</option></select></div>' +
           "</div></div>";
       } else if (s === "branding") {
         body =
