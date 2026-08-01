@@ -1153,7 +1153,7 @@ try {
 <div class="gfab-wrap" id="gfab-wrap">
   <div class="card glass-panel gfab-menu" id="gfab-menu">
     <button class="gfab-item" data-goto="invoice-new"><span>📄+</span>Create invoice</button>
-    <button class="gfab-item" data-goto="quotes"><span>🧾+</span>Create quote</button>
+    <button class="gfab-item" data-goto="quote-new"><span>🧾+</span>Create quote</button>
     <button class="gfab-item" data-goto="clients"><span>👥+</span>Add customer</button>
     <button class="gfab-item" data-goto="expenses"><span>💳+</span>Add expense</button>
     <button class="gfab-item" data-goto="inventory"><span>📦+</span>Add product</button>
@@ -3884,17 +3884,17 @@ try {
 </section>
 
 <!-- ============ ADD PROJECT MODAL ============ -->
-<div class="cw-overlay" id="ap-overlay">
-  <div class="ob-backdrop" id="ap-backdrop"></div>
-  <div class="card glass-panel cw-panel" id="ap-panel">
-    <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;" data-i18n="btn_add_project">Add project</h3><button class="ob-skip" id="ap-close" data-i18n="btn_cancel">Cancel</button></div>
+<div class="cw-overlay" id="project-overlay">
+  <div class="ob-backdrop" id="project-backdrop"></div>
+  <div class="card glass-panel cw-panel" id="project-panel">
+    <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;" data-i18n="btn_add_project">Add project</h3><button class="ob-skip" id="project-close" data-i18n="btn_cancel">Cancel</button></div>
     <div class="cw-body">
       <div class="ob-fields">
-        <div><label class="field-label" data-i18n="fld_project_name">Project name</label><input class="field" id="ap-name" placeholder="Website redesign" /></div>
-        <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="ap-client"></select></div>
+        <div><label class="field-label" data-i18n="fld_project_name">Project name</label><input class="field" id="project-name" placeholder="Website redesign" /></div>
+        <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="project-client"></select></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
-          <div><label class="field-label" data-i18n="fld_budget">Budget</label><input class="field" type="number" min="0" step="0.01" id="ap-budget" value="0" /></div>
-          <div><label class="field-label" data-i18n="fld_status">Status</label><select class="field" id="ap-status">
+          <div><label class="field-label" data-i18n="fld_budget">Budget</label><input class="field" type="number" min="0" step="0.01" id="project-budget" value="0" /></div>
+          <div><label class="field-label" data-i18n="fld_status">Status</label><select class="field" id="project-status">
             <option value="planning" data-i18n="proj_status_planning">Planning</option>
             <option value="active" selected data-i18n="proj_status_active">Active</option>
             <option value="onhold" data-i18n="proj_status_onhold">On hold</option>
@@ -3903,13 +3903,13 @@ try {
           </select></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
-          <div><label class="field-label" data-i18n="fld_start_date">Start date</label><input class="field" type="date" id="ap-start" /></div>
-          <div><label class="field-label" data-i18n="fld_deadline">Deadline</label><input class="field" type="date" id="ap-deadline" /></div>
+          <div><label class="field-label" data-i18n="fld_start_date">Start date</label><input class="field" type="date" id="project-start" /></div>
+          <div><label class="field-label" data-i18n="fld_deadline">Deadline</label><input class="field" type="date" id="project-deadline" /></div>
         </div>
-        <div><label class="field-label" data-i18n="fld_description">Description</label><textarea class="field" id="ap-description" rows="3"></textarea></div>
+        <div><label class="field-label" data-i18n="fld_description">Description</label><textarea class="field" id="project-description" rows="3"></textarea></div>
       </div>
     </div>
-    <div class="cw-foot"><span></span><button class="btn btn-primary btn-sm" id="ap-submit" data-i18n="btn_add_project">Add project</button></div>
+    <div class="cw-foot"><span></span><button class="btn btn-primary btn-sm" id="project-submit" data-i18n="btn_add_project">Add project</button></div>
   </div>
 </div>
 
@@ -4919,7 +4919,7 @@ try {
         renderYearlyTrend();
         renderTopCustomers();
         renderBestSellers();
-        renderAIInsights("rpt-ai-insights-list", 6);
+        renderAIInsights("rpt-ai-insights", 6);
       } else if (id === "inventory" && typeof invRenderAll === "function") {
         invRenderAll();
       } else if (id === "expenses" && typeof renderExpensesAll === "function") {
@@ -4973,7 +4973,7 @@ try {
       var now = new Date();
       var revenue = 0, expensesTotal = 0;
       INVOICES.forEach(function (inv) {
-        inv.payments.forEach(function (p) {
+        invoicePayments(inv).forEach(function (p) {
           var d = new Date(p.date);
           if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) revenue += p.amount;
         });
@@ -6145,6 +6145,21 @@ try {
 
     // ---- CRM: Customer 360 / Client detail ----
     var CLIENTS = [];
+    function clientTags(c) {
+      if (!c) return [];
+      if (!Array.isArray(c.tags)) c.tags = [];
+      return c.tags;
+    }
+    function clientContacts(c) {
+      if (!c) return [];
+      if (!Array.isArray(c.contacts)) c.contacts = [];
+      return c.contacts;
+    }
+    function clientTimeline(c) {
+      if (!c) return [];
+      if (!Array.isArray(c.timeline)) c.timeline = [];
+      return c.timeline;
+    }
     function clientStatusBadgeClass(s) { return s === "Active" ? "badge-success" : s === "Lead" ? "badge-info" : s === "At risk" ? "badge-warning" : "badge-danger"; }
     function findClientByCompany(company) { return CLIENTS.filter(function (c) { return c.company === company; })[0]; }
     function renderClientsTable(filterText) {
@@ -6155,7 +6170,7 @@ try {
         return !q || c.name.toLowerCase().indexOf(q) !== -1 || c.company.toLowerCase().indexOf(q) !== -1 || c.email.toLowerCase().indexOf(q) !== -1;
       });
       tbody.innerHTML = rows.length ? rows.map(function (c) {
-        var tags = c.tags.map(function (t) { return '<span class="badge badge-default">' + t + "</span>"; }).join(" ");
+        var tags = clientTags(c).map(function (t) { return '<span class="badge badge-default">' + t + "</span>"; }).join(" ");
         return (
           '<tr><td class="link-strong" data-client-open="' + c.id + '" style="cursor:pointer;">' + c.name + "</td><td>" + c.company + "</td><td>" + c.email + "</td><td>" + c.phone + "</td>" +
           '<td><span class="badge ' + clientStatusBadgeClass(c.status) + '">' + c.status + "</span></td><td>" + tags + "</td></tr>"
@@ -6174,7 +6189,7 @@ try {
     var ACTIVITY_ICONS = { note: "📝", call: "📞", meeting: "🤝", email: "✉️", invoice: "📄", quote: "🧾" };
     function clientLifetimeValue(c) {
       var total = 0;
-      c.timeline.forEach(function (t) {
+      clientTimeline(c).forEach(function (t) {
         var m = t.text.match(/\$([\d,]+(\.\d+)?)/);
         if (m && t.type === "invoice") total += parseFloat(m[1].replace(/,/g, ""));
       });
@@ -6182,7 +6197,8 @@ try {
     }
     function aiCustomerSummary(c) {
       var ltv = clientLifetimeValue(c);
-      var lastActivity = c.timeline[c.timeline.length - 1];
+      var timelineItems = clientTimeline(c);
+      var lastActivity = timelineItems[timelineItems.length - 1];
       var sinceLabel = new Date(c.since + "T00:00:00").toLocaleDateString("en", { month: "short", year: "numeric" });
       var riskNote = c.status === "At risk" ? " This account has an overdue balance and may need a personal follow-up." : c.status === "Active" ? " Relationship is healthy with no overdue balance." : "";
       return c.name + " (" + c.company + ") has been a client since " + sinceLabel + ", with " + currency(ltv) + " in lifetime invoiced revenue. Last activity: " + (lastActivity ? lastActivity.text.toLowerCase() : "none") + "." + riskNote;
@@ -6197,18 +6213,18 @@ try {
       document.getElementById("cd-stat-grid").innerHTML =
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_lifetime_value") + '</div><div class="val tnum">' + currency(clientLifetimeValue(c)) + '</div></div><div class="ic">💰</div></div>' +
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_client_since") + '</div><div class="val" style="font-size:1.1rem;">' + new Date(c.since + "T00:00:00").toLocaleDateString("en", { month: "short", year: "numeric" }) + '</div></div><div class="ic">📅</div></div>' +
-        '<div class="card stat-card"><div><div class="lbl">' + t("stat_timeline_events") + '</div><div class="val tnum">' + c.timeline.length + '</div></div><div class="ic">🕒</div></div>' +
-        '<div class="card stat-card"><div><div class="lbl">' + t("stat_contacts") + '</div><div class="val tnum">' + c.contacts.length + "</div></div><div class=\"ic\">👤</div></div>";
+        '<div class="card stat-card"><div><div class="lbl">' + t("stat_timeline_events") + '</div><div class="val tnum">' + clientTimeline(c).length + '</div></div><div class="ic">🕒</div></div>' +
+        '<div class="card stat-card"><div><div class="lbl">' + t("stat_contacts") + '</div><div class="val tnum">' + clientContacts(c).length + "</div></div><div class=\"ic\">👤</div></div>";
       document.getElementById("cd-ai-summary").textContent = aiCustomerSummary(c);
-      document.getElementById("cd-tags").innerHTML = c.tags.length ? c.tags.map(function (t) { return '<span class="chip on">' + t + "</span>"; }).join("") : '<p class="widget-empty">No tags yet.</p>';
-      document.getElementById("cd-contacts").innerHTML = c.contacts.length ? c.contacts.map(function (p) {
+      document.getElementById("cd-tags").innerHTML = clientTags(c).length ? clientTags(c).map(function (t) { return '<span class="chip on">' + t + "</span>"; }).join("") : '<p class="widget-empty">No tags yet.</p>';
+      document.getElementById("cd-contacts").innerHTML = clientContacts(c).length ? clientContacts(c).map(function (p) {
         return '<div class="activity-row"><div><div class="num">' + p.name + '</div><div class="meta">' + p.role + '</div></div><div style="text-align:right;font-size:0.78rem;color:hsl(var(--muted-fg));">' + p.email + "<br>" + p.phone + "</div></div>";
       }).join("") : '<p class="widget-empty">No contact persons yet.</p>';
       var clientFiles = (typeof FILES !== "undefined" ? FILES : []).filter(function (f) { return f.clientId === c.id; });
       document.getElementById("cd-attachments").innerHTML = clientFiles.length ? clientFiles.map(function (f) {
         return '<div class="widget-row"><span>' + (FILE_ICONS[f.type] || "📁") + " " + f.name + '</span><span style="color:hsl(var(--muted-fg));font-size:0.75rem;">' + f.size + "</span></div>";
       }).join("") : '<p class="widget-empty">No files linked to this client yet.</p>';
-      var timeline = c.timeline.slice().sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+      var timeline = clientTimeline(c).slice().sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
       document.getElementById("cd-timeline").innerHTML = timeline.map(function (t) {
         return (
           '<div class="activity-row"><div style="display:flex;gap:0.6rem;align-items:flex-start;"><span>' + (ACTIVITY_ICONS[t.type] || "•") + '</span>' +
@@ -6505,7 +6521,7 @@ try {
     if (projectStatusFilterEl) projectStatusFilterEl.addEventListener("change", function (e) { projectFilter.status = e.target.value; renderProjectsTable(); });
 
     function populateProjectClientSelect() {
-      var sel = document.getElementById("ap-client");
+      var sel = document.getElementById("project-client");
       if (!sel) return;
       sel.innerHTML = CLIENTS.length
         ? CLIENTS.map(function (c) { return '<option value="' + c.id + '">' + c.company + " — " + c.name + "</option>"; }).join("")
@@ -6519,47 +6535,47 @@ try {
       if (PROJECTS.some(function (p) { return p.id === current; })) sel.value = current;
     }
 
-    function apOpen() {
+    function projectOpen() {
       populateProjectClientSelect();
-      document.getElementById("ap-name").value = "";
-      document.getElementById("ap-budget").value = "0";
-      document.getElementById("ap-status").value = "active";
-      document.getElementById("ap-start").value = new Date().toISOString().slice(0, 10);
-      document.getElementById("ap-deadline").value = "";
-      document.getElementById("ap-description").value = "";
-      document.getElementById("ap-overlay").classList.add("open");
+      document.getElementById("project-name").value = "";
+      document.getElementById("project-budget").value = "0";
+      document.getElementById("project-status").value = "active";
+      document.getElementById("project-start").value = new Date().toISOString().slice(0, 10);
+      document.getElementById("project-deadline").value = "";
+      document.getElementById("project-description").value = "";
+      document.getElementById("project-overlay").classList.add("open");
       document.body.style.overflow = "hidden";
     }
-    function apClose() {
-      document.getElementById("ap-overlay").classList.remove("open");
+    function projectClose() {
+      document.getElementById("project-overlay").classList.remove("open");
       document.body.style.overflow = "";
     }
     var projectAddBtnEl = document.getElementById("project-add-btn");
-    if (projectAddBtnEl) projectAddBtnEl.addEventListener("click", apOpen);
-    var apCloseBtn = document.getElementById("ap-close");
-    if (apCloseBtn) apCloseBtn.addEventListener("click", apClose);
-    var apBackdropEl = document.getElementById("ap-backdrop");
-    if (apBackdropEl) apBackdropEl.addEventListener("click", apClose);
-    var apSubmitBtn = document.getElementById("ap-submit");
-    if (apSubmitBtn) apSubmitBtn.addEventListener("click", function () {
-      var nameEl = document.getElementById("ap-name");
+    if (projectAddBtnEl) projectAddBtnEl.addEventListener("click", projectOpen);
+    var projectCloseBtn = document.getElementById("project-close");
+    if (projectCloseBtn) projectCloseBtn.addEventListener("click", projectClose);
+    var projectBackdropEl = document.getElementById("project-backdrop");
+    if (projectBackdropEl) projectBackdropEl.addEventListener("click", projectClose);
+    var projectSubmitBtn = document.getElementById("project-submit");
+    if (projectSubmitBtn) projectSubmitBtn.addEventListener("click", function () {
+      var nameEl = document.getElementById("project-name");
       var name = nameEl.value.trim();
       if (!name) { nameEl.focus(); return; }
       projectSeq++;
       PROJECTS.push({
         id: "proj" + Date.now() + projectSeq,
         name: name,
-        clientId: document.getElementById("ap-client").value,
-        budget: parseFloat(document.getElementById("ap-budget").value) || 0,
-        status: document.getElementById("ap-status").value,
-        startDate: document.getElementById("ap-start").value,
-        deadline: document.getElementById("ap-deadline").value,
-        description: document.getElementById("ap-description").value.trim(),
+        clientId: document.getElementById("project-client").value,
+        budget: parseFloat(document.getElementById("project-budget").value) || 0,
+        status: document.getElementById("project-status").value,
+        startDate: document.getElementById("project-start").value,
+        deadline: document.getElementById("project-deadline").value,
+        description: document.getElementById("project-description").value.trim(),
         notes: [],
       });
       renderProjectsAll();
       populateTaskProjectSelect();
-      apClose();
+      projectClose();
       showToast(name + " added to Projects");
       playSound("success");
     });
@@ -6661,7 +6677,7 @@ try {
       if (!text || !cdActiveClientId) { textEl.focus(); return; }
       var c = CLIENTS.filter(function (x) { return x.id === cdActiveClientId; })[0];
       if (!c) return;
-      c.timeline.push({ type: document.getElementById("la-type").value, text: text, date: new Date().toISOString().slice(0, 10) });
+      clientTimeline(c).push({ type: document.getElementById("la-type").value, text: text, date: new Date().toISOString().slice(0, 10) });
       renderClientDetail(cdActiveClientId);
       laClose();
       showToast("Activity logged");
@@ -7586,8 +7602,16 @@ try {
 
     // ---- Payment Tracking (Invoices) ----
     var INVOICES = [];
+    function invoicePayments(inv) {
+      if (!inv) return [];
+      if (!Array.isArray(inv.payments)) inv.payments = [];
+      return inv.payments;
+    }
+    function invoicePaidTotal(inv) {
+      return invoicePayments(inv).reduce(function (s, p) { return s + (parseFloat(p.amount) || 0); }, 0);
+    }
     function invoiceBalance(inv) {
-      var paid = inv.payments.reduce(function (s, p) { return s + p.amount; }, 0);
+      var paid = invoicePaidTotal(inv);
       return Math.max(0, inv.total - paid);
     }
     function invoiceStatusBadgeClass(s) {
@@ -7629,7 +7653,7 @@ try {
         var balance = invoiceBalance(inv);
         if (["Sent", "Viewed", "Partially paid", "Overdue"].indexOf(inv.status) !== -1) outstanding += balance;
         if (inv.status === "Overdue") overdueCount++;
-        inv.payments.forEach(function (p) {
+        invoicePayments(inv).forEach(function (p) {
           var d = new Date(p.date);
           if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) paidThisMonth += p.amount;
           dayDiffs.push(Math.round((d - new Date(inv.issue)) / 86400000));
@@ -7676,7 +7700,7 @@ try {
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_balance_due") + '</div><div class="val tnum" style="color:' + (balance > 0 ? "hsl(var(--danger))" : "hsl(var(--success))") + ';">' + formatCurrency(balance, inv.currency) + "</div></div><div class=\"ic\">💰</div></div>" +
         "</div>" +
         '<div class="card-title" style="margin-bottom:0.5rem;">Payment history</div>' +
-        (inv.payments.length ? inv.payments.map(function (p) {
+        (invoicePayments(inv).length ? invoicePayments(inv).map(function (p) {
           return '<div class="activity-row"><div><div class="num">' + formatCurrency(p.amount, inv.currency) + '</div><div class="meta">' + p.method + "</div></div><div style=\"text-align:right;font-size:0.78rem;color:hsl(var(--muted-fg));\">" + new Date(p.date + "T00:00:00").toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" }) + "</div></div>";
         }).join("") : '<p class="widget-empty">No payments recorded yet.</p>') +
         "</div>" +
@@ -7737,7 +7761,7 @@ try {
         var inv = INVOICES.filter(function (x) { return x.id === remindBtn.getAttribute("data-invoice-remind"); })[0];
         if (!inv) return;
         var client = findClientByCompany(inv.client);
-        if (client) client.timeline.push({ type: "email", text: "Payment reminder sent for " + inv.id + " (" + currency(invoiceBalance(inv)) + " due)", date: new Date().toISOString().slice(0, 10) });
+        if (client) clientTimeline(client).push({ type: "email", text: "Payment reminder sent for " + inv.id + " (" + currency(invoiceBalance(inv)) + " due)", date: new Date().toISOString().slice(0, 10) });
         showToast("Reminder sent to " + inv.client);
         playSound("success");
         var overlay = document.getElementById("ph-overlay");
@@ -7774,11 +7798,11 @@ try {
       var amount = parseFloat(document.getElementById("pay-amount").value) || 0;
       var balance = invoiceBalance(inv);
       if (amount <= 0 || amount > balance + 0.001) { document.getElementById("pay-amount").focus(); return; }
-      inv.payments.push({ amount: amount, method: document.getElementById("pay-method").value, date: new Date().toISOString().slice(0, 10) });
+      invoicePayments(inv).push({ amount: amount, method: document.getElementById("pay-method").value, date: new Date().toISOString().slice(0, 10) });
       var newBalance = invoiceBalance(inv);
       inv.status = newBalance <= 0.001 ? "Paid" : "Partially paid";
       var client = findClientByCompany(inv.client);
-      if (client) client.timeline.push({ type: "invoice", text: "Payment of " + formatCurrency(amount, inv.currency) + " received for " + inv.id, date: new Date().toISOString().slice(0, 10) });
+      if (client) clientTimeline(client).push({ type: "invoice", text: "Payment of " + formatCurrency(amount, inv.currency) + " received for " + inv.id, date: new Date().toISOString().slice(0, 10) });
       payClose();
       renderInvoicesAll();
       var phOverlayEl2 = document.getElementById("ph-overlay");
@@ -8275,7 +8299,7 @@ try {
       var vals = grid.querySelectorAll(".val");
       var revenue = 0, outstanding = 0, expensesTotal = 0;
       INVOICES.forEach(function (inv) {
-        var paid = inv.payments.reduce(function (s, p) { return s + p.amount; }, 0);
+        var paid = invoicePaidTotal(inv);
         revenue += paid;
         outstanding += Math.max(0, inv.total - paid);
       });
@@ -8305,7 +8329,7 @@ try {
         var totals = months.map(function (m) {
           var sum = 0;
           INVOICES.forEach(function (inv) {
-            inv.payments.forEach(function (p) {
+            invoicePayments(inv).forEach(function (p) {
               var d = new Date(p.date);
               if (d.getFullYear() === m.getFullYear() && d.getMonth() === m.getMonth()) sum += p.amount;
             });
@@ -8446,7 +8470,7 @@ try {
       var vals = grid.querySelectorAll(".val");
       var revenue = 0, outstanding = 0, expensesTotal = 0;
       INVOICES.forEach(function (inv) {
-        var paid = inv.payments.reduce(function (s, p) { return s + p.amount; }, 0);
+        var paid = invoicePaidTotal(inv);
         revenue += paid;
         outstanding += Math.max(0, inv.total - paid);
       });
@@ -8464,7 +8488,7 @@ try {
       var totals = months.map(function (m) {
         var sum = 0;
         INVOICES.forEach(function (inv) {
-          inv.payments.forEach(function (p) {
+          invoicePayments(inv).forEach(function (p) {
             var d = new Date(p.date);
             if (d.getFullYear() === m.getFullYear() && d.getMonth() === m.getMonth()) sum += p.amount;
           });
@@ -8525,7 +8549,7 @@ try {
     if (rptExportCsvBtn) rptExportCsvBtn.addEventListener("click", function () {
       var rptRevenue = 0, rptOutstanding = 0, rptExpenses = 0;
       INVOICES.forEach(function (inv) {
-        var paid = inv.payments.reduce(function (s, p) { return s + p.amount; }, 0);
+        var paid = invoicePaidTotal(inv);
         rptRevenue += paid;
         rptOutstanding += Math.max(0, inv.total - paid);
       });
@@ -9191,7 +9215,7 @@ try {
     measurementId: "G-JJCNL9THWD"
   };
   const auth = getAuth(initializeApp(firebaseConfig));
-  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "reports", "ai"]);
+  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "reports", "ai"]);
   let currentUser = null;
 
   function showAuthStatus(id, message, kind = "error") {
