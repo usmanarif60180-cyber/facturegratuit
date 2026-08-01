@@ -3710,11 +3710,11 @@ try {
             <button class="ai-cap">AI Inventory Analyst <span class="badge badge-default">Soon</span></button>
           </div>
           <div class="card">
-            <div class="ai-chat">
+            <div class="ai-chat" id="ai-chat" aria-live="polite">
               <div class="msg bot">Hi — ask me about invoices, cash flow, inventory, tasks or performance, or try one of the suggestions below.</div>
             </div>
             <div class="chip-row" id="ai-suggest-chips" style="margin:0 1.25rem 0.75rem;"></div>
-            <div class="ai-input-row"><input class="field" placeholder="Message AI Business Assistant…" /><button class="btn btn-primary btn-icon">➤</button></div>
+            <div class="ai-input-row"><input class="field" id="ai-input" placeholder="Message AI Business Assistant…" autocomplete="off" /><button class="btn btn-primary btn-icon" id="ai-send" aria-label="Send AI message">➤</button></div>
           </div>
         </div>
       </div>
@@ -4742,6 +4742,7 @@ try {
         renderCrmStatsAndPipeline();
         runCounters(target);
       }
+      if (id === "ai" && typeof initAiAssistant === "function") initAiAssistant(true);
       if (id === "leads") renderLeadsInit();
       if (id === "companies") renderCompaniesInit();
       if (id === "projects") renderProjectsInit();
@@ -5064,10 +5065,14 @@ try {
       }
       return null;
     }
-    var aiChat = document.querySelector(".ai-chat");
-    var aiInput = document.querySelector(".ai-input-row input");
-    var aiSendBtn = document.querySelector(".ai-input-row button");
-    if (aiChat && aiInput && aiSendBtn) {
+    var AI_SUGGESTIONS = ["Show overdue invoices", "Create follow-up tasks", "Find unpaid customers", "Show monthly profit", "Show stock alerts", "Generate inventory report", "Summarize business performance", "Suggest next actions", "Recommend improvements"];
+    function initAiAssistant(focusInput) {
+      var aiChat = document.getElementById("ai-chat") || document.querySelector(".ai-chat");
+      var aiInput = document.getElementById("ai-input") || document.querySelector(".ai-input-row input");
+      var aiSendBtn = document.getElementById("ai-send") || document.querySelector(".ai-input-row button");
+      var aiSuggestChipsEl = document.getElementById("ai-suggest-chips");
+      if (!aiChat || !aiInput || !aiSendBtn) return;
+
       function aiSend() {
         var text = aiInput.value.trim();
         if (!text) return;
@@ -5086,26 +5091,37 @@ try {
 
         setTimeout(function () {
           var reply = aiFindReply(text);
-          typing.innerHTML = reply || "I don't have a canned answer for that yet — try one of the suggested prompts below, or connect an AI provider to enable open-ended answers.";
+          typing.innerHTML = reply || "AI Assistant is active in business mode. Try asking about overdue invoices, unpaid customers, cash flow, stock alerts, monthly profit or next actions.";
           aiChat.scrollTop = aiChat.scrollHeight;
         }, 900);
       }
-      aiSendBtn.addEventListener("click", aiSend);
-      aiInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") aiSend();
-      });
-      var AI_SUGGESTIONS = ["Show overdue invoices", "Create follow-up tasks", "Find unpaid customers", "Show monthly profit", "Show stock alerts", "Generate inventory report", "Summarize business performance", "Suggest next actions", "Recommend improvements"];
-      var aiSuggestChipsEl = document.getElementById("ai-suggest-chips");
-      if (aiSuggestChipsEl) {
+
+      if (!aiSendBtn.dataset.aiWired) {
+        aiSendBtn.addEventListener("click", aiSend);
+        aiSendBtn.dataset.aiWired = "1";
+      }
+      if (!aiInput.dataset.aiWired) {
+        aiInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") aiSend();
+        });
+        aiInput.dataset.aiWired = "1";
+      }
+      if (aiSuggestChipsEl && !aiSuggestChipsEl.dataset.aiRendered) {
         aiSuggestChipsEl.innerHTML = AI_SUGGESTIONS.map(function (s) { return '<button class="chip" data-ai-prompt="' + s + '">' + s + "</button>"; }).join("");
+        aiSuggestChipsEl.dataset.aiRendered = "1";
+      }
+      if (aiSuggestChipsEl && !aiSuggestChipsEl.dataset.aiWired) {
         aiSuggestChipsEl.addEventListener("click", function (e) {
           var chip = e.target.closest("[data-ai-prompt]");
           if (!chip) return;
           aiInput.value = chip.getAttribute("data-ai-prompt");
           aiSend();
         });
+        aiSuggestChipsEl.dataset.aiWired = "1";
       }
+      if (focusInput) setTimeout(function () { aiInput.focus(); }, 80);
     }
+    initAiAssistant(false);
     window.profactureShowView = showView;
     window.ivoxaShowView = showView;
 
