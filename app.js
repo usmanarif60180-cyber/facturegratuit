@@ -3736,6 +3736,8 @@ function fillAccountProfileForm(profile) {
 function newSavedProfileForm() {
   editingProfileId = null;
   fillAccountProfileForm(null);
+  document.getElementById('acct-company-name')?.focus();
+  showNotif('Formulaire société prêt', 'info');
 }
 
 function renderProfileItem(item) {
@@ -3766,12 +3768,7 @@ function renderSavedProfiles() {
     : renderEmptyState('building', 'Aucune société sauvegardée', 'Remplissez le formulaire ci-dessous puis sauvez pour créer votre première société.', 'Nouvelle société', 'newSavedProfileForm()');
 }
 
-function applySavedProfile(id, silent=false) {
-  const p = loadCompanyProfiles().find(entry => entry.id === id);
-  if (!p) {
-    if (!silent) showNotif('Société introuvable', 'info');
-    return;
-  }
+function applyCompanyProfileFieldsToEditor(p={}, options={}) {
   const map = {
     'e-name': p.name,
     'e-status': p.status,
@@ -3787,13 +3784,13 @@ function applySavedProfile(id, silent=false) {
     const el = document.getElementById(id2);
     if (el && value !== undefined && value !== null) el.value = value;
   });
-  S.logoSrc = p.logoSrc || S.logoSrc;
+  if (p.logoSrc) S.logoSrc = p.logoSrc;
   S.logoPos = p.logoPos || S.logoPos || 'left';
   S.logoSize = p.logoSize || S.logoSize || 80;
-  S.companyStampSrc = p.companyStampSrc || S.companyStampSrc;
+  if (p.companyStampSrc) S.companyStampSrc = p.companyStampSrc;
   S.companyStampSize = p.companyStampSize || S.companyStampSize || 115;
   S.companyStampOpacity = p.companyStampOpacity || S.companyStampOpacity || 90;
-  S.signatureSrc = p.signatureSrc || S.signatureSrc;
+  if (p.signatureSrc) S.signatureSrc = p.signatureSrc;
   S.signatureSize = p.signatureSize || S.signatureSize || 135;
   S.signature = Boolean(p.signature || p.signatureSrc || S.signature);
   renderLogoState();
@@ -3801,6 +3798,20 @@ function applySavedProfile(id, silent=false) {
   renderSignatureImageState();
   renderToggleStates();
   updatePreview();
+  if (!options.keepDashboardOpen) {
+    closeAccount();
+    scrollToEditor();
+    showSection('infos');
+  }
+}
+
+function applySavedProfile(id, silent=false) {
+  const p = loadCompanyProfiles().find(entry => entry.id === id);
+  if (!p) {
+    if (!silent) showNotif('Société introuvable', 'info');
+    return;
+  }
+  applyCompanyProfileFieldsToEditor(p, { keepDashboardOpen: true });
   setActiveProfileId(id);
   renderSavedProfiles();
   if (!silent) showNotif(`${p.name || 'Société'} appliquée à la facture`, 'success');
@@ -3822,6 +3833,8 @@ function editSavedProfile(id) {
   if (!p) return showNotif('Société introuvable', 'info');
   editingProfileId = id;
   fillAccountProfileForm(p);
+  document.getElementById('acct-company-name')?.focus();
+  showNotif('Société ouverte en modification', 'info');
 }
 
 function duplicateSavedProfile(id) {
@@ -3845,9 +3858,14 @@ function deleteSavedProfile(id) {
   if (editingProfileId === id) { editingProfileId = null; fillAccountProfileForm(null); }
   renderSavedProfiles();
   renderAccountOverview();
+  showNotif('Société supprimée', 'info');
 }
 
 function clearSavedProfiles() {
+  if (!loadCompanyProfiles().length) {
+    showNotif('Aucune société à effacer', 'info');
+    return;
+  }
   if (!confirm('Effacer toutes les sociétés sauvegardées ?')) return;
   saveCompanyProfiles([]);
   setActiveProfileId('');
@@ -3855,6 +3873,7 @@ function clearSavedProfiles() {
   fillAccountProfileForm(null);
   renderSavedProfiles();
   renderAccountOverview();
+  showNotif('Toutes les sociétés ont été effacées', 'info');
 }
 
 function saveCompanyProfileRecord(fields) {
@@ -3883,8 +3902,17 @@ function saveAccountProfileFromForm() {
 }
 
 function applyEditingProfileToEditor() {
-  if (!editingProfileId) { showNotif('Sauvegardez d\'abord cette société avant de l\'appliquer', 'info'); return; }
-  applySavedProfile(editingProfileId);
+  if (editingProfileId) {
+    applySavedProfile(editingProfileId);
+    return;
+  }
+  const fields = collectCompanyProfileFromForm();
+  if (!fields.name && !fields.addr && !fields.siret && !fields.email && !fields.tel) {
+    showNotif('Remplissez la société ou choisissez une société sauvegardée', 'info');
+    return;
+  }
+  applyCompanyProfileFieldsToEditor(fields);
+  showNotif('Société appliquée à la facture', 'success');
 }
 
 function clearAccountProfile() {
@@ -4385,8 +4413,8 @@ function loadAccountHistory() {
 }
 
 function saveAccountHistory(list) {
-  if (!S.authUser) return;
-  saveAccountList('history', list);
+  if (!S.authUser) return false;
+  return saveAccountList('history', list);
 }
 
 function getCurrentDocumentSummary(action='PDF') {
@@ -4417,13 +4445,16 @@ function getCurrentDocumentSummary(action='PDF') {
 }
 
 function recordDocumentHistory(action='PDF') {
-  if (!S.authUser) return;
+  if (!S.authUser) {
+    showNotif('Login karein, phir facture history save karein', 'info');
+    return false;
+  }
   const record = getCurrentDocumentSummary(action);
   record.snapshot = collectDraft();
   const list = loadAccountHistory();
   const isNew = !list.some(item => item.id === record.id);
   const next = [record, ...list.filter(item => item.id !== record.id)].slice(0, 300);
-  saveAccountHistory(next);
+  if (!saveAccountHistory(next)) return false;
   renderAccountHistory();
   renderAccountOverview();
   if (isNew) {
@@ -4431,6 +4462,7 @@ function recordDocumentHistory(action='PDF') {
     pushNotification({ type:'document', icon:'file-invoice', title:`${docLabel} ajouté à l'historique`, body: `${record.docNum} · ${record.clientName}`, link:{ panel:'history' } });
   }
   if (action === 'manual') showNotif('Facture ajoutée à l’historique', 'success');
+  return true;
 }
 
 function renderAccountHistory() {
@@ -4609,8 +4641,17 @@ function formatMonthLabel(key) {
 }
 
 function clearAccountHistory() {
-  if (!S.authUser) return;
+  if (!S.authUser) {
+    showNotif('Login karein, phir historique clear karein', 'info');
+    return;
+  }
+  if (!loadAccountHistory().length) {
+    showNotif('Aucun historique à effacer', 'info');
+    return;
+  }
+  if (!confirm('Effacer tout l’historique des factures ?')) return;
   try { localStorage.removeItem(getAccountStorageKey('history')); } catch {}
+  queueCloudSync();
   aiInsightsLoaded = false;
   renderAccountHistory();
   renderAccountOverview();
@@ -6591,6 +6632,33 @@ function setCountryDemo(btn, code) {
   document.getElementById('cdTax').textContent = d.tax;
   document.getElementById('cdTotal').textContent = d.total;
 }
+
+Object.assign(window, {
+  showAccountPanel,
+  closeAccount,
+  logoutUser,
+  recordDocumentHistory,
+  exportHistoryCsv,
+  clearAccountHistory,
+  saveCurrentClient,
+  clearSavedClients,
+  saveFirstProduct,
+  clearSavedProducts,
+  newSavedProfileForm,
+  clearSavedProfiles,
+  applySavedProfile,
+  editSavedProfile,
+  duplicateSavedProfile,
+  deleteSavedProfile,
+  saveAccountProfileFromEditor,
+  saveAccountProfileFromForm,
+  applyEditingProfileToEditor,
+  clearAccountProfile,
+  saveCurrentProject,
+  exportAccountData,
+  clearAllAccountLocalData,
+  setCountryDemo
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { if (typeof positionRailPill === 'function') positionRailPill(); }, 60);
