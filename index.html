@@ -958,6 +958,13 @@ try {
   .ds-theme-strip { display: flex; height: 1.5rem; width: 100%; border-radius: 5px; overflow: hidden; }
   .ds-theme-strip span { flex: 1; }
   .ds-theme-swatch .n { font-size: 0.72rem; font-weight: 600; }
+  .ds-font-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.55rem; max-height: 34rem; overflow: auto; padding-right: 0.15rem; }
+  @media (max-width: 900px) { .ds-font-grid { grid-template-columns: repeat(2, 1fr); max-height: none; } }
+  .ds-font-card { border: 1px solid hsl(var(--border)); border-radius: var(--radius-md); background: hsl(var(--card)); padding: 0.65rem; text-align: left; display: flex; flex-direction: column; gap: 0.3rem; min-height: 4.6rem; transition: border-color 0.15s, background 0.15s, transform 0.15s; }
+  .ds-font-card:hover { transform: translateY(-1px); border-color: hsl(var(--primary) / 0.55); }
+  .ds-font-card.on { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.06); box-shadow: 0 0 0 2px hsl(var(--primary) / 0.18); }
+  .ds-font-card .sample { font-size: 1.05rem; font-weight: 800; line-height: 1.1; color: hsl(var(--fg)); }
+  .ds-font-card .name { font-size: 0.7rem; color: hsl(var(--muted-fg)); font-weight: 700; }
   .ds-section-row { display: flex; align-items: center; gap: 0.5rem; border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm); padding: 0.5rem 0.65rem; margin-bottom: 0.4rem; font-size: 0.83rem; }
   .ds-section-row.off { opacity: 0.45; }
   .ds-section-row button { border: none; background: transparent; color: hsl(var(--muted-fg)); padding: 0.15rem; border-radius: 4px; }
@@ -3034,7 +3041,7 @@ try {
               <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;">
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="inv-new-client"></select></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="inv-new-issue" /></div>
-                <div><label class="field-label" data-i18n="fld_due_date">Due date</label><input class="field" type="date" id="inv-new-due" /></div>
+                <div><label class="field-label"><span data-i18n="fld_due_date">Due date</span> <span style="color:hsl(var(--muted-fg));font-weight:600;">(optional)</span></label><input class="field" type="date" id="inv-new-due" /></div>
                 <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="inv-new-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>
                 <div><label class="field-label" data-i18n="fld_compliance_country">Compliance country</label><select class="field" id="inv-compliance-country"></select></div>
               </div>
@@ -3154,6 +3161,7 @@ try {
             <div class="ds-tabs" id="ds-tabs">
               <button class="on" data-ds-tab="templates" data-i18n="tab_templates">Templates</button>
               <button data-ds-tab="theme" data-i18n="tab_theme">Theme</button>
+              <button data-ds-tab="fonts">Fonts</button>
               <button data-ds-tab="layout" data-i18n="tab_layout">Layout</button>
             </div>
 
@@ -3163,6 +3171,10 @@ try {
 
             <div class="ds-panel" id="ds-panel-theme">
               <div class="ds-theme-grid" id="ds-theme-grid"></div>
+            </div>
+
+            <div class="ds-panel" id="ds-panel-fonts">
+              <div class="ds-font-grid" id="ds-font-grid"></div>
             </div>
 
             <div class="ds-panel" id="ds-panel-layout">
@@ -5263,6 +5275,58 @@ try {
       { id: "white-minimal", name: "White Minimal", primary: "#18181B", secondary: "#52525B", accent: "#D4D4D8" },
       { id: "professional-dark", name: "Professional Dark", primary: "#818CF8", secondary: "#A5B4FC", accent: "#6366F1" },
     ];
+    var DS_FONTS = [
+      { id: "system", name: "System Pro", family: "-apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif" },
+      { id: "segoe", name: "Segoe UI", family: "Segoe UI, Arial, sans-serif" },
+      { id: "arial", name: "Arial Clean", family: "Arial, Helvetica, sans-serif" },
+      { id: "helvetica", name: "Helvetica", family: "Helvetica Neue, Helvetica, Arial, sans-serif" },
+      { id: "verdana", name: "Verdana", family: "Verdana, Geneva, sans-serif" },
+      { id: "tahoma", name: "Tahoma", family: "Tahoma, Geneva, sans-serif" },
+      { id: "trebuchet", name: "Trebuchet", family: "Trebuchet MS, Arial, sans-serif" },
+      { id: "calibri", name: "Calibri", family: "Calibri, Candara, Segoe UI, sans-serif" },
+      { id: "candara", name: "Candara", family: "Candara, Calibri, Segoe UI, sans-serif" },
+      { id: "corbel", name: "Corbel", family: "Corbel, Calibri, Arial, sans-serif" },
+      { id: "franklin", name: "Franklin Gothic", family: "Franklin Gothic Medium, Arial Narrow, Arial, sans-serif" },
+      { id: "arial-narrow", name: "Arial Narrow", family: "Arial Narrow, Arial, sans-serif" },
+      { id: "century-gothic", name: "Century Gothic", family: "Century Gothic, AppleGothic, Arial, sans-serif" },
+      { id: "avenir", name: "Avenir", family: "Avenir Next, Avenir, Montserrat, Arial, sans-serif" },
+      { id: "futura", name: "Futura", family: "Futura, Century Gothic, Arial, sans-serif" },
+      { id: "gill", name: "Gill Sans", family: "Gill Sans, Gill Sans MT, Calibri, sans-serif" },
+      { id: "optima", name: "Optima", family: "Optima, Candara, Arial, sans-serif" },
+      { id: "lucida-sans", name: "Lucida Sans", family: "Lucida Sans, Lucida Grande, Arial, sans-serif" },
+      { id: "lucida-grande", name: "Lucida Grande", family: "Lucida Grande, Lucida Sans Unicode, Arial, sans-serif" },
+      { id: "noto", name: "Noto Sans", family: "Noto Sans, Arial, sans-serif" },
+      { id: "roboto", name: "Roboto", family: "Roboto, Arial, sans-serif" },
+      { id: "open-sans", name: "Open Sans", family: "Open Sans, Arial, sans-serif" },
+      { id: "lato", name: "Lato", family: "Lato, Arial, sans-serif" },
+      { id: "montserrat", name: "Montserrat", family: "Montserrat, Avenir Next, Arial, sans-serif" },
+      { id: "poppins", name: "Poppins", family: "Poppins, Century Gothic, Arial, sans-serif" },
+      { id: "raleway", name: "Raleway", family: "Raleway, Avenir Next, Arial, sans-serif" },
+      { id: "ubuntu", name: "Ubuntu", family: "Ubuntu, Arial, sans-serif" },
+      { id: "work-sans", name: "Work Sans", family: "Work Sans, Arial, sans-serif" },
+      { id: "source-sans", name: "Source Sans", family: "Source Sans Pro, Arial, sans-serif" },
+      { id: "ibm-plex", name: "IBM Plex Sans", family: "IBM Plex Sans, Arial, sans-serif" },
+      { id: "georgia", name: "Georgia", family: "Georgia, Times New Roman, serif" },
+      { id: "times", name: "Times New Roman", family: "Times New Roman, Times, serif" },
+      { id: "garamond", name: "Garamond", family: "Garamond, Georgia, serif" },
+      { id: "palatino", name: "Palatino", family: "Palatino, Palatino Linotype, Georgia, serif" },
+      { id: "baskerville", name: "Baskerville", family: "Baskerville, Georgia, serif" },
+      { id: "cambria", name: "Cambria", family: "Cambria, Georgia, serif" },
+      { id: "charter", name: "Charter", family: "Charter, Georgia, serif" },
+      { id: "hoefler", name: "Hoefler Text", family: "Hoefler Text, Georgia, serif" },
+      { id: "didot", name: "Didot", family: "Didot, Georgia, serif" },
+      { id: "bodoni", name: "Bodoni", family: "Bodoni 72, Didot, Georgia, serif" },
+      { id: "rockwell", name: "Rockwell", family: "Rockwell, Georgia, serif" },
+      { id: "courier", name: "Courier New", family: "Courier New, Courier, monospace" },
+      { id: "menlo", name: "Menlo", family: "Menlo, Monaco, Consolas, monospace" },
+      { id: "monaco", name: "Monaco", family: "Monaco, Menlo, Consolas, monospace" },
+      { id: "consolas", name: "Consolas", family: "Consolas, Menlo, Courier New, monospace" },
+      { id: "sf-mono", name: "SF Mono", family: "SF Mono, Menlo, Monaco, monospace" },
+      { id: "copperplate", name: "Copperplate", family: "Copperplate, Copperplate Gothic Light, serif" },
+      { id: "impact", name: "Impact", family: "Impact, Haettenschweiler, Arial Narrow Bold, sans-serif" },
+      { id: "arial-rounded", name: "Arial Rounded", family: "Arial Rounded MT Bold, Arial, sans-serif" },
+      { id: "brush", name: "Signature Script", family: "Brush Script MT, Segoe Script, cursive" },
+    ];
     var DS_SECTIONS = [
       { id: "companyBlock", label: "Company block", visible: true },
       { id: "clientBlock", label: "Client block", visible: true },
@@ -5274,7 +5338,7 @@ try {
       { id: "terms", label: "Terms & conditions", visible: true },
       { id: "signature", label: "Signature", visible: false },
     ];
-    var dsState = { primary: "#2563EB", secondary: "#1E3A8A", tableBg: "#EEF2FF", dark: true, accent: "top", selectedTemplate: "modern-blue", selectedTheme: null };
+    var dsState = { primary: "#2563EB", secondary: "#1E3A8A", tableBg: "#EEF2FF", dark: true, accent: "top", selectedTemplate: "modern-blue", selectedTheme: null, selectedFont: "system", fontFamily: DS_FONTS[0].family };
 
     function dsApplyPreview() {
       var doc = document.getElementById("ds-doc");
@@ -5290,6 +5354,7 @@ try {
       thead.style.background = dsState.tableBg;
       thead.querySelectorAll("th").forEach(function (th) { th.style.color = "hsl(var(--fg))"; });
       totalRow.querySelectorAll("span")[1].style.color = dsState.primary;
+      doc.style.fontFamily = dsState.fontFamily || DS_FONTS[0].family;
       doc.style.borderLeftWidth = dsState.accent === "left" ? "6px" : "1px";
       doc.style.borderLeftColor = dsState.accent === "left" ? dsState.primary : "hsl(var(--border))";
 
@@ -5361,6 +5426,19 @@ try {
       }).join("");
     }
 
+    function dsRenderFonts() {
+      var grid = document.getElementById("ds-font-grid");
+      if (!grid) return;
+      grid.innerHTML = DS_FONTS.map(function (font) {
+        return (
+          '<button class="ds-font-card' + (dsState.selectedFont === font.id ? " on" : "") + '" data-font="' + font.id + '" style="font-family:' + font.family + ';">' +
+          '<span class="sample">Facture</span>' +
+          '<span class="name">' + font.name + "</span>" +
+          "</button>"
+        );
+      }).join("");
+    }
+
     function dsRenderSections() {
       var wrap = document.getElementById("ds-sections");
       if (!wrap) return;
@@ -5378,6 +5456,7 @@ try {
     if (dsTabsEl) {
       dsRenderTemplates();
       dsRenderThemes();
+      dsRenderFonts();
       dsRenderSections();
       dsApplyPreview();
 
@@ -5420,6 +5499,19 @@ try {
         dsState.primary = th.primary;
         dsState.secondary = th.secondary;
         dsRenderThemes();
+        dsApplyPreview();
+        playSound("click");
+      });
+
+      document.getElementById("ds-font-grid").addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-font]");
+        if (!btn) return;
+        var id = btn.getAttribute("data-font");
+        var font = DS_FONTS.filter(function (x) { return x.id === id; })[0];
+        if (!font) return;
+        dsState.selectedFont = id;
+        dsState.fontFamily = font.family;
+        dsRenderFonts();
         dsApplyPreview();
         playSound("click");
       });
@@ -5725,7 +5817,7 @@ try {
         siteAddress: document.getElementById("inv-new-site-address").value.trim(),
         siret: document.getElementById("inv-new-siret").value.trim(),
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
-        dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value || new Date().toISOString().slice(0, 10)),
+        dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
       }));
     });
@@ -6571,7 +6663,7 @@ try {
         invoicesListEl.innerHTML = invoices.length ? invoices.map(function (inv) {
           var balance = invoiceBalance(inv);
           return (
-            '<div class="activity-row"><div><div class="num" style="font-weight:700;">' + inv.id + '</div><div class="meta">' + fmtDate(inv.due) + ' · <span class="badge ' + invoiceStatusBadgeClass(inv.status) + '">' + docStatusLabel(inv.status) + "</span></div></div>" +
+            '<div class="activity-row"><div><div class="num" style="font-weight:700;">' + inv.id + '</div><div class="meta">' + (fmtDate(inv.due) || "—") + ' · <span class="badge ' + invoiceStatusBadgeClass(inv.status) + '">' + docStatusLabel(inv.status) + "</span></div></div>" +
             '<div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;justify-content:flex-end;">' +
             '<span class="tnum" style="font-weight:700;">' + formatCurrency(inv.total, inv.currency) + "</span>" +
             '<button class="btn btn-ghost btn-sm" data-cp-invoice-pdf="' + inv.id + '">⬇</button>' +
@@ -7003,18 +7095,20 @@ try {
       var dark = !!(dsState && dsState.dark);
       var tableBg = (dsState && dsState.tableBg) || "#EEF2FF";
       var accentPos = (dsState && dsState.accent) || "top";
+      var docFont = (dsState && dsState.fontFamily) || "-apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif";
       var docStyle = accentPos === "left" ? "border-left:6px solid " + primary + ";" : "";
       var headBg = dark ? primary : "transparent";
       var headColor = dark ? "#fff" : "#111";
       var headBorder = accentPos === "top" ? primary : (dark ? primary : "#ddd");
       var singleLineDesc = opts.description || (opts.client + " — services");
+      var dueBlock = opts.dueDate ? "<br><strong>" + escapeHtml(opts.dueLabel) + "</strong><br>" + escapeHtml(opts.dueDate) : "";
       var itemsRows = (opts.items && opts.items.length)
         ? opts.items.map(function (it) {
             return "<tr><td>" + escapeHtml(it.desc || "—") + "</td><td style=\"text-align:right;\">" + escapeHtml(it.qty) + "</td><td style=\"text-align:right;\">" + fmt(it.price) + "</td><td style=\"text-align:right;\">" + fmt(it.qty * it.price) + "</td></tr>";
           }).join("")
         : "<tr><td>" + escapeHtml(singleLineDesc) + "</td><td style=\"text-align:right;\">1</td><td style=\"text-align:right;\">" + fmt(opts.total) + "</td><td style=\"text-align:right;\">" + fmt(opts.total) + "</td></tr>";
       return (
-        '<div class="print-doc" style="' + docStyle + '">' +
+        '<div class="print-doc" style="' + docStyle + "font-family:" + docFont + ';">' +
         '<div class="print-doc-head" style="background:' + headBg + ';color:' + headColor + ';border-bottom-color:' + headBorder + ';">' +
         (logo ? '<img src="' + logo + '" alt="" style="height:2.4rem;object-fit:contain;" />' : "") +
         '<div><div style="font-weight:800;font-size:1.1rem;">' + escapeHtml(company.name) + "</div>" +
@@ -7027,9 +7121,9 @@ try {
         (opts.status ? "<div>" + escapeHtml(docStatusLabel(opts.status)) + "</div>" : "") +
         "</div></div>" +
         '<div class="print-doc-grid">' +
-        "<div><strong>" + escapeHtml(t("lbl_billed_to")) + "</strong><br>" + escapeHtml(opts.client) + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + "</div>" +
+        "<div><strong>" + escapeHtml(t("lbl_billed_to")) + "</strong><br><strong>" + escapeHtml(opts.client) + "</strong>" + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + "</div>" +
         (opts.siteAddress ? "<div><strong>" + escapeHtml(t("lbl_jobsite")) + "</strong><br>" + htmlLines(opts.siteAddress) + "</div>" : "<div></div>") +
-        "<div><strong>" + escapeHtml(opts.issueLabel) + "</strong><br>" + escapeHtml(opts.issueDate) + "<br><strong>" + escapeHtml(opts.dueLabel) + "</strong><br>" + escapeHtml(opts.dueDate) + "</div>" +
+        "<div><strong>" + escapeHtml(opts.issueLabel) + "</strong><br>" + escapeHtml(opts.issueDate) + dueBlock + "</div>" +
         "</div>" +
         (opts.siret ? "<p style=\"font-size:0.8rem;margin-bottom:0.8rem;\">SIRET client: " + escapeHtml(opts.siret) + "</p>" : "") +
         '<table class="print-doc-table"><thead style="background:' + tableBg + ';"><tr><th>' + t("fld_description") + '</th><th style="text-align:right;">' + t("fld_qty") + '</th><th style="text-align:right;">' + t("fld_unit_price") + '</th><th style="text-align:right;">' + t("fld_amount") + "</th></tr></thead><tbody>" + itemsRows + "</tbody></table>" +
@@ -7318,7 +7412,7 @@ try {
         var clientMatch = CLIENTS.filter(function (c) { return c.company === editing.client; })[0];
         document.getElementById("inv-new-client").value = clientMatch ? clientMatch.id : "";
         document.getElementById("inv-new-issue").value = editing.issue;
-        document.getElementById("inv-new-due").value = editing.due;
+        document.getElementById("inv-new-due").value = editing.due || "";
         document.getElementById("inv-new-client-address").value = editing.clientAddress || "";
         document.getElementById("inv-new-site-address").value = editing.siteAddress || "";
         document.getElementById("inv-new-siret").value = editing.siret || "";
@@ -7330,11 +7424,7 @@ try {
         var dueEl = document.getElementById("inv-new-due");
         var today = new Date();
         if (issueEl) issueEl.value = today.toISOString().slice(0, 10);
-        if (dueEl) {
-          var due = new Date();
-          due.setDate(due.getDate() + 14);
-          dueEl.value = due.toISOString().slice(0, 10);
-        }
+        if (dueEl) dueEl.value = "";
         var siteEl = document.getElementById("inv-new-site-address");
         if (siteEl) siteEl.value = "";
         var siretEl = document.getElementById("inv-new-siret");
@@ -7358,7 +7448,7 @@ try {
         siteAddress: document.getElementById("inv-new-site-address").value.trim(),
         siret: document.getElementById("inv-new-siret").value.trim(),
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
-        dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value || new Date().toISOString().slice(0, 10)),
+        dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
       }));
     }
@@ -7389,7 +7479,7 @@ try {
       var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
       if (!client) { showToast("Add a client before saving an invoice"); return; }
       var issue = document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10);
-      var due = document.getElementById("inv-new-due").value || issue;
+      var due = document.getElementById("inv-new-due").value || "";
       var total = parseFloat(document.getElementById("t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
       var items = getLineItemsData();
       var clientAddress = document.getElementById("inv-new-client-address").value.trim();
@@ -7467,9 +7557,9 @@ try {
         var balance = invoiceBalance(inv);
         var canRemind = balance > 0 && ["Sent", "Viewed", "Partially paid", "Overdue"].indexOf(inv.status) !== -1;
         return (
-          '<tr><td class="link-strong" data-invoice-open="' + inv.id + '" style="cursor:pointer;">' + inv.id + "</td><td>" + inv.client + "</td><td>" +
+          '<tr><td class="link-strong" data-invoice-open="' + inv.id + '" style="cursor:pointer;">' + inv.id + '</td><td style="font-weight:700;">' + inv.client + "</td><td>" +
           new Date(inv.issue + "T00:00:00").toLocaleDateString("en", { month: "short", day: "2-digit", year: "numeric" }) + "</td><td>" +
-          new Date(inv.due + "T00:00:00").toLocaleDateString("en", { month: "short", day: "2-digit", year: "numeric" }) + '</td><td><span class="badge ' + invoiceStatusBadgeClass(inv.status) + '">' + inv.status + "</span></td>" +
+          (fmtDate(inv.due) || "—") + '</td><td><span class="badge ' + invoiceStatusBadgeClass(inv.status) + '">' + inv.status + "</span></td>" +
           '<td class="tnum" style="text-align:right;font-weight:700;">' + formatCurrency(inv.total, inv.currency) + "</td>" +
           '<td style="display:flex;gap:0.3rem;flex-wrap:wrap;">' +
           '<button class="btn btn-ghost btn-sm" data-invoice-edit="' + inv.id + '">✏️ Edit</button>' +
@@ -7519,7 +7609,7 @@ try {
 
     function phRender(inv) {
       var balance = invoiceBalance(inv);
-      var overdue = inv.status === "Overdue";
+      var overdue = inv.status === "Overdue" && !!inv.due;
       return (
         '<div class="cw-head"><h3 style="font-size:1rem;font-weight:800;">' + inv.id + " — " + inv.client + '</h3><button class="ob-skip" id="ph-close">Close</button></div>' +
         '<div class="cw-body">' +
@@ -7652,6 +7742,7 @@ try {
     var QUOTES = [];
     var quoteSeq = 0;
     function fmtDate(d) {
+      if (!d) return "";
       return new Date(d + "T00:00:00").toLocaleDateString("en", { month: "short", day: "2-digit", year: "numeric" });
     }
     function quoteStatusBadgeClass(s) {
