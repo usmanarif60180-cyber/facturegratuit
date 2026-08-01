@@ -640,7 +640,8 @@ try {
   .lang-select { font-size: 0.78rem; font-weight: 600; padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid hsl(var(--border)); background: hsl(var(--surface)); color: hsl(var(--fg)); cursor: pointer; }
   .m-lang-select { margin-left: 0.4rem; }
   .ad-strip { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; align-items: center; margin: 1rem 0; padding: 0.6rem; background: hsl(var(--surface)); border: 1px dashed hsl(var(--border)); border-radius: var(--radius-lg); }
-  .ad-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; background: hsl(var(--muted) / 0.5); border: 1px dashed hsl(var(--border)); border-radius: var(--radius-md); color: hsl(var(--muted-fg)); font-size: 0.7rem; font-weight: 600; flex-shrink: 0; box-sizing: border-box; }
+  .ad-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; background: hsl(var(--muted) / 0.5); border: 1px dashed hsl(var(--border)); border-radius: var(--radius-md); color: hsl(var(--muted-fg)); font-size: 0.7rem; font-weight: 600; flex-shrink: 0; box-sizing: border-box; overflow:hidden; }
+  .ad-slot iframe { width:100%; max-width:728px; height:90px; border:0; overflow:hidden; display:block; background:transparent; }
   .ad-slot .ad-lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
   #print-area { display: none; }
   .print-doc-head { display: flex; align-items: center; gap: 0.8rem; border-bottom: 2px solid #111; padding-bottom: 1rem; margin-bottom: 1rem; }
@@ -4194,13 +4195,15 @@ try {
     var AD_SLOT_SIZES = [
       { w: 728, h: 90 },
     ];
+    var ADSTERRA_728_SRC_DOC = '<script>atOptions={key:"d1bc43d9c361497fe84f0149e51b36ae",format:"iframe",height:90,width:728,params:{}};<\\/script><script src="https://www.highperformanceformat.com/d1bc43d9c361497fe84f0149e51b36ae/invoke.js"><\\/script>';
     var adSlotCounter = 0;
     function renderAdSlotsHtml(sizes) {
       return sizes.map(function (s) {
         adSlotCounter++;
         return (
           '<div class="ad-slot" data-ad-slot="profacture-ad-' + adSlotCounter + '" style="width:' + s.w + 'px;height:' + s.h + 'px;max-width:100%;">' +
-          '<span class="ad-lbl">' + t("lbl_advertisement") + "</span><span>" + s.w + " × " + s.h + "</span></div>"
+          '<iframe sandbox="allow-scripts allow-same-origin" scrolling="no" title="' + t("lbl_advertisement") + '" srcdoc="' + ADSTERRA_728_SRC_DOC.replace(/"/g, "&quot;") + '"></iframe>' +
+          '<span class="ad-lbl">' + t("lbl_advertisement") + " · " + s.w + " × " + s.h + "</span></div>"
         );
       }).join("");
     }
