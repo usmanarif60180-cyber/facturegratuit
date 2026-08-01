@@ -4732,8 +4732,9 @@ try {
         renderDashboardStats();
         renderDashboardWidgets();
         runCounters(target);
-        if (!window.__obShown) {
+        if (!hasSeenOnboarding()) {
           window.__obShown = true;
+          markOnboardingSeen();
           setTimeout(openOnboarding, 500);
         }
       }
@@ -5265,6 +5266,13 @@ try {
       });
     }
 
+    function hasSeenOnboarding() {
+      try { return localStorage.getItem("profacture_onboarding_seen") === "1"; } catch (e) { return !!window.__obShown; }
+    }
+    function markOnboardingSeen() {
+      window.__obShown = true;
+      try { localStorage.setItem("profacture_onboarding_seen", "1"); } catch (e) { /* ignore */ }
+    }
     function openOnboarding() {
       obStep = 0;
       renderObStep();
@@ -5272,6 +5280,7 @@ try {
       document.body.style.overflow = "hidden";
     }
     function closeOnboarding() {
+      markOnboardingSeen();
       document.getElementById("ob-overlay").classList.remove("open");
       document.body.style.overflow = "";
     }
