@@ -642,13 +642,14 @@ try {
   }
   .app-sidebar .logo { padding: 1.1rem 1.25rem; }
   .app-nav { flex: 1; padding: 0 0.75rem; display: flex; flex-direction: column; gap: 0.15rem; }
-  .app-nav a, .app-nav-footer a {
+  .app-nav a, .app-nav-footer a, .app-nav-footer button {
     display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.75rem; border-radius: var(--radius-sm);
     font-size: 0.875rem; font-weight: 600; color: hsl(var(--muted-fg));
+    width: 100%; border: 0; background: none; text-align: left; font-family: inherit; cursor: pointer;
   }
-  .app-nav a:hover, .app-nav-footer a:hover { background: hsl(var(--muted)); color: hsl(var(--fg)); }
+  .app-nav a:hover, .app-nav-footer a:hover, .app-nav-footer button:hover { background: hsl(var(--muted)); color: hsl(var(--fg)); }
   .app-nav a.current, .app-nav-footer a.current { background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); }
-  .app-nav-footer { padding: 0.75rem; border-top: 1px solid hsl(var(--border)); }
+  .app-nav-footer { padding: 0.75rem; border-top: 1px solid hsl(var(--border)); display: flex; flex-direction: column; gap: 0.15rem; }
   .app-main { flex: 1; min-width: 0; }
   .app-topbar {
     height: 4rem; display: flex; align-items: center; justify-content: flex-end; gap: 0.4rem;
@@ -1085,6 +1086,15 @@ try {
 
   .file-thumb { height: 5.5rem; border-radius: var(--radius-sm); background: hsl(var(--muted)); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; overflow: hidden; margin-bottom: 0.5rem; }
   .file-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  .profile-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.75fr); gap: 1.1rem; align-items: start; }
+  .profile-hero-card { display: flex; gap: 1rem; align-items: center; padding: 1.25rem; margin-bottom: 1.1rem; }
+  .profile-avatar-lg { width: 4.25rem; height: 4.25rem; border-radius: 18px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary))); color: #fff; font-size: 1.35rem; font-weight: 850; overflow: hidden; flex: 0 0 auto; }
+  .profile-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem; }
+  .profile-form-grid .wide { grid-column: 1 / -1; }
+  .profile-note { font-size: 0.78rem; color: hsl(var(--muted-fg)); line-height: 1.5; margin-top: 0.55rem; }
+  @media (max-width: 900px) { .profile-grid, .profile-form-grid { grid-template-columns: 1fr; } .profile-form-grid .wide { grid-column: auto; } }
 
   .unread-dot { width: 0.4rem; height: 0.4rem; border-radius: 999px; background: hsl(var(--primary)); flex-shrink: 0; margin-top: 0.3rem; }
   .notif-item.read { opacity: 0.55; }
@@ -1987,12 +1997,16 @@ try {
     var nav = APP_NAV.map(function (item) {
       return '<a href="#" data-goto="' + item.id + '" class="' + (item.id === active ? "current" : "") + '"><span>' + item.ic + "</span>" + t(item.i18nKey) + "</a>";
     }).join("");
-    return (
-      '<aside class="app-sidebar"><div class="logo"><span class="logo-mark">PA</span>ProFacture AI</div>' +
-      '<nav class="app-nav">' + nav + "</nav>" +
-      '<div class="app-nav-footer"><a href="#" data-goto="settings" class="' + (active === "settings" ? "current" : "") + '">⚙ ' + t("nav_settings") + "</a></div></aside>"
-    );
-  }
+	    return (
+	      '<aside class="app-sidebar"><div class="logo"><span class="logo-mark">PA</span>ProFacture AI</div>' +
+	      '<nav class="app-nav">' + nav + "</nav>" +
+	      '<div class="app-nav-footer">' +
+	      '<a href="#" data-goto="profile" class="' + (active === "profile" ? "current" : "") + '">👤 ' + t("nav_profile") + "</a>" +
+	      '<a href="#" data-goto="settings" class="' + (active === "settings" ? "current" : "") + '">⚙ ' + t("nav_settings") + "</a>" +
+	      '<button type="button" data-auth-logout hidden>↪ ' + t("topbar_signout") + "</button>" +
+	      "</div></aside>"
+	    );
+	  }
   function langSelectHtml(extraClass) {
     return (
       '<select class="lang-select ' + (extraClass || "") + '" aria-label="' + t("topbar_language") + '">' +
@@ -3204,10 +3218,47 @@ try {
       ai_tax_assistant: "Asystent podatkowy AI", ai_contract_generator: "Generator umów AI", ai_inventory_analyst: "Analityk magazynu AI",
       lbl_soon: "Wkrótce", lbl_optional: "opcjonalnie"
     },
-  };
-  Object.keys(I18N_PATCHES).forEach(function (lang) {
-    I18N[lang] = Object.assign(I18N[lang] || {}, I18N_PATCHES[lang]);
-  });
+	  };
+	  Object.keys(I18N_PATCHES).forEach(function (lang) {
+	    I18N[lang] = Object.assign(I18N[lang] || {}, I18N_PATCHES[lang]);
+	  });
+	  var ACCOUNT_I18N_PATCHES = {
+	    en: {
+	      nav_profile: "My Profile", page_profile_title: "My Profile", page_profile_sub: "Account, security, billing address and future payment settings.",
+	      card_account_profile: "Account profile", card_account_security: "Password & security", card_billing_profile: "Billing profile", card_future_payment: "Future payment method",
+	      fld_display_name: "Display name", fld_account_email: "Account email", fld_personal_phone: "Phone", fld_personal_address: "Personal address",
+	      fld_city: "City", fld_postal_code: "Postal code", fld_country: "Country", fld_billing_name: "Billing name",
+	      fld_billing_email: "Billing email", fld_billing_address: "Billing address", fld_tax_number: "Tax / VAT number",
+	      fld_cardholder_name: "Cardholder name", fld_card_brand: "Card brand", fld_card_last4: "Card ending",
+	      btn_save_profile: "Save profile", btn_send_password_reset: "Send password reset link", btn_save_billing: "Save billing profile",
+	      btn_save_payment_placeholder: "Save payment placeholder", btn_clear_payment_placeholder: "Clear payment placeholder",
+	      txt_card_security_note: "For security, ProFacture AI does not store full card numbers or CVV. Future payments should use a secure provider portal.",
+	      txt_password_reset_note: "A secure password reset link will be sent to your account email.",
+	      lbl_connected_account: "Connected account", lbl_email_verified: "Email verified", lbl_provider: "Provider", lbl_user_id: "User ID"
+	    },
+	    fr: {
+	      nav_profile: "Mon profil", page_profile_title: "Mon profil", page_profile_sub: "Compte, sécurité, adresse de facturation et futurs paiements.",
+	      card_account_profile: "Profil du compte", card_account_security: "Mot de passe et sécurité", card_billing_profile: "Profil de facturation", card_future_payment: "Moyen de paiement futur",
+	      fld_display_name: "Nom affiché", fld_account_email: "E-mail du compte", fld_personal_phone: "Téléphone", fld_personal_address: "Adresse personnelle",
+	      fld_city: "Ville", fld_postal_code: "Code postal", fld_country: "Pays", fld_billing_name: "Nom de facturation",
+	      fld_billing_email: "E-mail de facturation", fld_billing_address: "Adresse de facturation", fld_tax_number: "Numéro TVA / fiscal",
+	      fld_cardholder_name: "Nom du titulaire", fld_card_brand: "Marque de carte", fld_card_last4: "4 derniers chiffres",
+	      btn_save_profile: "Enregistrer le profil", btn_send_password_reset: "Envoyer le lien de réinitialisation", btn_save_billing: "Enregistrer la facturation",
+	      btn_save_payment_placeholder: "Enregistrer l'espace paiement", btn_clear_payment_placeholder: "Effacer l'espace paiement",
+	      txt_card_security_note: "Pour la sécurité, ProFacture AI ne stocke pas les numéros complets de carte ni les CVV. Les futurs paiements devront passer par un portail sécurisé.",
+	      txt_password_reset_note: "Un lien sécurisé de réinitialisation sera envoyé à l'e-mail du compte.",
+	      lbl_connected_account: "Compte connecté", lbl_email_verified: "E-mail vérifié", lbl_provider: "Fournisseur", lbl_user_id: "ID utilisateur"
+	    },
+	    it: { nav_profile: "Profilo", page_profile_title: "Profilo", page_profile_sub: "Account, sicurezza, fatturazione e pagamenti futuri.", card_account_profile: "Profilo account", card_account_security: "Password e sicurezza", card_billing_profile: "Profilo fatturazione", card_future_payment: "Metodo di pagamento futuro" },
+	    es: { nav_profile: "Mi perfil", page_profile_title: "Mi perfil", page_profile_sub: "Cuenta, seguridad, facturación y pagos futuros.", card_account_profile: "Perfil de cuenta", card_account_security: "Contraseña y seguridad", card_billing_profile: "Perfil de facturación", card_future_payment: "Método de pago futuro" },
+	    de: { nav_profile: "Mein Profil", page_profile_title: "Mein Profil", page_profile_sub: "Konto, Sicherheit, Rechnungsadresse und zukünftige Zahlungen.", card_account_profile: "Kontoprofil", card_account_security: "Passwort und Sicherheit", card_billing_profile: "Abrechnungsprofil", card_future_payment: "Zukünftige Zahlungsmethode" },
+	    nl: { nav_profile: "Mijn profiel", page_profile_title: "Mijn profiel", page_profile_sub: "Account, beveiliging, facturatie en toekomstige betalingen.", card_account_profile: "Accountprofiel", card_account_security: "Wachtwoord en beveiliging", card_billing_profile: "Facturatieprofiel", card_future_payment: "Toekomstige betaalmethode" },
+	    pt: { nav_profile: "Meu perfil", page_profile_title: "Meu perfil", page_profile_sub: "Conta, segurança, faturação e pagamentos futuros.", card_account_profile: "Perfil da conta", card_account_security: "Palavra-passe e segurança", card_billing_profile: "Perfil de faturação", card_future_payment: "Método de pagamento futuro" },
+	    pl: { nav_profile: "Mój profil", page_profile_title: "Mój profil", page_profile_sub: "Konto, bezpieczeństwo, rozliczenia i przyszłe płatności.", card_account_profile: "Profil konta", card_account_security: "Hasło i bezpieczeństwo", card_billing_profile: "Profil rozliczeniowy", card_future_payment: "Przyszła metoda płatności" }
+	  };
+	  Object.keys(ACCOUNT_I18N_PATCHES).forEach(function (lang) {
+	    I18N[lang] = Object.assign(I18N[lang] || {}, ACCOUNT_I18N_PATCHES[lang]);
+	  });
   var STATIC_COPY_TRANSLATIONS = {
     "The AI Business Platform": { fr: "La plateforme business IA", it: "La piattaforma business IA", es: "La plataforma empresarial IA", de: "Die KI-Business-Plattform", nl: "Het AI-businessplatform", pt: "A plataforma empresarial IA", pl: "Platforma biznesowa AI" },
     "Explore pricing": { fr: "Voir les tarifs", it: "Vedi i prezzi", es: "Ver precios", de: "Preise ansehen", nl: "Prijzen bekijken", pt: "Ver preços", pl: "Zobacz ceny" },
@@ -4439,6 +4490,100 @@ try {
   </div>
 </section>
 
+<section class="view" id="view-profile">
+  <div class="app-shell">
+    <div id="sidebar-profile"></div>
+    <div class="app-main">
+      <div id="topbar-profile"></div>
+      <div class="app-content">
+        <div class="page-head">
+          <div>
+            <h1 data-i18n="page_profile_title">My Profile</h1>
+            <p data-i18n="page_profile_sub">Account, security, billing address and future payment settings.</p>
+          </div>
+        </div>
+
+        <div class="card profile-hero-card">
+          <div class="profile-avatar-lg" id="profile-avatar-lg">U</div>
+          <div style="min-width:0;">
+            <h2 id="profile-display-title" style="font-size:1.25rem;font-weight:850;">User</h2>
+            <p id="profile-email-title" style="color:hsl(var(--muted-fg));font-size:0.9rem;margin-top:0.15rem;">user@example.com</p>
+            <div style="display:flex;gap:0.45rem;flex-wrap:wrap;margin-top:0.7rem;">
+              <span class="badge badge-success" id="profile-connected-badge" data-i18n="lbl_connected_account">Connected account</span>
+              <span class="badge badge-default" id="profile-provider-badge">Firebase</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-grid">
+          <div class="legal-stack">
+            <div class="card card-pad">
+              <div class="card-title" data-i18n="card_account_profile">Account profile</div>
+              <div class="profile-form-grid">
+                <div><label class="field-label" data-i18n="fld_display_name">Display name</label><input class="field" id="profile-name" autocomplete="name" /></div>
+                <div><label class="field-label" data-i18n="fld_account_email">Account email</label><input class="field" id="profile-email" type="email" readonly /></div>
+                <div><label class="field-label" data-i18n="fld_personal_phone">Phone</label><input class="field" id="profile-phone" autocomplete="tel" placeholder="+33..." /></div>
+                <div><label class="field-label" data-i18n="fld_country">Country</label><input class="field" id="profile-country" autocomplete="country-name" placeholder="France" /></div>
+                <div class="wide"><label class="field-label" data-i18n="fld_personal_address">Personal address</label><textarea class="field" id="profile-address" rows="2" autocomplete="street-address" placeholder="Street, city, postal code"></textarea></div>
+              </div>
+              <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:1rem;">
+                <button class="btn btn-primary" id="profile-save-btn" data-i18n="btn_save_profile">Save profile</button>
+                <p id="profile-status" class="auth-status" role="status" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <div class="card card-pad">
+              <div class="card-title" data-i18n="card_billing_profile">Billing profile</div>
+              <div class="profile-form-grid">
+                <div><label class="field-label" data-i18n="fld_billing_name">Billing name</label><input class="field" id="billing-name" placeholder="Company or person name" /></div>
+                <div><label class="field-label" data-i18n="fld_billing_email">Billing email</label><input class="field" id="billing-email" type="email" placeholder="billing@example.com" /></div>
+                <div><label class="field-label" data-i18n="fld_city">City</label><input class="field" id="billing-city" /></div>
+                <div><label class="field-label" data-i18n="fld_postal_code">Postal code</label><input class="field" id="billing-postal" /></div>
+                <div><label class="field-label" data-i18n="fld_country">Country</label><input class="field" id="billing-country" /></div>
+                <div><label class="field-label" data-i18n="fld_tax_number">Tax / VAT number</label><input class="field" id="billing-tax" placeholder="TVA, VAT, SIRET..." /></div>
+                <div class="wide"><label class="field-label" data-i18n="fld_billing_address">Billing address</label><textarea class="field" id="billing-address" rows="2"></textarea></div>
+              </div>
+              <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:1rem;">
+                <button class="btn btn-primary" id="billing-save-btn" data-i18n="btn_save_billing">Save billing profile</button>
+                <p id="billing-status" class="auth-status" role="status" aria-live="polite"></p>
+              </div>
+            </div>
+          </div>
+
+          <aside class="legal-stack">
+            <div class="card card-pad">
+              <div class="card-title" data-i18n="card_account_security">Password &amp; security</div>
+              <div class="trust-list">
+                <div class="trust-row"><span>✓</span><div><strong data-i18n="lbl_email_verified">Email verified</strong><small id="profile-email-verified">Checking...</small></div></div>
+                <div class="trust-row"><span>🔑</span><div><strong data-i18n="lbl_provider">Provider</strong><small id="profile-provider">Firebase</small></div></div>
+                <div class="trust-row"><span>ID</span><div><strong data-i18n="lbl_user_id">User ID</strong><small id="profile-uid">-</small></div></div>
+              </div>
+              <p class="profile-note" data-i18n="txt_password_reset_note">A secure password reset link will be sent to your account email.</p>
+              <button class="btn btn-outline" id="profile-reset-password-btn" style="width:100%;margin-top:0.85rem;" data-i18n="btn_send_password_reset">Send password reset link</button>
+              <p id="profile-security-status" class="auth-status" role="status" aria-live="polite"></p>
+            </div>
+
+            <div class="card card-pad">
+              <div class="card-title" data-i18n="card_future_payment">Future payment method</div>
+              <p class="profile-note" data-i18n="txt_card_security_note">For security, ProFacture AI does not store full card numbers or CVV. Future payments should use a secure provider portal.</p>
+              <div style="display:grid;gap:0.75rem;margin-top:0.9rem;">
+                <div><label class="field-label" data-i18n="fld_cardholder_name">Cardholder name</label><input class="field" id="payment-cardholder" placeholder="Name on card" /></div>
+                <div><label class="field-label" data-i18n="fld_card_brand">Card brand</label><select class="field" id="payment-brand"><option value="">Not selected</option><option>Visa</option><option>Mastercard</option><option>American Express</option><option>Apple Pay</option><option>Google Pay</option><option>PayPal</option></select></div>
+                <div><label class="field-label" data-i18n="fld_card_last4">Card ending</label><input class="field" id="payment-last4" inputmode="numeric" maxlength="4" placeholder="1234" /></div>
+              </div>
+              <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.9rem;">
+                <button class="btn btn-primary btn-sm" id="payment-placeholder-save-btn" data-i18n="btn_save_payment_placeholder">Save payment placeholder</button>
+                <button class="btn btn-outline btn-sm" id="payment-placeholder-clear-btn" data-i18n="btn_clear_payment_placeholder">Clear payment placeholder</button>
+              </div>
+              <p id="payment-placeholder-status" class="auth-status" role="status" aria-live="polite"></p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="view" id="view-settings">
   <div class="app-shell">
     <div id="sidebar-settings"></div>
@@ -4575,6 +4720,7 @@ try {
   <button data-goto="inventory">Inventory</button>
   <button data-goto="team">Team</button>
   <button data-goto="files">Files</button>
+  <button data-goto="profile">Profile</button>
   <button data-goto="settings">Settings</button>
   <button data-goto="invoices">Invoices</button>
   <button data-goto="ai">Assistant</button>
@@ -4583,7 +4729,7 @@ try {
 
 <script>
   (function () {
-    var appViews = ["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "reports", "ai"];
+    var appViews = ["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "profile", "settings", "reports", "ai"];
     appViews.forEach(function (id) {
       var sb = document.getElementById("sidebar-" + id);
       var tb = document.getElementById("topbar-" + id);
@@ -4628,7 +4774,7 @@ try {
 	    function updateMarketingHeaders(loggedIn) {
 	      lastKnownAuthState = loggedIn;
 	      document.querySelectorAll(".m-auth-links").forEach(function (el) {
-	        el.innerHTML = '<a href="#" class="m-auth-icon" data-goto="' + (loggedIn ? "dashboard" : "login") + '" title="' + (loggedIn ? t("auth_your_account") : t("btn_sign_in")) + '"><span class="avatar" data-auth-avatar>👤</span></a>';
+	        el.innerHTML = '<a href="#" class="m-auth-icon" data-goto="' + (loggedIn ? "profile" : "login") + '" title="' + (loggedIn ? t("auth_your_account") : t("btn_sign_in")) + '"><span class="avatar" data-auth-avatar>👤</span></a>';
 	      });
 	    }
     updateMarketingHeaders(false);
@@ -5162,8 +5308,9 @@ try {
         renderCrmStatsAndPipeline();
         runCounters(target);
       }
-      if (id === "ai" && typeof initAiAssistant === "function") initAiAssistant(true);
-      if (id === "leads") renderLeadsInit();
+	      if (id === "ai" && typeof initAiAssistant === "function") initAiAssistant(true);
+	      if (id === "profile" && typeof window.profactureRenderAccountProfile === "function") window.profactureRenderAccountProfile();
+	      if (id === "leads") renderLeadsInit();
       if (id === "companies") renderCompaniesInit();
       if (id === "projects") renderProjectsInit();
       if (id === "calendar") renderCalendarInit();
@@ -9663,7 +9810,7 @@ try {
     measurementId: "G-JJCNL9THWD"
   };
   const auth = getAuth(initializeApp(firebaseConfig));
-  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "reports", "ai"]);
+	  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "profile", "reports", "ai"]);
   let currentUser = null;
 
   function showAuthStatus(id, message, kind = "error") {
@@ -9699,15 +9846,156 @@ try {
     const source = (user && user.displayName) || (user && user.email) || "User";
     return source.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
   }
-  function renderAuthAvatars(user) {
-    document.querySelectorAll("[data-auth-avatar]").forEach(el => {
-      if (user && user.photoURL) el.innerHTML = '<img src="' + user.photoURL + '" alt="" style="width:100%;height:100%;object-fit:cover;" />';
-      else if (user) el.textContent = initials(user);
-      else el.textContent = "👤";
-    });
-  }
+	  function renderAuthAvatars(user) {
+	    document.querySelectorAll("[data-auth-avatar]").forEach(el => {
+	      if (user && user.photoURL) el.innerHTML = '<img src="' + user.photoURL + '" alt="" style="width:100%;height:100%;object-fit:cover;" />';
+	      else if (user) el.textContent = initials(user);
+	      else el.textContent = "👤";
+	    });
+	  }
 
-  document.getElementById("register-form").addEventListener("submit", async event => {
+	  function accountStorageKey(name) {
+	    const uid = currentUser && currentUser.uid ? currentUser.uid : "guest";
+	    return "profacture_account_" + uid + "_" + name;
+	  }
+	  function readAccountStorage(name, fallback = {}) {
+	    try { return JSON.parse(localStorage.getItem(accountStorageKey(name)) || "null") || fallback; }
+	    catch (e) { return fallback; }
+	  }
+	  function writeAccountStorage(name, value) {
+	    try { localStorage.setItem(accountStorageKey(name), JSON.stringify(value || {})); }
+	    catch (e) { /* ignore */ }
+	  }
+	  function setInputValue(id, value) {
+	    const el = document.getElementById(id);
+	    if (el) el.value = value || "";
+	  }
+	  function getInputValue(id) {
+	    const el = document.getElementById(id);
+	    return el ? el.value.trim() : "";
+	  }
+	  function renderAccountProfile() {
+	    const user = currentUser;
+	    const profileView = document.getElementById("view-profile");
+	    if (!profileView) return;
+	    const localProfile = readAccountStorage("profile");
+	    const billing = readAccountStorage("billing");
+	    const payment = readAccountStorage("payment");
+	    const displayName = (localProfile.displayName || (user && user.displayName) || "").trim();
+	    const email = (user && user.email) || localProfile.email || "";
+	    const provider = user && user.providerData && user.providerData.length ? user.providerData.map(p => p.providerId.replace(".com", "")).join(", ") : "firebase";
+	    const avatar = document.getElementById("profile-avatar-lg");
+	    if (avatar) {
+	      if (user && user.photoURL) avatar.innerHTML = '<img src="' + user.photoURL + '" alt="" />';
+	      else avatar.textContent = initials(user || { displayName: displayName, email: email });
+	    }
+	    const title = document.getElementById("profile-display-title");
+	    if (title) title.textContent = displayName || "User";
+	    const emailTitle = document.getElementById("profile-email-title");
+	    if (emailTitle) emailTitle.textContent = email || "No email";
+	    const providerBadge = document.getElementById("profile-provider-badge");
+	    if (providerBadge) providerBadge.textContent = provider;
+	    setInputValue("profile-name", displayName);
+	    setInputValue("profile-email", email);
+	    setInputValue("profile-phone", localProfile.phone);
+	    setInputValue("profile-country", localProfile.country);
+	    setInputValue("profile-address", localProfile.address);
+	    setInputValue("billing-name", billing.name);
+	    setInputValue("billing-email", billing.email || email);
+	    setInputValue("billing-city", billing.city);
+	    setInputValue("billing-postal", billing.postal);
+	    setInputValue("billing-country", billing.country || localProfile.country);
+	    setInputValue("billing-tax", billing.taxNumber);
+	    setInputValue("billing-address", billing.address);
+	    setInputValue("payment-cardholder", payment.cardholder);
+	    setInputValue("payment-brand", payment.brand);
+	    setInputValue("payment-last4", payment.last4);
+	    const verified = document.getElementById("profile-email-verified");
+	    if (verified) verified.textContent = user ? (user.emailVerified ? "Verified" : "Not verified yet") : "Not signed in";
+	    const providerEl = document.getElementById("profile-provider");
+	    if (providerEl) providerEl.textContent = provider;
+	    const uidEl = document.getElementById("profile-uid");
+	    if (uidEl) uidEl.textContent = user && user.uid ? user.uid.slice(0, 10) + "..." : "-";
+	  }
+	  window.profactureRenderAccountProfile = renderAccountProfile;
+
+	  const profileSaveBtn = document.getElementById("profile-save-btn");
+	  if (profileSaveBtn) profileSaveBtn.addEventListener("click", async () => {
+	    if (!currentUser) { showAuthStatus("profile-status", "Please sign in first."); return; }
+	    const displayName = getInputValue("profile-name");
+	    const profile = {
+	      displayName,
+	      email: currentUser.email || getInputValue("profile-email"),
+	      phone: getInputValue("profile-phone"),
+	      country: getInputValue("profile-country"),
+	      address: getInputValue("profile-address"),
+	      updatedAt: new Date().toISOString()
+	    };
+	    profileSaveBtn.disabled = true;
+	    try {
+	      if (displayName && displayName !== currentUser.displayName) await updateProfile(currentUser, { displayName });
+	      writeAccountStorage("profile", profile);
+	      renderAuthAvatars(currentUser);
+	      renderAccountProfile();
+	      showAuthStatus("profile-status", "Profile saved.", "success");
+	    } catch (error) {
+	      showAuthStatus("profile-status", friendlyAuthError(error));
+	    } finally {
+	      profileSaveBtn.disabled = false;
+	    }
+	  });
+
+	  const resetPasswordBtn = document.getElementById("profile-reset-password-btn");
+	  if (resetPasswordBtn) resetPasswordBtn.addEventListener("click", async () => {
+	    if (!currentUser || !currentUser.email) { showAuthStatus("profile-security-status", "No account email is available."); return; }
+	    resetPasswordBtn.disabled = true;
+	    try {
+	      await sendPasswordResetEmail(auth, currentUser.email);
+	      showAuthStatus("profile-security-status", "Password reset link sent to " + currentUser.email + ".", "success");
+	    } catch (error) {
+	      showAuthStatus("profile-security-status", friendlyAuthError(error));
+	    } finally {
+	      resetPasswordBtn.disabled = false;
+	    }
+	  });
+
+	  const billingSaveBtn = document.getElementById("billing-save-btn");
+	  if (billingSaveBtn) billingSaveBtn.addEventListener("click", () => {
+	    if (!currentUser) { showAuthStatus("billing-status", "Please sign in first."); return; }
+	    writeAccountStorage("billing", {
+	      name: getInputValue("billing-name"),
+	      email: getInputValue("billing-email"),
+	      city: getInputValue("billing-city"),
+	      postal: getInputValue("billing-postal"),
+	      country: getInputValue("billing-country"),
+	      taxNumber: getInputValue("billing-tax"),
+	      address: getInputValue("billing-address"),
+	      updatedAt: new Date().toISOString()
+	    });
+	    showAuthStatus("billing-status", "Billing profile saved.", "success");
+	  });
+
+	  const paymentSaveBtn = document.getElementById("payment-placeholder-save-btn");
+	  if (paymentSaveBtn) paymentSaveBtn.addEventListener("click", () => {
+	    if (!currentUser) { showAuthStatus("payment-placeholder-status", "Please sign in first."); return; }
+	    const last4 = getInputValue("payment-last4").replace(/\D/g, "").slice(-4);
+	    writeAccountStorage("payment", {
+	      cardholder: getInputValue("payment-cardholder"),
+	      brand: getInputValue("payment-brand"),
+	      last4,
+	      updatedAt: new Date().toISOString()
+	    });
+	    setInputValue("payment-last4", last4);
+	    showAuthStatus("payment-placeholder-status", "Payment placeholder saved. Full card numbers and CVV are not stored.", "success");
+	  });
+	  const paymentClearBtn = document.getElementById("payment-placeholder-clear-btn");
+	  if (paymentClearBtn) paymentClearBtn.addEventListener("click", () => {
+	    writeAccountStorage("payment", {});
+	    renderAccountProfile();
+	    showAuthStatus("payment-placeholder-status", "Payment placeholder cleared.", "success");
+	  });
+
+	  document.getElementById("register-form").addEventListener("submit", async event => {
     event.preventDefault();
     const name = document.getElementById("register-name").value.trim();
     const email = document.getElementById("register-email").value.trim();
@@ -9868,9 +10156,10 @@ try {
 
   onAuthStateChanged(auth, user => {
     currentUser = user;
-    if (window.profactureSetMarketingAuthState) window.profactureSetMarketingAuthState(!!user);
-    renderAuthAvatars(user);
-    document.querySelectorAll("[data-auth-logout]").forEach(el => { el.hidden = !user; });
+	    if (window.profactureSetMarketingAuthState) window.profactureSetMarketingAuthState(!!user);
+	    renderAuthAvatars(user);
+	    renderAccountProfile();
+	    document.querySelectorAll("[data-auth-logout]").forEach(el => { el.hidden = !user; });
     const activeView = document.querySelector(".view.active");
     if (!user && activeView && protectedViews.has(activeView.id.replace("view-", ""))) window.profactureShowView("login");
   });
