@@ -4449,6 +4449,7 @@ try {
         var qSel = document.getElementById("q-new-currency");
         if (qSel) { qSel.value = code; if (typeof qRecalc === "function") qRecalc(); }
       }
+      refreshCurrencyDisplays();
     }
     window.profactureApplyCurrencyDefault = applyCurrencyDefault;
     window.ivoxaApplyCurrencyDefault = applyCurrencyDefault;
@@ -4804,8 +4805,11 @@ try {
     var nextRow = 0;
 
     var CURRENCY_SYMBOLS = { USD: "$", EUR: "€", GBP: "£", AED: "د.إ ", PKR: "Rs " };
+    function currencySymbol(code) {
+      return CURRENCY_SYMBOLS[code] || "$";
+    }
     function formatCurrency(n, code) {
-      var symbol = CURRENCY_SYMBOLS[code] || "$";
+      var symbol = currencySymbol(code);
       return symbol + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     function currency(n) {
@@ -4896,8 +4900,45 @@ try {
         countUp(el, parseInt(el.getAttribute("data-count"), 10), el.getAttribute("data-prefix") || "");
       });
     }
+    function refreshCurrencyDisplays() {
+      var symbol = currencySymbol(currentCurrency);
+      document.querySelectorAll('[data-prefix="$"], [data-prefix="€"], [data-prefix="£"], [data-prefix="د.إ "], [data-prefix="Rs "]').forEach(function (el) {
+        el.setAttribute("data-prefix", symbol);
+      });
+      var hero = document.getElementById("hv-revenue");
+      if (hero) hero.textContent = formatCurrency(12840, currentCurrency);
+      var activeView = document.querySelector(".view.active");
+      var id = activeView ? activeView.id.replace(/^view-/, "") : "";
+      if (id === "dashboard") {
+        renderDashboardStats();
+        renderDashboardWidgets();
+        renderDashComplianceSummary();
+      } else if (id === "reports") {
+        renderReportsStats();
+        renderYearlyTrend();
+        renderTopCustomers();
+        renderBestSellers();
+        renderAIInsights("rpt-ai-insights-list", 6);
+      } else if (id === "inventory" && typeof invRenderAll === "function") {
+        invRenderAll();
+      } else if (id === "expenses" && typeof renderExpensesAll === "function") {
+        renderExpensesAll();
+      } else if (id === "crm" && typeof renderCrmStatsAndPipeline === "function") {
+        renderCrmStatsAndPipeline();
+      } else if (id === "leads" && typeof renderLeadsKanban === "function") {
+        renderLeadsKanban();
+      } else if (id === "clients" && typeof renderClientsTable === "function") {
+        renderClientsTable(document.getElementById("clients-search") ? document.getElementById("clients-search").value : "");
+      } else if (id === "client-detail" && cdActiveClientId && typeof renderClientDetail === "function") {
+        renderClientDetail(cdActiveClientId);
+      } else if (id === "projects" && typeof renderProjectsAll === "function") {
+        renderProjectsAll();
+      } else if (id === "project-detail" && pdActiveProjectId && typeof renderProjectDetail === "function") {
+        renderProjectDetail(pdActiveProjectId);
+      }
+    }
     var heroRevenue = document.getElementById("hv-revenue");
-    if (heroRevenue) countUp(heroRevenue, 12840, "$");
+    if (heroRevenue) countUp(heroRevenue, 12840, currencySymbol(currentCurrency));
 
     // ---- workflow demo: auto-cycling steps ----
     var wfRoot = document.getElementById("wf-root");
@@ -8232,7 +8273,19 @@ try {
       EXPENSES.forEach(function (e) { expensesTotal += e.amount; });
       var profit = revenue - expensesTotal;
       var stats = [revenue, profit, expensesTotal, profit, outstanding, INVOICES.length, QUOTES.length, CLIENTS.length];
-      vals.forEach(function (el, i) { el.setAttribute("data-count", String(Math.round(stats[i]))); });
+      vals.forEach(function (el, i) {
+        el.setAttribute("data-count", String(Math.round(stats[i])));
+        if (i < 5) {
+          el.setAttribute("data-prefix", currencySymbol(currentCurrency));
+          el.textContent = currency(stats[i]);
+        } else {
+          el.removeAttribute("data-prefix");
+          el.textContent = String(stats[i]);
+        }
+      });
+      grid.querySelectorAll(".stat-card .ic").forEach(function (el, i) {
+        if (i === 0 || i === 4) el.textContent = currencySymbol(currentCurrency);
+      });
     }
     function renderDashboardWidgets() {
       var chartWrap = document.getElementById("dash-revenue-chart");
