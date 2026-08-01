@@ -586,9 +586,32 @@ try {
   footer.m-footer { border-top: 1px solid hsl(var(--border)); padding: 3.5rem 0 2rem; }
   .footer-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 2.5rem; }
   @media (max-width: 700px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
-  .footer-grid h4 { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.7rem; }
-  .footer-grid a { display: block; font-size: 0.85rem; color: hsl(var(--muted-fg)); padding: 0.2rem 0; }
-  .footer-note { text-align: center; font-size: 0.75rem; color: hsl(var(--muted-fg)); margin-top: 2.5rem; }
+	  .footer-grid h4 { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.7rem; }
+	  .footer-grid a { display: block; font-size: 0.85rem; color: hsl(var(--muted-fg)); padding: 0.2rem 0; }
+	  .footer-note { text-align: center; font-size: 0.75rem; color: hsl(var(--muted-fg)); margin-top: 2.5rem; }
+	  .legal-page { padding: 3.5rem 0 4.5rem; }
+	  .legal-hero { max-width: 52rem; margin-bottom: 2rem; }
+	  .legal-hero h1 { font-size: clamp(2rem, 4vw, 3.25rem); font-weight: 850; letter-spacing: -0.03em; line-height: 1.05; }
+	  .legal-hero p { margin-top: 0.9rem; color: hsl(var(--muted-fg)); font-size: 1rem; line-height: 1.65; }
+	  .legal-grid { display: grid; grid-template-columns: 1.4fr 0.75fr; gap: 1.2rem; align-items: start; }
+	  .legal-stack { display: flex; flex-direction: column; gap: 1rem; }
+	  .legal-card { padding: 1.35rem; }
+	  .legal-card h2 { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.65rem; }
+	  .legal-card h3 { font-size: 0.9rem; font-weight: 800; margin: 0.95rem 0 0.35rem; }
+	  .legal-card p, .legal-card li { color: hsl(var(--muted-fg)); font-size: 0.9rem; line-height: 1.65; }
+	  .legal-card ul { margin: 0.55rem 0 0 1.1rem; padding: 0; }
+	  .legal-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1rem; }
+	  .legal-meta div { border: 1px solid hsl(var(--border)); background: hsl(var(--surface)); border-radius: var(--radius-md); padding: 0.85rem; }
+	  .legal-meta strong { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: hsl(var(--muted-fg)); margin-bottom: 0.25rem; }
+	  .legal-meta span, .legal-meta a { font-size: 0.9rem; font-weight: 700; color: hsl(var(--fg)); }
+	  .trust-list { display: grid; gap: 0.65rem; }
+	  .trust-row { display: flex; gap: 0.65rem; align-items: flex-start; padding: 0.7rem; border: 1px solid hsl(var(--border)); border-radius: var(--radius-md); background: hsl(var(--surface)); }
+	  .trust-row span:first-child { width: 1.65rem; height: 1.65rem; flex: 0 0 auto; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); font-size: 0.8rem; }
+	  .trust-row strong { display: block; font-size: 0.86rem; }
+	  .trust-row small { display: block; margin-top: 0.15rem; color: hsl(var(--muted-fg)); line-height: 1.45; }
+	  .contact-form { display: grid; gap: 0.85rem; }
+	  .contact-form .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+	  @media (max-width: 820px) { .legal-grid, .legal-meta, .contact-form .grid2 { grid-template-columns: 1fr; } }
 
   /* ---- auth ---- */
   .auth-wrap { min-height: calc(100vh - 32px); display: flex; flex-direction: column; }
@@ -1174,8 +1197,8 @@ try {
       <nav class="m-nav">
         <a href="#" data-goto="landing" class="current" data-i18n="mkt_features">Features</a>
         <a href="#" data-goto="pricing" data-i18n="mkt_pricing">Pricing</a>
-        <a href="#" data-goto="landing" data-i18n="mkt_about">About</a>
-        <a href="#" data-goto="landing">Contact</a>
+	        <a href="#" data-goto="landing" data-i18n="mkt_about">About</a>
+	        <a href="#" data-goto="contact">Contact</a>
       </nav>
       <div class="m-actions">
         <select class="lang-select m-lang-select" id="landing-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select>
@@ -1343,9 +1366,9 @@ try {
   <footer class="m-footer">
     <div class="container footer-grid">
       <div><a href="#" class="logo"><span class="logo-mark">PA</span>ProFacture AI</a><p style="margin-top:0.75rem;font-size:0.85rem;color:hsl(var(--muted-fg));max-width:20rem;">The AI Business Platform — invoicing, quotations and more, in one intelligent workspace.</p></div>
-      <div><h4>Product</h4><a href="#" data-goto="landing">Features</a><a href="#" data-goto="pricing">Pricing</a><a href="#" data-goto="landing">Help Center</a></div>
-      <div><h4>Company</h4><a href="#" data-goto="landing">About</a><a href="#" data-goto="landing">Contact</a></div>
-      <div><h4>Legal</h4><a href="#" data-goto="landing">Privacy Policy</a><a href="#" data-goto="landing">Terms of Service</a></div>
+	      <div><h4>Product</h4><a href="#" data-goto="landing">Features</a><a href="#" data-goto="pricing">Pricing</a><a href="#" data-goto="help">Help Center</a></div>
+	      <div><h4>Company</h4><a href="#" data-goto="landing">About</a><a href="#" data-goto="contact">Contact</a><a href="#" data-goto="security">Security</a></div>
+	      <div><h4>Legal</h4><a href="#" data-goto="privacy">Privacy Policy</a><a href="#" data-goto="cookies">Cookies</a><a href="#" data-goto="terms">Terms of Service</a><a href="#" data-goto="legal">Legal Notice</a></div>
     </div>
     <p class="footer-note">© 2026 ProFacture AI. All rights reserved.</p>
   </footer>
@@ -1359,8 +1382,8 @@ try {
       <nav class="m-nav">
         <a href="#" data-goto="landing" data-i18n="mkt_features">Features</a>
         <a href="#" data-goto="pricing" class="current" data-i18n="mkt_pricing">Pricing</a>
-        <a href="#" data-goto="landing" data-i18n="mkt_about">About</a>
-        <a href="#" data-goto="landing">Contact</a>
+	        <a href="#" data-goto="landing" data-i18n="mkt_about">About</a>
+	        <a href="#" data-goto="contact">Contact</a>
       </nav>
       <div class="m-actions">
         <select class="lang-select m-lang-select" id="pricing-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select>
@@ -1402,8 +1425,217 @@ try {
       <ul class="plan-feats"><li>Everything in Professional</li><li>500 GB storage</li><li>Dedicated support</li></ul>
       <a href="#" class="btn btn-outline" style="width:100%;">Coming soon</a>
     </div>
-  </div>
-  <p style="text-align:center;font-size:0.8rem;color:hsl(var(--muted-fg));padding-bottom:4rem;">ProFacture AI reste gratuit pour créer vos factures et devis. Les offres premium seront activées plus tard, sans paiement aujourd’hui.</p>
+	  </div>
+	  <p style="text-align:center;font-size:0.8rem;color:hsl(var(--muted-fg));padding-bottom:4rem;">ProFacture AI reste gratuit pour créer vos factures et devis. Les offres premium seront activées plus tard, sans paiement aujourd’hui.</p>
+</section>
+
+<!-- ============ CONTACT / LEGAL TRUST PAGES ============ -->
+<section class="view" id="view-contact">
+  <header class="m-header">
+    <div class="container m-header-inner">
+      <a href="#" class="logo" data-goto="landing"><span class="logo-mark">PA</span>ProFacture AI</a>
+      <nav class="m-nav">
+        <a href="#" data-goto="landing" data-i18n="mkt_features">Features</a>
+        <a href="#" data-goto="pricing" data-i18n="mkt_pricing">Pricing</a>
+        <a href="#" data-goto="security">Security</a>
+        <a href="#" data-goto="contact" class="current">Contact</a>
+      </nav>
+      <div class="m-actions"><select class="lang-select m-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select><button class="btn btn-ghost btn-sm" data-goto="login" data-i18n="btn_sign_in">Sign in</button></div>
+    </div>
+  </header>
+  <main class="container legal-page">
+    <div class="legal-hero">
+      <span class="eyebrow">Contact</span>
+      <h1>Contact ProFacture AI</h1>
+      <p>Questions, support, legal requests, privacy requests and business enquiries can be sent directly to the official contact address below.</p>
+    </div>
+    <div class="legal-grid">
+      <div class="legal-stack">
+        <div class="card legal-card">
+          <h2>Contact information</h2>
+          <div class="legal-meta">
+            <div><strong>Email</strong><a href="mailto:contact@facturergratuit.com">contact@facturergratuit.com</a></div>
+            <div><strong>Website</strong><a href="https://facturergratuit.com/">facturergratuit.com</a></div>
+            <div><strong>Product</strong><span>ProFacture AI / Facturer Gratuit</span></div>
+            <div><strong>Response</strong><span>Support replies as soon as possible</span></div>
+          </div>
+        </div>
+        <div class="card legal-card">
+          <h2>Send a message</h2>
+          <form class="contact-form" action="mailto:contact@facturergratuit.com" method="post" enctype="text/plain">
+            <div class="grid2">
+              <div><label class="field-label">Name</label><input class="field" name="name" placeholder="Your name" /></div>
+              <div><label class="field-label">Email</label><input class="field" name="email" type="email" placeholder="you@example.com" /></div>
+            </div>
+            <div><label class="field-label">Subject</label><input class="field" name="subject" placeholder="Support, privacy, legal, partnership..." /></div>
+            <div><label class="field-label">Message</label><textarea class="field" name="message" rows="6" placeholder="Write your message here"></textarea></div>
+            <button class="btn btn-primary" type="submit">Send email</button>
+          </form>
+        </div>
+      </div>
+      <aside class="card legal-card">
+        <h2>Useful links</h2>
+        <div class="trust-list">
+          <a class="trust-row" href="#" data-goto="privacy"><span>🔐</span><div><strong>Privacy Policy</strong><small>How data is handled and protected.</small></div></a>
+          <a class="trust-row" href="#" data-goto="cookies"><span>🍪</span><div><strong>Cookie Policy</strong><small>Analytics, ads and consent details.</small></div></a>
+          <a class="trust-row" href="#" data-goto="security"><span>🛡</span><div><strong>Security</strong><small>Authentication, storage and account safety.</small></div></a>
+          <a class="trust-row" href="#" data-goto="legal"><span>⚖</span><div><strong>Legal Notice</strong><small>Publisher and hosting information.</small></div></a>
+        </div>
+      </aside>
+    </div>
+  </main>
+</section>
+
+<section class="view" id="view-privacy">
+  <header class="m-header">
+    <div class="container m-header-inner">
+      <a href="#" class="logo" data-goto="landing"><span class="logo-mark">PA</span>ProFacture AI</a>
+      <nav class="m-nav"><a href="#" data-goto="landing">Home</a><a href="#" data-goto="contact">Contact</a><a href="#" data-goto="cookies">Cookies</a><a href="#" data-goto="privacy" class="current">Privacy</a></nav>
+      <div class="m-actions"><select class="lang-select m-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select></div>
+    </div>
+  </header>
+  <main class="container legal-page">
+    <div class="legal-hero"><span class="eyebrow">Privacy</span><h1>Privacy Policy / Politique de confidentialité</h1><p>Last updated: 02 August 2026. This policy explains how ProFacture AI handles personal data, invoice data, analytics and advertising cookies.</p></div>
+    <div class="legal-grid">
+      <div class="legal-stack">
+        <div class="card legal-card">
+          <h2>Data entered in invoices and quotes</h2>
+          <p>Information such as customer name, address, SIRET/SIREN, vehicle VIN, registration plate, product lines, prices and notes is used to generate invoices, quotes and PDFs. The application is designed to process document data in the browser and, when the user is logged in, to save workspace data to the user's own account storage.</p>
+          <p>We do not sell customer data, invoice data, SIRET numbers, vehicle numbers or business documents.</p>
+        </div>
+        <div class="card legal-card">
+          <h2>Account and authentication</h2>
+          <p>Authentication is provided through Firebase Authentication. Login providers may include email/password, Google, Apple or phone OTP depending on the enabled settings. Account identifiers are used only to connect a user to their own workspace data.</p>
+        </div>
+        <div class="card legal-card">
+          <h2>Analytics and advertising</h2>
+          <p>The site may use Google Analytics, Google AdSense, Ezoic, Adsterra or similar advertising/measurement partners. These services can use cookies or similar technologies to measure traffic, prevent abuse, personalize ads where consent allows it, and improve the service.</p>
+        </div>
+        <div class="card legal-card">
+          <h2>Your rights</h2>
+          <p>You may request access, correction or deletion of your account data by emailing <a href="mailto:contact@facturergratuit.com">contact@facturergratuit.com</a>. You can also remove locally saved browser data from your device and delete saved workspace items from the dashboard where available.</p>
+        </div>
+      </div>
+      <aside class="card legal-card">
+        <h2>Security summary</h2>
+        <ul>
+          <li>Account-based access for private dashboard data.</li>
+          <li>Firebase-backed authentication.</li>
+          <li>No selling of invoice or customer data.</li>
+          <li>User-controlled document history and storage cleanup.</li>
+          <li>Cookie consent and privacy controls for advertising partners.</li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+</section>
+
+<section class="view" id="view-cookies">
+  <header class="m-header">
+    <div class="container m-header-inner">
+      <a href="#" class="logo" data-goto="landing"><span class="logo-mark">PA</span>ProFacture AI</a>
+      <nav class="m-nav"><a href="#" data-goto="landing">Home</a><a href="#" data-goto="privacy">Privacy</a><a href="#" data-goto="security">Security</a><a href="#" data-goto="cookies" class="current">Cookies</a></nav>
+      <div class="m-actions"><select class="lang-select m-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select></div>
+    </div>
+  </header>
+  <main class="container legal-page">
+    <div class="legal-hero"><span class="eyebrow">Cookies</span><h1>Cookie Policy</h1><p>This page explains which cookies and similar technologies may be used on facturergratuit.com.</p></div>
+    <div class="legal-grid">
+      <div class="legal-stack">
+        <div class="card legal-card"><h2>Essential cookies</h2><p>Essential cookies and local storage may be used to keep the app working, remember language, theme, consent choices and account session state.</p></div>
+        <div class="card legal-card"><h2>Analytics cookies</h2><p>Analytics tools help understand traffic, pages visited, browser performance and errors. This helps improve invoice generation, PDF export and dashboard usability.</p></div>
+        <div class="card legal-card"><h2>Advertising cookies</h2><p>Advertising partners such as Google AdSense, Ezoic or Adsterra may use cookies, scripts or similar identifiers to show ads, measure ad performance and prevent fraud, depending on your consent and regional rules.</p></div>
+        <div class="card legal-card"><h2>Manage consent</h2><p>You can change browser cookie permissions in your browser settings. If the consent banner is available, you may reopen or update preferences from the banner controls provided by the consent partner.</p><button class="btn btn-outline" id="cookie-reset-btn" type="button">Reset local cookie consent</button></div>
+      </div>
+      <aside class="card legal-card">
+        <h2>Cookie categories</h2>
+        <div class="trust-list">
+          <div class="trust-row"><span>✓</span><div><strong>Required</strong><small>Language, theme, login state, app preferences.</small></div></div>
+          <div class="trust-row"><span>📊</span><div><strong>Analytics</strong><small>Traffic and product improvement.</small></div></div>
+          <div class="trust-row"><span>▣</span><div><strong>Advertising</strong><small>Ads, frequency capping and fraud prevention.</small></div></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</section>
+
+<section class="view" id="view-security">
+  <header class="m-header">
+    <div class="container m-header-inner">
+      <a href="#" class="logo" data-goto="landing"><span class="logo-mark">PA</span>ProFacture AI</a>
+      <nav class="m-nav"><a href="#" data-goto="landing">Home</a><a href="#" data-goto="privacy">Privacy</a><a href="#" data-goto="cookies">Cookies</a><a href="#" data-goto="security" class="current">Security</a></nav>
+      <div class="m-actions"><select class="lang-select m-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select></div>
+    </div>
+  </header>
+  <main class="container legal-page">
+    <div class="legal-hero"><span class="eyebrow">Security</span><h1>Security and account protection</h1><p>ProFacture AI is designed for business documents, invoices, quotes, clients, products and dashboard history. Security is part of the product architecture.</p></div>
+    <div class="legal-grid">
+      <div class="legal-stack">
+        <div class="card legal-card"><h2>Authentication</h2><p>User accounts are protected with Firebase Authentication. Users should keep passwords private, use trusted devices and sign out on shared computers.</p></div>
+        <div class="card legal-card"><h2>Private dashboard data</h2><p>Dashboard data such as clients, products, invoices, projects and company profile is intended to be scoped to the logged-in user's workspace. Public visitors cannot access private account views without login.</p></div>
+        <div class="card legal-card"><h2>Storage limits and cleanup</h2><p>To keep cloud usage manageable, storage limits and optional cleanup flows can be used for saved files and history. Users should delete old documents they no longer need.</p></div>
+        <div class="card legal-card"><h2>Reporting security issues</h2><p>If you find a vulnerability or suspicious behavior, please email <a href="mailto:contact@facturergratuit.com">contact@facturergratuit.com</a> with details and steps to reproduce.</p></div>
+      </div>
+      <aside class="card legal-card">
+        <h2>Security checklist</h2>
+        <ul>
+          <li>Use HTTPS only.</li>
+          <li>Keep Firebase security rules strict.</li>
+          <li>Never expose private tokens in public code.</li>
+          <li>Validate uploads and limit storage usage.</li>
+          <li>Use account-level access for saved business data.</li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+</section>
+
+<section class="view" id="view-terms">
+  <header class="m-header">
+    <div class="container m-header-inner">
+      <a href="#" class="logo" data-goto="landing"><span class="logo-mark">PA</span>ProFacture AI</a>
+      <nav class="m-nav"><a href="#" data-goto="landing">Home</a><a href="#" data-goto="privacy">Privacy</a><a href="#" data-goto="legal">Legal Notice</a><a href="#" data-goto="terms" class="current">Terms</a></nav>
+      <div class="m-actions"><select class="lang-select m-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select></div>
+    </div>
+  </header>
+  <main class="container legal-page">
+    <div class="legal-hero"><span class="eyebrow">Terms</span><h1>Terms of Service / Conditions d'utilisation</h1><p>By using ProFacture AI, users agree to use the service responsibly and verify business, tax and legal information before sending documents.</p></div>
+    <div class="legal-stack">
+      <div class="card legal-card"><h2>Service purpose</h2><p>ProFacture AI helps create invoices, quotes, PDFs, client records, product libraries, dashboards and business documents. It is a productivity tool, not a certified legal, tax or accounting adviser.</p></div>
+      <div class="card legal-card"><h2>User responsibility</h2><p>Users are responsible for checking invoice numbers, tax rates, VAT/TVA, company details, client details, payment terms and country-specific legal requirements before sending documents.</p></div>
+      <div class="card legal-card"><h2>Availability</h2><p>The free service may change, improve or experience interruptions. Premium features can be introduced later, but no paid subscription is active unless clearly enabled by the site.</p></div>
+      <div class="card legal-card"><h2>Prohibited use</h2><p>Users must not use the service for fraud, spam, illegal invoices, misleading business identities, malware, unauthorized access or abuse of advertising systems.</p></div>
+    </div>
+  </main>
+</section>
+
+<section class="view" id="view-legal">
+  <header class="m-header">
+    <div class="container m-header-inner">
+      <a href="#" class="logo" data-goto="landing"><span class="logo-mark">PA</span>ProFacture AI</a>
+      <nav class="m-nav"><a href="#" data-goto="landing">Home</a><a href="#" data-goto="contact">Contact</a><a href="#" data-goto="privacy">Privacy</a><a href="#" data-goto="legal" class="current">Legal Notice</a></nav>
+      <div class="m-actions"><select class="lang-select m-lang-select" aria-label="Language" data-i18n-aria="topbar_language"></select></div>
+    </div>
+  </header>
+  <main class="container legal-page">
+    <div class="legal-hero"><span class="eyebrow">Mentions légales</span><h1>Legal Notice / Mentions légales</h1><p>Legal and publisher information for facturergratuit.com.</p></div>
+    <div class="legal-grid">
+      <div class="legal-stack">
+        <div class="card legal-card">
+          <h2>Éditeur du site</h2>
+          <div class="legal-meta">
+            <div><strong>Nom du site</strong><span>Facturer Gratuit / ProFacture AI</span></div>
+            <div><strong>Contact</strong><a href="mailto:contact@facturergratuit.com">contact@facturergratuit.com</a></div>
+            <div><strong>Domaine</strong><span>facturergratuit.com</span></div>
+            <div><strong>Activité</strong><span>Générateur de factures, devis, PDF et outils business</span></div>
+          </div>
+        </div>
+        <div class="card legal-card"><h2>Hébergement</h2><p>The site is published through GitHub Pages / GitHub, Inc. and may use Firebase / Google Cloud services for authentication, analytics or app data. The domain name is managed through the domain registrar configured by the publisher.</p></div>
+        <div class="card legal-card"><h2>Propriété intellectuelle</h2><p>Texts, design, branding, interface and source code are protected by applicable intellectual property rules. Users may not copy or redistribute the site as a competing product without permission.</p></div>
+      </div>
+      <aside class="card legal-card"><h2>Important</h2><p>For legal, privacy, security or content requests, contact <a href="mailto:contact@facturergratuit.com">contact@facturergratuit.com</a>. If a registered company address is required for a specific formal request, it can be provided through the official contact process.</p></aside>
+    </div>
+  </main>
 </section>
 
 <!-- ============ LOGIN ============ -->
@@ -3011,6 +3243,15 @@ try {
     "The AI Business Platform — invoicing, quotations and more, in one intelligent workspace.": { fr: "La plateforme business IA — factures, devis et plus encore dans un espace intelligent.", it: "La piattaforma business IA — fatture, preventivi e altro in uno spazio intelligente.", es: "La plataforma empresarial IA — facturas, presupuestos y más en un espacio inteligente.", de: "Die KI-Business-Plattform — Rechnungen, Angebote und mehr in einem intelligenten Workspace.", nl: "Het AI-businessplatform — facturen, offertes en meer in één slimme werkruimte.", pt: "A plataforma empresarial IA — faturas, orçamentos e muito mais num espaço inteligente.", pl: "Platforma biznesowa AI — faktury, oferty i więcej w inteligentnej przestrzeni." },
     "Help Center": { fr: "Centre d'aide", it: "Centro assistenza", es: "Centro de ayuda", de: "Hilfezentrum", nl: "Helpcentrum", pt: "Centro de ajuda", pl: "Centrum pomocy" },
     "Privacy Policy": { fr: "Politique de confidentialité", it: "Informativa sulla privacy", es: "Política de privacidad", de: "Datenschutzrichtlinie", nl: "Privacybeleid", pt: "Política de privacidade", pl: "Polityka prywatności" },
+    "Cookie Policy": { fr: "Politique de cookies", it: "Politica sui cookie", es: "Política de cookies", de: "Cookie-Richtlinie", nl: "Cookiebeleid", pt: "Política de cookies", pl: "Polityka plików cookie" },
+    "Cookies": { fr: "Cookies", it: "Cookie", es: "Cookies", de: "Cookies", nl: "Cookies", pt: "Cookies", pl: "Pliki cookie" },
+    "Security": { fr: "Sécurité", it: "Sicurezza", es: "Seguridad", de: "Sicherheit", nl: "Beveiliging", pt: "Segurança", pl: "Bezpieczeństwo" },
+    "Legal Notice": { fr: "Mentions légales", it: "Note legali", es: "Aviso legal", de: "Impressum", nl: "Juridische kennisgeving", pt: "Aviso legal", pl: "Nota prawna" },
+    "Privacy": { fr: "Confidentialité", it: "Privacy", es: "Privacidad", de: "Datenschutz", nl: "Privacy", pt: "Privacidade", pl: "Prywatność" },
+    "Terms": { fr: "CGU", it: "Termini", es: "Términos", de: "Bedingungen", nl: "Voorwaarden", pt: "Termos", pl: "Warunki" },
+    "Product": { fr: "Produit", it: "Prodotto", es: "Producto", de: "Produkt", nl: "Product", pt: "Produto", pl: "Produkt" },
+    "Company": { fr: "Entreprise", it: "Azienda", es: "Empresa", de: "Unternehmen", nl: "Bedrijf", pt: "Empresa", pl: "Firma" },
+    "Legal": { fr: "Légal", it: "Legale", es: "Legal", de: "Rechtliches", nl: "Juridisch", pt: "Legal", pl: "Prawne" },
     "Terms of Service": { fr: "Conditions d'utilisation", it: "Termini di servizio", es: "Términos del servicio", de: "Nutzungsbedingungen", nl: "Servicevoorwaarden", pt: "Termos de serviço", pl: "Warunki korzystania" },
     "All rights reserved.": { fr: "Tous droits réservés.", it: "Tutti i diritti riservati.", es: "Todos los derechos reservados.", de: "Alle Rechte vorbehalten.", nl: "Alle rechten voorbehouden.", pt: "Todos os direitos reservados.", pl: "Wszelkie prawa zastrzeżone." },
     "Simple, transparent pricing": { fr: "Tarifs simples et transparents", it: "Prezzi semplici e trasparenti", es: "Precios simples y transparentes", de: "Einfache, transparente Preise", nl: "Eenvoudige, transparante prijzen", pt: "Preços simples e transparentes", pl: "Proste, przejrzyste ceny" },
@@ -4395,15 +4636,14 @@ try {
     window.ivoxaSetMarketingAuthState = updateMarketingHeaders;
 
     // ---- app-wide language switcher ----
-    function populateStaticLangSelects() {
-      var optionsHtml = LANG_LIST.map(function (l) {
-        return '<option value="' + l.code + '">' + l.flag + " " + l.name + "</option>";
-      }).join("");
-      ["landing-lang-select", "pricing-lang-select"].forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) el.innerHTML = optionsHtml;
-      });
-    }
+	    function populateStaticLangSelects() {
+	      var optionsHtml = LANG_LIST.map(function (l) {
+	        return '<option value="' + l.code + '">' + l.flag + " " + l.name + "</option>";
+	      }).join("");
+	      document.querySelectorAll("select.m-lang-select").forEach(function (el) {
+	        if (!el.innerHTML.trim()) el.innerHTML = optionsHtml;
+	      });
+	    }
     populateStaticLangSelects();
 
     // ---- Ad banner placeholder: keep one standard 728x90 slot per page. ----
@@ -9373,10 +9613,10 @@ try {
     // ---- Global Quick Actions FAB ----
     var gfabBtn = document.getElementById("gfab-btn");
     var gfabMenu = document.getElementById("gfab-menu");
-    if (gfabBtn && gfabMenu) {
-      gfabBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        var open = gfabMenu.classList.toggle("open");
+	    if (gfabBtn && gfabMenu) {
+	      gfabBtn.addEventListener("click", function (e) {
+	        e.stopPropagation();
+	        var open = gfabMenu.classList.toggle("open");
         gfabBtn.classList.toggle("open", open);
       });
       document.addEventListener("click", function (e) {
@@ -9389,11 +9629,23 @@ try {
         if (e.target.closest("[data-goto]")) {
           gfabMenu.classList.remove("open");
           gfabBtn.classList.remove("open");
-        }
-      });
-    }
+	        }
+	      });
+	    }
 
-    // ---- i18n bootstrap: sync static [data-i18n] content + lang selects on load ----
+	    var cookieResetBtn = document.getElementById("cookie-reset-btn");
+	    if (cookieResetBtn) {
+	      cookieResetBtn.addEventListener("click", function () {
+	        try {
+	          localStorage.removeItem("facturepro-cookie-consent");
+	          localStorage.removeItem("ezCMPConsents");
+	          localStorage.removeItem("ezCMPCookieConsent");
+	        } catch (e) { /* ignore */ }
+	        cookieResetBtn.textContent = "Cookie consent reset. Reload the page to choose again.";
+	      });
+	    }
+
+	    // ---- i18n bootstrap: sync static [data-i18n] content + lang selects on load ----
     applyLanguage(currentLang);
   })();
 </script>
