@@ -1789,7 +1789,8 @@ try {
     );
   }
   var LANG_LIST = [
-    { code: "en", flag: "🇬🇧", name: "English" },
+    { code: "en-US", flag: "🇺🇸", name: "English (US)" },
+    { code: "en-GB", flag: "🇬🇧", name: "English (UK)" },
     { code: "fr", flag: "🇫🇷", name: "Français" },
     { code: "it", flag: "🇮🇹", name: "Italiano" },
     { code: "es", flag: "🇪🇸", name: "Español" },
@@ -2894,11 +2895,18 @@ try {
       nav_projects: "Projekty", page_projects_sub: "Planuj, budżetuj i śledź każdy projekt klienta.", btn_add_project: "Dodaj projekt", fld_project_name: "Nazwa projektu", fld_budget: "Budżet", fld_start_date: "Data rozpoczęcia", fld_deadline: "Termin", fld_project: "Projekt", opt_none: "Brak", th_progress: "Postęp", stat_active_projects: "Aktywne projekty", stat_completed_projects: "Ukończone", stat_total_budget: "Łączny budżet", stat_projects_value: "Łączna wartość", stat_days_left: "Pozostało dni", stat_tasks_done: "Ukończone zadania", card_linked_tasks: "Zadania", card_notes: "Notatki", btn_delete_project: "Usuń projekt", btn_add_note: "Dodaj notatkę", ph_search_projects: "Szukaj projektów…", proj_status_planning: "Planowanie", proj_status_active: "Aktywny", proj_status_onhold: "Wstrzymany", proj_status_cancelled: "Anulowany", btn_back_to_projects: "← Powrót do projektów", modal_pay_now: "Zapłać teraz", fld_payment_method: "Metoda płatności", opt_card: "Karta", opt_paypal: "PayPal", opt_bank_transfer: "Przelew bankowy", btn_confirm_payment: "Potwierdź płatność", txt_payment_simulated_note: "Symulowana płatność dla tego prototypu — nie następuje żadne rzeczywiste obciążenie.", btn_pay_now: "Zapłać teraz", btn_client_portal: "Portal klienta", lbl_viewing_as: "Wyświetlane jako", btn_exit_portal: "Wyjdź z widoku portalu", btn_approve: "Zatwierdź", btn_reject: "Odrzuć", txt_client_portal_note: "To podgląd tego, co zobaczyłby Twój klient, przeglądając swoje faktury i oferty.",
     },
   };
+  function getI18nLang(lang) {
+    return lang === "en-US" || lang === "en-GB" || lang === "en" ? "en" : lang;
+  }
   var currentLang = (function () {
-    try { return localStorage.getItem("profacture_lang") || "en"; } catch (e) { return "en"; }
+    try {
+      var savedLang = localStorage.getItem("profacture_lang") || "en-US";
+      return savedLang === "en" ? "en-US" : savedLang;
+    } catch (e) { return "en-US"; }
   })();
   function t(key) {
-    return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
+    var lang = getI18nLang(currentLang);
+    return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
   }
   document.write(''); // no-op to keep this a plain script block
 </script>
@@ -4340,7 +4348,8 @@ try {
     }
 
     function applyLanguage(lang) {
-      if (!I18N[lang]) lang = "en";
+      if (lang === "en") lang = "en-US";
+      if (!I18N[getI18nLang(lang)]) lang = "en-US";
       currentLang = lang;
       try { localStorage.setItem("profacture_lang", lang); } catch (e) { /* ignore */ }
       refreshAllChrome();
@@ -4360,23 +4369,59 @@ try {
     document.addEventListener("change", function (e) {
       if (e.target.classList && e.target.classList.contains("lang-select")) {
         applyLanguage(e.target.value);
-        if (typeof applyCurrencyDefault === "function") applyCurrencyDefault(LANG_CURRENCY_MAP[e.target.value] || "USD");
+        if (typeof applyCurrencyDefault === "function") applyCurrencyDefault(resolveCurrencyForLocale(e.target.value, null));
       }
     });
 
     // Selecting a default country in Settings also switches the app language to match —
     // e.g. choosing France applies French, Germany applies German — while the language
     // switcher itself always stays available for a manual, independent choice.
-    var COUNTRY_LANGUAGE_MAP = { FR: "fr", IT: "it", ES: "es", DE: "de", BE: "nl", NL: "nl", PT: "pt", GB: "en", PL: "pl" };
+    var COUNTRY_LANGUAGE_MAP = { FR: "fr", IT: "it", ES: "es", DE: "de", BE: "nl", NL: "nl", PT: "pt", GB: "en-GB", US: "en-US", PL: "pl" };
 
     // Language/country also drives the default invoice/quote currency — continental
     // European languages/countries default to Euro, English defaults to US Dollar,
     // and the United Kingdom specifically defaults to Pound Sterling.
-    var LANG_CURRENCY_MAP = { en: "USD", fr: "EUR", it: "EUR", es: "EUR", de: "EUR", nl: "EUR", pt: "EUR", pl: "EUR" };
-    var COUNTRY_CURRENCY_MAP = { FR: "EUR", IT: "EUR", ES: "EUR", DE: "EUR", BE: "EUR", NL: "EUR", PT: "EUR", GB: "GBP", PL: "EUR" };
-    var currentCurrency = (function () {
-      try { return localStorage.getItem("profacture_currency") || "USD"; } catch (e) { return "USD"; }
+    var LANG_CURRENCY_MAP = { en: "USD", "en-US": "USD", "en-GB": "GBP", fr: "EUR", it: "EUR", es: "EUR", de: "EUR", nl: "EUR", pt: "EUR", pl: "EUR" };
+    var COUNTRY_CURRENCY_MAP = { FR: "EUR", IT: "EUR", ES: "EUR", DE: "EUR", BE: "EUR", NL: "EUR", PT: "EUR", GB: "GBP", US: "USD", PL: "EUR" };
+    var COUNTRY_NAME_CURRENCY_MAP = {
+      "France": "EUR",
+      "Italy": "EUR",
+      "Spain": "EUR",
+      "Germany": "EUR",
+      "Belgium": "EUR",
+      "Netherlands": "EUR",
+      "Portugal": "EUR",
+      "United Kingdom": "GBP",
+      "UK": "GBP",
+      "United States": "USD",
+      "USA": "USD",
+      "United States of America": "USD",
+      "United Arab Emirates": "AED",
+      "Pakistan": "PKR",
+      "Poland": "EUR",
+    };
+    var currentDefaultCountry = (function () {
+      try { return localStorage.getItem("profacture_default_country") || "FR"; } catch (e) { return "FR"; }
     })();
+    var currentCurrency = (function () {
+      try { return localStorage.getItem("profacture_currency") || resolveCurrencyForLocale(currentLang, currentDefaultCountry); } catch (e) { return "USD"; }
+    })();
+    function resolveCurrencyForLocale(lang, countryCodeOrName) {
+      return COUNTRY_CURRENCY_MAP[countryCodeOrName] || COUNTRY_NAME_CURRENCY_MAP[countryCodeOrName] || LANG_CURRENCY_MAP[lang] || "USD";
+    }
+    function applyDefaultCountry(code) {
+      if (!code) return;
+      currentDefaultCountry = code;
+      try { localStorage.setItem("profacture_default_country", code); } catch (e) { /* ignore */ }
+      var lang = COUNTRY_LANGUAGE_MAP[code];
+      if (lang) applyLanguage(lang);
+      applyCurrencyDefault(resolveCurrencyForLocale(lang || currentLang, code));
+      var invCountrySel = document.getElementById("inv-compliance-country");
+      if (invCountrySel && invCountrySel.querySelector('option[value="' + code + '"]')) {
+        invCountrySel.value = code;
+        renderInvoiceComplianceBanner();
+      }
+    }
     function applyCurrencyDefault(code) {
       if (!code) return;
       currentCurrency = code;
@@ -4746,7 +4791,7 @@ try {
     var liBody = document.getElementById("li-body");
     var nextRow = 0;
 
-    var CURRENCY_SYMBOLS = { USD: "$", EUR: "€", GBP: "£" };
+    var CURRENCY_SYMBOLS = { USD: "$", EUR: "€", GBP: "£", AED: "د.إ ", PKR: "Rs " };
     function formatCurrency(n, code) {
       var symbol = CURRENCY_SYMBOLS[code] || "$";
       return symbol + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -5507,8 +5552,8 @@ try {
           }).join("") +
           "</select></div>" +
           '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">' +
-          '<div><label class="field-label">Country</label><select class="field" id="cw-country"><option>United States</option><option>United Kingdom</option><option>Germany</option><option>France</option><option>United Arab Emirates</option><option>Pakistan</option></select></div>' +
-          '<div><label class="field-label">Currency</label><select class="field" id="cw-currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="GBP">GBP (£)</option><option value="AED">AED</option><option value="PKR">PKR</option></select></div>' +
+          '<div><label class="field-label">Country</label><select class="field" id="cw-country"><option' + (cwDraft.country === "United States" ? " selected" : "") + '>United States</option><option' + (cwDraft.country === "United Kingdom" ? " selected" : "") + '>United Kingdom</option><option' + (cwDraft.country === "Germany" ? " selected" : "") + '>Germany</option><option' + (cwDraft.country === "France" ? " selected" : "") + '>France</option><option' + (cwDraft.country === "United Arab Emirates" ? " selected" : "") + '>United Arab Emirates</option><option' + (cwDraft.country === "Pakistan" ? " selected" : "") + '>Pakistan</option></select></div>' +
+          '<div><label class="field-label">Currency</label><select class="field" id="cw-currency"><option value="USD"' + (cwDraft.currency === "USD" ? " selected" : "") + '>USD ($)</option><option value="EUR"' + (cwDraft.currency === "EUR" ? " selected" : "") + '>EUR (€)</option><option value="GBP"' + (cwDraft.currency === "GBP" ? " selected" : "") + '>GBP (£)</option><option value="AED"' + (cwDraft.currency === "AED" ? " selected" : "") + '>AED</option><option value="PKR"' + (cwDraft.currency === "PKR" ? " selected" : "") + '>PKR</option></select></div>' +
           "</div></div>";
       } else if (s === "branding") {
         body =
@@ -5552,7 +5597,11 @@ try {
       var industrySelect = document.getElementById("cw-industry");
       if (industrySelect) industrySelect.addEventListener("change", function (e) { cwDraft.industry = e.target.value; });
       var countrySelect = document.getElementById("cw-country");
-      if (countrySelect) countrySelect.addEventListener("change", function (e) { cwDraft.country = e.target.value; });
+      if (countrySelect) countrySelect.addEventListener("change", function (e) {
+        cwDraft.country = e.target.value;
+        cwDraft.currency = resolveCurrencyForLocale(currentLang, e.target.value);
+        cwRender();
+      });
       var currencySelect = document.getElementById("cw-currency");
       if (currencySelect) currencySelect.addEventListener("change", function (e) { cwDraft.currency = e.target.value; });
 
@@ -6684,6 +6733,7 @@ try {
       { code: "NL", name: "Netherlands", flag: "🇳🇱", vatLabel: "Dutch VAT (BTW-nummer)", language: "Dutch (nl-NL)" },
       { code: "PT", name: "Portugal", flag: "🇵🇹", vatLabel: "Portuguese VAT (NIF)", language: "Portuguese (pt-PT)" },
       { code: "GB", name: "United Kingdom", flag: "🇬🇧", vatLabel: "UK VAT number", language: "English (en-GB)" },
+      { code: "US", name: "United States", flag: "🇺🇸", vatLabel: "Sales tax ID / EIN", language: "English (en-US)" },
       { code: "PL", name: "Poland", flag: "🇵🇱", vatLabel: "Polish VAT (NIP)", language: "Polish (pl-PL)" },
     ].forEach(function (c) {
       registerCompliancePlugin({
@@ -6888,14 +6938,11 @@ try {
         var p = CompliancePlugins[c];
         return '<option value="' + c + '">' + p.flag + " " + p.name + "</option>";
       }).join("");
-      sel.value = "FR";
+      sel.value = CompliancePlugins[currentDefaultCountry] ? currentDefaultCountry : "FR";
     }
     var setDefaultCountryEl = document.getElementById("set-default-country");
     if (setDefaultCountryEl) setDefaultCountryEl.addEventListener("change", function (e) {
-      var lang = COUNTRY_LANGUAGE_MAP[e.target.value];
-      if (lang) applyLanguage(lang);
-      var curr = COUNTRY_CURRENCY_MAP[e.target.value];
-      if (curr) applyCurrencyDefault(curr);
+      applyDefaultCountry(e.target.value);
     });
     // ---- Company branding: logo/stamp + signature (stored locally, used on invoices/quotes) ----
     function escapeHtml(value) {
@@ -7223,12 +7270,15 @@ try {
         var p = CompliancePlugins[c];
         return '<option value="' + c + '">' + p.flag + " " + p.name + "</option>";
       }).join("");
-      sel.value = "FR";
+      sel.value = CompliancePlugins[currentDefaultCountry] ? currentDefaultCountry : "FR";
       renderInvoiceComplianceBanner();
     }
     populateInvoiceComplianceCountrySelect();
     var invComplianceCountryEl = document.getElementById("inv-compliance-country");
-    if (invComplianceCountryEl) invComplianceCountryEl.addEventListener("change", renderInvoiceComplianceBanner);
+    if (invComplianceCountryEl) invComplianceCountryEl.addEventListener("change", function (e) {
+      renderInvoiceComplianceBanner();
+      if (!editingInvoiceId) applyCurrencyDefault(resolveCurrencyForLocale(currentLang, e.target.value));
+    });
 
     // ---- New Invoice: client select, addresses, SIRET, and save ----
     function fillInvoiceClientAddress() {
