@@ -1857,13 +1857,15 @@ try {
       stat_net: "Net", stat_new_leads: "New leads", stat_active_clients: "Active clients",
       stat_lost_deals: "Lost deals", stat_revenue_forecast: "Revenue forecast", btn_add_product: "Add product",
       btn_import_csv: "Import CSV", btn_csv: "CSV", btn_excel: "Excel",
-      btn_upload_file: "Upload file", btn_send_invite: "Send invite", btn_remove_logo: "Remove logo",
+      btn_upload_file: "Upload file", btn_send_invite: "Send invite", btn_remove_logo: "Remove logo", btn_remove_stamp: "Remove stamp",
+      btn_save_company: "Save company details",
       btn_clear: "Clear", btn_save_signature: "Save signature", btn_upload_instead: "Upload instead",
       btn_back_to_clients: "← Back to clients", btn_log_activity: "Log activity", btn_delete_client: "Delete client",
       btn_add_to_timeline: "Add to timeline", lbl_live_preview: "Live preview", fld_estimated_value: "Estimated value",
       fld_stage: "Stage", fld_source: "Source", fld_type: "Type",
       fld_time_optional: "Time (optional)", fld_details: "Details", fld_email_address: "Email address",
-      fld_default_country: "Default country", fld_validation_mode: "Validation mode", fld_company_logo_stamp: "Company logo / stamp",
+      fld_default_country: "Default country", fld_validation_mode: "Validation mode", fld_company_name: "Company name",
+      fld_company_address: "Company address", fld_company_logo: "Company logo", fld_company_stamp: "Company stamp / cachet",
       fld_signature: "Signature", fld_receipt: "Receipt", modal_add_calendar_event: "Add calendar event",
       tab_templates: "Templates", tab_theme: "Theme", tab_layout: "Layout",
       tab_products: "Products", tab_services: "Services", tab_categories: "Categories",
@@ -1876,7 +1878,8 @@ try {
       lbl_capabilities: "Capabilities", lbl_discount: "Discount",
       lbl_from: "From", lbl_future_ready: "Future-ready",
       lbl_invoices_paid: "Invoices paid", lbl_live: "Live",
-      lbl_no_logo: "No logo", lbl_no_signature: "No signature saved.",
+      lbl_no_logo: "No logo", lbl_no_stamp: "No stamp", lbl_no_signature: "No signature saved.",
+      msg_company_saved: "Company details saved",
       lbl_ocr_soon: "OCR scanning — Coming soon", lbl_quotes_accepted: "Quotes accepted",
       lbl_recurring_expense: "Recurring expense", lbl_subtotal: "Subtotal",
       link_ask_ai: "Ask the AI Assistant →", link_open_compliance: "Open Compliance Center →",
@@ -1993,13 +1996,15 @@ try {
       stat_net: "Net", stat_new_leads: "Nouveaux prospects", stat_active_clients: "Clients actifs",
       stat_lost_deals: "Affaires perdues", stat_revenue_forecast: "Prévision de revenus", btn_add_product: "Ajouter un produit",
       btn_import_csv: "Importer CSV", btn_csv: "CSV", btn_excel: "Excel",
-      btn_upload_file: "Importer un fichier", btn_send_invite: "Envoyer l'invitation", btn_remove_logo: "Supprimer le logo",
+      btn_upload_file: "Importer un fichier", btn_send_invite: "Envoyer l'invitation", btn_remove_logo: "Supprimer le logo", btn_remove_stamp: "Supprimer le cachet",
+      btn_save_company: "Enregistrer les informations société",
       btn_clear: "Effacer", btn_save_signature: "Enregistrer la signature", btn_upload_instead: "Importer à la place",
       btn_back_to_clients: "← Retour aux clients", btn_log_activity: "Consigner une activité", btn_delete_client: "Supprimer le client",
       btn_add_to_timeline: "Ajouter à l'historique", lbl_live_preview: "Aperçu en direct", fld_estimated_value: "Valeur estimée",
       fld_stage: "Étape", fld_source: "Source", fld_type: "Type",
       fld_time_optional: "Heure (facultatif)", fld_details: "Détails", fld_email_address: "Adresse e-mail",
-      fld_default_country: "Pays par défaut", fld_validation_mode: "Mode de validation", fld_company_logo_stamp: "Logo / tampon de l'entreprise",
+      fld_default_country: "Pays par défaut", fld_validation_mode: "Mode de validation", fld_company_name: "Nom société",
+      fld_company_address: "Adresse société", fld_company_logo: "Logo de l'entreprise", fld_company_stamp: "Cachet / tampon de l'entreprise",
       fld_signature: "Signature", fld_receipt: "Reçu", modal_add_calendar_event: "Ajouter un événement",
       tab_templates: "Modèles", tab_theme: "Thème", tab_layout: "Mise en page",
       tab_products: "Produits", tab_services: "Services", tab_categories: "Catégories",
@@ -2012,7 +2017,8 @@ try {
       lbl_capabilities: "Fonctionnalités", lbl_discount: "Remise",
       lbl_from: "De", lbl_future_ready: "Prêt pour l'avenir",
       lbl_invoices_paid: "Factures payées", lbl_live: "En direct",
-      lbl_no_logo: "Aucun logo", lbl_no_signature: "Aucune signature enregistrée.",
+      lbl_no_logo: "Aucun logo", lbl_no_stamp: "Aucun cachet", lbl_no_signature: "Aucune signature enregistrée.",
+      msg_company_saved: "Informations société enregistrées",
       lbl_ocr_soon: "Numérisation OCR — Bientôt disponible", lbl_quotes_accepted: "Devis acceptés",
       lbl_recurring_expense: "Dépense récurrente", lbl_subtotal: "Sous-total",
       link_ask_ai: "Demander à l'assistant IA →", link_open_compliance: "Ouvrir le centre de conformité →",
@@ -3153,7 +3159,7 @@ try {
               </div>
               <div class="ds-doc-body">
                 <div class="ds-doc-grid" id="ds-doc-blocks">
-                  <div><div class="ds-doc-lbl" data-i18n="lbl_from">From</div><div style="margin-top:0.2rem;font-weight:600;">Your Business</div></div>
+                  <div><div class="ds-doc-lbl" data-i18n="lbl_from">From</div><div id="ds-doc-company-name" style="margin-top:0.2rem;font-weight:600;">Your Business</div><div id="ds-doc-company-meta" style="margin-top:0.2rem;font-size:0.68rem;color:hsl(var(--muted-fg));line-height:1.35;"></div></div>
                   <div><div class="ds-doc-lbl" data-i18n="lbl_billed_to">Billed to</div><div style="margin-top:0.2rem;font-weight:600;">Atlas Studio</div></div>
                 </div>
                 <table class="ds-doc-table">
@@ -4004,14 +4010,30 @@ try {
           <div class="card card-pad" style="margin-bottom:1.1rem;">
             <div class="card-title" data-i18n="card_company_branding">Company branding &amp; signature</div>
             <p style="font-size:0.82rem;color:hsl(var(--muted-fg));margin-bottom:0.8rem;" data-i18n="txt_appear_on_docs">Appear on generated invoices and quotes.</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:1rem;margin-bottom:1.2rem;">
+              <div><label class="field-label" data-i18n="fld_company_name">Company name</label><input class="field" id="set-company-name" placeholder="Your Business" /></div>
+              <div><label class="field-label" data-i18n="fld_siret">SIRET number</label><input class="field" id="set-company-siret" placeholder="92201442800010" /></div>
+              <div style="grid-column:1/-1;"><label class="field-label" data-i18n="fld_company_address">Company address</label><textarea class="field" id="set-company-address" rows="2" placeholder="12 Avenue Maurice Thorez, 94200 Ivry-sur-Seine"></textarea></div>
+              <div style="grid-column:1/-1;"><button class="btn btn-primary btn-sm" id="set-company-save" data-i18n="btn_save_company">Save company details</button></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:1.5rem;">
               <div>
-                <label class="field-label" data-i18n="fld_company_logo_stamp">Company logo / stamp</label>
+                <label class="field-label" data-i18n="fld_company_logo">Company logo</label>
                 <div style="display:flex;align-items:center;gap:0.8rem;margin-top:0.4rem;">
                   <div id="set-logo-preview" style="width:5rem;height:5rem;border:1px dashed hsl(var(--border));border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:hsl(var(--surface));flex-shrink:0;"><span style="font-size:0.68rem;color:hsl(var(--muted-fg));text-align:center;padding:0.3rem;" data-i18n="lbl_no_logo">No logo</span></div>
                   <div style="display:flex;flex-direction:column;gap:0.4rem;">
                     <input type="file" accept="image/*" id="set-logo-file" style="font-size:0.78rem;" />
                     <button class="btn btn-ghost btn-sm" id="set-logo-remove" style="width:fit-content;" data-i18n="btn_remove_logo">Remove logo</button>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label class="field-label" data-i18n="fld_company_stamp">Company stamp / cachet</label>
+                <div style="display:flex;align-items:center;gap:0.8rem;margin-top:0.4rem;">
+                  <div id="set-stamp-preview" style="width:5rem;height:5rem;border:1px dashed hsl(var(--border));border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:hsl(var(--surface));flex-shrink:0;"><span style="font-size:0.68rem;color:hsl(var(--muted-fg));text-align:center;padding:0.3rem;" data-i18n="lbl_no_stamp">No stamp</span></div>
+                  <div style="display:flex;flex-direction:column;gap:0.4rem;">
+                    <input type="file" accept="image/*" id="set-stamp-file" style="font-size:0.78rem;" />
+                    <button class="btn btn-ghost btn-sm" id="set-stamp-remove" style="width:fit-content;" data-i18n="btn_remove_stamp">Remove stamp</button>
                   </div>
                 </div>
               </div>
@@ -5228,13 +5250,29 @@ try {
         if (logo) { logoEl.src = logo; logoEl.style.display = ""; }
         else logoEl.style.display = "none";
       }
+      var profile = currentCompanyProfile();
+      var orgName = document.getElementById("ds-doc-orgname");
+      var companyName = document.getElementById("ds-doc-company-name");
+      var companyMeta = document.getElementById("ds-doc-company-meta");
+      if (orgName) orgName.textContent = profile.name;
+      if (companyName) companyName.textContent = profile.name;
+      if (companyMeta) {
+        companyMeta.innerHTML = [
+          profile.siret ? "SIRET: " + escapeHtml(profile.siret) : "",
+          profile.address ? escapeHtml(profile.address).replace(/\n/g, "<br>") : "",
+        ].filter(Boolean).join("<br>");
+      }
       var sigSection = DS_SECTIONS.filter(function (s) { return s.id === "signature"; })[0];
       var sigWrap = document.getElementById("ds-doc-signature");
       var sigBody = document.getElementById("ds-doc-signature-body");
       if (sigWrap && sigBody) {
         if (sigSection && sigSection.visible) {
           var sig = getCompanySignature();
-          sigBody.innerHTML = sig ? '<img src="' + sig + '" alt="Signature" style="max-height:3.2rem;max-width:12rem;" />' : '<span style="color:' + (dsState.dark ? "inherit" : "hsl(var(--muted-fg))") + ';opacity:0.6;font-style:italic;">No signature saved — add one in Settings → Company branding.</span>';
+          var stamp = getCompanyStamp();
+          var sigParts = [];
+          if (stamp) sigParts.push('<img src="' + stamp + '" alt="Company stamp" style="max-height:3.8rem;max-width:7rem;object-fit:contain;" />');
+          if (sig) sigParts.push('<img src="' + sig + '" alt="Signature" style="max-height:3.2rem;max-width:12rem;object-fit:contain;" />');
+          sigBody.innerHTML = sigParts.length ? '<div style="display:flex;align-items:flex-end;gap:0.9rem;flex-wrap:wrap;">' + sigParts.join("") + "</div>" : '<span style="color:' + (dsState.dark ? "inherit" : "hsl(var(--muted-fg))") + ';opacity:0.6;font-style:italic;">No stamp or signature saved — add them in Settings → Company branding.</span>';
           sigWrap.style.display = "";
         } else {
           sigWrap.style.display = "none";
@@ -5370,16 +5408,19 @@ try {
     function wsRenderAll() {
       var active = COMPANIES.filter(function (c) { return c.id === wsActiveId; })[0];
       if (!active) return;
-      document.querySelectorAll("[data-ws-avatar]").forEach(function (el) { el.textContent = wsInitials(active.name); });
-      document.querySelectorAll("[data-ws-name]").forEach(function (el) { el.textContent = active.name; });
+      var activeProfile = currentCompanyProfile();
+      var activeName = activeProfile.name || active.name;
+      document.querySelectorAll("[data-ws-avatar]").forEach(function (el) { el.textContent = wsInitials(activeName); });
+      document.querySelectorAll("[data-ws-name]").forEach(function (el) { el.textContent = activeName; });
       document.querySelectorAll("[data-ws-menu-inner]").forEach(function (el) {
         el.innerHTML =
           '<p class="ws-menu-label">Your companies</p>' +
           COMPANIES.map(function (c) {
+            var displayName = c.id === wsActiveId ? activeName : c.name;
             return (
               '<button class="ws-item" data-ws-switch="' + c.id + '">' +
-              '<span class="ws-avatar">' + wsInitials(c.name) + "</span>" +
-              '<span class="meta"><span class="n">' + c.name + '</span><span class="t">' + c.type + "</span></span>" +
+              '<span class="ws-avatar">' + wsInitials(displayName) + "</span>" +
+              '<span class="meta"><span class="n">' + escapeHtml(displayName) + '</span><span class="t">' + escapeHtml(c.type) + "</span></span>" +
               (c.id === wsActiveId ? '<span class="check">✓</span>' : "") +
               "</button>"
             );
@@ -5387,7 +5428,7 @@ try {
           '<div class="ws-divider"></div>' +
           '<button class="ws-item ws-create" data-ws-create-open>+ Create new company</button>';
       });
-      document.querySelectorAll("[data-ws-dashboard-name]").forEach(function (el) { el.textContent = active.name + " — "; });
+      document.querySelectorAll("[data-ws-dashboard-name]").forEach(function (el) { el.textContent = activeName + " — "; });
     }
 
     document.addEventListener("click", function (e) {
@@ -6853,11 +6894,43 @@ try {
       if (curr) applyCurrencyDefault(curr);
     });
     // ---- Company branding: logo/stamp + signature (stored locally, used on invoices/quotes) ----
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+      });
+    }
+    function htmlLines(value) {
+      return escapeHtml(value).replace(/\n/g, "<br>");
+    }
     function getCompanyLogo() { return localStorage.getItem("profacture_company_logo") || ""; }
+    function getCompanyStamp() { return localStorage.getItem("profacture_company_stamp") || ""; }
     function getCompanySignature() { return localStorage.getItem("profacture_company_signature") || ""; }
+    function getSavedCompanyProfile() {
+      try {
+        return JSON.parse(localStorage.getItem("profacture_company_profile") || "{}") || {};
+      } catch (e) {
+        return {};
+      }
+    }
+    function saveCompanyProfile(profile) {
+      localStorage.setItem("profacture_company_profile", JSON.stringify({
+        name: (profile.name || "").trim(),
+        siret: (profile.siret || "").trim(),
+        address: (profile.address || "").trim(),
+      }));
+    }
+    function currentCompanyProfile() {
+      var companyList = Array.isArray(COMPANIES) ? COMPANIES : [];
+      var active = companyList.filter(function (c) { return c.id === wsActiveId; })[0];
+      var saved = getSavedCompanyProfile();
+      return {
+        name: saved.name || (active ? active.name : "Your Business"),
+        siret: saved.siret || "",
+        address: saved.address || "",
+      };
+    }
     function currentWorkspaceName() {
-      var active = COMPANIES.filter(function (c) { return c.id === wsActiveId; })[0];
-      return active ? active.name : "Your Business";
+      return currentCompanyProfile().name;
     }
     var DOC_STATUS_KEYS = {
       "Draft": "st_draft", "Sent": "st_sent", "Viewed": "st_viewed", "Partially paid": "st_partially_paid",
@@ -6870,7 +6943,9 @@ try {
     }
     function buildDocPrintHtml(opts) {
       var logo = getCompanyLogo();
+      var stamp = getCompanyStamp();
       var sig = getCompanySignature();
+      var company = currentCompanyProfile();
       var code = opts.currencyCode || "USD";
       var fmt = function (n) { return formatCurrency(n, code); };
       var primary = (dsState && dsState.primary) || "#2563EB";
@@ -6884,28 +6959,31 @@ try {
       var singleLineDesc = opts.description || (opts.client + " — services");
       var itemsRows = (opts.items && opts.items.length)
         ? opts.items.map(function (it) {
-            return "<tr><td>" + (it.desc || "—") + "</td><td style=\"text-align:right;\">" + it.qty + "</td><td style=\"text-align:right;\">" + fmt(it.price) + "</td><td style=\"text-align:right;\">" + fmt(it.qty * it.price) + "</td></tr>";
+            return "<tr><td>" + escapeHtml(it.desc || "—") + "</td><td style=\"text-align:right;\">" + escapeHtml(it.qty) + "</td><td style=\"text-align:right;\">" + fmt(it.price) + "</td><td style=\"text-align:right;\">" + fmt(it.qty * it.price) + "</td></tr>";
           }).join("")
-        : "<tr><td>" + singleLineDesc + "</td><td style=\"text-align:right;\">1</td><td style=\"text-align:right;\">" + fmt(opts.total) + "</td><td style=\"text-align:right;\">" + fmt(opts.total) + "</td></tr>";
+        : "<tr><td>" + escapeHtml(singleLineDesc) + "</td><td style=\"text-align:right;\">1</td><td style=\"text-align:right;\">" + fmt(opts.total) + "</td><td style=\"text-align:right;\">" + fmt(opts.total) + "</td></tr>";
       return (
         '<div class="print-doc" style="' + docStyle + '">' +
         '<div class="print-doc-head" style="background:' + headBg + ';color:' + headColor + ';border-bottom-color:' + headBorder + ';">' +
         (logo ? '<img src="' + logo + '" alt="" style="height:2.4rem;object-fit:contain;" />' : "") +
-        '<div style="font-weight:800;font-size:1.1rem;">' + currentWorkspaceName() + "</div>" +
+        '<div><div style="font-weight:800;font-size:1.1rem;">' + escapeHtml(company.name) + "</div>" +
+        (company.siret ? '<div style="font-size:0.74rem;opacity:0.75;">SIRET: ' + escapeHtml(company.siret) + "</div>" : "") +
+        (company.address ? '<div style="font-size:0.74rem;opacity:0.75;max-width:15rem;">' + htmlLines(company.address) + "</div>" : "") +
+        "</div>" +
         '<div style="margin-left:auto;text-align:right;">' +
-        '<div style="font-weight:800;font-size:1.3rem;color:' + (dark ? headColor : primary) + ';">' + opts.title + "</div>" +
-        "<div>" + opts.number + "</div>" +
-        (opts.status ? "<div>" + docStatusLabel(opts.status) + "</div>" : "") +
+        '<div style="font-weight:800;font-size:1.3rem;color:' + (dark ? headColor : primary) + ';">' + escapeHtml(opts.title) + "</div>" +
+        "<div>" + escapeHtml(opts.number) + "</div>" +
+        (opts.status ? "<div>" + escapeHtml(docStatusLabel(opts.status)) + "</div>" : "") +
         "</div></div>" +
         '<div class="print-doc-grid">' +
-        "<div><strong>" + t("lbl_billed_to") + "</strong><br>" + opts.client + (opts.clientAddress ? "<br>" + opts.clientAddress.replace(/\n/g, "<br>") : "") + "</div>" +
-        (opts.siteAddress ? "<div><strong>" + t("lbl_jobsite") + "</strong><br>" + opts.siteAddress.replace(/\n/g, "<br>") + "</div>" : "<div></div>") +
-        "<div><strong>" + opts.issueLabel + "</strong><br>" + opts.issueDate + "<br><strong>" + opts.dueLabel + "</strong><br>" + opts.dueDate + "</div>" +
+        "<div><strong>" + escapeHtml(t("lbl_billed_to")) + "</strong><br>" + escapeHtml(opts.client) + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + "</div>" +
+        (opts.siteAddress ? "<div><strong>" + escapeHtml(t("lbl_jobsite")) + "</strong><br>" + htmlLines(opts.siteAddress) + "</div>" : "<div></div>") +
+        "<div><strong>" + escapeHtml(opts.issueLabel) + "</strong><br>" + escapeHtml(opts.issueDate) + "<br><strong>" + escapeHtml(opts.dueLabel) + "</strong><br>" + escapeHtml(opts.dueDate) + "</div>" +
         "</div>" +
-        (opts.siret ? "<p style=\"font-size:0.8rem;margin-bottom:0.8rem;\">SIRET: " + opts.siret + "</p>" : "") +
+        (opts.siret ? "<p style=\"font-size:0.8rem;margin-bottom:0.8rem;\">SIRET client: " + escapeHtml(opts.siret) + "</p>" : "") +
         '<table class="print-doc-table"><thead style="background:' + tableBg + ';"><tr><th>' + t("fld_description") + '</th><th style="text-align:right;">' + t("fld_qty") + '</th><th style="text-align:right;">' + t("fld_unit_price") + '</th><th style="text-align:right;">' + t("fld_amount") + "</th></tr></thead><tbody>" + itemsRows + "</tbody></table>" +
         '<div class="print-doc-total" style="color:' + primary + ';">' + t("fld_total") + ": " + fmt(opts.total) + "</div>" +
-        (sig ? '<div class="print-doc-sig"><div style="font-size:0.78rem;color:#555;">' + t("fld_signature") + '</div><img src="' + sig + '" alt="" /></div>' : "") +
+        ((stamp || sig) ? '<div class="print-doc-sig"><div style="font-size:0.78rem;color:#555;">' + escapeHtml(t("fld_company_stamp")) + " / " + escapeHtml(t("fld_signature")) + '</div><div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:0.9rem;flex-wrap:wrap;">' + (stamp ? '<img src="' + stamp + '" alt="" style="max-height:4.6rem;max-width:8rem;object-fit:contain;" />' : "") + (sig ? '<img src="' + sig + '" alt="" />' : "") + "</div></div>" : "") +
         "</div>"
       );
     }
@@ -6933,8 +7011,35 @@ try {
       var preview = document.getElementById("set-logo-preview");
       if (!preview) return;
       var logo = getCompanyLogo();
-      preview.innerHTML = logo ? '<img src="' + logo + '" alt="Company logo" style="width:100%;height:100%;object-fit:contain;" />' : '<span style="font-size:0.68rem;color:hsl(var(--muted-fg));text-align:center;padding:0.3rem;">No logo</span>';
+      preview.innerHTML = logo ? '<img src="' + logo + '" alt="Company logo" style="width:100%;height:100%;object-fit:contain;" />' : '<span style="font-size:0.68rem;color:hsl(var(--muted-fg));text-align:center;padding:0.3rem;">' + escapeHtml(t("lbl_no_logo")) + '</span>';
     }
+    function renderStampPreview() {
+      var preview = document.getElementById("set-stamp-preview");
+      if (!preview) return;
+      var stamp = getCompanyStamp();
+      preview.innerHTML = stamp ? '<img src="' + stamp + '" alt="Company stamp" style="width:100%;height:100%;object-fit:contain;" />' : '<span style="font-size:0.68rem;color:hsl(var(--muted-fg));text-align:center;padding:0.3rem;">' + escapeHtml(t("lbl_no_stamp")) + '</span>';
+    }
+    function renderCompanyProfileForm() {
+      var profile = currentCompanyProfile();
+      var nameEl = document.getElementById("set-company-name");
+      var siretEl = document.getElementById("set-company-siret");
+      var addressEl = document.getElementById("set-company-address");
+      if (nameEl) nameEl.value = profile.name || "";
+      if (siretEl) siretEl.value = profile.siret || "";
+      if (addressEl) addressEl.value = profile.address || "";
+    }
+    var setCompanySaveBtn = document.getElementById("set-company-save");
+    if (setCompanySaveBtn) setCompanySaveBtn.addEventListener("click", function () {
+      saveCompanyProfile({
+        name: (document.getElementById("set-company-name") || {}).value || "",
+        siret: (document.getElementById("set-company-siret") || {}).value || "",
+        address: (document.getElementById("set-company-address") || {}).value || "",
+      });
+      wsRenderAll();
+      dsApplyPreview();
+      showToast(t("msg_company_saved"));
+      playSound("success");
+    });
     var setLogoFileEl = document.getElementById("set-logo-file");
     if (setLogoFileEl) setLogoFileEl.addEventListener("change", function (e) {
       var file = e.target.files[0];
@@ -6957,7 +7062,31 @@ try {
       dsApplyPreview();
       showToast("Logo removed");
     });
+    var setStampFileEl = document.getElementById("set-stamp-file");
+    if (setStampFileEl) setStampFileEl.addEventListener("change", function (e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        localStorage.setItem("profacture_company_stamp", reader.result);
+        renderStampPreview();
+        dsApplyPreview();
+        showToast("Stamp saved");
+        playSound("success");
+      };
+      reader.readAsDataURL(file);
+    });
+    var setStampRemoveBtn = document.getElementById("set-stamp-remove");
+    if (setStampRemoveBtn) setStampRemoveBtn.addEventListener("click", function () {
+      localStorage.removeItem("profacture_company_stamp");
+      if (setStampFileEl) setStampFileEl.value = "";
+      renderStampPreview();
+      dsApplyPreview();
+      showToast("Stamp removed");
+    });
+    renderCompanyProfileForm();
     renderLogoPreview();
+    renderStampPreview();
 
     function renderSignatureStatus() {
       var status = document.getElementById("set-signature-status");
