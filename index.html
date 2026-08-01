@@ -660,7 +660,16 @@ try {
     color: hsl(var(--primary)); display: flex; align-items: center; justify-content: center;
     font-size: 0.75rem; font-weight: 800; overflow: hidden;
   }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
   .m-auth-icon { display: inline-flex; text-decoration: none; flex-shrink: 0; }
+  .account-wrap { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
+  .account-trigger { border: 1px solid hsl(var(--border)); background: hsl(var(--surface)); color: hsl(var(--fg)); border-radius: 999px; padding: 0.2rem 0.35rem 0.2rem 0.2rem; display: inline-flex; align-items: center; gap: 0.25rem; cursor: pointer; box-shadow: var(--shadow-sm); }
+  .account-trigger:hover { border-color: hsl(var(--primary)); }
+  .account-caret { font-size: 0.65rem; color: hsl(var(--muted-fg)); line-height: 1; padding-right: 0.1rem; }
+  .account-menu { display: none; position: absolute; right: 0; top: calc(100% + 0.55rem); z-index: 260; width: 14.5rem; padding: 0.45rem; }
+  .account-wrap.open .account-menu { display: grid; gap: 0.25rem; }
+  .account-menu a, .account-menu button { width: 100%; border: 0; background: transparent; color: hsl(var(--fg)); border-radius: var(--radius-sm); padding: 0.55rem 0.65rem; display: flex; align-items: center; gap: 0.55rem; font: inherit; font-size: 0.84rem; font-weight: 700; text-align: left; cursor: pointer; text-decoration: none; }
+  .account-menu a:hover, .account-menu button:hover { background: hsl(var(--muted)); }
   .lang-select { font-size: 0.78rem; font-weight: 600; padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid hsl(var(--border)); background: hsl(var(--surface)); color: hsl(var(--fg)); cursor: pointer; }
   .m-lang-select { margin-left: 0.4rem; }
   .ad-strip { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; align-items: center; margin: 1rem 0; padding: 0.6rem; background: hsl(var(--surface)); border: 1px dashed hsl(var(--border)); border-radius: var(--radius-lg); }
@@ -2019,6 +2028,21 @@ try {
       "</select>"
     );
   }
+  var lastKnownAuthState = false;
+  function accountMenuHtml(loggedIn) {
+    var items = loggedIn
+      ? '<a href="#" data-goto="profile">👤 ' + t("nav_profile") + '</a>' +
+        '<button type="button" data-profile-upload-trigger>🖼 ' + t("btn_upload_picture") + '</button>' +
+        '<button type="button" data-auth-logout>↪ ' + t("topbar_signout") + "</button>"
+      : '<a href="#" data-goto="login">↪ ' + t("btn_sign_in") + '</a>' +
+        '<a href="#" data-goto="register">✨ ' + t("auth_create_one") + "</a>";
+    return (
+      '<div class="account-wrap" data-account-root>' +
+      '<button class="account-trigger" type="button" data-account-trigger aria-haspopup="menu" aria-expanded="false" title="' + t("auth_your_account") + '">' +
+      '<span class="avatar" data-auth-avatar>👤</span><span class="account-caret">⌄</span></button>' +
+      '<div class="account-menu card glass-panel" data-account-menu>' + items + "</div></div>"
+    );
+  }
   function renderTopbar() {
     return (
       '<div class="app-topbar">' +
@@ -2040,8 +2064,7 @@ try {
       '<div data-notif-list></div>' +
       "</div></div>" +
       '<button class="btn btn-ghost btn-icon theme-toggle" aria-label="Toggle theme">◐</button>' +
-      '<button class="btn btn-ghost btn-sm" data-auth-logout>' + t("topbar_signout") + "</button>" +
-      '<div class="avatar" data-auth-avatar>U</div></div>'
+      accountMenuHtml(!!lastKnownAuthState) + "</div>"
     );
   }
   var LANG_LIST = [
@@ -3233,7 +3256,7 @@ try {
 	      fld_city: "City", fld_postal_code: "Postal code", fld_country: "Country", fld_billing_name: "Billing name",
 	      fld_billing_email: "Billing email", fld_billing_address: "Billing address", fld_tax_number: "Tax / VAT number",
 	      fld_cardholder_name: "Cardholder name", fld_card_brand: "Card brand", fld_card_last4: "Card ending",
-	      btn_save_profile: "Save profile", btn_send_password_reset: "Send password reset link", btn_save_billing: "Save billing profile",
+	      btn_save_profile: "Save profile", btn_upload_picture: "Upload picture", btn_send_password_reset: "Send password reset link", btn_save_billing: "Save billing profile",
 	      btn_save_payment_placeholder: "Save payment placeholder", btn_clear_payment_placeholder: "Clear payment placeholder",
 	      txt_card_security_note: "For security, ProFacture AI does not store full card numbers or CVV. Future payments should use a secure provider portal.",
 	      txt_password_reset_note: "A secure password reset link will be sent to your account email.",
@@ -3246,18 +3269,18 @@ try {
 	      fld_city: "Ville", fld_postal_code: "Code postal", fld_country: "Pays", fld_billing_name: "Nom de facturation",
 	      fld_billing_email: "E-mail de facturation", fld_billing_address: "Adresse de facturation", fld_tax_number: "Numéro TVA / fiscal",
 	      fld_cardholder_name: "Nom du titulaire", fld_card_brand: "Marque de carte", fld_card_last4: "4 derniers chiffres",
-	      btn_save_profile: "Enregistrer le profil", btn_send_password_reset: "Envoyer le lien de réinitialisation", btn_save_billing: "Enregistrer la facturation",
+	      btn_save_profile: "Enregistrer le profil", btn_upload_picture: "Ajouter une photo", btn_send_password_reset: "Envoyer le lien de réinitialisation", btn_save_billing: "Enregistrer la facturation",
 	      btn_save_payment_placeholder: "Enregistrer l'espace paiement", btn_clear_payment_placeholder: "Effacer l'espace paiement",
 	      txt_card_security_note: "Pour la sécurité, ProFacture AI ne stocke pas les numéros complets de carte ni les CVV. Les futurs paiements devront passer par un portail sécurisé.",
 	      txt_password_reset_note: "Un lien sécurisé de réinitialisation sera envoyé à l'e-mail du compte.",
 	      lbl_connected_account: "Compte connecté", lbl_email_verified: "E-mail vérifié", lbl_provider: "Fournisseur", lbl_user_id: "ID utilisateur"
 	    },
-	    it: { nav_profile: "Profilo", nav_tools: "Strumenti gratuiti", nav_resources: "Risorse", nav_country: "Paesi", page_profile_title: "Profilo", page_profile_sub: "Account, sicurezza, fatturazione e pagamenti futuri.", card_account_profile: "Profilo account", card_account_security: "Password e sicurezza", card_billing_profile: "Profilo fatturazione", card_future_payment: "Metodo di pagamento futuro" },
-	    es: { nav_profile: "Mi perfil", nav_tools: "Herramientas gratis", nav_resources: "Recursos", nav_country: "Países", page_profile_title: "Mi perfil", page_profile_sub: "Cuenta, seguridad, facturación y pagos futuros.", card_account_profile: "Perfil de cuenta", card_account_security: "Contraseña y seguridad", card_billing_profile: "Perfil de facturación", card_future_payment: "Método de pago futuro" },
-	    de: { nav_profile: "Mein Profil", nav_tools: "Kostenlose Tools", nav_resources: "Ressourcen", nav_country: "Länder", page_profile_title: "Mein Profil", page_profile_sub: "Konto, Sicherheit, Rechnungsadresse und zukünftige Zahlungen.", card_account_profile: "Kontoprofil", card_account_security: "Passwort und Sicherheit", card_billing_profile: "Abrechnungsprofil", card_future_payment: "Zukünftige Zahlungsmethode" },
-	    nl: { nav_profile: "Mijn profiel", nav_tools: "Gratis tools", nav_resources: "Bronnen", nav_country: "Landen", page_profile_title: "Mijn profiel", page_profile_sub: "Account, beveiliging, facturatie en toekomstige betalingen.", card_account_profile: "Accountprofiel", card_account_security: "Wachtwoord en beveiliging", card_billing_profile: "Facturatieprofiel", card_future_payment: "Toekomstige betaalmethode" },
-	    pt: { nav_profile: "Meu perfil", nav_tools: "Ferramentas grátis", nav_resources: "Recursos", nav_country: "Países", page_profile_title: "Meu perfil", page_profile_sub: "Conta, segurança, faturação e pagamentos futuros.", card_account_profile: "Perfil da conta", card_account_security: "Palavra-passe e segurança", card_billing_profile: "Perfil de faturação", card_future_payment: "Método de pagamento futuro" },
-	    pl: { nav_profile: "Mój profil", nav_tools: "Darmowe narzędzia", nav_resources: "Zasoby", nav_country: "Kraje", page_profile_title: "Mój profil", page_profile_sub: "Konto, bezpieczeństwo, rozliczenia i przyszłe płatności.", card_account_profile: "Profil konta", card_account_security: "Hasło i bezpieczeństwo", card_billing_profile: "Profil rozliczeniowy", card_future_payment: "Przyszła metoda płatności" }
+	    it: { nav_profile: "Profilo", nav_tools: "Strumenti gratuiti", nav_resources: "Risorse", nav_country: "Paesi", btn_upload_picture: "Carica foto", page_profile_title: "Profilo", page_profile_sub: "Account, sicurezza, fatturazione e pagamenti futuri.", card_account_profile: "Profilo account", card_account_security: "Password e sicurezza", card_billing_profile: "Profilo fatturazione", card_future_payment: "Metodo di pagamento futuro" },
+	    es: { nav_profile: "Mi perfil", nav_tools: "Herramientas gratis", nav_resources: "Recursos", nav_country: "Países", btn_upload_picture: "Subir foto", page_profile_title: "Mi perfil", page_profile_sub: "Cuenta, seguridad, facturación y pagos futuros.", card_account_profile: "Perfil de cuenta", card_account_security: "Contraseña y seguridad", card_billing_profile: "Perfil de facturación", card_future_payment: "Método de pago futuro" },
+	    de: { nav_profile: "Mein Profil", nav_tools: "Kostenlose Tools", nav_resources: "Ressourcen", nav_country: "Länder", btn_upload_picture: "Foto hochladen", page_profile_title: "Mein Profil", page_profile_sub: "Konto, Sicherheit, Rechnungsadresse und zukünftige Zahlungen.", card_account_profile: "Kontoprofil", card_account_security: "Passwort und Sicherheit", card_billing_profile: "Abrechnungsprofil", card_future_payment: "Zukünftige Zahlungsmethode" },
+	    nl: { nav_profile: "Mijn profiel", nav_tools: "Gratis tools", nav_resources: "Bronnen", nav_country: "Landen", btn_upload_picture: "Foto uploaden", page_profile_title: "Mijn profiel", page_profile_sub: "Account, beveiliging, facturatie en toekomstige betalingen.", card_account_profile: "Accountprofiel", card_account_security: "Wachtwoord en beveiliging", card_billing_profile: "Facturatieprofiel", card_future_payment: "Toekomstige betaalmethode" },
+	    pt: { nav_profile: "Meu perfil", nav_tools: "Ferramentas grátis", nav_resources: "Recursos", nav_country: "Países", btn_upload_picture: "Carregar foto", page_profile_title: "Meu perfil", page_profile_sub: "Conta, segurança, faturação e pagamentos futuros.", card_account_profile: "Perfil da conta", card_account_security: "Palavra-passe e segurança", card_billing_profile: "Perfil de faturação", card_future_payment: "Método de pagamento futuro" },
+	    pl: { nav_profile: "Mój profil", nav_tools: "Darmowe narzędzia", nav_resources: "Zasoby", nav_country: "Kraje", btn_upload_picture: "Prześlij zdjęcie", page_profile_title: "Mój profil", page_profile_sub: "Konto, bezpieczeństwo, rozliczenia i przyszłe płatności.", card_account_profile: "Profil konta", card_account_security: "Hasło i bezpieczeństwo", card_billing_profile: "Profil rozliczeniowy", card_future_payment: "Przyszła metoda płatności" }
 	  };
 	  Object.keys(ACCOUNT_I18N_PATCHES).forEach(function (lang) {
 	    I18N[lang] = Object.assign(I18N[lang] || {}, ACCOUNT_I18N_PATCHES[lang]);
@@ -4514,6 +4537,11 @@ try {
               <span class="badge badge-success" id="profile-connected-badge" data-i18n="lbl_connected_account">Connected account</span>
               <span class="badge badge-default" id="profile-provider-badge">Firebase</span>
             </div>
+            <div style="display:flex;gap:0.55rem;align-items:center;flex-wrap:wrap;margin-top:0.85rem;">
+              <button class="btn btn-outline btn-sm" id="profile-photo-btn" type="button" data-i18n="btn_upload_picture">Upload picture</button>
+              <input id="profile-photo-input" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+              <p id="profile-photo-status" class="auth-status" role="status" aria-live="polite"></p>
+            </div>
           </div>
         </div>
 
@@ -4742,8 +4770,7 @@ try {
         '<a href="#" class="logo" data-goto="landing"><span class="logo-mark">PA</span>ProFacture AI</a>' +
         '<nav class="m-nav">' + nav + "</nav>" +
         '<div class="m-actions">' + langSelectHtml("m-lang-select") + '<button class="btn btn-ghost btn-sm theme-toggle" aria-label="Toggle theme">◐</button>' +
-        '<span class="m-auth-links"><a href="#" class="btn btn-ghost btn-sm" data-goto="login">' + t("btn_sign_in") + '</a>' +
-        '<a href="#" class="btn btn-primary btn-sm" data-goto="register">' + t("btn_get_started") + "</a></span></div>" +
+        '<span class="m-auth-links">' + accountMenuHtml(!!lastKnownAuthState) + "</span></div>" +
         "</div></header>"
       );
     }
@@ -4757,16 +4784,47 @@ try {
     // A single persistent profile icon replaces the "Sign in / Commencer gratuitement" pair on every
     // marketing page. Its content (photo/initials/generic icon) is filled in by the auth module's
     // renderAuthAvatars() via the shared [data-auth-avatar] elements.
-    var lastKnownAuthState = false;
 	    function updateMarketingHeaders(loggedIn) {
 	      lastKnownAuthState = loggedIn;
 	      document.querySelectorAll(".m-auth-links").forEach(function (el) {
-	        el.innerHTML = '<a href="#" class="m-auth-icon" data-goto="' + (loggedIn ? "profile" : "login") + '" title="' + (loggedIn ? t("auth_your_account") : t("btn_sign_in")) + '"><span class="avatar" data-auth-avatar>👤</span></a>';
+	        el.innerHTML = accountMenuHtml(loggedIn);
 	      });
 	    }
+    function refreshAccountMenus(loggedIn) {
+      lastKnownAuthState = loggedIn;
+      document.querySelectorAll("[data-account-root]").forEach(function (root) {
+        root.outerHTML = accountMenuHtml(loggedIn);
+      });
+    }
     updateMarketingHeaders(false);
     window.profactureSetMarketingAuthState = updateMarketingHeaders;
+    window.profactureRefreshAccountMenus = refreshAccountMenus;
     window.ivoxaSetMarketingAuthState = updateMarketingHeaders;
+    document.addEventListener("click", function (e) {
+      var trigger = e.target.closest("[data-account-trigger]");
+      if (trigger) {
+        e.preventDefault();
+        var wrap = trigger.closest(".account-wrap");
+        var willOpen = wrap && !wrap.classList.contains("open");
+        document.querySelectorAll(".account-wrap.open").forEach(function (item) {
+          item.classList.remove("open");
+          var btn = item.querySelector("[data-account-trigger]");
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        });
+        if (wrap && willOpen) {
+          wrap.classList.add("open");
+          trigger.setAttribute("aria-expanded", "true");
+        }
+        return;
+      }
+      if (!e.target.closest(".account-wrap")) {
+        document.querySelectorAll(".account-wrap.open").forEach(function (item) {
+          item.classList.remove("open");
+          var btn = item.querySelector("[data-account-trigger]");
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        });
+      }
+    });
 
     // ---- app-wide language switcher ----
 	    function populateStaticLangSelects() {
@@ -9835,7 +9893,9 @@ try {
   }
 	  function renderAuthAvatars(user) {
 	    document.querySelectorAll("[data-auth-avatar]").forEach(el => {
-	      if (user && user.photoURL) el.innerHTML = '<img src="' + user.photoURL + '" alt="" style="width:100%;height:100%;object-fit:cover;" />';
+	      const localProfile = user ? readAccountStorage("profile") : {};
+	      const photoSrc = (localProfile && localProfile.photoData) || (user && user.photoURL);
+	      if (photoSrc) el.innerHTML = '<img src="' + photoSrc + '" alt="" />';
 	      else if (user) el.textContent = initials(user);
 	      else el.textContent = "👤";
 	    });
@@ -9873,7 +9933,8 @@ try {
 	    const provider = user && user.providerData && user.providerData.length ? user.providerData.map(p => p.providerId.replace(".com", "")).join(", ") : "firebase";
 	    const avatar = document.getElementById("profile-avatar-lg");
 	    if (avatar) {
-	      if (user && user.photoURL) avatar.innerHTML = '<img src="' + user.photoURL + '" alt="" />';
+	      const photoSrc = localProfile.photoData || (user && user.photoURL);
+	      if (photoSrc) avatar.innerHTML = '<img src="' + photoSrc + '" alt="" />';
 	      else avatar.textContent = initials(user || { displayName: displayName, email: email });
 	    }
 	    const title = document.getElementById("profile-display-title");
@@ -9906,18 +9967,99 @@ try {
 	  }
 	  window.profactureRenderAccountProfile = renderAccountProfile;
 
+	  function compressProfileImage(file) {
+	    return new Promise((resolve, reject) => {
+	      if (!file || !/^image\/(png|jpe?g|webp)$/i.test(file.type || "")) {
+	        reject(new Error("Please choose a PNG, JPG or WebP image."));
+	        return;
+	      }
+	      if (file.size > 5 * 1024 * 1024) {
+	        reject(new Error("Image is too large. Choose an image under 5 MB."));
+	        return;
+	      }
+	      const reader = new FileReader();
+	      reader.onerror = () => reject(new Error("Could not read this image."));
+	      reader.onload = () => {
+	        const img = new Image();
+	        img.onerror = () => reject(new Error("Could not load this image."));
+	        img.onload = () => {
+	          const size = 256;
+	          const canvas = document.createElement("canvas");
+	          canvas.width = size;
+	          canvas.height = size;
+	          const ctx = canvas.getContext("2d");
+	          const side = Math.min(img.width, img.height);
+	          const sx = (img.width - side) / 2;
+	          const sy = (img.height - side) / 2;
+	          ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+	          resolve(canvas.toDataURL("image/jpeg", 0.82));
+	        };
+	        img.src = reader.result;
+	      };
+	      reader.readAsDataURL(file);
+	    });
+	  }
+	  async function saveProfilePhoto(file) {
+	    if (!currentUser) { showAuthStatus("profile-photo-status", "Please sign in first."); return; }
+	    const statusId = document.getElementById("profile-photo-status") ? "profile-photo-status" : "profile-status";
+	    try {
+	      showAuthStatus(statusId, "Saving picture…", "success");
+	      const photoData = await compressProfileImage(file);
+	      const profile = Object.assign({}, readAccountStorage("profile"), {
+	        photoData,
+	        email: currentUser.email || "",
+	        updatedAt: new Date().toISOString()
+	      });
+	      writeAccountStorage("profile", profile);
+	      if (window.profactureRefreshAccountMenus) window.profactureRefreshAccountMenus(true);
+	      renderAuthAvatars(currentUser);
+	      renderAccountProfile();
+	      showAuthStatus(statusId, "Profile picture saved.", "success");
+	    } catch (error) {
+	      showAuthStatus(statusId, error.message || "Could not save this picture.");
+	    }
+	  }
+	  function openProfilePhotoPicker() {
+	    const input = document.getElementById("profile-photo-input");
+	    if (!input) {
+	      window.profactureShowView("profile");
+	      setTimeout(openProfilePhotoPicker, 80);
+	      return;
+	    }
+	    input.click();
+	  }
+
+	  const profilePhotoBtn = document.getElementById("profile-photo-btn");
+	  if (profilePhotoBtn) profilePhotoBtn.addEventListener("click", openProfilePhotoPicker);
+	  const profilePhotoInput = document.getElementById("profile-photo-input");
+	  if (profilePhotoInput) profilePhotoInput.addEventListener("change", async () => {
+	    const file = profilePhotoInput.files && profilePhotoInput.files[0];
+	    if (file) await saveProfilePhoto(file);
+	    profilePhotoInput.value = "";
+	  });
+	  document.addEventListener("click", event => {
+	    const upload = event.target.closest("[data-profile-upload-trigger]");
+	    if (!upload) return;
+	    event.preventDefault();
+	    if (!currentUser) {
+	      window.profactureShowView("login");
+	      return;
+	    }
+	    openProfilePhotoPicker();
+	  });
+
 	  const profileSaveBtn = document.getElementById("profile-save-btn");
 	  if (profileSaveBtn) profileSaveBtn.addEventListener("click", async () => {
 	    if (!currentUser) { showAuthStatus("profile-status", "Please sign in first."); return; }
 	    const displayName = getInputValue("profile-name");
-	    const profile = {
+	    const profile = Object.assign({}, readAccountStorage("profile"), {
 	      displayName,
 	      email: currentUser.email || getInputValue("profile-email"),
 	      phone: getInputValue("profile-phone"),
 	      country: getInputValue("profile-country"),
 	      address: getInputValue("profile-address"),
 	      updatedAt: new Date().toISOString()
-	    };
+	    });
 	    profileSaveBtn.disabled = true;
 	    try {
 	      if (displayName && displayName !== currentUser.displayName) await updateProfile(currentUser, { displayName });
@@ -10144,6 +10286,7 @@ try {
   onAuthStateChanged(auth, user => {
     currentUser = user;
 	    if (window.profactureSetMarketingAuthState) window.profactureSetMarketingAuthState(!!user);
+	    if (window.profactureRefreshAccountMenus) window.profactureRefreshAccountMenus(!!user);
 	    renderAuthAvatars(user);
 	    renderAccountProfile();
 	    document.querySelectorAll("[data-auth-logout]").forEach(el => { el.hidden = !user; });
