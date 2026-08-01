@@ -4190,17 +4190,9 @@ try {
     }
     populateStaticLangSelects();
 
-    // ---- Ad banner placeholders: 6 standard IAB-size slots per page, spread
-    // through the page content (never as the first element) rather than
-    // clumped together at the top. Ready to wire up to a real ad network later
-    // (each slot carries a stable data-ad-slot id). ----
+    // ---- Ad banner placeholder: keep one standard 728x90 slot per page. ----
     var AD_SLOT_SIZES = [
       { w: 728, h: 90 },
-      { w: 300, h: 250 },
-      { w: 336, h: 280 },
-      { w: 468, h: 60 },
-      { w: 320, h: 100 },
-      { w: 300, h: 600 },
     ];
     var adSlotCounter = 0;
     function renderAdSlotsHtml(sizes) {
@@ -4213,8 +4205,8 @@ try {
       }).join("");
     }
     function fillAdStrip(el) {
-      var idxs = (el.getAttribute("data-ad-sizes") || "0,1,2,3,4,5").split(",").map(function (n) { return parseInt(n, 10); });
-      el.innerHTML = renderAdSlotsHtml(idxs.map(function (i) { return AD_SLOT_SIZES[i]; }));
+      var idxs = (el.getAttribute("data-ad-sizes") || "0").split(",").map(function (n) { return parseInt(n, 10); });
+      el.innerHTML = renderAdSlotsHtml(idxs.map(function (i) { return AD_SLOT_SIZES[i]; }).filter(Boolean));
     }
     function populateAdStrips() {
       document.querySelectorAll(".ad-strip").forEach(fillAdStrip);
@@ -4232,16 +4224,7 @@ try {
           d.setAttribute("data-ad-sizes", sizes);
           return d;
         }
-        if (children.length >= 4) {
-          // one 3-slot strip partway down the page (never right after the very
-          // first block), another 3-slot strip at the very end of the content.
-          var midIdx = Math.min(2, children.length - 2);
-          children[midIdx].after(makeStrip("0,1,2"));
-          container.appendChild(makeStrip("3,4,5"));
-        } else {
-          // short page (e.g. login/register): a single strip at the very end.
-          container.appendChild(makeStrip("0,1,2,3,4,5"));
-        }
+        container.appendChild(makeStrip("0"));
       });
       populateAdStrips();
     }
@@ -9200,8 +9183,5 @@ if ('serviceWorker' in navigator) {
   }
 }
 </script>
-<div class="no-print" style="position:fixed;left:12px;bottom:12px;width:300px;height:300px;max-width:calc(100vw - 24px);z-index:500;overflow:hidden;pointer-events:auto" aria-label="Publicité">
-  <iframe sandbox="allow-scripts allow-same-origin" scrolling="no" style="width:100%;height:100%;border:0;overflow:hidden;display:block;background:transparent;pointer-events:auto" title="Publicité" srcdoc="<script src=&quot;https://commendtwisted.com/fa/e0/9a/fae09a3ed1791146ea5062e1251b5fd3.js&quot;></script>"></iframe>
-</div>
 </body>
 </html>
