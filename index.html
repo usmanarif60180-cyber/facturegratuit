@@ -651,9 +651,30 @@ try {
   .app-nav a.current, .app-nav-footer a.current { background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); }
   .app-nav-footer { padding: 0.75rem; border-top: 1px solid hsl(var(--border)); display: flex; flex-direction: column; gap: 0.15rem; }
   .app-main { flex: 1; min-width: 0; }
+  .sidebar-toggle { display: none; }
+  .sidebar-backdrop { display: none; }
   .app-topbar {
     height: 4rem; display: flex; align-items: center; justify-content: flex-end; gap: 0.4rem;
     padding: 0 1.5rem; border-bottom: 1px solid hsl(var(--border));
+  }
+  @media (max-width: 880px) {
+    .app-sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 520;
+      transform: translateX(-100%); transition: transform 0.22s ease;
+      box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.35);
+    }
+    .app-sidebar.mobile-open { transform: translateX(0); }
+    .sidebar-toggle { display: inline-flex; margin-right: auto; }
+    .sidebar-backdrop.show {
+      display: block; position: fixed; inset: 0; z-index: 510;
+      background: rgb(0 0 0 / 0.4);
+    }
+    .app-topbar { padding: 0 0.85rem; gap: 0.3rem; }
+    .app-topbar .ws-wrap [data-ws-name], .app-topbar .search-trigger span, .app-topbar .search-trigger kbd,
+    .app-topbar .lang-select, .app-topbar .replay-onboarding, .app-topbar .sound-switch,
+    .app-topbar > span[title] { display: none; }
+    .app-topbar .search-trigger { padding: 0.45rem; }
+    .app-content { padding: 1.1rem 1rem 2.5rem; }
   }
   .avatar {
     width: 2rem; height: 2rem; border-radius: 999px; background: hsl(var(--primary) / 0.14);
@@ -2046,6 +2067,7 @@ try {
   function renderTopbar() {
     return (
       '<div class="app-topbar">' +
+      '<button class="btn btn-ghost btn-icon sidebar-toggle" id="sidebar-toggle-btn" type="button" aria-label="Menu">☰</button>' +
       '<div class="ws-wrap">' +
       '<button class="ws-trigger" data-ws-trigger aria-haspopup="menu"><span class="ws-avatar" data-ws-avatar></span><span data-ws-name>Loading…</span><span style="opacity:0.5;">⌄</span></button>' +
       '<div class="ws-menu card glass-panel" data-ws-menu><div class="ws-menu-inner" data-ws-menu-inner></div></div>' +
@@ -4733,6 +4755,8 @@ try {
   </div>
 </section>
 
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
 <div class="tag-strip" id="tag-strip">
   <button data-goto="landing">Landing</button>
   <button data-goto="blog">Blog</button>
@@ -5392,6 +5416,23 @@ try {
       if (dest === "invoice-new") editingInvoiceId = null;
       if (dest === "quote-new") editingQuoteId = null;
       showView(dest);
+      if (el.closest(".app-sidebar")) closeMobileSidebar();
+    });
+
+    function closeMobileSidebar() {
+      document.querySelectorAll(".app-sidebar.mobile-open").forEach(function (s) { s.classList.remove("mobile-open"); });
+      var bd = document.getElementById("sidebar-backdrop");
+      if (bd) bd.classList.remove("show");
+    }
+    document.body.addEventListener("click", function (e) {
+      if (e.target.closest(".sidebar-toggle")) {
+        var sb = document.querySelector(".view.active .app-sidebar");
+        if (sb) sb.classList.toggle("mobile-open");
+        var bd = document.getElementById("sidebar-backdrop");
+        if (bd) bd.classList.toggle("show", !!sb && sb.classList.contains("mobile-open"));
+        return;
+      }
+      if (e.target.closest("#sidebar-backdrop")) closeMobileSidebar();
     });
 
     // AI capability switcher (visual only)
