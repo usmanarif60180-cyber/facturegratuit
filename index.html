@@ -706,6 +706,7 @@ try {
   .print-doc-sig { text-align: right; }
   .print-doc-sig img { max-height: 3.5rem; }
   .doc-builder-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(30rem, 0.9fr); gap: 1.5rem; align-items: start; }
+  .doc-builder-layout > div { min-width: 0; }
   .doc-preview-panel { position: sticky; top: 1rem; min-width: 0; }
   .doc-preview-frame { border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); overflow: auto; background: linear-gradient(135deg, hsl(var(--muted) / 0.45), hsl(var(--surface))); padding: 0; max-height: calc(100vh - 7rem); }
   .doc-preview-stage { position: relative; width: 100%; min-height: 20rem; }
