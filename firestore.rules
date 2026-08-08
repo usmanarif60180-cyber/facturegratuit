@@ -13,8 +13,12 @@ service cloud.firestore {
     function validAccountDoc() {
       return request.resource.data.keys().hasOnly([
         'profile',
+        'billing',
+        'payment',
         'personal',
         'history',
+        'quotes',
+        'expenses',
         'projects',
         'clients',
         'products',
@@ -39,7 +43,7 @@ service cloud.firestore {
 
       match /{collectionName}/{docId} {
         allow read, create, update, delete: if isOwner(userId)
-          && collectionName in ['history', 'projects', 'clients', 'products', 'leads', 'notifications', 'teamMembers', 'teamInvites', 'teamTasks', 'teamActivity', 'feedback'];
+          && collectionName in ['history', 'quotes', 'expenses', 'projects', 'clients', 'products', 'leads', 'notifications', 'teamMembers', 'teamInvites', 'teamTasks', 'teamActivity', 'feedback'];
       }
     }
 
