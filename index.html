@@ -7946,7 +7946,10 @@ try {
         name: (profile.name || "").trim(),
         siret: (profile.siret || "").trim(),
         address: (profile.address || "").trim(),
+        updatedAt: new Date().toISOString(),
       }));
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
     }
     function currentCompanyProfile() {
       var companyList = Array.isArray(COMPANIES) ? COMPANIES : [];
@@ -8100,6 +8103,8 @@ try {
       var reader = new FileReader();
       reader.onload = function () {
         localStorage.setItem("profacture_company_logo", reader.result);
+        if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+        if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
         renderLogoPreview();
         dsApplyPreview();
         showToast("Logo saved");
@@ -8110,6 +8115,8 @@ try {
     var setLogoRemoveBtn = document.getElementById("set-logo-remove");
     if (setLogoRemoveBtn) setLogoRemoveBtn.addEventListener("click", function () {
       localStorage.removeItem("profacture_company_logo");
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
       if (setLogoFileEl) setLogoFileEl.value = "";
       renderLogoPreview();
       dsApplyPreview();
@@ -8122,6 +8129,8 @@ try {
       var reader = new FileReader();
       reader.onload = function () {
         localStorage.setItem("profacture_company_stamp", reader.result);
+        if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+        if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
         renderStampPreview();
         dsApplyPreview();
         showToast("Stamp saved");
@@ -8132,6 +8141,8 @@ try {
     var setStampRemoveBtn = document.getElementById("set-stamp-remove");
     if (setStampRemoveBtn) setStampRemoveBtn.addEventListener("click", function () {
       localStorage.removeItem("profacture_company_stamp");
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
       if (setStampFileEl) setStampFileEl.value = "";
       renderStampPreview();
       dsApplyPreview();
@@ -8189,6 +8200,8 @@ try {
       if (sigSaveBtn) sigSaveBtn.addEventListener("click", function () {
         if (!sigHasStrokes) { showToast("Draw a signature first, or upload an image"); return; }
         localStorage.setItem("profacture_company_signature", sigCanvas.toDataURL("image/png"));
+        if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+        if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
         renderSignatureStatus();
         dsApplyPreview();
         showToast("Signature saved");
@@ -8202,6 +8215,8 @@ try {
       var reader = new FileReader();
       reader.onload = function () {
         localStorage.setItem("profacture_company_signature", reader.result);
+        if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+        if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
         renderSignatureStatus();
         dsApplyPreview();
         showToast("Signature saved");
@@ -10128,18 +10143,142 @@ try {
 	    const uid = currentUser && currentUser.uid ? currentUser.uid : "guest";
 	    return "profacture_account_" + uid + "_" + name;
 	  }
+	  function accountStorageKeyFor(uid, name) {
+	    return "profacture_account_" + (uid || "guest") + "_" + name;
+	  }
 	  function readAccountStorage(name, fallback = {}) {
 	    try { return JSON.parse(localStorage.getItem(accountStorageKey(name)) || "null") || fallback; }
+	    catch (e) { return fallback; }
+	  }
+	  function readAccountStorageFor(uid, name, fallback = {}) {
+	    try { return JSON.parse(localStorage.getItem(accountStorageKeyFor(uid, name)) || "null") || fallback; }
 	    catch (e) { return fallback; }
 	  }
 	  function writeAccountStorage(name, value) {
 	    try { localStorage.setItem(accountStorageKey(name), JSON.stringify(value || {})); }
 	    catch (e) { /* ignore */ }
 	  }
+	  function writeAccountStorageFor(uid, name, value) {
+	    try { localStorage.setItem(accountStorageKeyFor(uid, name), JSON.stringify(value || {})); }
+	    catch (e) { /* ignore */ }
+	  }
+	  function isEmptyAccountObject(value) {
+	    return !value || typeof value !== "object" || Array.isArray(value) || !Object.keys(value).some(key => {
+	      if (["updatedAt", "createdAt", "savedAt", "storageVersion"].includes(key)) return false;
+	      const item = value[key];
+	      return item !== undefined && item !== null && String(item).trim() !== "";
+	    });
+	  }
+	  function newerTimestamp(a, b) {
+	    const ta = Date.parse((a && (a.updatedAt || a.savedAt || a.createdAt)) || "") || 0;
+	    const tb = Date.parse((b && (b.updatedAt || b.savedAt || b.createdAt)) || "") || 0;
+	    return ta >= tb;
+	  }
+	  function mergeAccountObject(localValue, cloudValue) {
+	    if (isEmptyAccountObject(localValue)) return cloudValue || {};
+	    if (isEmptyAccountObject(cloudValue)) return localValue || {};
+	    return newerTimestamp(localValue, cloudValue)
+	      ? Object.assign({}, cloudValue, localValue)
+	      : Object.assign({}, localValue, cloudValue);
+	  }
+	  function collectCompanyProfileBundle() {
+	    let profile = {};
+	    try { profile = JSON.parse(localStorage.getItem("profacture_company_profile") || "{}") || {}; } catch (e) { profile = {}; }
+	    const bundle = Object.assign({}, profile, {
+	      logo: localStorage.getItem("profacture_company_logo") || "",
+	      stamp: localStorage.getItem("profacture_company_stamp") || "",
+	      signature: localStorage.getItem("profacture_company_signature") || ""
+	    });
+	    if (!isEmptyAccountObject(bundle)) bundle.updatedAt = profile.updatedAt || new Date().toISOString();
+	    return bundle;
+	  }
+	  function restoreCompanyProfileBundle(bundle) {
+	    if (!bundle || typeof bundle !== "object") return;
+	    const profile = {
+	      name: bundle.name || "",
+	      siret: bundle.siret || "",
+	      address: bundle.address || "",
+	      updatedAt: bundle.updatedAt || new Date().toISOString()
+	    };
+	    try {
+	      if (profile.name || profile.siret || profile.address) localStorage.setItem("profacture_company_profile", JSON.stringify(profile));
+	      if (bundle.logo) localStorage.setItem("profacture_company_logo", bundle.logo);
+	      if (bundle.stamp) localStorage.setItem("profacture_company_stamp", bundle.stamp);
+	      if (bundle.signature) localStorage.setItem("profacture_company_signature", bundle.signature);
+	    } catch (e) { /* ignore */ }
+	  }
+	  const WORKSPACE_COLLECTIONS = [
+	    { collection: "clients", windowName: "CLIENTS" },
+	    { collection: "products", windowName: "PRODUCTS" },
+	    { collection: "projects", windowName: "PROJECTS" },
+	    { collection: "history", windowName: "INVOICES" },
+	    { collection: "quotes", windowName: "QUOTES" },
+	    { collection: "expenses", windowName: "EXPENSES" }
+	  ];
+	  function identityForItem(item, index) {
+	    return String((item && (item.id || item.number || item.invoiceId || item.quoteId || item.email || item.sku || item.name)) || ("item-" + index));
+	  }
+	  function mergeWorkspaceArrays(localItems, cloudItems) {
+	    const merged = new Map();
+	    (Array.isArray(cloudItems) ? cloudItems : []).forEach((item, index) => {
+	      if (item && typeof item === "object") merged.set(identityForItem(item, index), item);
+	    });
+	    (Array.isArray(localItems) ? localItems : []).forEach((item, index) => {
+	      if (!item || typeof item !== "object") return;
+	      const key = identityForItem(item, index);
+	      const previous = merged.get(key);
+	      merged.set(key, previous
+	        ? (newerTimestamp(item, previous) ? Object.assign({}, previous, item) : Object.assign({}, item, previous))
+	        : item);
+	    });
+	    return Array.from(merged.values());
+	  }
+	  function readLocalCollection(uid, collectionName) {
+	    try {
+	      const value = JSON.parse(localStorage.getItem(accountStorageKeyFor(uid, "collection_" + collectionName)) || "[]");
+	      return Array.isArray(value) ? value : [];
+	    } catch (e) { return []; }
+	  }
+	  function writeLocalCollection(uid, collectionName, items) {
+	    try { localStorage.setItem(accountStorageKeyFor(uid, "collection_" + collectionName), JSON.stringify(Array.isArray(items) ? items : [])); }
+	    catch (e) { /* ignore */ }
+	  }
+	  function hydrateWorkspaceFromLocal(user) {
+	    const uid = user && user.uid ? user.uid : "guest";
+	    WORKSPACE_COLLECTIONS.forEach(cfg => {
+	      const target = readGlobalArray(cfg.windowName);
+	      const userItems = readLocalCollection(uid, cfg.collection);
+	      const guestItems = uid !== "guest" ? readLocalCollection("guest", cfg.collection) : [];
+	      const merged = mergeWorkspaceArrays(target, mergeWorkspaceArrays(userItems, guestItems));
+	      if (Array.isArray(window[cfg.windowName]) && merged.length) {
+	        window[cfg.windowName].splice(0, window[cfg.windowName].length, ...merged);
+	        writeLocalCollection(uid, cfg.collection, merged);
+	      }
+	    });
+	    if (user && user.uid) {
+	      ["profile", "billing", "payment", "companyProfile"].forEach(name => {
+	        const merged = mergeAccountObject(readAccountStorageFor(user.uid, name, {}), readAccountStorageFor("guest", name, {}));
+	        if (!isEmptyAccountObject(merged)) writeAccountStorageFor(user.uid, name, merged);
+	      });
+	    }
+	  }
+	  function persistWorkspaceLocally(user) {
+	    const uid = user && user.uid ? user.uid : (currentUser && currentUser.uid ? currentUser.uid : "guest");
+	    WORKSPACE_COLLECTIONS.forEach(cfg => writeLocalCollection(uid, cfg.collection, readGlobalArray(cfg.windowName)));
+	    const companyProfile = collectCompanyProfileBundle();
+	    if (!isEmptyAccountObject(companyProfile)) writeAccountStorageFor(uid, "companyProfile", companyProfile);
+	  }
+	  window.profacturePersistWorkspaceLocal = () => persistWorkspaceLocally(currentUser);
+	  function refreshActiveWorkspaceView() {
+	    const active = document.querySelector(".view.active");
+	    const viewId = active ? active.id.replace("view-", "") : "";
+	    if (viewId && typeof window.profactureShowView === "function") window.profactureShowView(viewId);
+	  }
 	  async function syncAccountDoc(patch) {
 	    if (!currentUser || !patch) return false;
 	    try {
-	      await setDoc(doc(db, "users", currentUser.uid), Object.assign({}, patch, {
+	      const cleanPatch = cleanCloudValue(Object.assign({}, patch)) || {};
+	      await setDoc(doc(db, "users", currentUser.uid), Object.assign({}, cleanPatch, {
 	        email: currentUser.email || "",
 	        name: currentUser.displayName || "",
 	        updatedAt: serverTimestamp()
@@ -10154,22 +10293,19 @@ try {
 	    if (!user) return;
 	    try {
 	      const snap = await getDoc(doc(db, "users", user.uid));
-	      if (!snap.exists()) return;
-	      const data = snap.data() || {};
-	      ["profile", "billing", "payment"].forEach(name => {
-	        if (data[name] && typeof data[name] === "object") writeAccountStorage(name, data[name]);
-	      });
+	      if (snap.exists()) {
+	        const data = snap.data() || {};
+	        ["profile", "billing", "payment", "companyProfile"].forEach(name => {
+	          const merged = mergeAccountObject(readAccountStorageFor(user.uid, name, {}), data[name]);
+	          if (!isEmptyAccountObject(merged)) writeAccountStorageFor(user.uid, name, merged);
+	        });
+	        restoreCompanyProfileBundle(readAccountStorageFor(user.uid, "companyProfile", {}));
+	      }
 	    } catch (error) {
 	      console.warn("Cloud account load skipped:", error && error.code ? error.code : error);
 	    }
-	    await Promise.allSettled([
-	      loadCloudCollection(user, "clients", "CLIENTS"),
-	      loadCloudCollection(user, "products", "PRODUCTS"),
-	      loadCloudCollection(user, "projects", "PROJECTS"),
-	      loadCloudCollection(user, "history", "INVOICES"),
-	      loadCloudCollection(user, "quotes", "QUOTES"),
-	      loadCloudCollection(user, "expenses", "EXPENSES")
-	    ]);
+	    await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => loadCloudCollection(user, cfg.collection, cfg.windowName)));
+	    persistWorkspaceLocally(user);
 	  }
 	  function readGlobalArray(name) {
 	    const value = window[name];
@@ -10197,11 +10333,14 @@ try {
 	  }
 	  async function loadCloudCollection(user, collectionName, windowName) {
 	    const target = readGlobalArray(windowName);
-	    if (target.length) return;
 	    try {
 	      const snap = await getDocs(query(collection(db, "users", user.uid, collectionName), firestoreLimit(200)));
 	      const items = snap.docs.map(d => d.data()).filter(Boolean);
-	      if (items.length && Array.isArray(window[windowName])) window[windowName].splice(0, window[windowName].length, ...items);
+	      const merged = mergeWorkspaceArrays(target, mergeWorkspaceArrays(readLocalCollection(user.uid, collectionName), items));
+	      if (Array.isArray(window[windowName]) && merged.length) {
+	        window[windowName].splice(0, window[windowName].length, ...merged);
+	        writeLocalCollection(user.uid, collectionName, merged);
+	      }
 	    } catch (error) {
 	      console.warn("Cloud collection load skipped:", collectionName, error && error.code ? error.code : error);
 	    }
@@ -10219,15 +10358,12 @@ try {
 	  let workspaceCloudSyncTimer = null;
 	  async function syncWorkspaceSnapshot() {
 	    if (!currentUser) return false;
-	    await syncAccountDoc({ storageVersion: "2026.08-cloud-subcollections" });
-	    await Promise.allSettled([
-	      syncCollectionSnapshot("clients", "CLIENTS", 200),
-	      syncCollectionSnapshot("products", "PRODUCTS", 200),
-	      syncCollectionSnapshot("projects", "PROJECTS", 100),
-	      syncCollectionSnapshot("history", "INVOICES", 200),
-	      syncCollectionSnapshot("quotes", "QUOTES", 200),
-	      syncCollectionSnapshot("expenses", "EXPENSES", 200)
-	    ]);
+	    persistWorkspaceLocally(currentUser);
+	    await syncAccountDoc({
+	      storageVersion: "2026.08-cloud-subcollections",
+	      companyProfile: collectCompanyProfileBundle()
+	    });
+	    await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => syncCollectionSnapshot(cfg.collection, cfg.windowName, cfg.collection === "projects" ? 100 : 200)));
 	    return true;
 	  }
 	  function scheduleWorkspaceCloudSync(delay = 900) {
@@ -10472,13 +10608,18 @@ try {
 
 	  document.addEventListener("click", event => {
 	    if (!currentUser) return;
-	    if (event.target.closest("#invoice-save-draft-btn, #invoice-save-pending-btn, #quote-save-draft-btn, #quote-save-send-btn, [data-client-save], [data-product-save], [data-project-save], [data-invoice-delete], [data-project-delete]")) {
+	    if (event.target.closest("#invoice-save-draft-btn, #invoice-save-pending-btn, #quote-save-draft-btn, #quote-save-send-btn, #ap-submit, #ac-submit, #project-submit, #ae-submit, [data-client-save], [data-product-save], [data-project-save], [data-invoice-delete], [data-quote-delete], [data-project-delete]")) {
+	      setTimeout(() => persistWorkspaceLocally(currentUser), 350);
 	      scheduleWorkspaceCloudSync(1200);
 	    }
 	  }, true);
 	  document.addEventListener("visibilitychange", () => {
-	    if (document.visibilityState === "hidden") scheduleWorkspaceCloudSync(0);
+	    if (document.visibilityState === "hidden") {
+	      persistWorkspaceLocally(currentUser);
+	      scheduleWorkspaceCloudSync(0);
+	    }
 	  });
+	  window.addEventListener("beforeunload", () => persistWorkspaceLocally(currentUser));
 
 	  document.getElementById("register-form").addEventListener("submit", async event => {
     event.preventDefault();
@@ -10695,7 +10836,13 @@ try {
 
   onAuthStateChanged(auth, async user => {
     currentUser = user;
-	    if (user) await loadCloudAccountDoc(user);
+	    if (user) {
+	      hydrateWorkspaceFromLocal(user);
+	      await loadCloudAccountDoc(user);
+	      refreshActiveWorkspaceView();
+	    } else {
+	      hydrateWorkspaceFromLocal(null);
+	    }
 	    if (window.profactureSetMarketingAuthState) window.profactureSetMarketingAuthState(!!user);
 	    if (window.profactureRefreshAccountMenus) window.profactureRefreshAccountMenus(!!user);
 	    renderAuthAvatars(user);

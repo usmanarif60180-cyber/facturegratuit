@@ -708,7 +708,9 @@ async function saveAuthUser(user) {
   if (aiThread) aiThread.innerHTML = '';
   renderAuth();
   if (user) {
+    migrateAccountDataToUid(user);
     await pullAccountDataFromCloud();
+    queueCloudSync();
     migrateLegacyCompanyProfile();
     applyActiveProfileToEditor(true);
     renderAccountOverview();
@@ -899,6 +901,76 @@ function showAccountPanel(panel='overview') {
 function getAccountStorageKey(suffix) {
   const key = S.authUser?.uid || S.authUser?.email || 'guest';
   return `facturepro-account-${key}-${suffix}`;
+}
+
+function getAccountStorageKeyFor(identity, suffix) {
+  const key = identity || 'guest';
+  return `facturepro-account-${key}-${suffix}`;
+}
+
+function readAccountStorageValueFor(identity, suffix, fallback=null) {
+  try {
+    const raw = localStorage.getItem(getAccountStorageKeyFor(identity, suffix));
+    if (!raw) return fallback;
+    try { return JSON.parse(raw); } catch { return raw; }
+  } catch {
+    return fallback;
+  }
+}
+
+function writeAccountStorageValueFor(identity, suffix, value) {
+  try {
+    localStorage.setItem(getAccountStorageKeyFor(identity, suffix), typeof value === 'string' ? value : JSON.stringify(value));
+  } catch {}
+}
+
+function accountRecordId(item, index=0) {
+  return String(item?.id || item?.docNum || item?.email || item?.sku || item?.name || item?.createdAt || `item-${index}`);
+}
+
+function accountRecordTime(item) {
+  return Date.parse(item?.updatedAt || item?.savedAt || item?.createdAt || item?.date || '') || 0;
+}
+
+function mergeAccountArrays(localValue=[], cloudValue=[]) {
+  const merged = new Map();
+  (Array.isArray(cloudValue) ? cloudValue : []).forEach((item, index) => {
+    if (item && typeof item === 'object') merged.set(accountRecordId(item, index), item);
+  });
+  (Array.isArray(localValue) ? localValue : []).forEach((item, index) => {
+    if (!item || typeof item !== 'object') return;
+    const id = accountRecordId(item, index);
+    const old = merged.get(id);
+    merged.set(id, old
+      ? (accountRecordTime(item) >= accountRecordTime(old) ? { ...old, ...item } : { ...item, ...old })
+      : item);
+  });
+  return Array.from(merged.values());
+}
+
+function mergeAccountValues(localValue, cloudValue) {
+  if (Array.isArray(localValue) || Array.isArray(cloudValue)) return mergeAccountArrays(localValue, cloudValue);
+  const localObj = localValue && typeof localValue === 'object' ? localValue : null;
+  const cloudObj = cloudValue && typeof cloudValue === 'object' ? cloudValue : null;
+  if (!localObj) return cloudObj ?? localValue ?? cloudValue;
+  if (!cloudObj) return localObj;
+  return accountRecordTime(localObj) >= accountRecordTime(cloudObj)
+    ? { ...cloudObj, ...localObj }
+    : { ...localObj, ...cloudObj };
+}
+
+function migrateAccountDataToUid(user=S.authUser) {
+  if (!user?.uid) return;
+  const suffixes = ['profile','profile-active','personal','history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity','auto-cleanup','locale-prefs'];
+  const identities = [...new Set([user.email, 'guest'].filter(Boolean))];
+  suffixes.forEach(suffix => {
+    const current = readAccountStorageValueFor(user.uid, suffix, null);
+    const merged = identities.reduce((acc, identity) => {
+      const legacy = readAccountStorageValueFor(identity, suffix, null);
+      return legacy === null ? acc : mergeAccountValues(acc, legacy);
+    }, current);
+    if (merged !== null && merged !== undefined) writeAccountStorageValueFor(user.uid, suffix, merged);
+  });
 }
 
 // Le compte cloud est un seul document Firestore par utilisateur (users/{uid}),
@@ -1232,7 +1304,9 @@ async function pullAccountDataFromCloud() {
     const cloud = snap.data() || {};
     ['profile','personal'].forEach(suffix => {
       if (cloud[suffix] !== undefined && cloud[suffix] !== null) {
-        try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(cloud[suffix])); } catch {}
+        const local = readAccountStorageValueFor(S.authUser.uid, suffix, Array.isArray(cloud[suffix]) ? [] : {});
+        const merged = mergeAccountValues(local, cloud[suffix]);
+        try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(merged)); } catch {}
       }
     });
     if (cloud.storageVersion === 'subcollections-v2' && window.firestoreCollection && window.firestoreGetDocs) {
@@ -1247,6 +1321,8 @@ async function pullAccountDataFromCloud() {
             list.push({ ...data, id: data?.id || docSnap.id });
           }
         });
+        const local = loadAccountList(suffix);
+        list = mergeAccountArrays(local, list);
         if (activeIds) list.sort((a, b) => (order.get(safeFirebaseDocId(a.id)) ?? 999999) - (order.get(safeFirebaseDocId(b.id)) ?? 999999));
         else list.sort((a, b) => String(b.updatedAt || b.savedAt || b.date || '').localeCompare(String(a.updatedAt || a.savedAt || a.date || '')));
         try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(list)); } catch {}
@@ -1254,10 +1330,12 @@ async function pullAccountDataFromCloud() {
     } else {
       ['history','projects','clients','products','leads','notifications','teamMembers','teamInvites','teamTasks','teamActivity'].forEach(suffix => {
         if (cloud[suffix] !== undefined && cloud[suffix] !== null) {
-          try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(cloud[suffix])); } catch {}
+          const merged = mergeAccountValues(loadAccountList(suffix), cloud[suffix]);
+          try { localStorage.setItem(getAccountStorageKey(suffix), JSON.stringify(merged)); } catch {}
         }
       });
     }
+    queueCloudSync();
     return true;
   } catch (err) {
     console.warn('Cloud data introuvable ou inaccessible, données locales utilisées', err);
