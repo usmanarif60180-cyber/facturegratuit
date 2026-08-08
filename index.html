@@ -10094,9 +10094,12 @@ try {
       "auth/too-many-requests": "Too many attempts. Please wait a little and try again.",
       "auth/network-request-failed": "Network problem. Check your connection and try again.",
       "auth/popup-closed-by-user": "The sign-in window was closed before completion.",
-      "auth/popup-blocked": "Your browser blocked the sign-in window. Allow popups and try again.",
+      "auth/popup-blocked": "Your browser blocked the sign-in window. Redirect sign-in will be used if available.",
       "auth/account-exists-with-different-credential": "This email already uses a different sign-in method.",
       "auth/operation-not-allowed": "This sign-in method still needs provider configuration.",
+      "auth/unauthorized-domain": "This domain is not authorized in Firebase Authentication. Add facturergratuit.com and www.facturergratuit.com in Firebase Auth > Settings > Authorized domains.",
+      "auth/operation-not-supported-in-this-environment": "Popup sign-in is not supported in this browser. Redirect sign-in will be used.",
+      "auth/invalid-origin": "This website origin is not allowed for this sign-in provider. Check Firebase authorized domains and provider settings.",
       "auth/invalid-phone-number": "Enter a valid phone number with country code, for example +33.",
       "auth/missing-phone-number": "Enter your phone number first.",
       "auth/invalid-verification-code": "The verification code is incorrect or expired.",
@@ -10104,7 +10107,8 @@ try {
       "auth/quota-exceeded": "SMS limit reached. Please try again later.",
       "auth/captcha-check-failed": "Human verification failed. Please try again."
     };
-    return messages[error && error.code] || "Something went wrong. Please try again.";
+    const code = error && error.code ? " (" + error.code + ")" : "";
+    return (messages[error && error.code] || "Something went wrong. Please try again.") + code;
   }
   function initials(user) {
     const source = (user && user.displayName) || (user && user.email) || "User";
@@ -10617,11 +10621,12 @@ try {
       showAuthStatus(statusId, socialSuccessMessage(mode, result), "success");
       window.profactureShowView("dashboard");
     } catch (error) {
-      if (error && (error.code === "auth/popup-blocked" || error.code === "auth/cancelled-popup-request")) {
+      if (error && (error.code === "auth/popup-blocked" || error.code === "auth/cancelled-popup-request" || error.code === "auth/operation-not-supported-in-this-environment")) {
         try {
           sessionStorage.setItem("profacture_social_redirect_status", statusId);
           sessionStorage.setItem("profacture_social_redirect_mode", mode || "login");
         } catch (e) { /* ignore */ }
+        showAuthStatus(statusId, "Opening secure redirect sign-in…", "success");
         await signInWithRedirect(auth, provider);
         return;
       }
