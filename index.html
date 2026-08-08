@@ -4948,7 +4948,7 @@ try {
 	    }
     populateStaticLangSelects();
 
-    // ---- Ad banner placeholder: keep one standard 728x90 slot per page. ----
+    // ---- Live Adsterra banners: keep three standard 728x90 slots per page. ----
     var AD_SLOT_SIZES = [
       { w: 728, h: 90 },
     ];
@@ -4960,7 +4960,7 @@ try {
         return (
           '<div class="ad-slot" data-ad-slot="profacture-ad-' + adSlotCounter + '" style="width:' + s.w + 'px;height:' + s.h + 'px;max-width:100%;">' +
           '<iframe loading="lazy" sandbox="allow-scripts allow-same-origin" scrolling="no" title="' + t("lbl_advertisement") + '" srcdoc="' + ADSTERRA_728_SRC_DOC.replace(/"/g, "&quot;") + '"></iframe>' +
-          '<span class="ad-lbl">' + t("lbl_advertisement") + " · " + s.w + " × " + s.h + "</span></div>"
+          '<span class="ad-lbl">Adsterra · ' + t("lbl_advertisement") + " · " + s.w + " × " + s.h + "</span></div>"
         );
       }).join("");
     }
@@ -4972,28 +4972,30 @@ try {
       document.querySelectorAll(".ad-strip").forEach(fillAdStrip);
     }
     function placeAdStrips() {
-      var skipAdViews = [
-        "login", "register", "recover", "dashboard", "crm", "leads", "companies",
-        "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients",
-        "client-detail", "client-portal", "inventory", "expenses", "projects",
-        "project-detail", "tasks", "calendar", "team", "files", "settings", "profile",
-        "reports", "ai", "contact", "privacy", "cookies", "security", "terms", "legal"
-      ];
       document.querySelectorAll(".view").forEach(function (view) {
         if (view.dataset.adsPlaced) return;
-        var viewId = view.id.replace(/^view-/, "");
-        if (skipAdViews.indexOf(viewId) !== -1) return;
         view.dataset.adsPlaced = "1";
         var container = view.querySelector(".app-content") || view.querySelector(".auth-wrap") || view;
         var children = Array.prototype.slice.call(container.children);
         if (!children.length) return;
-        function makeStrip(sizes) {
+        function makeStrip(sizes, pos) {
           var d = document.createElement("div");
           d.className = "ad-strip";
           d.setAttribute("data-ad-sizes", sizes);
+          d.setAttribute("data-ad-position", pos);
+          d.setAttribute("data-ad-network", "adsterra");
           return d;
         }
-        container.appendChild(makeStrip("0"));
+        var topAnchor = children[Math.min(1, children.length - 1)];
+        var middleAnchor = children[Math.max(0, Math.floor(children.length / 2))];
+        var topStrip = makeStrip("0", "top");
+        var middleStrip = makeStrip("0", "middle");
+        var bottomStrip = makeStrip("0", "bottom");
+        if (topAnchor && topAnchor.nextSibling) container.insertBefore(topStrip, topAnchor.nextSibling);
+        else container.appendChild(topStrip);
+        if (middleAnchor && middleAnchor.nextSibling) container.insertBefore(middleStrip, middleAnchor.nextSibling);
+        else container.appendChild(middleStrip);
+        container.appendChild(bottomStrip);
       });
       populateAdStrips();
     }
