@@ -1832,8 +1832,8 @@ try {
     <div class="auth-center">
       <div class="card auth-card">
         <h2 data-i18n="auth_create_workspace">Create your workspace</h2><p class="sub" data-i18n="auth_register_sub">Start free — no credit card required.</p>
-        <button class="btn btn-outline" id="register-google" type="button" style="width:100%;margin-top:1.25rem;">G&nbsp;&nbsp; <span data-i18n="auth_continue_google">Continue with Google</span></button>
-        <button class="btn btn-outline" id="register-apple" type="button" style="width:100%;margin-top:0.6rem;">●&nbsp;&nbsp; <span data-i18n="auth_continue_apple">Continue with Apple</span></button>
+        <button class="btn btn-outline" id="register-google" type="button" style="width:100%;margin-top:1.25rem;">G&nbsp;&nbsp; <span data-i18n="auth_signup_google">Sign up with Google</span></button>
+        <button class="btn btn-outline" id="register-apple" type="button" style="width:100%;margin-top:0.6rem;">●&nbsp;&nbsp; <span data-i18n="auth_signup_apple">Sign up with Apple</span></button>
         <div class="divider">OR</div>
         <form id="register-form">
           <div class="field-group"><label class="field-label" data-i18n="fld_name" for="register-name">Full name</label><input class="field" id="register-name" autocomplete="name" placeholder="Your full name" required /></div>
@@ -2233,7 +2233,7 @@ try {
       auth_create_workspace: "Create your workspace", auth_register_sub: "Start free — no credit card required.",
       auth_no_account: "Don't have an account?", auth_create_one: "Create one",
       auth_have_account: "Already have an account?", auth_forgot_password: "Forgot password?",
-      auth_continue_google: "Continue with Google", auth_continue_apple: "Continue with Apple",
+      auth_continue_google: "Continue with Google", auth_continue_apple: "Continue with Apple", auth_signup_google: "Sign up with Google", auth_signup_apple: "Sign up with Apple",
       mkt_features: "Features", mkt_pricing: "Pricing", mkt_blog: "Blog", mkt_tools: "Free Tools", mkt_about: "About",
       card_invoice_details: "Invoice details", card_quote_details: "Quote details", card_line_items: "Line items",
       card_recent_activity: "Recent activity", card_crm_pipeline: "CRM pipeline", card_tasks_due: "Tasks due",
@@ -2372,7 +2372,7 @@ try {
       auth_create_workspace: "Créez votre espace de travail", auth_register_sub: "Commencez gratuitement — aucune carte bancaire requise.",
       auth_no_account: "Vous n'avez pas de compte ?", auth_create_one: "Créez-en un",
       auth_have_account: "Vous avez déjà un compte ?", auth_forgot_password: "Mot de passe oublié ?",
-      auth_continue_google: "Continuer avec Google", auth_continue_apple: "Continuer avec Apple",
+      auth_continue_google: "Continuer avec Google", auth_continue_apple: "Continuer avec Apple", auth_signup_google: "Créer un compte avec Google", auth_signup_apple: "Créer un compte avec Apple",
       mkt_features: "Fonctionnalités", mkt_pricing: "Tarifs", mkt_blog: "Blog", mkt_tools: "Outils gratuits", mkt_about: "À propos",
       card_invoice_details: "Détails de la facture", card_quote_details: "Détails du devis", card_line_items: "Lignes",
       card_recent_activity: "Activité récente", card_crm_pipeline: "Pipeline CRM", card_tasks_due: "Tâches à venir",
@@ -2511,7 +2511,7 @@ try {
       auth_create_workspace: "Crea il tuo spazio di lavoro", auth_register_sub: "Inizia gratis — nessuna carta di credito richiesta.",
       auth_no_account: "Non hai un account?", auth_create_one: "Creane uno",
       auth_have_account: "Hai già un account?", auth_forgot_password: "Password dimenticata?",
-      auth_continue_google: "Continua con Google", auth_continue_apple: "Continua con Apple",
+      auth_continue_google: "Continua con Google", auth_continue_apple: "Continua con Apple", auth_signup_google: "Registrati con Google", auth_signup_apple: "Registrati con Apple",
       mkt_features: "Funzionalità", mkt_pricing: "Prezzi", mkt_blog: "Blog", mkt_tools: "Strumenti gratuiti", mkt_about: "Chi siamo",
       card_invoice_details: "Dettagli fattura", card_quote_details: "Dettagli preventivo", card_line_items: "Voci",
       card_recent_activity: "Attività recente", card_crm_pipeline: "Pipeline CRM", card_tasks_due: "Attività in scadenza",
@@ -2647,7 +2647,7 @@ try {
       auth_create_workspace: "Crea tu espacio de trabajo", auth_register_sub: "Empieza gratis — no se requiere tarjeta de crédito.",
       auth_no_account: "¿No tienes una cuenta?", auth_create_one: "Crea una",
       auth_have_account: "¿Ya tienes una cuenta?", auth_forgot_password: "¿Olvidaste tu contraseña?",
-      auth_continue_google: "Continuar con Google", auth_continue_apple: "Continuar con Apple",
+      auth_continue_google: "Continuar con Google", auth_continue_apple: "Continuar con Apple", auth_signup_google: "Registrarse con Google", auth_signup_apple: "Registrarse con Apple",
       mkt_features: "Funciones", mkt_pricing: "Precios", mkt_blog: "Blog", mkt_tools: "Herramientas gratuitas", mkt_about: "Acerca de",
       card_invoice_details: "Detalles de la factura", card_quote_details: "Detalles del presupuesto", card_line_items: "Líneas",
       card_recent_activity: "Actividad reciente", card_crm_pipeline: "Pipeline de CRM", card_tasks_due: "Tareas pendientes",
@@ -2783,7 +2783,7 @@ try {
       auth_create_workspace: "Erstellen Sie Ihren Arbeitsbereich", auth_register_sub: "Kostenlos starten — keine Kreditkarte erforderlich.",
       auth_no_account: "Noch kein Konto?", auth_create_one: "Jetzt erstellen",
       auth_have_account: "Haben Sie bereits ein Konto?", auth_forgot_password: "Passwort vergessen?",
-      auth_continue_google: "Mit Google fortfahren", auth_continue_apple: "Mit Apple fortfahren",
+      auth_continue_google: "Mit Google fortfahren", auth_continue_apple: "Mit Apple fortfahren", auth_signup_google: "Mit Google registrieren", auth_signup_apple: "Mit Apple registrieren",
       mkt_features: "Funktionen", mkt_pricing: "Preise", mkt_blog: "Blog", mkt_tools: "Kostenlose Tools", mkt_about: "Über uns",
       card_invoice_details: "Rechnungsdetails", card_quote_details: "Angebotsdetails", card_line_items: "Positionen",
       card_recent_activity: "Letzte Aktivität", card_crm_pipeline: "CRM-Pipeline", card_tasks_due: "Anstehende Aufgaben",
@@ -2919,7 +2919,7 @@ try {
       auth_create_workspace: "Maak uw werkruimte aan", auth_register_sub: "Begin gratis — geen creditcard nodig.",
       auth_no_account: "Nog geen account?", auth_create_one: "Maak er een aan",
       auth_have_account: "Heeft u al een account?", auth_forgot_password: "Wachtwoord vergeten?",
-      auth_continue_google: "Doorgaan met Google", auth_continue_apple: "Doorgaan met Apple",
+      auth_continue_google: "Doorgaan met Google", auth_continue_apple: "Doorgaan met Apple", auth_signup_google: "Registreren met Google", auth_signup_apple: "Registreren met Apple",
       mkt_features: "Functies", mkt_pricing: "Prijzen", mkt_blog: "Blog", mkt_tools: "Gratis tools", mkt_about: "Over ons",
       card_invoice_details: "Factuurgegevens", card_quote_details: "Offertegegevens", card_line_items: "Regels",
       card_recent_activity: "Recente activiteit", card_crm_pipeline: "CRM-pipeline", card_tasks_due: "Openstaande taken",
@@ -3055,7 +3055,7 @@ try {
       auth_create_workspace: "Crie o seu espaço de trabalho", auth_register_sub: "Comece gratuitamente — sem necessidade de cartão de crédito.",
       auth_no_account: "Não tem uma conta?", auth_create_one: "Crie uma",
       auth_have_account: "Já tem uma conta?", auth_forgot_password: "Esqueceu-se da palavra-passe?",
-      auth_continue_google: "Continuar com o Google", auth_continue_apple: "Continuar com a Apple",
+      auth_continue_google: "Continuar com o Google", auth_continue_apple: "Continuar com a Apple", auth_signup_google: "Registar com Google", auth_signup_apple: "Registar com Apple",
       mkt_features: "Funcionalidades", mkt_pricing: "Preços", mkt_blog: "Blog", mkt_tools: "Ferramentas gratuitas", mkt_about: "Sobre",
       card_invoice_details: "Detalhes da fatura", card_quote_details: "Detalhes do orçamento", card_line_items: "Itens",
       card_recent_activity: "Atividade recente", card_crm_pipeline: "Pipeline de CRM", card_tasks_due: "Tarefas pendentes",
@@ -3191,7 +3191,7 @@ try {
       auth_create_workspace: "Utwórz swój obszar roboczy", auth_register_sub: "Zacznij za darmo — bez karty kredytowej.",
       auth_no_account: "Nie masz konta?", auth_create_one: "Utwórz je",
       auth_have_account: "Masz już konto?", auth_forgot_password: "Nie pamiętasz hasła?",
-      auth_continue_google: "Kontynuuj z Google", auth_continue_apple: "Kontynuuj z Apple",
+      auth_continue_google: "Kontynuuj z Google", auth_continue_apple: "Kontynuuj z Apple", auth_signup_google: "Zarejestruj przez Google", auth_signup_apple: "Zarejestruj przez Apple",
       mkt_features: "Funkcje", mkt_pricing: "Cennik", mkt_blog: "Blog", mkt_tools: "Darmowe narzędzia", mkt_about: "O nas",
       card_invoice_details: "Szczegóły faktury", card_quote_details: "Szczegóły oferty", card_line_items: "Pozycje",
       card_recent_activity: "Ostatnia aktywność", card_crm_pipeline: "Lejek sprzedaży CRM", card_tasks_due: "Nadchodzące zadania",
@@ -10057,7 +10057,7 @@ try {
 </script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, OAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, limit as firestoreLimit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
   import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-storage.js";
 
@@ -10593,18 +10593,67 @@ try {
     }
   });
 
-  async function socialSignIn(provider, statusId, buttons) {
+  function socialSuccessMessage(mode, result) {
+    const info = result ? getAdditionalUserInfo(result) : null;
+    if (mode === "signup") {
+      return info && info.isNewUser ? "Account created. Welcome to ProFacture AI." : "Account already exists. You are signed in.";
+    }
+    return info && info.isNewUser ? "Account created and signed in." : "Signed in successfully.";
+  }
+  async function socialSignIn(provider, statusId, buttons, mode) {
     showAuthStatus(statusId, "", "");
-    buttons.forEach(button => { button.disabled = true; });
+    buttons.filter(Boolean).forEach(button => { button.disabled = true; });
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      currentUser = result.user;
+      await syncAccountDoc({
+        profile: Object.assign({}, readAccountStorage("profile"), {
+          displayName: result.user.displayName || "",
+          email: result.user.email || "",
+          photoURL: result.user.photoURL || "",
+          updatedAt: new Date().toISOString()
+        })
+      });
+      showAuthStatus(statusId, socialSuccessMessage(mode, result), "success");
       window.profactureShowView("dashboard");
     } catch (error) {
+      if (error && (error.code === "auth/popup-blocked" || error.code === "auth/cancelled-popup-request")) {
+        try {
+          sessionStorage.setItem("profacture_social_redirect_status", statusId);
+          sessionStorage.setItem("profacture_social_redirect_mode", mode || "login");
+        } catch (e) { /* ignore */ }
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       showAuthStatus(statusId, friendlyAuthError(error));
     } finally {
-      buttons.forEach(button => { button.disabled = false; });
+      buttons.filter(Boolean).forEach(button => { button.disabled = false; });
     }
   }
+
+  getRedirectResult(auth).then(async result => {
+    if (!result || !result.user) return;
+    currentUser = result.user;
+    const statusId = sessionStorage.getItem("profacture_social_redirect_status") || "login-status";
+    const mode = sessionStorage.getItem("profacture_social_redirect_mode") || "login";
+    try {
+      sessionStorage.removeItem("profacture_social_redirect_status");
+      sessionStorage.removeItem("profacture_social_redirect_mode");
+    } catch (e) { /* ignore */ }
+    await syncAccountDoc({
+      profile: Object.assign({}, readAccountStorage("profile"), {
+        displayName: result.user.displayName || "",
+        email: result.user.email || "",
+        photoURL: result.user.photoURL || "",
+        updatedAt: new Date().toISOString()
+      })
+    });
+    showAuthStatus(statusId, socialSuccessMessage(mode, result), "success");
+    window.profactureShowView("dashboard");
+  }).catch(error => {
+    const statusId = sessionStorage.getItem("profacture_social_redirect_status") || "login-status";
+    showAuthStatus(statusId, friendlyAuthError(error));
+  });
 
   const googleProvider = new GoogleAuthProvider();
   googleProvider.setCustomParameters({ prompt: "select_account" });
@@ -10613,8 +10662,12 @@ try {
   appleProvider.addScope("name");
   const googleButtons = [document.getElementById("login-google"), document.getElementById("register-google")];
   const appleButtons = [document.getElementById("login-apple"), document.getElementById("register-apple")];
-  googleButtons.forEach((button, index) => button.addEventListener("click", () => socialSignIn(googleProvider, index === 0 ? "login-status" : "register-status", googleButtons)));
-  appleButtons.forEach((button, index) => button.addEventListener("click", () => socialSignIn(appleProvider, index === 0 ? "login-status" : "register-status", appleButtons)));
+  googleButtons.forEach((button, index) => {
+    if (button) button.addEventListener("click", () => socialSignIn(googleProvider, index === 0 ? "login-status" : "register-status", googleButtons, index === 0 ? "login" : "signup"));
+  });
+  appleButtons.forEach((button, index) => {
+    if (button) button.addEventListener("click", () => socialSignIn(appleProvider, index === 0 ? "login-status" : "register-status", appleButtons, index === 0 ? "login" : "signup"));
+  });
 
   document.addEventListener("click", async event => {
     const logout = event.target.closest("[data-auth-logout]");
