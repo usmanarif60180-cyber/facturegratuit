@@ -4948,7 +4948,7 @@ try {
 	    }
     populateStaticLangSelects();
 
-    // ---- Live Adsterra banners: keep three standard 728x90 slots per page. ----
+    // ---- Live Adsterra banners: mount the approved 728x90 banner zone on every banner placeholder. ----
     var AD_SLOT_SIZES = [
       { w: 728, h: 90 },
     ];
@@ -4969,6 +4969,11 @@ try {
       slot.dataset.adsterraMounted = "1";
       var w = parseInt(slot.getAttribute("data-adsterra-width") || "728", 10);
       var h = parseInt(slot.getAttribute("data-adsterra-height") || "90", 10);
+      slot.setAttribute("data-adsterra-live", "1");
+      slot.setAttribute("data-ad-network", "adsterra");
+      slot.style.width = w + "px";
+      slot.style.height = h + "px";
+      slot.style.maxWidth = "100%";
       slot.innerHTML = "";
       var inline = document.createElement("script");
       inline.type = "text/javascript";
@@ -4984,13 +4989,33 @@ try {
       slot.appendChild(live);
       slot.appendChild(label);
     }
+    function isAdsterraSlotVisible(slot) {
+      return Boolean(slot && !slot.closest(".view:not(.active)") && slot.offsetParent !== null);
+    }
+    function prepareAdsterraSlot(slot) {
+      if (!slot || slot.dataset.adsterraMounted === "1") return;
+      if (!isAdsterraSlotVisible(slot)) return;
+      if (!slot.getAttribute("data-adsterra-width")) slot.setAttribute("data-adsterra-width", "728");
+      if (!slot.getAttribute("data-adsterra-height")) slot.setAttribute("data-adsterra-height", "90");
+      mountAdsterraSlot(slot);
+    }
+    function mountAllAdsterraSlots(root) {
+      var scope = root || document;
+      if (scope.matches && scope.matches(".ad-slot")) prepareAdsterraSlot(scope);
+      scope.querySelectorAll && scope.querySelectorAll(".ad-slot, [data-adsterra-live]").forEach(prepareAdsterraSlot);
+    }
     function fillAdStrip(el) {
+      if (el.querySelector(".ad-slot")) {
+        mountAllAdsterraSlots(el);
+        return;
+      }
       var idxs = (el.getAttribute("data-ad-sizes") || "0").split(",").map(function (n) { return parseInt(n, 10); });
       el.innerHTML = renderAdSlotsHtml(idxs.map(function (i) { return AD_SLOT_SIZES[i]; }).filter(Boolean));
-      el.querySelectorAll("[data-adsterra-live]").forEach(mountAdsterraSlot);
+      mountAllAdsterraSlots(el);
     }
     function populateAdStrips() {
       document.querySelectorAll(".ad-strip").forEach(fillAdStrip);
+      mountAllAdsterraSlots(document.querySelector(".view.active") || document);
     }
     function placeAdStrips() {
       document.querySelectorAll(".view").forEach(function (view) {
@@ -5024,6 +5049,17 @@ try {
       requestIdleCallback(placeAdStrips, { timeout: 1500 });
     } else {
       setTimeout(placeAdStrips, 400);
+    }
+    mountAllAdsterraSlots(document.querySelector(".view.active") || document);
+    if ("MutationObserver" in window) {
+      var adObserver = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          mutation.addedNodes && mutation.addedNodes.forEach(function (node) {
+            if (node && node.nodeType === 1) mountAllAdsterraSlots(node);
+          });
+        });
+      });
+      adObserver.observe(document.documentElement, { childList: true, subtree: true });
     }
 
     function refreshAllChrome() {
@@ -5568,6 +5604,12 @@ try {
             ring.style.strokeDashoffset = String(c * (1 - pct / 100));
           });
         });
+      }
+      if (target && typeof placeAdStrips === "function") {
+        setTimeout(function () {
+          placeAdStrips();
+          mountAllAdsterraSlots(target);
+        }, 60);
       }
       var gfab = document.getElementById("gfab-wrap");
       if (gfab) gfab.classList.toggle("show", appViews.indexOf(id) !== -1);
