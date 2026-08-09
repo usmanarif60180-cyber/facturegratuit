@@ -1,24 +1,11 @@
-self.options = {
-  "domain": "3nbf4.com",
-  "zoneId": 11417480
-}
-self.lary = ""
-// Wrapped in try/catch so an ad-blocker or transient CDN failure on this
-// import can't abort the whole service-worker evaluation below (a bare
-// importScripts() throw here would otherwise also take out the PWA
-// caching logic that follows, since both live in the same script).
-try {
-  importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
-} catch (e) {}
-
 // ─────────────────────────────────────────────────────────────
-// PWA offline app-shell caching (kept alongside the Monetag push
-// worker above — this only adds install/activate/fetch handling,
-// it never touches the Monetag registration or its listeners).
+// PWA offline app-shell caching.
+// No ad-network service worker is imported here; ads appear only inside
+// on-page banner slots.
 // Bump CACHE_NAME on every deploy that touches the app shell
 // (index.html/app.js/style.css); activate purges any other cache.
 // ─────────────────────────────────────────────────────────────
-const CACHE_NAME = 'facturepro-v3';
+const CACHE_NAME = 'facturepro-v4';
 const APP_SHELL = [
   '/',
   '/index.html',

@@ -609,7 +609,7 @@ function resetCookieConsent() {
 }
 
 function initAdSlots() {
-  // Ezoic ad placements are queued inline with ezstandalone.cmd in the HTML.
+  // On-page ad slots are rendered by the banner markup in each HTML file.
   // This hook remains for the cookie banner flow without loading legacy ad code.
 }
 
