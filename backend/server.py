@@ -174,6 +174,9 @@ class Expense(BaseModel):
     ttc: float = 0
     paymentStatus: Optional[str] = "unpaid"
     reference: Optional[str] = ""
+    attachmentBase64: Optional[str] = ""
+    attachmentName: Optional[str] = ""
+    attachmentType: Optional[str] = ""
     createdAt: str = Field(default_factory=now_iso)
 
 
@@ -721,6 +724,146 @@ async def analytics(workspaceId: str, companyId: Optional[str] = None, period: O
         "topClients": top_clients_list,
         "aging": aging,
     }
+
+
+# ============ Quote signature (accept) ============
+@api.post("/invoices/{iid}/accept")
+async def accept_quote(iid: str, payload: Dict[str, Any]):
+    """payload: { signerName, signatureBase64 (optional), comment }"""
+    src = await db.invoices.find_one({"id": iid})
+    if not src: raise HTTPException(404, "Not found")
+    update = {
+        "clientSignature": {
+            "name": payload.get("signerName") or "",
+            "signatureBase64": payload.get("signatureBase64") or "",
+            "comment": payload.get("comment") or "",
+            "acceptedAt": now_iso(),
+        },
+        "status": "accepted",
+        "updatedAt": now_iso(),
+    }
+    await db.invoices.update_one({"id": iid}, {"$set": update})
+    d = await db.invoices.find_one({"id": iid})
+    return strip_id(d)
+
+
+# ============ Facture de situation ============
+@api.post("/invoices/{iid}/situation")
+async def create_situation_invoice(iid: str, payload: Dict[str, Any]):
+    """payload: { sectionProgress: {sectionName: pct, ...} }
+    Creates a facture de situation from a source quote/invoice (typically building).
+    Amounts per section = section_total * (currentPct - previousPct)/100
+    """
+    src = await db.invoices.find_one({"id": iid})
+    if not src: raise HTTPException(404, "Not found")
+    src.pop("_id", None)
+    section_progress = payload.get("sectionProgress") or {}
+    # find previously billed situation invoices to compute delta
+    previous_situations = await db.invoices.find({
+        "workspaceId": src["workspaceId"],
+        "linkedInvoiceId": src["id"],
+        "docType": "situation",
+    }).to_list(500)
+    prev_by_section: Dict[str, float] = {}
+    for s in previous_situations:
+        for k, v in (s.get("sectionProgressSnapshot") or {}).items():
+            prev_by_section[k] = max(prev_by_section.get(k, 0), float(v or 0))
+
+    # group source lines by section
+    src_lines = src.get("lineItems", []) or []
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
+    for it in src_lines:
+        grouped.setdefault(it.get("sectionName") or "", []).append(it)
+
+    new_lines = []
+    for sec, its in grouped.items():
+        cur_pct = float(section_progress.get(sec, 0) or 0)
+        prev_pct = float(prev_by_section.get(sec, 0) or 0)
+        delta = max(cur_pct - prev_pct, 0)
+        if delta <= 0: continue
+        for it in its:
+            qty = float(it.get("qty", 0) or 0)
+            if it.get("pricingMethod") == "hourly":
+                qty = float(it.get("hours", 0) or 0)
+            unit = float(it.get("unitPrice", 0) or 0)
+            base = qty * unit - float(it.get("discount", 0) or 0)
+            portion = max(base * delta / 100, 0)
+            new_lines.append({
+                "id": uid(),
+                "sectionName": sec,
+                "description": f"{it.get('description', '')} — avancement {delta:.0f}%",
+                "category": it.get("category", ""),
+                "unit": it.get("unit", ""),
+                "qty": 1,
+                "unitPrice": round(portion, 2),
+                "vat": float(it.get("vat", 0) or 0),
+                "discount": 0,
+            })
+
+    settings = await db.settings.find_one({"workspaceId": src["workspaceId"]}) or {}
+    prefix = settings.get("invoicePrefix", "FAC")
+    number = await next_number(src["workspaceId"], prefix)
+
+    new = {
+        "id": uid(),
+        "workspaceId": src["workspaceId"],
+        "companyId": src.get("companyId"),
+        "companySnapshot": src.get("companySnapshot"),
+        "clientId": src.get("clientId"),
+        "clientSnapshot": src.get("clientSnapshot"),
+        "chantierId": src.get("chantierId"),
+        "chantierSnapshot": src.get("chantierSnapshot"),
+        "activityType": src.get("activityType", "building"),
+        "docType": "situation",
+        "status": "draft",
+        "number": number,
+        "issueDate": datetime.utcnow().strftime("%Y-%m-%d"),
+        "currency": src.get("currency", "EUR"),
+        "linkedInvoiceId": src["id"],
+        "sectionProgressSnapshot": section_progress,
+        "sectionProgressPrevious": prev_by_section,
+        "taxRegime": src.get("taxRegime", "standard"),
+        "lineItems": new_lines,
+        "createdAt": now_iso(),
+        "updatedAt": now_iso(),
+        "notes": f"Facture de situation liée à {src.get('number', '')}",
+    }
+    new = compute_totals(new)
+    await db.invoices.insert_one(new)
+    return strip_id(new)
+
+
+# ============ AI Business Insights ============
+@api.get("/ai/insights")
+async def ai_insights(workspaceId: str, companyId: Optional[str] = None):
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+    except Exception as e:
+        raise HTTPException(500, f"AI library missing: {e}")
+    key = os.environ.get("EMERGENT_LLM_KEY")
+    if not key:
+        raise HTTPException(500, "EMERGENT_LLM_KEY missing")
+    stats_data = await analytics(workspaceId=workspaceId, companyId=companyId, period="year")
+    prompt = f"""Tu es un analyste business francophone. Analyse ces données réelles d'une entreprise (factures, devis, chantiers) et produis 4 à 6 observations courtes, factuelles et actionnables en français. Ne jamais inventer de chiffres. Utilise UNIQUEMENT les données fournies. Renvoie une liste de puces courtes (max 20 mots chacune). Focus: tendances CA, impayés à risque, taux acceptation devis, activité la plus rentable, actions concrètes recommandées.
+
+Données JSON :
+{stats_data}
+
+Format de réponse :
+- Observation 1
+- Observation 2
+- ...
+"""
+    chat = LlmChat(api_key=key, session_id=f"insights-{workspaceId}", system_message="Tu es un analyste business francophone concis et factuel.").with_model("openai", "gpt-4o-mini")
+    try:
+        resp = await chat.send_message(UserMessage(text=prompt))
+        text = resp if isinstance(resp, str) else str(resp)
+    except Exception as e:
+        raise HTTPException(500, f"AI call failed: {e}")
+    # split into bullets
+    bullets = [ln.strip("-• \t") for ln in text.splitlines() if ln.strip().startswith(("-", "•")) or (ln.strip() and len(ln.strip()) > 5)]
+    bullets = [b for b in bullets if b][:8]
+    return {"insights": bullets, "raw": text}
 
 
 app.include_router(api)

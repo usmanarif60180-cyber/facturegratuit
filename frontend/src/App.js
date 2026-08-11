@@ -18,6 +18,7 @@ import SettingsPage from "./pages/SettingsPage";
 import CompaniesPage from "./pages/CompaniesPage";
 import ChantiersPage from "./pages/ChantiersPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import TemplateGallery from "./pages/TemplateGallery";
 import { Toaster } from "./components/ui/toaster";
 
 const legalContent = {

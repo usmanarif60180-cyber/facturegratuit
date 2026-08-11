@@ -7,13 +7,16 @@ import { Textarea } from "../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Switch } from "../components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
-import { ArrowLeft, Printer, Save, Eye, EyeOff, User, Copy, FileCheck2, Wallet, Building2, HardHat } from "lucide-react";
+import { ArrowLeft, Printer, Save, Eye, EyeOff, User, Copy, FileCheck2, Wallet, Building2, HardHat, PenTool, Percent, Palette } from "lucide-react";
 import ActivityTypeSelector from "../components/invoice/ActivityTypeSelector";
 import VehicleForm from "../components/invoice/VehicleForm";
 import LineItemsEditor from "../components/invoice/LineItemsEditor";
 import InvoicePreview from "../components/invoice/InvoicePreview";
+import AcceptQuoteDialog from "../components/invoice/AcceptQuoteDialog";
+import SituationDialog from "../components/invoice/SituationDialog";
 import { api } from "../lib/api";
 import { computeInvoice, fmt, taxRegimes, invoiceStatuses, purchaseStatuses, paymentMethods, sellerTypes, quoteStatuses, docTypes } from "../lib/calc";
+import { templates as ALL_TEMPLATES, defaultTemplateConfig, fontOptions, colorPalettes } from "../lib/templates";
 import { toast } from "../hooks/use-toast";
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -66,6 +69,8 @@ export default function InvoiceEditor() {
   const [saving, setSaving] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositData, setDepositData] = useState({ percent: 30, amount: 0 });
+  const [acceptOpen, setAcceptOpen] = useState(false);
+  const [situationOpen, setSituationOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -79,12 +84,16 @@ export default function InvoiceEditor() {
         setInv({ ...emptyInvoice(), ...doc });
       } else {
         const defaultCo = comps.find((c) => c.isDefault) || comps[0];
+        // Load selected template from localStorage (from Template Gallery) or use first template
+        const selTplId = localStorage.getItem("selectedTemplateId") || "classique-fr";
+        const tpl = ALL_TEMPLATES.find((t) => t.id === selTplId) || ALL_TEMPLATES[0];
         setInv((prev) => ({
           ...prev,
           terms: (defaultCo && defaultCo.defaultTerms) || s.defaultTerms || "",
           companyId: defaultCo?.id || null,
           companySnapshot: defaultCo ? { ...defaultCo } : null,
           showSignatureArea: false,
+          templateConfig: defaultTemplateConfig(tpl),
         }));
       }
     })();
@@ -163,6 +172,20 @@ export default function InvoiceEditor() {
     nav(`/invoices/${dep.id}`);
   };
 
+  const acceptQuote = async (payload) => {
+    const upd = await api.acceptQuote(id, payload);
+    toast({ title: "Devis accepté ✓" });
+    setAcceptOpen(false);
+    setInv({ ...emptyInvoice(), ...upd });
+  };
+
+  const createSituation = async (payload) => {
+    const s = await api.createSituation(id, payload);
+    toast({ title: `Facture de situation créée : ${s.number}` });
+    setSituationOpen(false);
+    nav(`/invoices/${s.id}`);
+  };
+
   const isRepair = inv.activityType === "repair";
   const isSale = inv.activityType === "vehicle_sale";
   const isPurchase = inv.activityType === "vehicle_purchase";
@@ -183,7 +206,9 @@ export default function InvoiceEditor() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowPreview((v) => !v)}>{showPreview ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}{showPreview ? "Masquer" : "Aperçu"}</Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" /> Imprimer / PDF</Button>
+          {id && inv.docType === "quote" && (<Button variant="outline" size="sm" onClick={() => setAcceptOpen(true)} className="border-emerald-500 text-emerald-600"><PenTool className="h-4 w-4 mr-1" /> Bon pour accord</Button>)}
           {id && inv.docType === "quote" && (<Button variant="outline" size="sm" onClick={convertQuote} className="border-emerald-500 text-emerald-600"><FileCheck2 className="h-4 w-4 mr-1" /> Convertir en facture</Button>)}
+          {id && isBuilding && (inv.docType === "invoice" || inv.docType === "quote") && (<Button variant="outline" size="sm" onClick={() => setSituationOpen(true)}><Percent className="h-4 w-4 mr-1" /> Situation</Button>)}
           {id && (inv.docType === "invoice" || inv.docType === "quote") && !isPurchase && (<Button variant="outline" size="sm" onClick={() => setDepositOpen(true)}><Wallet className="h-4 w-4 mr-1" /> Facture d'acompte</Button>)}
           {id && <Button variant="outline" size="sm" onClick={duplicate}><Copy className="h-4 w-4 mr-1" /> Dupliquer</Button>}
           <Button size="sm" disabled={saving} onClick={() => save()} className="bg-indigo-600 hover:bg-indigo-700 text-white"><Save className="h-4 w-4 mr-1" /> Enregistrer</Button>
@@ -192,6 +217,52 @@ export default function InvoiceEditor() {
 
       <div className={`grid ${showPreview ? "xl:grid-cols-[minmax(0,1fr)_minmax(0,650px)]" : "grid-cols-1"} gap-6`}>
         <div className="space-y-5 min-w-0">
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div className="font-semibold flex items-center gap-2"><Palette className="h-4 w-4 text-indigo-500" /> Design du document</div>
+              <Button size="sm" variant="outline" onClick={() => nav("/templates")}>Voir les 50 modèles</Button>
+            </div>
+            <div className="grid md:grid-cols-4 gap-3">
+              <div>
+                <Label className="text-xs">Modèle</Label>
+                <Select value={inv.templateConfig?.templateId || "classique-fr"} onValueChange={(v) => { const t = ALL_TEMPLATES.find(x => x.id === v); if (t) upd({ templateConfig: { ...defaultTemplateConfig(t), primary: inv.templateConfig?.primary || t.palette.primary, secondary: inv.templateConfig?.secondary || t.palette.secondary, accent: inv.templateConfig?.accent || t.palette.accent, font: inv.templateConfig?.font || t.font } }); }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent className="max-h-72 overflow-auto">{ALL_TEMPLATES.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Police</Label>
+                <Select value={inv.templateConfig?.font || "inter"} onValueChange={(v) => upd({ templateConfig: { ...(inv.templateConfig || {}), font: v } })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent className="max-h-72 overflow-auto">{fontOptions.map((f) => <SelectItem key={f.id} value={f.id}><span style={{ fontFamily: f.family }}>{f.label}</span></SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Densité</Label>
+                <Select value={inv.templateConfig?.density || "standard"} onValueChange={(v) => upd({ templateConfig: { ...(inv.templateConfig || {}), density: v } })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="compact">Compacte</SelectItem><SelectItem value="standard">Standard</SelectItem><SelectItem value="airy">Aérée</SelectItem></SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Couleur principale</Label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={inv.templateConfig?.primary || "#4f46e5"} onChange={(e) => upd({ templateConfig: { ...(inv.templateConfig || {}), primary: e.target.value } })} className="h-10 w-10 rounded border border-neutral-200 dark:border-neutral-800" />
+                  <Input value={inv.templateConfig?.primary || "#4f46e5"} onChange={(e) => upd({ templateConfig: { ...(inv.templateConfig || {}), primary: e.target.value } })} className="text-xs" />
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {colorPalettes.map((p) => (
+                <button key={p.id} onClick={() => upd({ templateConfig: { ...(inv.templateConfig || {}), primary: p.primary, secondary: p.secondary, accent: p.accent } })} className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-neutral-200 dark:border-neutral-800 hover:border-indigo-400 text-[11px]">
+                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: p.primary }} />
+                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: p.secondary }} />
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
             <div className="font-semibold mb-3">Type d'activité</div>
             <ActivityTypeSelector value={inv.activityType} onChange={(t) => upd({ activityType: t, docType: t === "vehicle_purchase" ? "purchase" : inv.docType === "purchase" ? "invoice" : inv.docType })} />
@@ -467,6 +538,9 @@ export default function InvoiceEditor() {
           <DialogFooter><Button onClick={createDeposit} className="bg-indigo-600 hover:bg-indigo-700 text-white">Créer l'acompte</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AcceptQuoteDialog open={acceptOpen} onClose={() => setAcceptOpen(false)} invoice={computed} onAccepted={acceptQuote} />
+      <SituationDialog open={situationOpen} onClose={() => setSituationOpen(false)} invoice={computed} onSubmit={createSituation} />
     </div>
   );
 }

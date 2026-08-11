@@ -1,5 +1,6 @@
 import React from "react";
 import { computeInvoice, fmt, fmtDate } from "../../lib/calc";
+import { fontFamilyOf, templates as ALL_TEMPLATES } from "../../lib/templates";
 
 function titleFor(inv) {
   const dt = inv.docType;
@@ -52,7 +53,6 @@ export default function InvoicePreview({ invoice, settings }) {
   const inv = computeInvoice(invoice || {});
   const s = settings || {};
   const company = inv.companySnapshot || null;
-  // fallback company from settings if no company snapshot
   const legacyCompany = !company ? {
     tradeName: s.companyName, address: s.companyAddress, city: s.companyCity, postalCode: s.companyPostal, country: s.companyCountry,
     phone: s.companyPhone, email: s.companyEmail, siret: s.siret, vatNumber: s.vatNumber, iban: s.iban, bic: s.bic,
@@ -60,7 +60,22 @@ export default function InvoicePreview({ invoice, settings }) {
     showStampOn: ["invoice", "quote", "deposit", "final"],
   } : null;
   const co = company || legacyCompany;
-  const accent = co?.accentColor || "#4f46e5";
+
+  // Template resolution
+  const tpl = inv.templateConfig || null;
+  const baseTpl = tpl ? ALL_TEMPLATES.find(t => t.id === tpl.templateId) : null;
+  const accent = tpl?.primary || co?.accentColor || "#4f46e5";
+  const secondary = tpl?.secondary || accent;
+  const accentBg = tpl?.accent || "#F3F4F6";
+  const fontFamily = fontFamilyOf(tpl?.font || "inter");
+  const density = tpl?.density || "standard";
+  const headerStyle = tpl?.header || "logo-left";
+  const titleStyle = tpl?.title || "large";
+  const tableStyle = tpl?.table || "classic";
+  const totalsStyle = tpl?.totals || "right";
+  const footerStyle = tpl?.footer || "business";
+  const padding = density === "compact" ? "12mm" : density === "airy" ? "20mm" : "16mm";
+
   const c = inv.clientSnapshot || {};
   const v = inv.vehicleSnapshot || {};
   const seller = inv.sellerSnapshot || {};
@@ -73,25 +88,64 @@ export default function InvoicePreview({ invoice, settings }) {
   const logoSizes = { small: 44, medium: 64, large: 84 };
   const logoH = logoSizes[co?.logoSize || "medium"] || 64;
   const logoPos = co?.logoPosition || "left";
+  const paidStamp = (inv.status === "paid" && inv.docType !== "quote") ? "PAYÉE" : (inv.status === "cancelled" ? "ANNULÉE" : (inv.status === "draft" ? "" : ""));
+
+  // Title style
+  const titleEl = (() => {
+    const label = titleFor(inv);
+    const base = { color: accent };
+    if (titleStyle === "badge") return <div className="inline-block px-3 py-1.5 rounded-md text-white text-xs font-semibold tracking-wide" style={{ backgroundColor: accent }}>{label}</div>;
+    if (titleStyle === "underlined") return <div className="text-lg font-bold pb-1 border-b-2" style={{ ...base, borderColor: accent }}>{label}</div>;
+    if (titleStyle === "small") return <div className="text-sm font-semibold uppercase tracking-widest" style={base}>{label}</div>;
+    if (titleStyle === "minimal") return <div className="text-sm font-medium tracking-wide" style={base}>{label}</div>;
+    return <div className="text-2xl font-bold tracking-tight" style={base}>{label}</div>;
+  })();
 
   // group building items by section
   const groups = isBuilding
     ? Array.from((inv.lineItems || []).reduce((m, it) => { const k = it.sectionName || ""; if (!m.has(k)) m.set(k, []); m.get(k).push(it); return m; }, new Map()).entries())
     : null;
 
+  // Table classes
+  const thBg = tableStyle === "colored" ? accent : (tableStyle === "alt" || tableStyle === "classic" ? accentBg : "transparent");
+  const thColor = tableStyle === "colored" ? "#fff" : accent;
+  const rowBorder = tableStyle === "borderless" || tableStyle === "rounded" ? "border-transparent" : "border-neutral-100";
+  const tableRadius = tableStyle === "rounded" ? "rounded-lg overflow-hidden" : "";
+  const rowPadding = density === "compact" ? "py-1" : density === "airy" ? "py-3" : "py-2";
+
   return (
-    <div className="invoice-page bg-white text-neutral-900 shadow-xl mx-auto" style={{ width: "210mm", minHeight: "297mm", padding: "16mm" }}>
-      {/* Logo row */}
-      {co?.logoBase64 && (
-        <div className={`mb-4 flex ${logoPos === "center" ? "justify-center" : logoPos === "right" ? "justify-end" : "justify-start"}`}>
+    <div className="invoice-page bg-white text-neutral-900 shadow-xl mx-auto relative" style={{ width: "210mm", minHeight: "297mm", padding, fontFamily }}>
+      {/* Paid stamp watermark */}
+      {paidStamp && (
+        <div className="absolute pointer-events-none" style={{ top: "40mm", right: "20mm", transform: "rotate(-18deg)", opacity: 0.12, fontSize: 96, fontWeight: 900, color: accent }}>{paidStamp}</div>
+      )}
+
+      {/* Colored band header */}
+      {headerStyle === "band" && (
+        <div className="mb-4 -mx-4 rounded-md px-4 py-3 flex items-center justify-between" style={{ backgroundColor: accent, color: "#fff" }}>
+          <div className="flex items-center gap-3">
+            {co?.logoBase64 && <img src={co.logoBase64} alt="logo" style={{ height: logoH, maxWidth: 180, objectFit: "contain", background: "#fff", padding: 4, borderRadius: 4 }} />}
+            <div><div className="font-bold text-lg">{co?.tradeName || "Ma Société"}</div><div className="text-xs opacity-90">{[co?.postalCode, co?.city].filter(Boolean).join(" ")}</div></div>
+          </div>
+          <div className="text-right text-xs opacity-90">
+            {co?.phone && <div>{co.phone}</div>}
+            {co?.email && <div>{co.email}</div>}
+          </div>
+        </div>
+      )}
+
+      {/* Logo row for non-band */}
+      {headerStyle !== "band" && co?.logoBase64 && (
+        <div className={`mb-4 flex ${(headerStyle === "logo-center" || logoPos === "center") ? "justify-center" : (headerStyle === "logo-right" || logoPos === "right") ? "justify-end" : "justify-start"}`}>
           <img src={co.logoBase64} alt="logo" style={{ height: logoH, maxWidth: "60%", objectFit: "contain" }} />
         </div>
       )}
 
       <div className="flex justify-between items-start">
-        <CompanyHeader company={co} accent={accent} />
+        {headerStyle !== "band" && <CompanyHeader company={co} accent={accent} />}
+        {headerStyle === "band" && <div />}
         <div className="text-right">
-          <div className="inline-block px-3 py-1.5 rounded-md text-white text-xs font-semibold tracking-wide" style={{ backgroundColor: accent }}>{titleFor(inv)}</div>
+          {titleEl}
           <div className="mt-3 text-sm"><span className="text-neutral-500">N° : </span><span className="font-semibold">{inv.number || "(auto)"}</span></div>
           <div className="text-sm"><span className="text-neutral-500">Date : </span>{fmtDate(inv.issueDate)}</div>
           {inv.docType === "quote" && inv.validityDate && <div className="text-sm"><span className="text-neutral-500">Validité : </span>{fmtDate(inv.validityDate)}</div>}
@@ -145,30 +199,31 @@ export default function InvoicePreview({ invoice, settings }) {
 
       {/* Line items */}
       {(inv.lineItems || []).length > 0 && (
+        <div className={tableRadius}>
         <table className="w-full mt-6 text-sm">
           <thead>
-            <tr className="text-left border-b-2" style={{ borderColor: accent }}>
-              <th className="py-2 pr-2">Désignation</th>
-              <th className="py-2 px-2 text-right w-16">Qté</th>
-              <th className="py-2 px-2 text-right w-24">Prix HT</th>
-              <th className="py-2 px-2 text-right w-16">TVA</th>
-              <th className="py-2 pl-2 text-right w-28">Total HT</th>
+            <tr className={`text-left border-b-2`} style={{ borderColor: accent, backgroundColor: thBg, color: thColor }}>
+              <th className={`${rowPadding} pl-2 pr-2`}>Désignation</th>
+              <th className={`${rowPadding} px-2 text-right w-16`}>Qté</th>
+              <th className={`${rowPadding} px-2 text-right w-24`}>Prix HT</th>
+              <th className={`${rowPadding} px-2 text-right w-16`}>TVA</th>
+              <th className={`${rowPadding} pl-2 pr-2 text-right w-28`}>Total HT</th>
             </tr>
           </thead>
           <tbody>
             {isBuilding && groups ? (
-              groups.map(([sec, list]) => (
+              groups.map(([sec, list], gi) => (
                 <React.Fragment key={sec || "__d"}>
                   {sec && (
                     <tr><td colSpan={5} className="pt-3 pb-1 font-semibold" style={{ color: accent }}>{sec}</td></tr>
                   )}
                   {list.map((it, i) => (
-                    <tr key={i} className="border-b border-neutral-100 align-top">
-                      <td className="py-2 pr-2"><div>{it.description}</div>{it.category && <div className="text-[11px] text-neutral-500 mt-0.5">{it.category}{it.unit ? ` · ${it.unit}` : ""}</div>}</td>
-                      <td className="py-2 px-2 text-right">{it.pricingMethod === "hourly" ? `${Number(it.hours || 0)} h` : `${Number(it.qty || 0)} ${it.unit || ""}`}</td>
-                      <td className="py-2 px-2 text-right">{fmt(it.unitPrice)}</td>
-                      <td className="py-2 px-2 text-right">{Number(it.vat || 0)}%</td>
-                      <td className="py-2 pl-2 text-right font-medium">{fmt(it.lineHT)}</td>
+                    <tr key={i} className={`border-b ${rowBorder} align-top ${tableStyle === "alt" && (gi + i) % 2 === 1 ? "bg-neutral-50" : ""}`}>
+                      <td className={`${rowPadding} pr-2`}><div>{it.description}</div>{it.category && <div className="text-[11px] text-neutral-500 mt-0.5">{it.category}{it.unit ? ` · ${it.unit}` : ""}</div>}</td>
+                      <td className={`${rowPadding} px-2 text-right`}>{it.pricingMethod === "hourly" ? `${Number(it.hours || 0)} h` : `${Number(it.qty || 0)} ${it.unit || ""}`}</td>
+                      <td className={`${rowPadding} px-2 text-right`}>{fmt(it.unitPrice)}</td>
+                      <td className={`${rowPadding} px-2 text-right`}>{Number(it.vat || 0)}%</td>
+                      <td className={`${rowPadding} pl-2 text-right font-medium`}>{fmt(it.lineHT)}</td>
                     </tr>
                   ))}
                   {sec && (
@@ -178,8 +233,8 @@ export default function InvoicePreview({ invoice, settings }) {
               ))
             ) : (
               inv.lineItems.map((it, i) => (
-                <tr key={i} className="border-b border-neutral-100 align-top">
-                  <td className="py-2 pr-2">
+                <tr key={i} className={`border-b ${rowBorder} align-top ${tableStyle === "alt" && i % 2 === 1 ? "bg-neutral-50" : ""}`}>
+                  <td className={`${rowPadding} pr-2`}>
                     <div>{it.description}</div>
                     {inv.activityType === "repair" && (it.category || it.partType || it.pricingMethod === "hourly") && (
                       <div className="text-[11px] text-neutral-500 mt-0.5">
@@ -187,15 +242,16 @@ export default function InvoicePreview({ invoice, settings }) {
                       </div>
                     )}
                   </td>
-                  <td className="py-2 px-2 text-right">{it.pricingMethod === "hourly" ? `${Number(it.hours || 0)} h` : Number(it.qty || 0)}</td>
-                  <td className="py-2 px-2 text-right">{fmt(it.unitPrice)}</td>
-                  <td className="py-2 px-2 text-right">{Number(it.vat || 0)}%</td>
-                  <td className="py-2 pl-2 text-right font-medium">{fmt(it.lineHT)}</td>
+                  <td className={`${rowPadding} px-2 text-right`}>{it.pricingMethod === "hourly" ? `${Number(it.hours || 0)} h` : Number(it.qty || 0)}</td>
+                  <td className={`${rowPadding} px-2 text-right`}>{fmt(it.unitPrice)}</td>
+                  <td className={`${rowPadding} px-2 text-right`}>{Number(it.vat || 0)}%</td>
+                  <td className={`${rowPadding} pl-2 text-right font-medium`}>{fmt(it.lineHT)}</td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+        </div>
       )}
 
       {/* Totals + notes */}
@@ -212,7 +268,7 @@ export default function InvoicePreview({ invoice, settings }) {
           )}
         </div>
 
-        <div className="border border-neutral-200 rounded-lg p-3">
+        <div className={`p-3 rounded-lg ${totalsStyle === "colored-box" ? "text-white" : totalsStyle === "highlight" ? "" : "border border-neutral-200"}`} style={totalsStyle === "colored-box" ? { backgroundColor: accent } : totalsStyle === "highlight" ? { backgroundColor: accentBg } : totalsStyle === "premium" ? { border: `2px solid ${accent}` } : {}}>
           <Row label="Sous-total HT" value={inv.subtotalHT} />
           {inv.discount ? <Row label="Remise" value={-Math.abs(inv.discount)} /> : null}
           {inv.fees?.admin ? <Row label="Frais administratifs" value={Number(inv.fees.admin)} /> : null}
@@ -227,6 +283,19 @@ export default function InvoicePreview({ invoice, settings }) {
           {(inv.depositPaid || inv.alreadyPaid || inv.tradeIn?.enabled) ? (<><div className="border-t border-neutral-300 my-1" /><Row label="Reste à payer" value={inv.balanceDue} bold /></>) : null}
         </div>
       </div>
+
+      {/* Client signature (accepted quote) */}
+      {inv.clientSignature && inv.clientSignature.acceptedAt && (
+        <div className="mt-5 border border-emerald-300 rounded-lg p-3 bg-emerald-50">
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wider text-emerald-700 font-semibold">Bon pour accord</div>
+            <div className="text-[11px] text-emerald-700">{fmtDate(inv.clientSignature.acceptedAt)}</div>
+          </div>
+          <div className="text-sm font-semibold text-emerald-900 mt-1">{inv.clientSignature.name}</div>
+          {inv.clientSignature.signatureBase64 && <img src={inv.clientSignature.signatureBase64} alt="signature" style={{ height: 60, maxWidth: 240, objectFit: "contain" }} />}
+          {inv.clientSignature.comment && <div className="text-xs text-emerald-800 mt-1">{inv.clientSignature.comment}</div>}
+        </div>
+      )}
 
       {/* Signature / stamp area */}
       {(inv.showSignatureArea || showStamp || co?.signatureBase64) && (
@@ -265,7 +334,7 @@ export default function InvoicePreview({ invoice, settings }) {
       )}
 
       {(co?.footer || s.legalFooter) && (
-        <div className="mt-6 pt-3 border-t border-neutral-200 text-[10px] text-neutral-500 text-center whitespace-pre-line">{co?.footer || s.legalFooter}</div>
+        <div className={`mt-6 pt-3 text-[10px] whitespace-pre-line ${footerStyle === "colored" ? "-mx-4 px-4 py-3 text-white text-center" : "border-t border-neutral-200 text-center text-neutral-500"}`} style={footerStyle === "colored" ? { backgroundColor: accent } : {}}>{co?.footer || s.legalFooter}</div>
       )}
     </div>
   );

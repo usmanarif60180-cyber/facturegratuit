@@ -37,6 +37,9 @@ export const api = {
   duplicateInvoice: (id) => http.post(`/invoices/${id}/duplicate`).then((r) => r.data),
   convertQuote: (id) => http.post(`/invoices/${id}/convert-to-invoice`).then((r) => r.data),
   createDeposit: (id, payload) => http.post(`/invoices/${id}/deposit-invoice`, payload).then((r) => r.data),
+  acceptQuote: (id, payload) => http.post(`/invoices/${id}/accept`, payload).then((r) => r.data),
+  createSituation: (id, payload) => http.post(`/invoices/${id}/situation`, payload).then((r) => r.data),
+  aiInsights: (companyId) => http.get("/ai/insights", { params: { workspaceId, companyId } }).then((r) => r.data),
   // Companies
   listCompanies: () => http.get("/companies", { params: { workspaceId } }).then((r) => r.data),
   createCompany: (data) => http.post("/companies", { ...data, workspaceId }).then((r) => r.data),
