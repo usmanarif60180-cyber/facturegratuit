@@ -9,10 +9,10 @@ export default function Navbar({ dark, setDark }) {
   useLocation();
 
   const navLinks = [
-    { label: "Features", to: "/#features" },
-    { label: "Pricing", to: "/#pricing" },
-    { label: "About", to: "/#about" },
-    { label: "Contact", to: "/contact" },
+    { label: "Tableau de bord", to: "/dashboard" },
+    { label: "Factures", to: "/invoices" },
+    { label: "Clients", to: "/clients" },
+    { label: "Paramètres", to: "/settings" },
   ];
 
   return (
@@ -25,7 +25,7 @@ export default function Navbar({ dark, setDark }) {
 
         <nav className="hidden md:flex items-center gap-1">
           {navLinks.map((l) => (
-            <a key={l.label} href={l.to} className="px-3.5 py-2 text-sm text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-md hover:bg-neutral-100/80 dark:hover:bg-neutral-800/60 transition-colors">{l.label}</a>
+            <Link key={l.label} to={l.to} className="px-3.5 py-2 text-sm text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-md hover:bg-neutral-100/80 dark:hover:bg-neutral-800/60 transition-colors">{l.label}</Link>
           ))}
         </nav>
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2, Sparkles, TrendingUp, FileText, FileCheck2, Users, Globe, ShieldCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
@@ -48,8 +49,8 @@ export default function Landing() {
               ProFacture AI réunit factures, devis, clients, PDF A4 et assistant IA dans une interface moderne pour artisans, freelances, auto-entrepreneurs et vendeurs en ligne.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button className="h-11 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25">Commencer gratuitement <ArrowRight className="ml-2 h-4 w-4" /></Button>
-              <Button variant="outline" className="h-11 px-5 rounded-lg border-neutral-300 dark:border-neutral-700">Explore pricing</Button>
+              <Link to="/invoices/new"><Button className="h-11 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25">Créer une facture <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+              <Link to="/dashboard"><Button variant="outline" className="h-11 px-5 rounded-lg border-neutral-300 dark:border-neutral-700">Ouvrir le tableau de bord</Button></Link>
             </div>
           </div>
 
@@ -174,7 +175,7 @@ export default function Landing() {
       <section id="about" className="max-w-5xl mx-auto px-6 py-20 text-center">
         <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">Free to start. Built to grow with you.</h2>
         <p className="mt-3 text-neutral-500 dark:text-neutral-400">Version 1 is completely free — every core tool, no credit card required.</p>
-        <Button className="mt-6 h-11 px-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25">Create your workspace</Button>
+        <Link to="/invoices/new"><Button className="mt-6 h-11 px-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25">Créer votre première facture</Button></Link>
       </section>
 
       <AdBanner />

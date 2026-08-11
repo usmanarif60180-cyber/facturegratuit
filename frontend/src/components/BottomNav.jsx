@@ -4,11 +4,11 @@ import { Sparkles } from "lucide-react";
 
 export default function BottomNav() {
   const items = [
-    { to: "/", label: "Landing" },
-    { to: "/blog", label: "Blog" },
-    { to: "/help", label: "Help" },
+    { to: "/", label: "Accueil" },
     { to: "/dashboard", label: "Dashboard" },
-    { to: "/profile", label: "Profile" },
+    { to: "/invoices", label: "Factures" },
+    { to: "/clients", label: "Clients" },
+    { to: "/settings", label: "Paramètres" },
   ];
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
@@ -17,7 +17,7 @@ export default function BottomNav() {
           <NavLink key={i.to} to={i.to} end={i.to === "/"} className={({ isActive }) => `px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${isActive ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900" : "text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"}`}>{i.label}</NavLink>
         ))}
         <div className="px-3.5 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-indigo-500 to-violet-600 text-white flex items-center gap-1.5">
-          <Sparkles className="h-3 w-3" /> Onboarding
+          <Sparkles className="h-3 w-3" /> Nouveau
         </div>
       </div>
     </div>

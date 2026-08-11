@@ -101,3 +101,192 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Multi-mode invoicing platform (ProFacture AI) with support for standard invoices, auto repair, vehicle sale, and vehicle purchase. Backend API testing requested."
+
+backend:
+  - task: "Root API endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/ returns correct message 'ProFacture AI API'. Endpoint working correctly."
+
+  - task: "Settings management (GET/PUT)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/settings creates default settings if missing with correct defaults (defaultHourlyRate: 60, defaultVat: 20, prefixes: FAC/DEV/ACH). PUT /api/settings successfully updates settings. All validations passed."
+
+  - task: "Client CRUD operations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/clients creates client with UUID. GET /api/clients lists clients correctly. DELETE /api/clients removes client. All CRUD operations working."
+
+  - task: "Vehicle CRUD operations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/vehicles creates vehicle with UUID and links to client. GET /api/vehicles filters by workspaceId and clientId correctly. DELETE /api/vehicles removes vehicle. All CRUD operations working."
+
+  - task: "Standard invoice creation and calculation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices creates standard invoice with correct auto-numbering (FAC-2026-00001). Calculation logic correct: subtotalHT=200, totalTax=40, totalTTC=240. compute_totals function working correctly."
+
+  - task: "Repair invoice with hourly labor calculation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices creates repair invoice with vehicleSnapshot. Hourly labor calculation correct: 2.5 hours * 60 = 150, plus parts 25 = 175 HT, tax 35, total 210 TTC. pricingMethod 'hourly' uses hours field correctly."
+
+  - task: "Vehicle sale invoice with margin tax regime"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices creates vehicle sale with taxRegime 'margin'. Tax correctly set to 0 for margin regime. Fees, deposit, and trade-in calculations correct: subtotalHT=18000, totalTax=0, totalTTC=18150 (with 150 fees), balanceDue=12650 (after 2000 deposit and 3500 trade-in)."
+
+  - task: "Vehicle purchase invoice with ACH prefix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices creates vehicle purchase with correct prefix ACH-2026-00001. activityType 'vehicle_purchase' correctly uses purchasePrefix from settings."
+
+  - task: "Invoice search functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/invoices with query parameter 'q' searches correctly by registration (AB-123-CD) and make (BMW). Regex search working on vehicleSnapshot fields."
+
+  - task: "Invoice duplication"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices/{id}/duplicate creates new invoice with new ID and number (FAC-2026-00004). Status reset to 'draft', depositPaid and alreadyPaid reset to 0. All duplicate logic working correctly."
+
+  - task: "Invoice update (status change)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "PUT /api/invoices/{id} successfully updates invoice status to 'paid'. Update endpoint working correctly."
+
+  - task: "Statistics endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/stats returns correct counts: revenue=210 (paid non-purchase invoices), repairs=2 (original + duplicate), sales=1, purchases=1, clients=1. All statistics calculations correct."
+
+  - task: "Auto-numbering counter logic"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "next_number function working correctly. Sequential numbering verified: FAC-2026-00001, FAC-2026-00002, FAC-2026-00003, FAC-2026-00004 for invoices. ACH-2026-00001 for purchase. Counter increments correctly per prefix and year."
+
+frontend:
+  - task: "Frontend UI (not tested)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Frontend testing not performed as per testing agent instructions. Only backend API testing completed."
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "All backend API endpoints tested and verified"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: "Completed comprehensive backend API testing. All 17 test cases passed successfully. Tested: root endpoint, settings CRUD, client CRUD, vehicle CRUD, invoice creation (standard/repair/vehicle_sale/vehicle_purchase), auto-numbering, calculation logic (compute_totals), search functionality, duplication, updates, statistics, and cleanup. No critical issues found. All calculations verified correct including hourly labor, margin tax regime, fees, deposits, and trade-ins."
