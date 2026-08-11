@@ -11,8 +11,10 @@ export default function Navbar({ dark, setDark }) {
   const navLinks = [
     { label: "Tableau de bord", to: "/dashboard" },
     { label: "Factures", to: "/invoices" },
+    { label: "Chantiers", to: "/chantiers" },
     { label: "Clients", to: "/clients" },
-    { label: "Paramètres", to: "/settings" },
+    { label: "Sociétés", to: "/companies" },
+    { label: "Analyse", to: "/analytics" },
   ];
 
   return (

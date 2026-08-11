@@ -15,6 +15,9 @@ import InvoiceEditor from "./pages/InvoiceEditor";
 import InvoicesList from "./pages/InvoicesList";
 import Clients from "./pages/Clients";
 import SettingsPage from "./pages/SettingsPage";
+import CompaniesPage from "./pages/CompaniesPage";
+import ChantiersPage from "./pages/ChantiersPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import { Toaster } from "./components/ui/toaster";
 
 const legalContent = {
@@ -51,6 +54,9 @@ function App() {
             <Route path="/invoices/new" element={<InvoiceEditor />} />
             <Route path="/invoices/:id" element={<InvoiceEditor />} />
             <Route path="/clients" element={<Clients />} />
+            <Route path="/companies" element={<CompaniesPage />} />
+            <Route path="/chantiers" element={<ChantiersPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/contact" element={<Contact />} />

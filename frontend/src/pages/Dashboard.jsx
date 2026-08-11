@@ -4,7 +4,7 @@ import AdBanner from "../components/AdBanner";
 import { Button } from "../components/ui/button";
 import { api } from "../lib/api";
 import { fmt, fmtDate, invoiceStatuses } from "../lib/calc";
-import { Sparkles, Plus, FileText, Receipt, Users, Wrench, Car, ShoppingCart, TrendingUp, Wallet, DollarSign } from "lucide-react";
+import { Sparkles, Plus, FileText, Receipt, Users, Wrench, Car, ShoppingCart, Hammer, TrendingUp, Wallet, DollarSign, ChartBar } from "lucide-react";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ revenue: 0, outstanding: 0, invoices: 0, quotes: 0, clients: 0, repairs: 0, sales: 0, purchases: 0 });
@@ -67,9 +67,13 @@ export default function Dashboard() {
           <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-white flex items-center justify-center"><Car className="h-4 w-4" /></div>
           <span className="font-medium text-sm">Vente véhicule</span>
         </div></Link>
-        <Link to="/clients"><div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 flex items-center gap-3 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-colors">
-          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-fuchsia-500 to-pink-500 text-white flex items-center justify-center"><Users className="h-4 w-4" /></div>
-          <span className="font-medium text-sm">Ajouter un client</span>
+        <Link to="/invoices/new"><div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 flex items-center gap-3 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-colors">
+          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center"><Hammer className="h-4 w-4" /></div>
+          <span className="font-medium text-sm">Devis bâtiment</span>
+        </div></Link>
+        <Link to="/analytics"><div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 flex items-center gap-3 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-colors">
+          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center"><ChartBar className="h-4 w-4" /></div>
+          <span className="font-medium text-sm">Analyse avancée</span>
         </div></Link>
       </div>
 

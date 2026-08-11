@@ -47,6 +47,62 @@ export const activityTypes = [
   { id: "repair", label: "Réparation automobile", desc: "Garage, mécanique, carrosserie", icon: "Wrench" },
   { id: "vehicle_sale", label: "Vente de véhicule", desc: "Vente d'un véhicule à un client", icon: "Car" },
   { id: "vehicle_purchase", label: "Achat de véhicule", desc: "Achat auprès d'un vendeur", icon: "ShoppingCart" },
+  { id: "building", label: "Bâtiment / Travaux", desc: "Chantier, rénovation, artisans", icon: "Hammer" },
+];
+
+export const docTypes = [
+  { id: "invoice", label: "Facture" },
+  { id: "quote", label: "Devis" },
+  { id: "deposit", label: "Facture d'acompte" },
+  { id: "final", label: "Facture finale" },
+  { id: "credit", label: "Avoir" },
+];
+
+export const buildingUnits = ["unité", "heure", "jour", "forfait", "m", "m²", "m³", "kg", "tonne", "litre", "lot", "pièce"];
+
+export const buildingCategories = ["Main-d'œuvre", "Matériaux", "Maçonnerie", "Peinture", "Plomberie", "Électricité", "Carrelage", "Menuiserie", "Isolation", "Toiture", "Chauffage", "Climatisation", "Démolition", "Terrassement", "Nettoyage", "Déplacement", "Location matériel", "Sous-traitance", "Autre"];
+
+export const quickServicesBuilding = [
+  { name: "Peinture murs", category: "Peinture", unit: "m²", price: 25 },
+  { name: "Peinture plafond", category: "Peinture", unit: "m²", price: 30 },
+  { name: "Pose carrelage", category: "Carrelage", unit: "m²", price: 45 },
+  { name: "Pose parquet", category: "Menuiserie", unit: "m²", price: 40 },
+  { name: "Installation électrique", category: "Électricité", unit: "forfait", price: 800 },
+  { name: "Prise électrique", category: "Électricité", unit: "pièce", price: 45 },
+  { name: "Tableau électrique", category: "Électricité", unit: "pièce", price: 650 },
+  { name: "Plomberie", category: "Plomberie", unit: "forfait", price: 500 },
+  { name: "Pose WC", category: "Plomberie", unit: "pièce", price: 220 },
+  { name: "Pose lavabo", category: "Plomberie", unit: "pièce", price: 180 },
+  { name: "Installation cuisine", category: "Menuiserie", unit: "forfait", price: 1200 },
+  { name: "Démolition", category: "Démolition", unit: "m²", price: 35 },
+  { name: "Évacuation gravats", category: "Démolition", unit: "tonne", price: 90 },
+  { name: "Isolation", category: "Isolation", unit: "m²", price: 28 },
+  { name: "Placo", category: "Maçonnerie", unit: "m²", price: 32 },
+  { name: "Enduit", category: "Maçonnerie", unit: "m²", price: 22 },
+  { name: "Toiture", category: "Toiture", unit: "m²", price: 90 },
+  { name: "Main-d'œuvre", category: "Main-d'œuvre", unit: "heure", price: 45, pricingMethod: "hourly" },
+  { name: "Déplacement", category: "Déplacement", unit: "forfait", price: 40 },
+];
+
+export const chantierStatuses = [
+  { id: "prospect", label: "Prospect", color: "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300" },
+  { id: "quote_prep", label: "Devis en préparation", color: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300" },
+  { id: "quote_sent", label: "Devis envoyé", color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" },
+  { id: "accepted", label: "Accepté", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" },
+  { id: "in_progress", label: "En cours", color: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" },
+  { id: "paused", label: "En pause", color: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300" },
+  { id: "done", label: "Terminé", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" },
+  { id: "cancelled", label: "Annulé", color: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" },
+];
+
+export const quoteStatuses = [
+  { id: "draft", label: "Brouillon", color: "bg-neutral-100 text-neutral-700" },
+  { id: "sent", label: "Envoyé", color: "bg-sky-100 text-sky-700" },
+  { id: "viewed", label: "Vu", color: "bg-indigo-100 text-indigo-700" },
+  { id: "accepted", label: "Accepté", color: "bg-emerald-100 text-emerald-700" },
+  { id: "refused", label: "Refusé", color: "bg-rose-100 text-rose-700" },
+  { id: "expired", label: "Expiré", color: "bg-neutral-200 text-neutral-600" },
+  { id: "converted", label: "Converti en facture", color: "bg-violet-100 text-violet-700" },
 ];
 
 export const partCategories = ["Pièce", "Main-d'œuvre", "Diagnostic", "Carrosserie", "Peinture", "Pneumatique", "Électricité", "Entretien", "Autre"];

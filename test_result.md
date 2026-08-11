@@ -261,6 +261,102 @@ backend:
         agent: "testing"
         comment: "next_number function working correctly. Sequential numbering verified: FAC-2026-00001, FAC-2026-00002, FAC-2026-00003, FAC-2026-00004 for invoices. ACH-2026-00001 for purchase. Counter increments correctly per prefix and year."
 
+  - task: "Companies CRUD with isDefault logic"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/companies creates company with UUID. First company automatically gets isDefault=true. Second company gets isDefault=false. PUT /api/companies/{id} with isDefault=true correctly updates target company and sets all others to false. GET /api/companies lists all companies. All CRUD operations working correctly."
+
+  - task: "Chantiers CRUD operations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/chantiers creates chantier with all fields (name, reference, address, status, budget). GET /api/chantiers lists chantiers with optional filters. GET /api/chantiers/{id} returns chantier with related documents and expenses arrays. All CRUD operations working."
+
+  - task: "Building invoices with sections and hourly pricing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices creates building quote (activityType=building, docType=quote) with correct auto-numbering (DEV-2026-00001). Line items support sectionName, category, unit fields. Hourly pricing (pricingMethod=hourly) correctly uses hours field. Calculation verified: 50*25 + 8*45 = 1610 HT, 322 tax (20%), 1932 TTC. Chantier linking works (chantierId, chantierSnapshot)."
+
+  - task: "Quote to invoice conversion"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices/{id}/convert-to-invoice creates new invoice from quote. New invoice gets: new UUID, FAC- prefix number, docType=invoice, status=draft, convertedFromQuoteId set. Original quote status updated to 'converted' and gets convertedToInvoiceId. All totals preserved correctly (1932 TTC). Workflow logic working perfectly."
+
+  - task: "Deposit invoice creation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices/{id}/deposit-invoice with {percent: 30} creates deposit invoice. Correct auto-numbering (ACP-2026-00001). docType=deposit, linkedInvoiceId set to parent invoice. Calculation correct: 30% of 1932 = 579.6 TTC. Line item description includes percentage and parent number. All deposit logic working."
+
+  - task: "Analytics endpoint with filters"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/analytics returns comprehensive analytics structure. All required fields present: revenueHT, revenueTTC, vat, paid, outstanding, invoiceCount, quoteCount, quoteAcceptanceRate. byActivity object includes 'building' key with correct value (2511.6). monthly array has 12 entries with label and value. topClients array with name, revenue, count. aging object with all buckets (soon, 1_7, 8_30, 31_60, 60_plus). companyId filter parameter works correctly. All analytics calculations and structure validated."
+
+  - task: "Expenses CRUD operations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/expenses creates expense with automatic TTC calculation (200 HT * 1.20 = 240 TTC). Links to chantier via chantierId. GET /api/expenses lists expenses with optional chantierId filter. DELETE /api/expenses/{id} removes expense. Expense appears in GET /api/chantiers/{id} expenses array. All CRUD operations working."
+
+  - task: "Chantier detail with documents and expenses"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/chantiers/{id} returns chantier with aggregated related data. documents array contains all invoices/quotes linked to chantier (verified: quote, invoice, deposit all present = 3 documents). expenses array contains all expenses linked to chantier (verified: 1 expense present). Aggregation logic working correctly."
+
 frontend:
   - task: "Frontend UI (not tested)"
     implemented: true
@@ -277,16 +373,114 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
-    - "All backend API endpoints tested and verified"
+    - "All backend API endpoints tested and verified including new features"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
+  - task: "Companies CRUD with isDefault logic"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/companies creates company with UUID. First company automatically gets isDefault=true. Second company gets isDefault=false. PUT /api/companies/{id} with isDefault=true correctly updates target company and sets all others to false. GET /api/companies lists all companies. All CRUD operations working correctly."
+
+  - task: "Chantiers CRUD operations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/chantiers creates chantier with all fields (name, reference, address, status, budget). GET /api/chantiers lists chantiers with optional filters. GET /api/chantiers/{id} returns chantier with related documents and expenses arrays. All CRUD operations working."
+
+  - task: "Building invoices with sections and hourly pricing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices creates building quote (activityType=building, docType=quote) with correct auto-numbering (DEV-2026-00001). Line items support sectionName, category, unit fields. Hourly pricing (pricingMethod=hourly) correctly uses hours field. Calculation verified: 50*25 + 8*45 = 1610 HT, 322 tax (20%), 1932 TTC. Chantier linking works (chantierId, chantierSnapshot)."
+
+  - task: "Quote to invoice conversion"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices/{id}/convert-to-invoice creates new invoice from quote. New invoice gets: new UUID, FAC- prefix number, docType=invoice, status=draft, convertedFromQuoteId set. Original quote status updated to 'converted' and gets convertedToInvoiceId. All totals preserved correctly (1932 TTC). Workflow logic working perfectly."
+
+  - task: "Deposit invoice creation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/invoices/{id}/deposit-invoice with {percent: 30} creates deposit invoice. Correct auto-numbering (ACP-2026-00001). docType=deposit, linkedInvoiceId set to parent invoice. Calculation correct: 30% of 1932 = 579.6 TTC. Line item description includes percentage and parent number. All deposit logic working."
+
+  - task: "Analytics endpoint with filters"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/analytics returns comprehensive analytics structure. All required fields present: revenueHT, revenueTTC, vat, paid, outstanding, invoiceCount, quoteCount, quoteAcceptanceRate. byActivity object includes 'building' key with correct value (2511.6). monthly array has 12 entries with label and value. topClients array with name, revenue, count. aging object with all buckets (soon, 1_7, 8_30, 31_60, 60_plus). companyId filter parameter works correctly. All analytics calculations and structure validated."
+
+  - task: "Expenses CRUD operations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/expenses creates expense with automatic TTC calculation (200 HT * 1.20 = 240 TTC). Links to chantier via chantierId. GET /api/expenses lists expenses with optional chantierId filter. DELETE /api/expenses/{id} removes expense. Expense appears in GET /api/chantiers/{id} expenses array. All CRUD operations working."
+
+  - task: "Chantier detail with documents and expenses"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/chantiers/{id} returns chantier with aggregated related data. documents array contains all invoices/quotes linked to chantier (verified: quote, invoice, deposit all present = 3 documents). expenses array contains all expenses linked to chantier (verified: 1 expense present). Aggregation logic working correctly."
+
 agent_communication:
   - agent: "testing"
     message: "Completed comprehensive backend API testing. All 17 test cases passed successfully. Tested: root endpoint, settings CRUD, client CRUD, vehicle CRUD, invoice creation (standard/repair/vehicle_sale/vehicle_purchase), auto-numbering, calculation logic (compute_totals), search functionality, duplication, updates, statistics, and cleanup. No critical issues found. All calculations verified correct including hourly labor, margin tax regime, fees, deposits, and trade-ins."
+  - agent: "testing"
+    message: "Completed testing of NEW backend features. All 15 test cases passed successfully. Tested: Companies CRUD with isDefault logic (first company auto-default, switching default works), Chantiers CRUD with document/expense aggregation, Building invoices with sections and hourly pricing (calculations correct: 1610 HT, 322 tax, 1932 TTC), Quote to invoice conversion (new invoice created, original marked converted), Deposit invoice creation (30% = 579.6 TTC, linked to parent), Analytics endpoint (all fields present, byActivity includes building, 12 monthly entries, aging buckets, companyId filter works), Expenses CRUD (TTC auto-calculated 240 from 200 HT). No critical issues found. All new endpoints working correctly."

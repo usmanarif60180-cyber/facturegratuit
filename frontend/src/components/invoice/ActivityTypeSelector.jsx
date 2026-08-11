@@ -1,12 +1,12 @@
 import React from "react";
-import { FileText, Wrench, Car, ShoppingCart } from "lucide-react";
+import { FileText, Wrench, Car, ShoppingCart, Hammer } from "lucide-react";
 import { activityTypes } from "../../lib/calc";
 
-const iconMap = { FileText, Wrench, Car, ShoppingCart };
+const iconMap = { FileText, Wrench, Car, ShoppingCart, Hammer };
 
 export default function ActivityTypeSelector({ value, onChange }) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       {activityTypes.map((t) => {
         const Icon = iconMap[t.icon];
         const active = value === t.id;
