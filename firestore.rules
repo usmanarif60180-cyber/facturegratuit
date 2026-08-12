@@ -15,6 +15,7 @@ service cloud.firestore {
         'profile',
         'billing',
         'payment',
+        'companyProfile',
         'personal',
         'history',
         'quotes',
@@ -23,6 +24,10 @@ service cloud.firestore {
         'clients',
         'products',
         'leads',
+        'customerCompanies',
+        'tasks',
+        'files',
+        'workspaces',
         'notifications',
         'teamMembers',
         'teamInvites',
@@ -43,7 +48,7 @@ service cloud.firestore {
 
       match /{collectionName}/{docId} {
         allow read, create, update, delete: if isOwner(userId)
-          && collectionName in ['history', 'quotes', 'expenses', 'projects', 'clients', 'products', 'leads', 'notifications', 'teamMembers', 'teamInvites', 'teamTasks', 'teamActivity', 'feedback'];
+          && collectionName in ['history', 'quotes', 'expenses', 'projects', 'clients', 'products', 'leads', 'customerCompanies', 'tasks', 'files', 'workspaces', 'notifications', 'teamMembers', 'teamInvites', 'teamTasks', 'teamActivity', 'feedback'];
       }
     }
 
