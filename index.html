@@ -697,13 +697,19 @@ window.profactureTrack = function(name, params) {
   .ad-slot .ad-lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
   #print-area { display: none; }
   .print-doc { box-sizing: border-box; display: flex; flex-direction: column; background: #fff; color: #111; }
-  .print-doc-head { display: flex; align-items: center; gap: 0.8rem; border-bottom: 2px solid #111; padding-bottom: 1rem; margin-bottom: 1rem; }
-  .print-doc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; font-size: 0.85rem; color: #111; }
-  .print-doc-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-  .print-doc-table th, .print-doc-table td { border-bottom: 1px solid #ddd; padding: 0.5rem; font-size: 0.85rem; text-align: left; color: #111; }
-  .print-doc-total { text-align: right; font-size: 1.15rem; font-weight: 800; margin-bottom: 1.5rem; color: #111; }
-  .print-doc-sig { margin-top: auto; padding-top: 1rem; text-align: right; break-inside: avoid; page-break-inside: avoid; }
-  .print-doc-sig img { max-height: 3.5rem; }
+  .print-doc-head { display: flex; align-items: center; gap: 1rem; min-height: 5.4rem; border: 1px solid #e5e7eb; border-bottom: 3px solid #111; border-radius: 6px; padding: 1rem 1.15rem; margin-bottom: 1.5rem; }
+  .print-doc-head img { flex-shrink: 0; }
+  .print-doc-grid { display: grid; grid-template-columns: 1.15fr 1.15fr 0.8fr; gap: 1rem; margin-bottom: 1.35rem; font-size: 0.85rem; color: #111; }
+  .print-doc-party { min-height: 5.4rem; padding: 0.9rem 1rem; border: 1px solid #e5e7eb; border-radius: 6px; background: #f8fafc; line-height: 1.5; }
+  .print-doc-party strong:first-child { display: inline-block; margin-bottom: 0.28rem; font-size: 0.72rem; text-transform: uppercase; color: #64748b; }
+  .print-doc-client-id { font-size: 0.78rem; margin: -0.45rem 0 1.15rem; padding-left: 0.2rem; color: #475569; }
+  .print-doc-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0.25rem 0 1.5rem; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
+  .print-doc-table th, .print-doc-table td { border-bottom: 1px solid #e5e7eb; padding: 0.78rem 0.72rem; font-size: 0.85rem; text-align: left; color: #111; }
+  .print-doc-table th { font-size: 0.72rem; text-transform: uppercase; }
+  .print-doc-table tbody tr:last-child td { border-bottom: 0; }
+  .print-doc-total { align-self: flex-end; min-width: 15rem; padding: 0.85rem 1rem; border: 1px solid #dbe3ee; border-radius: 6px; background: #f8fafc; text-align: right; font-size: 1.2rem; font-weight: 800; margin-bottom: 1.5rem; color: #111; }
+  .print-doc-sig { width: 100%; margin-top: auto; padding-top: 1rem; border-top: 1px solid #e5e7eb; text-align: right; break-inside: avoid; page-break-inside: avoid; }
+  .print-doc-sig img { max-height: 4.6rem; }
   .doc-builder-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(30rem, 0.9fr); gap: 1.5rem; align-items: start; }
   .doc-preview-panel { position: sticky; top: 1rem; min-width: 0; }
   .doc-preview-frame { border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); overflow: auto; background: linear-gradient(135deg, hsl(var(--muted) / 0.45), hsl(var(--surface))); padding: 0; max-height: calc(100vh - 7rem); }
@@ -8079,11 +8085,11 @@ window.profactureTrack = function(name, params) {
         (opts.status ? "<div>" + escapeHtml(docStatusLabel(opts.status)) + "</div>" : "") +
         "</div></div>" +
         '<div class="print-doc-grid">' +
-        "<div><strong>" + escapeHtml(t("lbl_billed_to")) + "</strong><br><strong style=\"font-size:1.02rem;\">" + escapeHtml(opts.client) + "</strong>" + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + "</div>" +
-        (opts.siteAddress ? "<div><strong>" + escapeHtml(t("lbl_jobsite")) + "</strong><br>" + htmlLines(opts.siteAddress) + "</div>" : "<div></div>") +
-        "<div><strong>" + escapeHtml(opts.issueLabel) + "</strong><br>" + escapeHtml(opts.issueDate) + dueBlock + "</div>" +
+        '<div class="print-doc-party"><strong>' + escapeHtml(t("lbl_billed_to")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(opts.client) + "</strong>" + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + "</div>" +
+        (opts.siteAddress ? '<div class="print-doc-party"><strong>' + escapeHtml(t("lbl_jobsite")) + "</strong><br>" + htmlLines(opts.siteAddress) + "</div>" : '<div class="print-doc-party"></div>') +
+        '<div class="print-doc-party"><strong>' + escapeHtml(opts.issueLabel) + "</strong><br>" + escapeHtml(opts.issueDate) + dueBlock + "</div>" +
         "</div>" +
-        (opts.siret ? "<p style=\"font-size:0.8rem;margin-bottom:0.8rem;\">SIRET client: " + escapeHtml(opts.siret) + "</p>" : "") +
+        (opts.siret ? '<p class="print-doc-client-id">SIRET client: ' + escapeHtml(opts.siret) + "</p>" : "") +
         '<table class="print-doc-table"><thead style="background:' + tableBg + ';"><tr><th>' + t("fld_description") + '</th><th style="text-align:right;">' + t("fld_qty") + '</th><th style="text-align:right;">' + t("fld_unit_price") + '</th><th style="text-align:right;">' + t("fld_amount") + "</th></tr></thead><tbody>" + itemsRows + "</tbody></table>" +
         '<div class="print-doc-total" style="color:' + primary + ';">' + t("fld_total") + ": " + fmt(opts.total) + "</div>" +
         ((stamp || sig) ? '<div class="print-doc-sig"><div style="font-size:0.78rem;color:#555;">' + escapeHtml(t("fld_company_stamp")) + " / " + escapeHtml(t("fld_signature")) + '</div><div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:0.9rem;flex-wrap:wrap;">' + (stamp ? '<img src="' + stamp + '" alt="" style="max-height:4.6rem;max-width:8rem;object-fit:contain;" />' : "") + (sig ? '<img src="' + sig + '" alt="" />' : "") + "</div></div>" : "") +
