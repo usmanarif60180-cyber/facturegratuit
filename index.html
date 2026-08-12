@@ -227,6 +227,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JJCNL9THWD"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
 function gtag(){ dataLayer.push(arguments); }
@@ -237,6 +238,8 @@ gtag('consent', 'default', {
   ad_personalization: 'denied',
   wait_for_update: 500
 });
+gtag('js', new Date());
+gtag('config', 'G-JJCNL9THWD', { send_page_view: true });
 try {
   if (localStorage.getItem('facturepro-cookie-consent') === 'accepted') {
     gtag('consent', 'update', {
@@ -247,6 +250,11 @@ try {
     });
   }
 } catch {}
+window.profactureTrack = function(name, params) {
+  try {
+    if (typeof gtag === 'function') gtag('event', name, Object.assign({ app_version: '2026.08' }, params || {}));
+  } catch (error) { /* analytics must never block the app */ }
+};
 </script>
 <meta name="google-adsense-account" content="ca-pub-4956341710070686">
 <style>
@@ -492,6 +500,12 @@ try {
   }
   .m-nav a:hover::after { width: 100%; }
   .m-actions { display: flex; align-items: center; gap: 0.5rem; }
+  .sync-chip { display:flex; align-items:center; gap:0.35rem; min-width:6.8rem; padding:0.38rem 0.62rem; border:1px solid hsl(var(--border)); border-radius:999px; color:hsl(var(--muted-fg)); background:hsl(var(--surface)); font-size:0.7rem; font-weight:700; white-space:nowrap; }
+  .sync-chip .dot { width:0.46rem; height:0.46rem; border-radius:999px; background:hsl(var(--muted-fg)); }
+  .sync-chip[data-state="saving"] .dot { background:hsl(var(--warning)); animation:pulse-dot 1.2s ease-in-out infinite; }
+  .sync-chip[data-state="saved"] .dot { background:hsl(var(--success)); }
+  .sync-chip[data-state="offline"], .sync-chip[data-state="error"] { color:hsl(var(--danger)); border-color:hsl(var(--danger) / .3); }
+  .sync-chip[data-state="offline"] .dot, .sync-chip[data-state="error"] .dot { background:hsl(var(--danger)); }
   @media (max-width: 760px) {
     .m-header { top: 0; }
     .m-header-inner { height: auto; min-height: 3.75rem; gap: 0.65rem; padding: 0.55rem 0; }
@@ -500,6 +514,8 @@ try {
     .m-lang-select { max-width: 7.6rem; margin-left: 0; }
     .logo { font-size: 0.95rem; min-width: 0; }
     .logo-mark { width: 1.85rem; height: 1.85rem; }
+    .sync-chip { min-width:0; padding:0.38rem; }
+    .sync-chip span:last-child { display:none; }
   }
 
   .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 3rem; align-items: center; padding: 4.5rem 0 3rem; }
@@ -523,6 +539,7 @@ try {
   .hv-dots span { width: 0.55rem; height: 0.55rem; border-radius: 999px; }
   .hv-live { display: flex; align-items: center; gap: 0.35rem; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: hsl(var(--muted-fg)); }
   .hv-live span.dot { width: 0.4rem; height: 0.4rem; border-radius: 999px; background: hsl(var(--success)); animation: pulse-dot 2s ease-in-out infinite; }
+  .demo-label { display:inline-flex; align-items:center; width:fit-content; padding:0.2rem 0.48rem; border-radius:999px; background:hsl(var(--primary) / .1); color:hsl(var(--primary)); font-size:0.62rem; font-weight:800; text-transform:uppercase; }
   .hv-rev-row { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 1rem; }
   .hv-rev-val { font-size: 1.6rem; font-weight: 800; margin-top: 0.2rem; }
   .hv-up { display: flex; align-items: center; gap: 0.15rem; border-radius: 999px; background: hsl(var(--success) / 0.12); color: hsl(var(--success)); padding: 0.25rem 0.6rem; font-size: 0.72rem; font-weight: 700; }
@@ -1360,7 +1377,7 @@ try {
       <div class="card hv-panel" id="hv-panel-tilt" style="transform-style:preserve-3d;transition:transform 0.15s ease-out;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div class="hv-dots"><span style="background:hsl(0 72% 51% / .5)"></span><span style="background:hsl(32 92% 44% / .5)"></span><span style="background:hsl(142 71% 35% / .5)"></span></div>
-          <span class="hv-live"><span class="dot"></span>Live</span>
+          <span style="display:flex;gap:0.4rem;align-items:center;"><span class="demo-label">Demo preview</span><span class="hv-live"><span class="dot"></span>Live</span></span>
         </div>
         <div class="hv-rev-row">
           <div><p style="font-size:0.72rem;color:hsl(var(--muted-fg));">Revenue this month</p><p class="hv-rev-val tnum" id="hv-revenue">$0</p></div>
@@ -1475,7 +1492,7 @@ try {
   <div class="cta-band">
     <div class="container">
       <h2>Free to start. Built to grow with you.</h2>
-      <p>Version 1 is completely free — every core tool, no credit card required.</p>
+      <p>Core invoicing tools are free — no credit card required.</p>
       <a href="#" class="btn btn-primary btn-lg" data-goto="register">Create your workspace</a>
     </div>
   </div>
@@ -1520,7 +1537,7 @@ try {
     <div class="card plan-card">
       <div><h3 style="font-size:1.05rem;font-weight:700;">Free</h3><p style="font-size:0.8rem;color:hsl(var(--muted-fg));margin-top:0.2rem;">Everything you need to get started</p></div>
       <div class="plan-price tnum">$0<span>/mo</span></div>
-      <ul class="plan-feats"><li>20 invoices / month</li><li>20 quotes / month</li><li>Unlimited clients &amp; products</li><li>500 MB storage</li><li>1 team member</li></ul>
+      <ul class="plan-feats"><li>Unlimited invoices</li><li>Unlimited quotes</li><li>Unlimited clients &amp; products</li><li>500 MB storage</li><li>1 team member</li></ul>
       <a href="#" class="btn btn-primary" data-goto="register" style="width:100%;">Commencer gratuitement</a>
     </div>
     <div class="card plan-card highlight">
@@ -2150,6 +2167,7 @@ try {
       "</div>" +
       '<button class="search-trigger" style="margin-left:0.5rem;" aria-label="Open global search">🔍 ' + t("topbar_search") + " <kbd>⌘K</kbd></button>" +
       langSelectHtml("app-lang-select") +
+      '<span class="sync-chip" data-sync-chip data-state="offline" role="status" aria-live="polite"><span class="dot"></span><span data-sync-label>' + t("sync_offline") + '</span></span>' +
       '<button class="btn btn-outline btn-sm replay-onboarding" style="gap:0.4rem;">↺ ' + t("topbar_replay_onboarding") + "</button>" +
       '<span style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;font-weight:600;color:hsl(var(--muted-fg));margin-left:0.5rem;" title="' + t("topbar_sound_title") + '">🔈 <button class="sound-switch" aria-label="Toggle interface sounds"><span class="knob"></span></button></span>' +
       '<div style="position:relative;">' +
@@ -3291,56 +3309,56 @@ try {
       txt_ai_welcome: "Hi — ask me about invoices, cash flow, inventory, tasks or performance, or try one of the suggestions below.",
       ai_invoice_generator: "AI Invoice Generator", ai_email_writer: "AI Email Writer", ai_reminder_writer: "AI Reminder Writer",
       ai_tax_assistant: "AI Tax Assistant", ai_contract_generator: "AI Contract Generator", ai_inventory_analyst: "AI Inventory Analyst",
-      lbl_soon: "Soon", lbl_optional: "optional"
+      lbl_soon: "Soon", lbl_optional: "optional", sync_saving: "Saving…", sync_saved: "Saved to cloud", sync_offline: "Offline", sync_error: "Sync failed"
     },
     fr: {
       auth_your_account: "Votre compte", ph_ai_message: "Message à l'assistant IA…",
       txt_ai_welcome: "Bonjour — posez-moi des questions sur les factures, la trésorerie, le stock, les tâches ou la performance, ou essayez une suggestion ci-dessous.",
       ai_invoice_generator: "Générateur de factures IA", ai_email_writer: "Rédacteur d'e-mails IA", ai_reminder_writer: "Rédacteur de rappels IA",
       ai_tax_assistant: "Assistant fiscal IA", ai_contract_generator: "Générateur de contrats IA", ai_inventory_analyst: "Analyste inventaire IA",
-      lbl_soon: "Bientôt", lbl_optional: "facultatif"
+      lbl_soon: "Bientôt", lbl_optional: "facultatif", sync_saving: "Enregistrement…", sync_saved: "Enregistré dans le cloud", sync_offline: "Hors ligne", sync_error: "Échec de synchronisation"
     },
     it: {
       auth_your_account: "Il tuo account", ph_ai_message: "Messaggio all'assistente IA…",
       txt_ai_welcome: "Ciao — chiedimi di fatture, flusso di cassa, magazzino, attività o performance, oppure prova un suggerimento qui sotto.",
       ai_invoice_generator: "Generatore fatture IA", ai_email_writer: "Redattore email IA", ai_reminder_writer: "Redattore promemoria IA",
       ai_tax_assistant: "Assistente fiscale IA", ai_contract_generator: "Generatore contratti IA", ai_inventory_analyst: "Analista inventario IA",
-      lbl_soon: "Presto", lbl_optional: "facoltativo"
+      lbl_soon: "Presto", lbl_optional: "facoltativo", sync_saving: "Salvataggio…", sync_saved: "Salvato nel cloud", sync_offline: "Offline", sync_error: "Sincronizzazione fallita"
     },
     es: {
       auth_your_account: "Tu cuenta", ph_ai_message: "Mensaje al asistente IA…",
       txt_ai_welcome: "Hola — pregúntame sobre facturas, flujo de caja, inventario, tareas o rendimiento, o prueba una sugerencia abajo.",
       ai_invoice_generator: "Generador de facturas IA", ai_email_writer: "Redactor de emails IA", ai_reminder_writer: "Redactor de recordatorios IA",
       ai_tax_assistant: "Asistente fiscal IA", ai_contract_generator: "Generador de contratos IA", ai_inventory_analyst: "Analista de inventario IA",
-      lbl_soon: "Pronto", lbl_optional: "opcional"
+      lbl_soon: "Pronto", lbl_optional: "opcional", sync_saving: "Guardando…", sync_saved: "Guardado en la nube", sync_offline: "Sin conexión", sync_error: "Error de sincronización"
     },
     de: {
       auth_your_account: "Ihr Konto", ph_ai_message: "Nachricht an den KI-Assistenten…",
       txt_ai_welcome: "Hallo — fragen Sie mich zu Rechnungen, Cashflow, Lagerbestand, Aufgaben oder Leistung, oder nutzen Sie unten einen Vorschlag.",
       ai_invoice_generator: "KI-Rechnungsgenerator", ai_email_writer: "KI-E-Mail-Schreiber", ai_reminder_writer: "KI-Erinnerungsschreiber",
       ai_tax_assistant: "KI-Steuerassistent", ai_contract_generator: "KI-Vertragsgenerator", ai_inventory_analyst: "KI-Inventaranalyst",
-      lbl_soon: "Bald", lbl_optional: "optional"
+      lbl_soon: "Bald", lbl_optional: "optional", sync_saving: "Speichern…", sync_saved: "In der Cloud gespeichert", sync_offline: "Offline", sync_error: "Synchronisierung fehlgeschlagen"
     },
     nl: {
       auth_your_account: "Uw account", ph_ai_message: "Bericht aan de AI-assistent…",
       txt_ai_welcome: "Hallo — vraag me over facturen, cashflow, voorraad, taken of prestaties, of probeer hieronder een suggestie.",
       ai_invoice_generator: "AI-factuurgenerator", ai_email_writer: "AI-e-mailschrijver", ai_reminder_writer: "AI-herinneringsschrijver",
       ai_tax_assistant: "AI-belastingassistent", ai_contract_generator: "AI-contractgenerator", ai_inventory_analyst: "AI-voorraadanalist",
-      lbl_soon: "Binnenkort", lbl_optional: "optioneel"
+      lbl_soon: "Binnenkort", lbl_optional: "optioneel", sync_saving: "Opslaan…", sync_saved: "Opgeslagen in de cloud", sync_offline: "Offline", sync_error: "Synchronisatie mislukt"
     },
     pt: {
       auth_your_account: "A sua conta", ph_ai_message: "Mensagem para o assistente IA…",
       txt_ai_welcome: "Olá — pergunte-me sobre faturas, fluxo de caixa, inventário, tarefas ou desempenho, ou experimente uma sugestão abaixo.",
       ai_invoice_generator: "Gerador de faturas IA", ai_email_writer: "Redator de emails IA", ai_reminder_writer: "Redator de lembretes IA",
       ai_tax_assistant: "Assistente fiscal IA", ai_contract_generator: "Gerador de contratos IA", ai_inventory_analyst: "Analista de inventário IA",
-      lbl_soon: "Em breve", lbl_optional: "opcional"
+      lbl_soon: "Em breve", lbl_optional: "opcional", sync_saving: "A guardar…", sync_saved: "Guardado na nuvem", sync_offline: "Offline", sync_error: "Falha na sincronização"
     },
     pl: {
       auth_your_account: "Twoje konto", ph_ai_message: "Wiadomość do asystenta AI…",
       txt_ai_welcome: "Cześć — zapytaj mnie o faktury, przepływy pieniężne, magazyn, zadania lub wyniki, albo wypróbuj sugestię poniżej.",
       ai_invoice_generator: "Generator faktur AI", ai_email_writer: "Autor e-maili AI", ai_reminder_writer: "Autor przypomnień AI",
       ai_tax_assistant: "Asystent podatkowy AI", ai_contract_generator: "Generator umów AI", ai_inventory_analyst: "Analityk magazynu AI",
-      lbl_soon: "Wkrótce", lbl_optional: "opcjonalnie"
+      lbl_soon: "Wkrótce", lbl_optional: "opcjonalnie", sync_saving: "Zapisywanie…", sync_saved: "Zapisano w chmurze", sync_offline: "Offline", sync_error: "Błąd synchronizacji"
     },
 	  };
 	  Object.keys(I18N_PATCHES).forEach(function (lang) {
@@ -3385,6 +3403,7 @@ try {
 	  });
   var STATIC_COPY_TRANSLATIONS = {
     "The AI Business Platform": { fr: "La plateforme business IA", it: "La piattaforma business IA", es: "La plataforma empresarial IA", de: "Die KI-Business-Plattform", nl: "Het AI-businessplatform", pt: "A plataforma empresarial IA", pl: "Platforma biznesowa AI" },
+    "Demo preview": { fr: "Aperçu de démonstration", it: "Anteprima demo", es: "Vista de demostración", de: "Demo-Vorschau", nl: "Demovoorbeeld", pt: "Pré-visualização demo", pl: "Podgląd demonstracyjny" },
     "Explore pricing": { fr: "Voir les tarifs", it: "Vedi i prezzi", es: "Ver precios", de: "Preise ansehen", nl: "Prijzen bekijken", pt: "Ver preços", pl: "Zobacz ceny" },
     "Revenue this month": { fr: "Revenus ce mois-ci", it: "Ricavi questo mese", es: "Ingresos este mes", de: "Umsatz diesen Monat", nl: "Omzet deze maand", pt: "Receita deste mês", pl: "Przychód w tym miesiącu" },
     "Paid": { fr: "Payée", it: "Pagata", es: "Pagada", de: "Bezahlt", nl: "Betaald", pt: "Paga", pl: "Opłacona" },
@@ -3413,7 +3432,7 @@ try {
     "Enterprise-grade security": { fr: "Sécurité niveau entreprise", it: "Sicurezza aziendale", es: "Seguridad empresarial", de: "Sicherheit auf Enterprise-Niveau", nl: "Enterprise-beveiliging", pt: "Segurança empresarial", pl: "Bezpieczeństwo klasy enterprise" },
     "Firebase-backed authentication and strict, organization-scoped data access.": { fr: "Authentification Firebase et accès aux données strictement limité par organisation.", it: "Autenticazione Firebase e accesso dati rigoroso per organizzazione.", es: "Autenticación Firebase y acceso a datos limitado por organización.", de: "Firebase-Authentifizierung und streng organisationsbezogener Datenzugriff.", nl: "Firebase-authenticatie en strikte data-toegang per organisatie.", pt: "Autenticação Firebase e acesso a dados limitado por organização.", pl: "Uwierzytelnianie Firebase i ścisły dostęp do danych w obrębie organizacji." },
     "Free to start. Built to grow with you.": { fr: "Gratuit pour commencer. Conçu pour grandir avec vous.", it: "Gratis per iniziare. Creato per crescere con te.", es: "Gratis para empezar. Creado para crecer contigo.", de: "Kostenlos starten. Bereit zum Wachsen.", nl: "Gratis om te starten. Gebouwd om mee te groeien.", pt: "Grátis para começar. Criado para crescer consigo.", pl: "Darmowy start. Gotowe na rozwój." },
-    "Version 1 is completely free — every core tool, no credit card required.": { fr: "La version 1 est entièrement gratuite — tous les outils essentiels, sans carte bancaire.", it: "La versione 1 è completamente gratuita — strumenti principali inclusi, senza carta.", es: "La versión 1 es totalmente gratuita — herramientas clave, sin tarjeta.", de: "Version 1 ist komplett kostenlos — alle Kernwerkzeuge, keine Kreditkarte.", nl: "Versie 1 is helemaal gratis — alle kerntools, geen creditcard.", pt: "A versão 1 é totalmente gratuita — ferramentas essenciais, sem cartão.", pl: "Wersja 1 jest całkowicie darmowa — wszystkie podstawowe narzędzia, bez karty." },
+    "Core invoicing tools are free — no credit card required.": { fr: "Les outils essentiels de facturation sont gratuits — aucune carte bancaire requise.", it: "Gli strumenti principali di fatturazione sono gratuiti — nessuna carta richiesta.", es: "Las herramientas principales de facturación son gratis — sin tarjeta.", de: "Die wichtigsten Rechnungstools sind kostenlos — keine Kreditkarte erforderlich.", nl: "De belangrijkste facturatietools zijn gratis — geen creditcard nodig.", pt: "As ferramentas principais de faturação são grátis — sem cartão.", pl: "Podstawowe narzędzia do fakturowania są bezpłatne — bez karty." },
     "Create your workspace": { fr: "Créez votre espace de travail", it: "Crea il tuo spazio di lavoro", es: "Crea tu espacio de trabajo", de: "Workspace erstellen", nl: "Maak uw werkruimte", pt: "Crie o seu espaço de trabalho", pl: "Utwórz przestrzeń roboczą" },
     "The AI Business Platform — invoicing, quotations and more, in one intelligent workspace.": { fr: "La plateforme business IA — factures, devis et plus encore dans un espace intelligent.", it: "La piattaforma business IA — fatture, preventivi e altro in uno spazio intelligente.", es: "La plataforma empresarial IA — facturas, presupuestos y más en un espacio inteligente.", de: "Die KI-Business-Plattform — Rechnungen, Angebote und mehr in einem intelligenten Workspace.", nl: "Het AI-businessplatform — facturen, offertes en meer in één slimme werkruimte.", pt: "A plataforma empresarial IA — faturas, orçamentos e muito mais num espaço inteligente.", pl: "Platforma biznesowa AI — faktury, oferty i więcej w inteligentnej przestrzeni." },
     "Help Center": { fr: "Centre d'aide", it: "Centro assistenza", es: "Centro de ayuda", de: "Hilfezentrum", nl: "Helpcentrum", pt: "Centro de ajuda", pl: "Centrum pomocy" },
@@ -3432,8 +3451,8 @@ try {
     "Simple, transparent pricing": { fr: "Tarifs simples et transparents", it: "Prezzi semplici e trasparenti", es: "Precios simples y transparentes", de: "Einfache, transparente Preise", nl: "Eenvoudige, transparante prijzen", pt: "Preços simples e transparentes", pl: "Proste, przejrzyste ceny" },
     "Start free today. Upgrade only when your business needs more.": { fr: "Commencez gratuitement aujourd'hui. Passez à l'offre supérieure seulement quand votre activité en a besoin.", it: "Inizia gratis oggi. Passa di piano solo quando serve.", es: "Empieza gratis hoy. Actualiza solo cuando lo necesites.", de: "Starten Sie heute kostenlos. Upgraden Sie nur bei Bedarf.", nl: "Start vandaag gratis. Upgrade alleen wanneer nodig.", pt: "Comece grátis hoje. Atualize apenas quando precisar.", pl: "Zacznij dziś za darmo. Ulepsz dopiero, gdy będzie potrzeba." },
     "Everything you need to get started": { fr: "Tout ce qu'il faut pour démarrer", it: "Tutto ciò che serve per iniziare", es: "Todo lo necesario para empezar", de: "Alles für den Start", nl: "Alles om te beginnen", pt: "Tudo para começar", pl: "Wszystko, czego potrzebujesz na start" },
-    "20 invoices / month": { fr: "20 factures / mois", it: "20 fatture / mese", es: "20 facturas / mes", de: "20 Rechnungen / Monat", nl: "20 facturen / maand", pt: "20 faturas / mês", pl: "20 faktur / miesiąc" },
-    "20 quotes / month": { fr: "20 devis / mois", it: "20 preventivi / mese", es: "20 presupuestos / mes", de: "20 Angebote / Monat", nl: "20 offertes / maand", pt: "20 orçamentos / mês", pl: "20 ofert / miesiąc" },
+    "Unlimited invoices": { fr: "Factures illimitées", it: "Fatture illimitate", es: "Facturas ilimitadas", de: "Unbegrenzte Rechnungen", nl: "Onbeperkte facturen", pt: "Faturas ilimitadas", pl: "Nielimitowane faktury" },
+    "Unlimited quotes": { fr: "Devis illimités", it: "Preventivi illimitati", es: "Presupuestos ilimitados", de: "Unbegrenzte Angebote", nl: "Onbeperkte offertes", pt: "Orçamentos ilimitados", pl: "Nielimitowane oferty" },
     "Unlimited clients & products": { fr: "Clients et produits illimités", it: "Clienti e prodotti illimitati", es: "Clientes y productos ilimitados", de: "Unbegrenzte Kunden und Produkte", nl: "Onbeperkte klanten en producten", pt: "Clientes e produtos ilimitados", pl: "Nieograniczeni klienci i produkty" },
     "1 team member": { fr: "1 membre d'équipe", it: "1 membro del team", es: "1 miembro del equipo", de: "1 Teammitglied", nl: "1 teamlid", pt: "1 membro da equipa", pl: "1 członek zespołu" },
     "Most popular": { fr: "Le plus populaire", it: "Più popolare", es: "Más popular", de: "Am beliebtesten", nl: "Meest populair", pt: "Mais popular", pl: "Najpopularniejsze" },
@@ -5598,6 +5617,7 @@ try {
       }
       var gfab = document.getElementById("gfab-wrap");
       if (gfab) gfab.classList.toggle("show", appViews.indexOf(id) !== -1);
+      if (window.profactureTrack) window.profactureTrack("virtual_page_view", { view_name: id, page_location: location.href.split("#")[0] + "#" + id });
     }
 
     document.body.addEventListener("click", function (e) {
@@ -5695,8 +5715,8 @@ try {
         };
       }).filter(function (it) { return it.desc || it.qty || it.price; });
     }
-    liBody.addEventListener("input", recalc);
-    liBody.addEventListener("change", recalc);
+    liBody.addEventListener("input", function () { recalc(); scheduleInvoiceDraftSave(); });
+    liBody.addEventListener("change", function () { recalc(); scheduleInvoiceDraftSave(); });
     liBody.addEventListener("click", function (e) {
       if (e.target.closest('[data-role="remove"]')) {
         e.target.closest("tr").remove();
@@ -6053,8 +6073,8 @@ try {
         body = obIllus(OB_ICONS.workspace) +
           '<h3 style="text-align:left;">Set up your workspace</h3><p class="desc" style="text-align:left;margin-left:0;">You can change these anytime in Settings.</p>' +
           '<div class="ob-fields">' +
-          '<div><label class="field-label">Business name</label><input class="field" value="Acme Inc." /></div>' +
-          '<div><label class="field-label">Default currency</label><select class="field"><option>USD ($) — US Dollar</option><option>EUR (€) — Euro</option><option>GBP (£) — British Pound</option></select></div>' +
+          '<div><label class="field-label">Business name</label><input class="field" id="ob-business-name" placeholder="Your business" /></div>' +
+          '<div><label class="field-label">Default currency</label><select class="field" id="ob-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>' +
           "</div>";
       } else if (s === "theme") {
         body = '<h3>Choose your look</h3><p class="desc">You can switch anytime from the top bar.</p><div class="ob-theme-row">' +
@@ -6094,6 +6114,21 @@ try {
       if (backBtn) backBtn.addEventListener("click", function () { obStep = Math.max(0, obStep - 1); renderObStep(); });
       if (nextBtn) nextBtn.addEventListener("click", function () {
         if (isLast) { closeOnboarding(); playSound("success"); return; }
+        if (s === "workspace") {
+          var businessNameEl = document.getElementById("ob-business-name");
+          var currencyEl = document.getElementById("ob-currency");
+          var businessName = businessNameEl ? businessNameEl.value.trim() : "";
+          if (businessName) {
+            try { localStorage.setItem("profacture_company_profile", JSON.stringify({ name: businessName, siret: "", address: "", updatedAt: new Date().toISOString() })); } catch (e) { /* ignore */ }
+          }
+          if (currencyEl && currencyEl.value) {
+            currentCurrency = currencyEl.value;
+            try { localStorage.setItem("profacture_currency", currentCurrency); } catch (e) { /* ignore */ }
+          }
+          if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+          if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(100);
+          if (window.profactureTrack) window.profactureTrack("onboarding_workspace_saved", { currency: currentCurrency || "USD", has_business_name: !!businessName });
+        }
         obStep++;
         renderObStep();
       });
@@ -6121,10 +6156,12 @@ try {
       document.getElementById("ob-overlay").classList.add("open");
       document.body.style.overflow = "hidden";
     }
+    window.openOnboarding = openOnboarding;
     function closeOnboarding() {
       markOnboardingSeen();
       document.getElementById("ob-overlay").classList.remove("open");
       document.body.style.overflow = "";
+      if (window.profactureTrack) window.profactureTrack("onboarding_completed", { final_step: OB_STEPS[obStep] || "closed" });
     }
     document.getElementById("ob-backdrop").addEventListener("click", closeOnboarding);
     document.body.addEventListener("click", function (e) {
@@ -8056,6 +8093,7 @@ try {
       window.print();
     }
     function downloadInvoicePdf(inv) {
+      if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "invoice", document_id: inv.id || "draft", currency: inv.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_invoice"), number: inv.id, client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress,
         siret: inv.siret, issueLabel: t("fld_issue_date"), issueDate: fmtDate(inv.issue), dueLabel: t("fld_due_date"), dueDate: fmtDate(inv.due),
@@ -8063,6 +8101,7 @@ try {
       }));
     }
     function downloadQuotePdf(q) {
+      if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "quote", document_id: q.id || "draft", currency: q.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_quote"), number: q.id, client: q.client, clientAddress: q.clientAddress, siteAddress: q.siteAddress,
         siret: q.siret, issueLabel: t("fld_issue_date"), issueDate: fmtDate(q.issue), dueLabel: t("fld_valid_until"), dueDate: fmtDate(q.validUntil),
@@ -8324,6 +8363,49 @@ try {
     var invNewCurrencyEl = document.getElementById("inv-new-currency");
     if (invNewCurrencyEl) invNewCurrencyEl.addEventListener("change", recalc);
     var editingInvoiceId = null;
+    var invoiceDraftTimer = null;
+    function nextDocumentId(prefix, rows) {
+      var max = (Array.isArray(rows) ? rows : []).reduce(function (value, row) {
+        var match = String((row && row.id) || "").match(/(\d+)$/);
+        return Math.max(value, match ? parseInt(match[1], 10) || 0 : 0);
+      }, 0);
+      return prefix + String(max + 1).padStart(4, "0");
+    }
+    function invoiceDraftData() {
+      return {
+        clientId: document.getElementById("inv-new-client").value,
+        issue: document.getElementById("inv-new-issue").value,
+        due: document.getElementById("inv-new-due").value,
+        clientAddress: document.getElementById("inv-new-client-address").value,
+        siteAddress: document.getElementById("inv-new-site-address").value,
+        siret: document.getElementById("inv-new-siret").value,
+        currency: document.getElementById("inv-new-currency").value,
+        items: getLineItemsData(), updatedAt: new Date().toISOString()
+      };
+    }
+    function scheduleInvoiceDraftSave() {
+      if (editingInvoiceId) return;
+      clearTimeout(invoiceDraftTimer);
+      invoiceDraftTimer = setTimeout(function () {
+        try { localStorage.setItem("profacture_invoice_builder_draft", JSON.stringify(invoiceDraftData())); } catch (e) { /* ignore */ }
+      }, 350);
+    }
+    function restoreInvoiceBuilderDraft() {
+      var draft = null;
+      try { draft = JSON.parse(localStorage.getItem("profacture_invoice_builder_draft") || "null"); } catch (e) { draft = null; }
+      if (!draft || !draft.updatedAt) return false;
+      document.getElementById("inv-new-client").value = draft.clientId || "";
+      document.getElementById("inv-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
+      document.getElementById("inv-new-due").value = draft.due || "";
+      document.getElementById("inv-new-client-address").value = draft.clientAddress || "";
+      document.getElementById("inv-new-site-address").value = draft.siteAddress || "";
+      document.getElementById("inv-new-siret").value = draft.siret || "";
+      document.getElementById("inv-new-currency").value = draft.currency || currentCurrency || "USD";
+      liBody.innerHTML = "";
+      (draft.items && draft.items.length ? draft.items : [{ desc: "", qty: 1, price: 0, tax: "none" }]).forEach(function (it) { addRow(it.desc, it.qty, it.price, it.tax); });
+      showToast("Invoice draft restored");
+      return true;
+    }
     function initInvoiceNewForm() {
       populateInvoiceNewClientSelect();
       var editing = editingInvoiceId ? INVOICES.filter(function (inv) { return inv.id === editingInvoiceId; })[0] : null;
@@ -8359,7 +8441,7 @@ try {
         var siretEl = document.getElementById("inv-new-siret");
         if (siretEl) siretEl.value = ccGet("FR", "siret") || "";
         document.getElementById("inv-new-currency").value = currentCurrency || "USD";
-        addRow("", 1, 0, "none");
+        if (!restoreInvoiceBuilderDraft()) addRow("", 1, 0, "none");
       }
       renderInvoicePreview();
     }
@@ -8399,8 +8481,8 @@ try {
     });
     document.querySelectorAll("#view-invoice-new .card input, #view-invoice-new .card textarea, #view-invoice-new .card select").forEach(function (field) {
       if (field.type === "file") return;
-      field.addEventListener("input", renderInvoicePreview);
-      field.addEventListener("change", renderInvoicePreview);
+      field.addEventListener("input", function () { renderInvoicePreview(); scheduleInvoiceDraftSave(); });
+      field.addEventListener("change", function () { renderInvoicePreview(); scheduleInvoiceDraftSave(); });
     });
     var invoiceSeq = 0;
     function saveNewInvoice(status) {
@@ -8428,12 +8510,13 @@ try {
           existing.total = total;
           existing.items = items;
           existing.currency = currencyCode;
+          existing.updatedAt = new Date().toISOString();
           showToast(existing.id + " updated");
         }
         editingInvoiceId = null;
       } else {
         invoiceSeq++;
-        var newId = "INV-" + String(invoiceSeq).padStart(4, "0");
+        var newId = nextDocumentId("INV-", INVOICES);
         INVOICES.push({
           id: newId,
           client: client.company,
@@ -8446,11 +8529,15 @@ try {
           total: total,
           items: items,
           currency: currencyCode,
-          payments: [],
+          payments: [], updatedAt: new Date().toISOString()
         });
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "pending"));
       }
       renderInvoicesAll();
+      try { localStorage.removeItem("profacture_invoice_builder_draft"); } catch (e) { /* ignore */ }
+      if (window.profactureTrack) window.profactureTrack("invoice_saved", { status: status, currency: currencyCode, value: total });
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
       playSound("success");
       showView("invoices");
     }
@@ -8478,6 +8565,15 @@ try {
       var paid = invoicePaidTotal(inv);
       return Math.max(0, inv.total - paid);
     }
+    function refreshAutomaticInvoiceStatuses() {
+      var today = new Date().toISOString().slice(0, 10);
+      INVOICES.forEach(function (inv) {
+        if (inv.due && inv.due < today && invoiceBalance(inv) > 0 && ["Sent", "Viewed", "Partially paid"].indexOf(inv.status) !== -1) {
+          inv.status = "Overdue";
+          inv.updatedAt = new Date().toISOString();
+        }
+      });
+    }
     function invoiceStatusBadgeClass(s) {
       return s === "Paid" ? "badge-success" : s === "Overdue" ? "badge-danger" : s === "Partially paid" ? "badge-warning" : s === "Viewed" ? "badge-info" : "badge-default";
     }
@@ -8501,6 +8597,7 @@ try {
           '<td class="tnum" style="text-align:right;font-weight:700;">' + formatCurrency(inv.total, inv.currency) + "</td>" +
           '<td style="display:flex;gap:0.3rem;flex-wrap:wrap;">' +
           '<button class="btn btn-ghost btn-sm" data-invoice-edit="' + inv.id + '">✏️ Edit</button>' +
+          '<button class="btn btn-ghost btn-sm" data-invoice-duplicate="' + inv.id + '">⧉ Duplicate</button>' +
           '<button class="btn btn-ghost btn-sm" data-invoice-pdf="' + inv.id + '">⬇ PDF</button>' +
           '<button class="btn btn-ghost btn-sm" data-invoice-email="' + inv.id + '">✉ Email</button>' +
           '<button class="btn btn-ghost btn-sm" data-invoice-whatsapp="' + inv.id + '">WhatsApp</button>' +
@@ -8533,6 +8630,7 @@ try {
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_avg_days_to_pay") + '</div><div class="val tnum">' + avgDays + "</div></div><div class=\"ic\">📆</div></div>";
     }
     function renderInvoicesAll() {
+      refreshAutomaticInvoiceStatuses();
       renderInvoiceStats();
       renderInvoicesTable();
     }
@@ -8572,6 +8670,7 @@ try {
         "</div>" +
         '<div class="cw-foot"><span style="display:flex;gap:0.5rem;">' +
         '<button class="btn btn-outline btn-sm" data-invoice-edit="' + inv.id + '">✏️ Edit</button>' +
+        '<button class="btn btn-outline btn-sm" data-invoice-duplicate="' + inv.id + '">⧉ Duplicate</button>' +
         '<button class="btn btn-outline btn-sm" data-invoice-pdf="' + inv.id + '">⬇ Download PDF</button>' +
         '<button class="btn btn-outline btn-sm" data-invoice-email="' + inv.id + '">✉ Email</button>' +
         '<button class="btn btn-outline btn-sm" data-invoice-whatsapp="' + inv.id + '">WhatsApp</button>' +
@@ -8623,6 +8722,24 @@ try {
         var overlayEl = document.getElementById("ph-overlay");
         if (overlayEl && overlayEl.classList.contains("open")) phClose();
         openInvoiceForEdit(editBtn.getAttribute("data-invoice-edit"));
+        return;
+      }
+      var duplicateBtn = e.target.closest("[data-invoice-duplicate]");
+      if (duplicateBtn) {
+        var sourceInvoice = INVOICES.filter(function (x) { return x.id === duplicateBtn.getAttribute("data-invoice-duplicate"); })[0];
+        if (!sourceInvoice) return;
+        var duplicatedInvoice = Object.assign({}, sourceInvoice, {
+          id: nextDocumentId("INV-", INVOICES), status: "Draft", issue: new Date().toISOString().slice(0, 10), due: "", payments: [],
+          items: (sourceInvoice.items || []).map(function (item) { return Object.assign({}, item); }), updatedAt: new Date().toISOString()
+        });
+        INVOICES.push(duplicatedInvoice);
+        var duplicateOverlay = document.getElementById("ph-overlay");
+        if (duplicateOverlay && duplicateOverlay.classList.contains("open")) phClose();
+        renderInvoicesAll();
+        if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+        if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+        if (window.profactureTrack) window.profactureTrack("invoice_duplicated", { source_id: sourceInvoice.id });
+        showToast(duplicatedInvoice.id + " created as draft");
         return;
       }
       var pdfBtn = e.target.closest("[data-invoice-pdf]");
@@ -8735,6 +8852,8 @@ try {
           '<td class="tnum" style="text-align:right;font-weight:700;">' + formatCurrency(q.total, q.currency) + "</td>" +
           '<td style="display:flex;gap:0.3rem;flex-wrap:wrap;">' +
           '<button class="btn btn-ghost btn-sm" data-quote-edit="' + q.id + '">✏️ Edit</button>' +
+          '<button class="btn btn-ghost btn-sm" data-quote-duplicate="' + q.id + '">⧉ Duplicate</button>' +
+          (q.status !== "Converted" ? '<button class="btn btn-ghost btn-sm" data-quote-convert="' + q.id + '">→ Invoice</button>' : "") +
           '<button class="btn btn-ghost btn-sm" data-quote-pdf="' + q.id + '">⬇ PDF</button>' +
           '<button class="btn btn-ghost btn-sm" data-quote-email="' + q.id + '">✉ Email</button>' +
           '<button class="btn btn-ghost btn-sm" data-quote-whatsapp="' + q.id + '">WhatsApp</button>' +
@@ -8798,8 +8917,8 @@ try {
       }).filter(function (it) { return it.desc || it.qty || it.price; });
     }
     if (qLiBody) {
-      qLiBody.addEventListener("input", qRecalc);
-      qLiBody.addEventListener("change", qRecalc);
+      qLiBody.addEventListener("input", function () { qRecalc(); scheduleQuoteDraftSave(); });
+      qLiBody.addEventListener("change", function () { qRecalc(); scheduleQuoteDraftSave(); });
       qLiBody.addEventListener("click", function (e) {
         if (e.target.closest('[data-role="remove"]')) { e.target.closest("tr").remove(); qRecalc(); }
       });
@@ -8867,6 +8986,42 @@ try {
     });
 
     var editingQuoteId = null;
+    var quoteDraftTimer = null;
+    function quoteDraftData() {
+      return {
+        clientId: document.getElementById("q-new-client").value,
+        issue: document.getElementById("q-new-issue").value,
+        validUntil: document.getElementById("q-new-valid").value,
+        clientAddress: document.getElementById("q-new-client-address").value,
+        siteAddress: document.getElementById("q-new-site-address").value,
+        siret: document.getElementById("q-new-siret").value,
+        currency: document.getElementById("q-new-currency").value,
+        items: getQuoteLineItemsData(), updatedAt: new Date().toISOString()
+      };
+    }
+    function scheduleQuoteDraftSave() {
+      if (editingQuoteId) return;
+      clearTimeout(quoteDraftTimer);
+      quoteDraftTimer = setTimeout(function () {
+        try { localStorage.setItem("profacture_quote_builder_draft", JSON.stringify(quoteDraftData())); } catch (e) { /* ignore */ }
+      }, 350);
+    }
+    function restoreQuoteBuilderDraft() {
+      var draft = null;
+      try { draft = JSON.parse(localStorage.getItem("profacture_quote_builder_draft") || "null"); } catch (e) { draft = null; }
+      if (!draft || !draft.updatedAt) return false;
+      document.getElementById("q-new-client").value = draft.clientId || "";
+      document.getElementById("q-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
+      document.getElementById("q-new-valid").value = draft.validUntil || "";
+      document.getElementById("q-new-client-address").value = draft.clientAddress || "";
+      document.getElementById("q-new-site-address").value = draft.siteAddress || "";
+      document.getElementById("q-new-siret").value = draft.siret || "";
+      document.getElementById("q-new-currency").value = draft.currency || currentCurrency || "USD";
+      qLiBody.innerHTML = "";
+      (draft.items && draft.items.length ? draft.items : [{ desc: "", qty: 1, price: 0, tax: "none" }]).forEach(function (it) { qAddRow(it.desc, it.qty, it.price, it.tax); });
+      showToast("Quote draft restored");
+      return true;
+    }
     function initQuoteNewForm() {
       populateQuoteNewClientSelect();
       var editing = editingQuoteId ? QUOTES.filter(function (q) { return q.id === editingQuoteId; })[0] : null;
@@ -8899,7 +9054,7 @@ try {
         document.getElementById("q-new-site-address").value = "";
         document.getElementById("q-new-siret").value = ccGet("FR", "siret") || "";
         document.getElementById("q-new-currency").value = currentCurrency || "USD";
-        qAddRow("", 1, 0, "none");
+        if (!restoreQuoteBuilderDraft()) qAddRow("", 1, 0, "none");
       }
       renderQuotePreview();
     }
@@ -8928,19 +9083,24 @@ try {
           existing.total = total;
           existing.items = items;
           existing.currency = currencyCode;
+          existing.updatedAt = new Date().toISOString();
           showToast(existing.id + " updated");
         }
         editingQuoteId = null;
       } else {
         quoteSeq++;
-        var newId = "QUO-" + String(quoteSeq).padStart(4, "0");
+        var newId = nextDocumentId("QUO-", QUOTES);
         QUOTES.push({
           id: newId, client: client.company, clientAddress: clientAddress, siteAddress: siteAddress,
-          siret: siret, issue: issue, validUntil: validUntil, status: status, total: total, items: items, currency: currencyCode,
+          siret: siret, issue: issue, validUntil: validUntil, status: status, total: total, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
         });
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "sent"));
       }
       renderQuotesTable();
+      try { localStorage.removeItem("profacture_quote_builder_draft"); } catch (e) { /* ignore */ }
+      if (window.profactureTrack) window.profactureTrack("quote_saved", { status: status, currency: currencyCode, value: total });
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
       playSound("success");
       showView("quotes");
     }
@@ -8972,6 +9132,43 @@ try {
     document.body.addEventListener("click", function (e) {
       var qEditBtn = e.target.closest("[data-quote-edit]");
       if (qEditBtn) { openQuoteForEdit(qEditBtn.getAttribute("data-quote-edit")); return; }
+      var qDuplicateBtn = e.target.closest("[data-quote-duplicate]");
+      if (qDuplicateBtn) {
+        var sourceQuote = QUOTES.filter(function (x) { return x.id === qDuplicateBtn.getAttribute("data-quote-duplicate"); })[0];
+        if (!sourceQuote) return;
+        var duplicatedQuote = Object.assign({}, sourceQuote, {
+          id: nextDocumentId("QUO-", QUOTES), status: "Draft", issue: new Date().toISOString().slice(0, 10),
+          items: (sourceQuote.items || []).map(function (item) { return Object.assign({}, item); }), updatedAt: new Date().toISOString()
+        });
+        QUOTES.push(duplicatedQuote);
+        renderQuotesTable();
+        if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+        if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+        if (window.profactureTrack) window.profactureTrack("quote_duplicated", { source_id: sourceQuote.id });
+        showToast(duplicatedQuote.id + " created as draft");
+        return;
+      }
+      var qConvertBtn = e.target.closest("[data-quote-convert]");
+      if (qConvertBtn) {
+        var quoteToConvert = QUOTES.filter(function (x) { return x.id === qConvertBtn.getAttribute("data-quote-convert"); })[0];
+        if (!quoteToConvert) return;
+        var convertedInvoice = {
+          id: nextDocumentId("INV-", INVOICES), client: quoteToConvert.client, clientAddress: quoteToConvert.clientAddress || "",
+          siteAddress: quoteToConvert.siteAddress || "", siret: quoteToConvert.siret || "", issue: new Date().toISOString().slice(0, 10), due: "",
+          status: "Draft", total: quoteToConvert.total || 0, items: (quoteToConvert.items || []).map(function (item) { return Object.assign({}, item); }),
+          currency: quoteToConvert.currency || currentCurrency || "USD", payments: [], sourceQuoteId: quoteToConvert.id, updatedAt: new Date().toISOString()
+        };
+        INVOICES.push(convertedInvoice);
+        quoteToConvert.status = "Converted";
+        quoteToConvert.updatedAt = new Date().toISOString();
+        renderQuotesTable();
+        renderInvoicesAll();
+        if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+        if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+        if (window.profactureTrack) window.profactureTrack("quote_converted", { quote_id: quoteToConvert.id, invoice_id: convertedInvoice.id });
+        showToast(quoteToConvert.id + " converted to " + convertedInvoice.id);
+        return;
+      }
       var qPdfBtn = e.target.closest("[data-quote-pdf]");
       if (qPdfBtn) {
         var q = QUOTES.filter(function (x) { return x.id === qPdfBtn.getAttribute("data-quote-pdf"); })[0];
@@ -10173,6 +10370,20 @@ try {
   const storage = getStorage(firebaseApp);
 	  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "profile", "reports", "ai"]);
   let currentUser = null;
+  function setWorkspaceSyncState(state) {
+    const labels = { saving: "sync_saving", saved: "sync_saved", offline: "sync_offline", error: "sync_error" };
+    document.querySelectorAll("[data-sync-chip]").forEach(chip => {
+      chip.dataset.state = state;
+      const label = chip.querySelector("[data-sync-label]");
+      if (label) label.textContent = typeof window.t === "function" ? window.t(labels[state] || "sync_offline") : state;
+      chip.title = label ? label.textContent : state;
+    });
+  }
+  window.profactureSetSyncState = setWorkspaceSyncState;
+  window.addEventListener("offline", () => setWorkspaceSyncState("offline"));
+  window.addEventListener("online", () => {
+    if (currentUser) scheduleWorkspaceCloudSync(100);
+  });
 
   function showAuthStatus(id, message, kind = "error") {
     const el = document.getElementById(id);
@@ -10392,6 +10603,7 @@ try {
 	  }
 	  async function loadCloudAccountDoc(user) {
 	    if (!user) return;
+	    setWorkspaceSyncState(navigator.onLine ? "saving" : "offline");
 	    try {
 	      const snap = await getDoc(doc(db, "users", user.uid));
 	      if (snap.exists()) {
@@ -10407,6 +10619,7 @@ try {
 	    }
 	    await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => loadCloudCollection(user, cfg.collection, cfg.windowName)));
 	    persistWorkspaceLocally(user);
+	    setWorkspaceSyncState(navigator.onLine ? "saved" : "offline");
 	  }
 	  function readGlobalArray(name) {
 	    const value = window[name];
@@ -10461,16 +10674,21 @@ try {
 	  let workspaceCloudSyncTimer = null;
 	  async function syncWorkspaceSnapshot() {
 	    if (!currentUser) return false;
+	    if (!navigator.onLine) { setWorkspaceSyncState("offline"); return false; }
+	    setWorkspaceSyncState("saving");
 	    persistWorkspaceLocally(currentUser);
-	    await syncAccountDoc({
+	    const accountSaved = await syncAccountDoc({
 	      storageVersion: "2026.08-cloud-subcollections",
 	      companyProfile: collectCompanyProfileBundle()
 	    });
-	    await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => syncCollectionSnapshot(cfg.collection, cfg.windowName, cfg.collection === "projects" ? 100 : 200)));
-	    return true;
+	    const results = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => syncCollectionSnapshot(cfg.collection, cfg.windowName, cfg.collection === "projects" ? 100 : 200)));
+	    const ok = accountSaved && results.every(result => result.status === "fulfilled");
+	    setWorkspaceSyncState(ok ? "saved" : "error");
+	    return ok;
 	  }
 	  function scheduleWorkspaceCloudSync(delay = 900) {
 	    if (!currentUser) return;
+	    setWorkspaceSyncState(navigator.onLine ? "saving" : "offline");
 	    clearTimeout(workspaceCloudSyncTimer);
 	    workspaceCloudSyncTimer = setTimeout(syncWorkspaceSnapshot, delay);
 	  }
@@ -10751,7 +10969,9 @@ try {
       currentUser = credential.user;
       renderAuthAvatars(credential.user);
       showAuthStatus("register-status", "Account created successfully.", "success");
+      if (window.profactureTrack) window.profactureTrack("sign_up", { method: "password" });
       window.profactureShowView("dashboard");
+      setTimeout(() => { if (typeof window.openOnboarding === "function") window.openOnboarding(); }, 120);
     } catch (error) { showAuthStatus("register-status", friendlyAuthError(error)); }
     finally { button.disabled = false; button.textContent = "Create account"; }
   });
@@ -10764,7 +10984,7 @@ try {
     showAuthStatus("login-status", "", "");
     button.disabled = true;
     button.textContent = "Signing in…";
-    try { await signInWithEmailAndPassword(auth, email, password); window.profactureShowView("dashboard"); }
+    try { await signInWithEmailAndPassword(auth, email, password); if (window.profactureTrack) window.profactureTrack("login", { method: "password" }); window.profactureShowView("dashboard"); }
     catch (error) { showAuthStatus("login-status", friendlyAuthError(error)); }
     finally { button.disabled = false; button.textContent = "Sign in"; }
   });
@@ -10953,6 +11173,7 @@ try {
 
   onAuthStateChanged(auth, async user => {
     currentUser = user;
+	    setWorkspaceSyncState(user ? (navigator.onLine ? "saving" : "offline") : "offline");
 	    if (user) {
 	      hydrateWorkspaceFromLocal(user);
 	      await loadCloudAccountDoc(user);
