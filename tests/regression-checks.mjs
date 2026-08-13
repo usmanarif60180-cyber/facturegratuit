@@ -26,6 +26,23 @@ requiredProductionMarkers.forEach(marker => assert(index.includes(marker), `Miss
   'profactureTrack("pdf_download"'
 ].forEach(marker => assert(index.includes(marker), `Missing regression marker: ${marker}`));
 
+[
+  'id="inv-new-company"',
+  'id="q-new-company"',
+  'data-company-apply=',
+  'data-company-edit=',
+  'data-client-edit=',
+  'companyProfile: Object.assign({}, currentCompanyProfile())',
+  'window.profactureEnsureActiveCompany = ensureActiveCompany',
+  'id="acp-siret"',
+  'id="acp-address"',
+  'id="ac-siret"',
+  'id="ac-site-address"',
+  'sourceCompanyId: company.id'
+].forEach(marker => assert(index.includes(marker), `Missing company/client workflow marker: ${marker}`));
+assert(index.includes('number: editingInvoiceId || nextDocumentId("INV-", INVOICES)'), "Invoice preview must show its next number instead of Draft");
+assert(index.includes('number: editingQuoteId || nextDocumentId("QUO-", QUOTES)'), "Quote preview must show its next number instead of Draft");
+
 assert(index.includes("@media print"), "Print stylesheet is missing");
 assert(index.includes('class="print-doc"'), "Printable invoice markup is missing");
 assert(index.includes("width: 794px"), "A4 preview width contract changed");

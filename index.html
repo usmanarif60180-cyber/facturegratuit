@@ -3664,7 +3664,8 @@ window.profactureTrack = function(name, params) {
           <div>
             <div class="card card-pad" style="margin-bottom:1.1rem;">
               <div class="card-title" data-i18n="card_invoice_details">Invoice details</div>
-              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:1rem;">
+                <div><label class="field-label" data-i18n="fld_company_name">Issuer company</label><select class="field" id="inv-new-company"></select></div>
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="inv-new-client"></select></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="inv-new-issue" /></div>
                 <div><label class="field-label"><span data-i18n="fld_due_date">Due date</span> <span style="color:hsl(var(--muted-fg));font-weight:600;">(<span data-i18n="lbl_optional">optional</span>)</span></label><input class="field" type="date" id="inv-new-due" /></div>
@@ -3726,7 +3727,8 @@ window.profactureTrack = function(name, params) {
           <div>
             <div class="card card-pad" style="margin-bottom:1.1rem;">
               <div class="card-title" data-i18n="card_quote_details">Quote details</div>
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:1rem;">
+                <div><label class="field-label" data-i18n="fld_company_name">Issuer company</label><select class="field" id="q-new-company"></select></div>
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="q-new-client"></select></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="q-new-issue" /></div>
                 <div><label class="field-label" data-i18n="fld_valid_until">Valid until</label><input class="field" type="date" id="q-new-valid" /></div>
@@ -3862,7 +3864,7 @@ window.profactureTrack = function(name, params) {
         <div class="toolbar"><div class="search-wrap"><span class="ic">🔍</span><input class="field" id="clients-search" placeholder="Search clients…" data-i18n-placeholder="ph_search_clients" /></div></div>
         <div class="table-wrap">
           <table class="data-table" id="clients-table">
-            <thead><tr><th data-i18n="fld_name">Name</th><th data-i18n="fld_company">Company</th><th data-i18n="fld_email">Email</th><th data-i18n="fld_phone">Phone</th><th data-i18n="fld_status">Status</th><th data-i18n="fld_tags">Tags</th></tr></thead>
+            <thead><tr><th data-i18n="fld_name">Name</th><th data-i18n="fld_company">Company</th><th data-i18n="fld_email">Email</th><th data-i18n="fld_phone">Phone</th><th data-i18n="fld_status">Status</th><th data-i18n="fld_tags">Tags</th><th style="text-align:right;">Actions</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -3884,6 +3886,7 @@ window.profactureTrack = function(name, params) {
             <p id="cd-meta">Company · Status</p>
           </div>
           <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-outline btn-sm" id="cd-edit-btn">✎ <span data-i18n="btn_edit">Edit</span></button>
             <button class="btn btn-outline btn-sm" id="cd-portal-btn">🌐 <span data-i18n="btn_client_portal">Client Portal</span></button>
             <button class="btn btn-outline btn-sm" id="cd-log-activity-btn">📝 <span data-i18n="btn_log_activity">Log activity</span></button>
             <button class="btn btn-outline btn-sm" id="cd-delete-btn" style="color:hsl(var(--danger));">🗑️ <span data-i18n="btn_delete_client">Delete client</span></button>
@@ -3897,6 +3900,10 @@ window.profactureTrack = function(name, params) {
             <div class="card card-pad">
               <div class="card-title">✨ <span data-i18n="card_ai_customer_summary">AI customer summary</span></div>
               <p id="cd-ai-summary" style="font-size:0.85rem;line-height:1.6;color:hsl(var(--fg));"></p>
+            </div>
+            <div class="card card-pad" style="margin-top:1.1rem;">
+              <div class="card-title">🏢 <span data-i18n="fld_company">Client details</span></div>
+              <div id="cd-business-details" style="font-size:0.84rem;line-height:1.65;color:hsl(var(--fg));"></div>
             </div>
             <div class="card card-pad" style="margin-top:1.1rem;">
               <div class="card-title">🏷️ <span data-i18n="fld_tags">Tags</span></div>
@@ -3990,13 +3997,25 @@ window.profactureTrack = function(name, params) {
 <div class="cw-overlay" id="acp-overlay">
   <div class="ob-backdrop" id="acp-backdrop"></div>
   <div class="card glass-panel cw-panel" id="acp-panel">
-    <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;" data-i18n="btn_add_company">Add company</h3><button class="ob-skip" id="acp-close" data-i18n="btn_cancel">Cancel</button></div>
+    <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;" id="acp-title" data-i18n="btn_add_company">Add company</h3><button class="ob-skip" id="acp-close" data-i18n="btn_cancel">Cancel</button></div>
     <div class="cw-body">
       <div class="ob-fields">
         <div><label class="field-label" data-i18n="fld_company">Company name</label><input class="field" id="acp-name" placeholder="Acme Inc." /></div>
-        <div><label class="field-label" data-i18n="fld_industry">Industry</label><input class="field" id="acp-industry" placeholder="Marketing, Logistics, Legal…" /></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
-          <div><label class="field-label" data-i18n="fld_size">Size</label><select class="field" id="acp-size"><option>1-10</option><option>11-50</option><option>51-200</option><option>201-500</option><option>500+</option></select></div>
+          <div><label class="field-label" data-i18n="fld_siret">SIRET number</label><input class="field" id="acp-siret" placeholder="123 456 789 00012" /></div>
+          <div><label class="field-label" data-i18n="fld_tax_number">Tax / VAT number</label><input class="field" id="acp-vat" placeholder="FR 12 345678901" /></div>
+        </div>
+        <div><label class="field-label" data-i18n="fld_company_address">Company address</label><textarea class="field" id="acp-address" rows="2" placeholder="Street, city, postal code, country"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
+          <div><label class="field-label" data-i18n="fld_email">Email</label><input class="field" type="email" id="acp-email" placeholder="contact@company.com" /></div>
+          <div><label class="field-label" data-i18n="fld_phone">Phone</label><input class="field" id="acp-phone" placeholder="+33 1 00 00 00 00" /></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
+          <div><label class="field-label" data-i18n="fld_country">Country</label><input class="field" id="acp-country" placeholder="France" /></div>
+          <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="acp-currency"><option value="EUR">EUR (€)</option><option value="USD">USD ($)</option><option value="GBP">GBP (£)</option></select></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
+          <div><label class="field-label" data-i18n="fld_industry">Industry</label><input class="field" id="acp-industry" placeholder="Construction, Freelance…" /></div>
           <div><label class="field-label" data-i18n="fld_website">Website</label><input class="field" id="acp-website" placeholder="example.com" /></div>
         </div>
       </div>
@@ -4009,12 +4028,17 @@ window.profactureTrack = function(name, params) {
 <div class="cw-overlay" id="ac-overlay">
   <div class="ob-backdrop" id="ac-backdrop"></div>
   <div class="card glass-panel cw-panel" id="ac-panel">
-    <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;" data-i18n="btn_add_client">Add client</h3><button class="ob-skip" id="ac-close" data-i18n="btn_cancel">Cancel</button></div>
+    <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;" id="ac-title" data-i18n="btn_add_client">Add client</h3><button class="ob-skip" id="ac-close" data-i18n="btn_cancel">Cancel</button></div>
     <div class="cw-body">
       <div class="ob-fields">
         <div><label class="field-label" data-i18n="fld_name">Name</label><input class="field" id="ac-name" placeholder="Contact name" /></div>
         <div><label class="field-label" data-i18n="fld_company">Company</label><input class="field" id="ac-company" placeholder="Acme Inc." /></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
+          <div><label class="field-label" data-i18n="fld_siret">SIRET number</label><input class="field" id="ac-siret" placeholder="123 456 789 00012" /></div>
+          <div><label class="field-label" data-i18n="fld_tax_number">Tax / VAT number</label><input class="field" id="ac-vat" placeholder="FR 12 345678901" /></div>
+        </div>
         <div><label class="field-label" data-i18n="fld_billing_address">Billing address</label><textarea class="field" id="ac-address" rows="2" placeholder="Street, city, postal code, country"></textarea></div>
+        <div><label class="field-label" data-i18n="fld_site_address">Chantier / jobsite address</label><textarea class="field" id="ac-site-address" rows="2" placeholder="Leave blank if same as billing address"></textarea></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
           <div><label class="field-label" data-i18n="fld_email">Email</label><input class="field" type="email" id="ac-email" placeholder="name@company.com" /></div>
           <div><label class="field-label" data-i18n="fld_phone">Phone</label><input class="field" id="ac-phone" placeholder="+1 415 555 0100" /></div>
@@ -4399,9 +4423,9 @@ window.profactureTrack = function(name, params) {
         <div class="page-head"><div><h1 data-i18n="page_companies_title">Companies</h1><p data-i18n="page_companies_sub">Organizations behind your customers and leads.</p></div><button class="btn btn-primary" id="company-add-btn">+ <span data-i18n="btn_add_company">Add company</span></button></div>
         <div class="table-wrap">
           <table class="data-table" id="companies-table">
-            <thead><tr><th data-i18n="fld_name">Name</th><th data-i18n="fld_industry">Industry</th><th data-i18n="fld_size">Size</th><th data-i18n="fld_website">Website</th></tr></thead>
+            <thead><tr><th data-i18n="fld_name">Name</th><th data-i18n="fld_siret">SIRET</th><th data-i18n="fld_company_address">Address</th><th data-i18n="fld_email">Contact</th><th style="text-align:right;">Actions</th></tr></thead>
             <tbody>
-              <tr><td colspan="4" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No companies yet.</td></tr>
+              <tr><td colspan="5" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No companies yet.</td></tr>
             </tbody>
           </table>
         </div>
@@ -6481,7 +6505,17 @@ window.profactureTrack = function(name, params) {
       { id: "c1", name: "Your Business", type: "General business", currency: "USD", country: "United States" },
     ];
     window.COMPANIES = COMPANIES;
-    var wsActiveId = "c1";
+    var wsActiveId = localStorage.getItem("profacture_active_company_id") || "c1";
+    function rememberActiveCompany() { localStorage.setItem("profacture_active_company_id", wsActiveId); }
+    function ensureActiveCompany() {
+      if (!COMPANIES.some(function (company) { return company.id === wsActiveId; })) {
+        wsActiveId = COMPANIES.length ? COMPANIES[0].id : "c1";
+        rememberActiveCompany();
+      }
+      wsRenderAll();
+      populateDocumentCompanySelects();
+    }
+    window.profactureEnsureActiveCompany = ensureActiveCompany;
 
     function wsInitials(name) {
       return name.split(" ").filter(Boolean).map(function (w) { return w[0]; }).slice(0, 2).join("").toUpperCase();
@@ -6532,8 +6566,14 @@ window.profactureTrack = function(name, params) {
         document.querySelectorAll(".ws-menu.open").forEach(function (m) { m.classList.remove("open"); });
         if (id !== wsActiveId) {
           wsActiveId = id;
+          rememberActiveCompany();
           wsRenderAll();
           var c = COMPANIES.filter(function (x) { return x.id === id; })[0];
+          currentCurrency = c.currency || currentCurrency;
+          populateDocumentCompanySelects();
+          renderCompanyProfileForm();
+          renderInvoicePreview();
+          renderQuotePreview();
           showToast("Switched to " + c.name);
           playSound("click");
         }
@@ -6654,6 +6694,7 @@ window.profactureTrack = function(name, params) {
           var id = "c" + (COMPANIES.length + 1);
           COMPANIES.push({ id: id, name: cwDraft.name.trim(), type: cwDraft.industry || "General business", currency: cwDraft.currency, country: cwDraft.country });
           wsActiveId = id;
+          rememberActiveCompany();
           wsRenderAll();
           cwClose();
           showToast(cwDraft.name.trim() + " is ready — switched to your new workspace");
@@ -6752,11 +6793,12 @@ window.profactureTrack = function(name, params) {
       var total = parseFloat(document.getElementById("t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_invoice"),
-        number: editingInvoiceId || t("st_draft"),
-        client: client ? client.company : "—",
+        number: editingInvoiceId || nextDocumentId("INV-", INVOICES),
+        client: clientDisplayName(client),
         clientAddress: document.getElementById("inv-new-client-address").value.trim(),
         siteAddress: document.getElementById("inv-new-site-address").value.trim(),
         siret: document.getElementById("inv-new-siret").value.trim(),
+        clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
@@ -7055,6 +7097,7 @@ window.profactureTrack = function(name, params) {
     }
     function clientStatusBadgeClass(s) { return s === "Active" ? "badge-success" : s === "Lead" ? "badge-info" : s === "At risk" ? "badge-warning" : "badge-danger"; }
     function findClientByCompany(company) { return CLIENTS.filter(function (c) { return c.company === company; })[0]; }
+    function clientDisplayName(client) { return client && client.company && client.company !== "—" ? client.company : (client ? client.name : "—"); }
     function renderClientsTable(filterText) {
       var tbody = document.querySelector("#clients-table tbody");
       if (!tbody) return;
@@ -7063,12 +7106,12 @@ window.profactureTrack = function(name, params) {
         return !q || c.name.toLowerCase().indexOf(q) !== -1 || c.company.toLowerCase().indexOf(q) !== -1 || c.email.toLowerCase().indexOf(q) !== -1;
       });
       tbody.innerHTML = rows.length ? rows.map(function (c) {
-        var tags = clientTags(c).map(function (t) { return '<span class="badge badge-default">' + t + "</span>"; }).join(" ");
+        var tags = clientTags(c).map(function (t) { return '<span class="badge badge-default">' + escapeHtml(t) + "</span>"; }).join(" ");
         return (
-          '<tr><td class="link-strong" data-client-open="' + c.id + '" style="cursor:pointer;">' + c.name + "</td><td>" + c.company + "</td><td>" + c.email + "</td><td>" + c.phone + "</td>" +
-          '<td><span class="badge ' + clientStatusBadgeClass(c.status) + '">' + c.status + "</span></td><td>" + tags + "</td></tr>"
+          '<tr><td class="link-strong" data-client-open="' + c.id + '" style="cursor:pointer;">' + escapeHtml(c.name) + "</td><td>" + escapeHtml(c.company) + "</td><td>" + escapeHtml(c.email) + "</td><td>" + escapeHtml(c.phone) + "</td>" +
+          '<td><span class="badge ' + clientStatusBadgeClass(c.status) + '">' + escapeHtml(c.status) + "</span></td><td>" + tags + '</td><td style="text-align:right;"><button class="btn btn-outline btn-sm" data-client-edit="' + c.id + '">✎ ' + escapeHtml(t("btn_edit")) + "</button></td></tr>"
         );
-      }).join("") : '<tr><td colspan="6" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No clients match your search.</td></tr>';
+      }).join("") : '<tr><td colspan="7" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No clients match your search.</td></tr>';
     }
     var clientsInitDone = false;
     function renderClientsInit() {
@@ -7109,6 +7152,13 @@ window.profactureTrack = function(name, params) {
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_timeline_events") + '</div><div class="val tnum">' + clientTimeline(c).length + '</div></div><div class="ic">🕒</div></div>' +
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_contacts") + '</div><div class="val tnum">' + clientContacts(c).length + "</div></div><div class=\"ic\">👤</div></div>";
       document.getElementById("cd-ai-summary").textContent = aiCustomerSummary(c);
+      var businessDetails = document.getElementById("cd-business-details");
+      if (businessDetails) businessDetails.innerHTML = [
+        c.company && c.company !== "—" ? "<strong>" + escapeHtml(c.company) + "</strong>" : "",
+        c.siret ? "SIRET: " + escapeHtml(c.siret) : "", c.vat ? "TVA / VAT: " + escapeHtml(c.vat) : "",
+        c.address ? htmlLines(c.address) : "", c.siteAddress ? "<strong>" + escapeHtml(t("lbl_jobsite")) + ":</strong><br>" + htmlLines(c.siteAddress) : "",
+        c.email ? escapeHtml(c.email) : "", c.phone ? escapeHtml(c.phone) : ""
+      ].filter(Boolean).join("<br>");
       document.getElementById("cd-tags").innerHTML = clientTags(c).length ? clientTags(c).map(function (t) { return '<span class="chip on">' + t + "</span>"; }).join("") : '<p class="widget-empty">No tags yet.</p>';
       document.getElementById("cd-contacts").innerHTML = clientContacts(c).length ? clientContacts(c).map(function (p) {
         return '<div class="activity-row"><div><div class="num">' + p.name + '</div><div class="meta">' + p.role + '</div></div><div style="text-align:right;font-size:0.78rem;color:hsl(var(--muted-fg));">' + p.email + "<br>" + p.phone + "</div></div>";
@@ -7133,9 +7183,19 @@ window.profactureTrack = function(name, params) {
     });
 
     // add-client modal
-    function acOpen() {
-      ["ac-name", "ac-company", "ac-address", "ac-email", "ac-phone", "ac-tags"].forEach(function (id) { document.getElementById(id).value = ""; });
-      document.getElementById("ac-status").value = "Active";
+    var editingClientId = null;
+    function acOpen(clientId) {
+      editingClientId = clientId || null;
+      var client = editingClientId ? CLIENTS.filter(function (c) { return c.id === editingClientId; })[0] : null;
+      var values = {
+        "ac-name": client ? client.name : "", "ac-company": client ? client.company : "", "ac-siret": client ? (client.siret || "") : "",
+        "ac-vat": client ? (client.vat || "") : "", "ac-address": client ? (client.address || "") : "", "ac-site-address": client ? (client.siteAddress || "") : "",
+        "ac-email": client ? client.email : "", "ac-phone": client ? client.phone : "", "ac-tags": client ? clientTags(client).join(", ") : ""
+      };
+      Object.keys(values).forEach(function (id) { document.getElementById(id).value = values[id]; });
+      document.getElementById("ac-status").value = client ? client.status : "Active";
+      document.getElementById("ac-title").textContent = client ? t("btn_edit") + " " + t("fld_client") : t("btn_add_client");
+      document.getElementById("ac-submit").textContent = client ? t("btn_save_changes") : t("btn_add_client");
       document.getElementById("ac-overlay").classList.add("open");
       document.body.style.overflow = "hidden";
     }
@@ -7153,26 +7213,39 @@ window.profactureTrack = function(name, params) {
       var name = nameEl.value.trim();
       if (!name) { nameEl.focus(); return; }
       var tagsRaw = document.getElementById("ac-tags").value.trim();
-      CLIENTS.push({
-        id: "cl" + Date.now(),
+      var clientRecord = editingClientId ? CLIENTS.filter(function (c) { return c.id === editingClientId; })[0] : null;
+      var clientData = {
+        id: clientRecord ? clientRecord.id : "cl" + Date.now(),
         name: name,
         company: document.getElementById("ac-company").value.trim() || "—",
+        siret: document.getElementById("ac-siret").value.trim(),
+        vat: document.getElementById("ac-vat").value.trim(),
         address: document.getElementById("ac-address").value.trim(),
+        siteAddress: document.getElementById("ac-site-address").value.trim(),
         email: document.getElementById("ac-email").value.trim(),
         phone: document.getElementById("ac-phone").value.trim(),
         status: document.getElementById("ac-status").value,
         tags: tagsRaw ? tagsRaw.split(",").map(function (t) { return t.trim(); }).filter(Boolean) : [],
-        since: new Date().toISOString().slice(0, 10),
-        contacts: [],
-        timeline: [{ type: "note", text: "Client added", date: new Date().toISOString().slice(0, 10) }],
-      });
+        since: clientRecord ? clientRecord.since : new Date().toISOString().slice(0, 10),
+        contacts: clientRecord ? clientContacts(clientRecord) : [],
+        timeline: clientRecord ? clientTimeline(clientRecord) : [{ type: "note", text: "Client added", date: new Date().toISOString().slice(0, 10) }],
+        updatedAt: new Date().toISOString()
+      };
+      if (clientRecord) Object.assign(clientRecord, clientData); else CLIENTS.push(clientData);
       renderClientsTable(document.getElementById("clients-search") ? document.getElementById("clients-search").value : "");
       acClose();
-      showToast(name + " added to Clients");
+      if (cdActiveClientId === clientData.id) renderClientDetail(clientData.id);
+      showToast(name + (clientRecord ? " updated" : " added to Clients"));
       playSound("success");
     });
     var clientAddBtnEl = document.getElementById("client-add-btn");
-    if (clientAddBtnEl) clientAddBtnEl.addEventListener("click", acOpen);
+    if (clientAddBtnEl) clientAddBtnEl.addEventListener("click", function () { acOpen(); });
+    document.body.addEventListener("click", function (e) {
+      var editClientBtn = e.target.closest("[data-client-edit]");
+      if (editClientBtn) acOpen(editClientBtn.getAttribute("data-client-edit"));
+    });
+    var cdEditBtn = document.getElementById("cd-edit-btn");
+    if (cdEditBtn) cdEditBtn.addEventListener("click", function () { if (cdActiveClientId) acOpen(cdActiveClientId); });
 
     // ---- Leads (sales pipeline kanban) ----
     var LEAD_STAGES = [
@@ -7299,14 +7372,24 @@ window.profactureTrack = function(name, params) {
       var tbody = document.querySelector("#companies-table tbody");
       if (!tbody) return;
       tbody.innerHTML = CUSTOMER_COMPANIES.length ? CUSTOMER_COMPANIES.map(function (c) {
-        return "<tr><td class=\"link-strong\">" + c.name + "</td><td>" + (c.industry || "—") + "</td><td>" + (c.size || "—") + "</td><td>" + (c.website || "—") + "</td></tr>";
-      }).join("") : '<tr><td colspan="4" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No companies yet.</td></tr>';
+        var active = COMPANIES.some(function (workspace) { return workspace.sourceCompanyId === c.id && workspace.id === wsActiveId; });
+        return '<tr><td class="link-strong">' + escapeHtml(c.name) + (active ? ' <span class="badge badge-success">Active</span>' : "") + "</td><td>" + escapeHtml(c.siret || "—") + "</td><td>" + escapeHtml(c.address || "—") + "</td><td>" + escapeHtml(c.email || c.phone || "—") +
+          '</td><td style="text-align:right;white-space:nowrap;"><button class="btn btn-primary btn-sm" data-company-apply="' + c.id + '">✓ Use</button> <button class="btn btn-outline btn-sm" data-company-edit="' + c.id + '">✎ ' + escapeHtml(t("btn_edit")) + "</button></td></tr>";
+      }).join("") : '<tr><td colspan="5" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No companies yet.</td></tr>';
     }
-    function acpOpen() {
-      document.getElementById("acp-name").value = "";
-      document.getElementById("acp-industry").value = "";
-      document.getElementById("acp-size").value = "1-10";
-      document.getElementById("acp-website").value = "";
+    var editingCustomerCompanyId = null;
+    function acpOpen(companyId) {
+      editingCustomerCompanyId = companyId || null;
+      var company = editingCustomerCompanyId ? CUSTOMER_COMPANIES.filter(function (c) { return c.id === editingCustomerCompanyId; })[0] : null;
+      var values = {
+        "acp-name": company ? company.name : "", "acp-siret": company ? (company.siret || "") : "", "acp-vat": company ? (company.vat || "") : "",
+        "acp-address": company ? (company.address || "") : "", "acp-email": company ? (company.email || "") : "", "acp-phone": company ? (company.phone || "") : "",
+        "acp-country": company ? (company.country || "France") : "France", "acp-industry": company ? (company.industry || "") : "", "acp-website": company ? (company.website || "") : ""
+      };
+      Object.keys(values).forEach(function (id) { document.getElementById(id).value = values[id]; });
+      document.getElementById("acp-currency").value = company ? (company.currency || "EUR") : "EUR";
+      document.getElementById("acp-title").textContent = company ? t("btn_edit") + " " + t("fld_company_name") : t("btn_add_company");
+      document.getElementById("acp-submit").textContent = company ? t("btn_save_changes") : t("btn_add_company");
       document.getElementById("acp-overlay").classList.add("open");
       document.body.style.overflow = "hidden";
     }
@@ -7323,20 +7406,59 @@ window.profactureTrack = function(name, params) {
       var nameEl = document.getElementById("acp-name");
       var name = nameEl.value.trim();
       if (!name) { nameEl.focus(); return; }
-      CUSTOMER_COMPANIES.push({
-        id: "co" + Date.now(),
+      var existing = editingCustomerCompanyId ? CUSTOMER_COMPANIES.filter(function (c) { return c.id === editingCustomerCompanyId; })[0] : null;
+      var companyData = {
+        id: existing ? existing.id : "co" + Date.now(),
         name: name,
+        siret: document.getElementById("acp-siret").value.trim(),
+        vat: document.getElementById("acp-vat").value.trim(),
+        address: document.getElementById("acp-address").value.trim(),
+        email: document.getElementById("acp-email").value.trim(),
+        phone: document.getElementById("acp-phone").value.trim(),
+        country: document.getElementById("acp-country").value.trim(),
+        currency: document.getElementById("acp-currency").value,
         industry: document.getElementById("acp-industry").value.trim(),
-        size: document.getElementById("acp-size").value,
         website: document.getElementById("acp-website").value.trim(),
-      });
+        updatedAt: new Date().toISOString()
+      };
+      if (existing) Object.assign(existing, companyData); else CUSTOMER_COMPANIES.push(companyData);
+      var linkedWorkspace = COMPANIES.filter(function (workspace) { return workspace.sourceCompanyId === companyData.id; })[0];
+      if (linkedWorkspace) Object.assign(linkedWorkspace, companyData, { id: linkedWorkspace.id, sourceCompanyId: companyData.id, type: companyData.industry || "General business" });
       renderCompaniesTable();
       acpClose();
-      showToast(name + " added to Companies");
+      applyCustomerCompany(companyData.id, true);
+      showToast(name + (existing ? " updated and selected" : " added and selected for invoices"));
       playSound("success");
     });
     var companyAddBtnEl = document.getElementById("company-add-btn");
-    if (companyAddBtnEl) companyAddBtnEl.addEventListener("click", acpOpen);
+    if (companyAddBtnEl) companyAddBtnEl.addEventListener("click", function () { acpOpen(); });
+    function applyCustomerCompany(companyId, silent) {
+      var company = CUSTOMER_COMPANIES.filter(function (c) { return c.id === companyId; })[0];
+      if (!company) return;
+      var workspace = COMPANIES.filter(function (c) { return c.sourceCompanyId === company.id; })[0];
+      if (!workspace) {
+        workspace = Object.assign({}, company, { id: "ws-" + company.id, sourceCompanyId: company.id, type: company.industry || "General business" });
+        COMPANIES.push(workspace);
+      } else Object.assign(workspace, company, { id: workspace.id, sourceCompanyId: company.id, type: company.industry || "General business" });
+      wsActiveId = workspace.id;
+      rememberActiveCompany();
+      currentCurrency = workspace.currency || currentCurrency;
+      wsRenderAll();
+      renderCompanyProfileForm();
+      populateDocumentCompanySelects();
+      renderInvoicePreview();
+      renderQuotePreview();
+      renderCompaniesTable();
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+      if (!silent) showToast(company.name + " selected for invoices and quotes");
+    }
+    document.body.addEventListener("click", function (e) {
+      var editCompanyBtn = e.target.closest("[data-company-edit]");
+      if (editCompanyBtn) { acpOpen(editCompanyBtn.getAttribute("data-company-edit")); return; }
+      var applyCompanyBtn = e.target.closest("[data-company-apply]");
+      if (applyCompanyBtn) applyCustomerCompany(applyCompanyBtn.getAttribute("data-company-apply"));
+    });
     var companiesInitDone = false;
     function renderCompaniesInit() {
       if (companiesInitDone) return;
@@ -8018,12 +8140,18 @@ window.profactureTrack = function(name, params) {
       }
     }
     function saveCompanyProfile(profile) {
-      localStorage.setItem("profacture_company_profile", JSON.stringify({
+      var active = COMPANIES.filter(function (c) { return c.id === wsActiveId; })[0];
+      var normalized = {
         name: (profile.name || "").trim(),
         siret: (profile.siret || "").trim(),
         address: (profile.address || "").trim(),
-        updatedAt: new Date().toISOString(),
-      }));
+        email: (profile.email != null ? profile.email : (active && active.email) || "").trim(),
+        phone: (profile.phone != null ? profile.phone : (active && active.phone) || "").trim(),
+        vat: (profile.vat != null ? profile.vat : (active && active.vat) || "").trim(),
+        updatedAt: new Date().toISOString()
+      };
+      if (active) Object.assign(active, normalized);
+      localStorage.setItem("profacture_company_profile", JSON.stringify(normalized));
       if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
       if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
     }
@@ -8031,10 +8159,14 @@ window.profactureTrack = function(name, params) {
       var companyList = Array.isArray(COMPANIES) ? COMPANIES : [];
       var active = companyList.filter(function (c) { return c.id === wsActiveId; })[0];
       var saved = getSavedCompanyProfile();
+      var activeHasProfile = !!(active && (active.sourceCompanyId || active.siret || active.address || active.email || active.phone || active.vat));
       return {
-        name: saved.name || (active ? active.name : "Your Business"),
-        siret: saved.siret || "",
-        address: saved.address || "",
+        name: (activeHasProfile ? active.name : saved.name) || (active ? active.name : "Your Business"),
+        siret: (activeHasProfile ? active.siret : saved.siret) || "",
+        address: (activeHasProfile ? active.address : saved.address) || "",
+        email: (activeHasProfile ? active.email : saved.email) || "",
+        phone: (activeHasProfile ? active.phone : saved.phone) || "",
+        vat: (activeHasProfile ? active.vat : saved.vat) || "",
       };
     }
     function currentWorkspaceName() {
@@ -8053,7 +8185,7 @@ window.profactureTrack = function(name, params) {
       var logo = getCompanyLogo();
       var stamp = getCompanyStamp();
       var sig = getCompanySignature();
-      var company = currentCompanyProfile();
+      var company = opts.companyProfile || currentCompanyProfile();
       var code = opts.currencyCode || "USD";
       var fmt = function (n) { return formatCurrency(n, code); };
       var primary = (dsState && dsState.primary) || "#2563EB";
@@ -8086,8 +8218,8 @@ window.profactureTrack = function(name, params) {
         '<div style="margin-top:0.2rem;font-weight:700;">' + escapeHtml(opts.issueDate) + "</div>" + dueBlock +
         "</div></div>" +
         '<div class="print-doc-grid">' +
-        '<div class="print-doc-party"><strong>' + escapeHtml(t("fld_company_name")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(company.name) + "</strong>" + (company.siret ? "<br>SIRET: " + escapeHtml(company.siret) : "") + (company.address ? "<br>" + htmlLines(company.address) : "") + "</div>" +
-        '<div class="print-doc-party"><strong>' + escapeHtml(t("lbl_billed_to")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(opts.client) + "</strong>" + (opts.siret ? "<br>SIRET: " + escapeHtml(opts.siret) : "") + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + (opts.siteAddress ? '<div class="print-doc-site"><b>' + escapeHtml(t("lbl_jobsite")) + "</b>" + htmlLines(opts.siteAddress) + "</div>" : "") + "</div>" +
+        '<div class="print-doc-party"><strong>' + escapeHtml(t("fld_company_name")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(company.name) + "</strong>" + (company.siret ? "<br>SIRET: " + escapeHtml(company.siret) : "") + (company.vat ? "<br>TVA / VAT: " + escapeHtml(company.vat) : "") + (company.address ? "<br>" + htmlLines(company.address) : "") + (company.email ? "<br>" + escapeHtml(company.email) : "") + (company.phone ? " · " + escapeHtml(company.phone) : "") + "</div>" +
+        '<div class="print-doc-party"><strong>' + escapeHtml(t("lbl_billed_to")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(opts.client) + "</strong>" + (opts.clientContact && opts.clientContact !== opts.client ? "<br>Contact: " + escapeHtml(opts.clientContact) : "") + (opts.siret ? "<br>SIRET: " + escapeHtml(opts.siret) : "") + (opts.clientVat ? "<br>TVA / VAT: " + escapeHtml(opts.clientVat) : "") + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + (opts.clientEmail ? "<br>" + escapeHtml(opts.clientEmail) : "") + (opts.clientPhone ? " · " + escapeHtml(opts.clientPhone) : "") + (opts.siteAddress ? '<div class="print-doc-site"><b>' + escapeHtml(t("lbl_jobsite")) + "</b>" + htmlLines(opts.siteAddress) + "</div>" : "") + "</div>" +
         "</div>" +
         '<table class="print-doc-table"><thead style="background:' + tableBg + ';"><tr><th>' + t("fld_description") + '</th><th style="text-align:right;">' + t("fld_qty") + '</th><th style="text-align:right;">' + t("fld_unit_price") + '</th><th style="text-align:right;">' + t("fld_amount") + "</th></tr></thead><tbody>" + itemsRows + "</tbody></table>" +
         '<div class="print-doc-total" style="color:' + primary + ';">' + t("fld_total") + ": " + fmt(opts.total) + "</div>" +
@@ -8105,7 +8237,8 @@ window.profactureTrack = function(name, params) {
       if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "invoice", document_id: inv.id || "draft", currency: inv.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_invoice"), number: inv.id, client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress,
-        siret: inv.siret, issueLabel: t("fld_issue_date"), issueDate: fmtDate(inv.issue), dueLabel: t("fld_due_date"), dueDate: fmtDate(inv.due),
+        siret: inv.siret, clientContact: inv.clientContact, clientVat: inv.clientVat, clientEmail: inv.clientEmail, clientPhone: inv.clientPhone, companyProfile: inv.companyProfile,
+        issueLabel: t("fld_issue_date"), issueDate: fmtDate(inv.issue), dueLabel: t("fld_due_date"), dueDate: fmtDate(inv.due),
         items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency,
       }));
     }
@@ -8113,7 +8246,8 @@ window.profactureTrack = function(name, params) {
       if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "quote", document_id: q.id || "draft", currency: q.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_quote"), number: q.id, client: q.client, clientAddress: q.clientAddress, siteAddress: q.siteAddress,
-        siret: q.siret, issueLabel: t("fld_issue_date"), issueDate: fmtDate(q.issue), dueLabel: t("fld_valid_until"), dueDate: fmtDate(q.validUntil),
+        siret: q.siret, clientContact: q.clientContact, clientVat: q.clientVat, clientEmail: q.clientEmail, clientPhone: q.clientPhone, companyProfile: q.companyProfile,
+        issueLabel: t("fld_issue_date"), issueDate: fmtDate(q.issue), dueLabel: t("fld_valid_until"), dueDate: fmtDate(q.validUntil),
         items: q.items, total: q.total, status: q.status, currencyCode: q.currency,
       }));
     }
@@ -8352,12 +8486,45 @@ window.profactureTrack = function(name, params) {
     });
 
     // ---- New Invoice: client select, addresses, SIRET, and save ----
+    function populateDocumentCompanySelects() {
+      ["inv-new-company", "q-new-company"].forEach(function (id) {
+        var select = document.getElementById(id);
+        if (!select) return;
+        select.innerHTML = COMPANIES.map(function (company) { return '<option value="' + company.id + '">' + escapeHtml(company.name) + "</option>"; }).join("");
+        select.value = wsActiveId;
+      });
+    }
+    function selectIssuerWorkspace(id) {
+      var company = COMPANIES.filter(function (c) { return c.id === id; })[0];
+      if (!company) return;
+      wsActiveId = company.id;
+      rememberActiveCompany();
+      currentCurrency = company.currency || currentCurrency;
+      var invoiceCurrency = document.getElementById("inv-new-currency");
+      var quoteCurrency = document.getElementById("q-new-currency");
+      if (invoiceCurrency && Array.from(invoiceCurrency.options).some(function (option) { return option.value === currentCurrency; })) invoiceCurrency.value = currentCurrency;
+      if (quoteCurrency && Array.from(quoteCurrency.options).some(function (option) { return option.value === currentCurrency; })) quoteCurrency.value = currentCurrency;
+      wsRenderAll();
+      populateDocumentCompanySelects();
+      renderCompanyProfileForm();
+      renderInvoicePreview();
+      renderQuotePreview();
+    }
+    var invoiceCompanySelect = document.getElementById("inv-new-company");
+    if (invoiceCompanySelect) invoiceCompanySelect.addEventListener("change", function (e) { selectIssuerWorkspace(e.target.value); });
+    var quoteCompanySelect = document.getElementById("q-new-company");
+    if (quoteCompanySelect) quoteCompanySelect.addEventListener("change", function (e) { selectIssuerWorkspace(e.target.value); });
+    populateDocumentCompanySelects();
     function fillInvoiceClientAddress() {
       var sel = document.getElementById("inv-new-client");
       var addressEl = document.getElementById("inv-new-client-address");
       if (!sel || !addressEl) return;
       var client = CLIENTS.filter(function (c) { return c.id === sel.value; })[0];
       addressEl.value = client ? (client.address || "") : "";
+      var siteEl = document.getElementById("inv-new-site-address");
+      var siretEl = document.getElementById("inv-new-siret");
+      if (siteEl) siteEl.value = client ? (client.siteAddress || "") : "";
+      if (siretEl) siretEl.value = client ? (client.siret || "") : "";
     }
     function populateInvoiceNewClientSelect() {
       var sel = document.getElementById("inv-new-client");
@@ -8416,6 +8583,7 @@ window.profactureTrack = function(name, params) {
       return true;
     }
     function initInvoiceNewForm() {
+      populateDocumentCompanySelects();
       populateInvoiceNewClientSelect();
       var editing = editingInvoiceId ? INVOICES.filter(function (inv) { return inv.id === editingInvoiceId; })[0] : null;
       var titleEl = document.querySelector("#view-invoice-new h1");
@@ -8430,7 +8598,7 @@ window.profactureTrack = function(name, params) {
       liBody.innerHTML = "";
       if (editing) {
         var clientMatch = CLIENTS.filter(function (c) { return c.company === editing.client; })[0];
-        document.getElementById("inv-new-client").value = clientMatch ? clientMatch.id : "";
+        document.getElementById("inv-new-client").value = editing.clientId || (clientMatch ? clientMatch.id : "");
         document.getElementById("inv-new-issue").value = editing.issue;
         document.getElementById("inv-new-due").value = editing.due || "";
         document.getElementById("inv-new-client-address").value = editing.clientAddress || "";
@@ -8462,11 +8630,12 @@ window.profactureTrack = function(name, params) {
       var total = parseFloat(document.getElementById("t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
       renderDocPreview(preview, buildDocPrintHtml({
         title: t("doc_invoice"),
-        number: editingInvoiceId || t("st_draft"),
-        client: client ? client.company : "—",
+        number: editingInvoiceId || nextDocumentId("INV-", INVOICES),
+        client: clientDisplayName(client),
         clientAddress: document.getElementById("inv-new-client-address").value.trim(),
         siteAddress: document.getElementById("inv-new-site-address").value.trim(),
         siret: document.getElementById("inv-new-siret").value.trim(),
+        clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
@@ -8510,10 +8679,16 @@ window.profactureTrack = function(name, params) {
       if (editingInvoiceId) {
         var existing = INVOICES.filter(function (inv) { return inv.id === editingInvoiceId; })[0];
         if (existing) {
-          existing.client = client.company;
+          existing.client = clientDisplayName(client);
           existing.clientAddress = clientAddress;
           existing.siteAddress = siteAddress;
           existing.siret = siret;
+          existing.clientVat = client.vat || "";
+          existing.clientContact = client.name;
+          existing.clientEmail = client.email || "";
+          existing.clientPhone = client.phone || "";
+          existing.clientId = client.id;
+          existing.companyProfile = Object.assign({}, currentCompanyProfile());
           existing.issue = issue;
           existing.due = due;
           existing.total = total;
@@ -8528,10 +8703,16 @@ window.profactureTrack = function(name, params) {
         var newId = nextDocumentId("INV-", INVOICES);
         INVOICES.push({
           id: newId,
-          client: client.company,
+          client: clientDisplayName(client),
           clientAddress: clientAddress,
           siteAddress: siteAddress,
           siret: siret,
+          clientVat: client.vat || "",
+          clientContact: client.name,
+          clientEmail: client.email || "",
+          clientPhone: client.phone || "",
+          clientId: client.id,
+          companyProfile: Object.assign({}, currentCompanyProfile()),
           issue: issue,
           due: due,
           status: status,
@@ -8941,6 +9122,10 @@ window.profactureTrack = function(name, params) {
       if (!sel || !addressEl) return;
       var client = CLIENTS.filter(function (c) { return c.id === sel.value; })[0];
       addressEl.value = client ? (client.address || "") : "";
+      var siteEl = document.getElementById("q-new-site-address");
+      var siretEl = document.getElementById("q-new-siret");
+      if (siteEl) siteEl.value = client ? (client.siteAddress || "") : "";
+      if (siretEl) siretEl.value = client ? (client.siret || "") : "";
     }
     function populateQuoteNewClientSelect() {
       var sel = document.getElementById("q-new-client");
@@ -8962,11 +9147,12 @@ window.profactureTrack = function(name, params) {
       var total = parseFloat(document.getElementById("q-t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
       renderDocPreview(preview, buildDocPrintHtml({
         title: t("doc_quote"),
-        number: editingQuoteId || t("st_draft"),
-        client: client ? client.company : "—",
+        number: editingQuoteId || nextDocumentId("QUO-", QUOTES),
+        client: clientDisplayName(client),
         clientAddress: document.getElementById("q-new-client-address").value.trim(),
         siteAddress: document.getElementById("q-new-site-address").value.trim(),
         siret: document.getElementById("q-new-siret").value.trim(),
+        clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("q-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_valid_until"), dueDate: fmtDate(document.getElementById("q-new-valid").value || new Date().toISOString().slice(0, 10)),
         items: getQuoteLineItemsData(), total: total, currencyCode: document.getElementById("q-new-currency").value,
@@ -9032,6 +9218,7 @@ window.profactureTrack = function(name, params) {
       return true;
     }
     function initQuoteNewForm() {
+      populateDocumentCompanySelects();
       populateQuoteNewClientSelect();
       var editing = editingQuoteId ? QUOTES.filter(function (q) { return q.id === editingQuoteId; })[0] : null;
       var titleEl = document.getElementById("quote-new-title");
@@ -9046,7 +9233,7 @@ window.profactureTrack = function(name, params) {
       qLiBody.innerHTML = "";
       if (editing) {
         var clientMatch = CLIENTS.filter(function (c) { return c.company === editing.client; })[0];
-        document.getElementById("q-new-client").value = clientMatch ? clientMatch.id : "";
+        document.getElementById("q-new-client").value = editing.clientId || (clientMatch ? clientMatch.id : "");
         document.getElementById("q-new-issue").value = editing.issue;
         document.getElementById("q-new-valid").value = editing.validUntil;
         document.getElementById("q-new-client-address").value = editing.clientAddress || "";
@@ -9083,10 +9270,16 @@ window.profactureTrack = function(name, params) {
       if (editingQuoteId) {
         var existing = QUOTES.filter(function (q) { return q.id === editingQuoteId; })[0];
         if (existing) {
-          existing.client = client.company;
+          existing.client = clientDisplayName(client);
           existing.clientAddress = clientAddress;
           existing.siteAddress = siteAddress;
           existing.siret = siret;
+          existing.clientVat = client.vat || "";
+          existing.clientContact = client.name;
+          existing.clientEmail = client.email || "";
+          existing.clientPhone = client.phone || "";
+          existing.clientId = client.id;
+          existing.companyProfile = Object.assign({}, currentCompanyProfile());
           existing.issue = issue;
           existing.validUntil = validUntil;
           existing.total = total;
@@ -9100,8 +9293,9 @@ window.profactureTrack = function(name, params) {
         quoteSeq++;
         var newId = nextDocumentId("QUO-", QUOTES);
         QUOTES.push({
-          id: newId, client: client.company, clientAddress: clientAddress, siteAddress: siteAddress,
-          siret: siret, issue: issue, validUntil: validUntil, status: status, total: total, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
+          id: newId, client: clientDisplayName(client), clientAddress: clientAddress, siteAddress: siteAddress,
+          siret: siret, clientContact: client.name, clientVat: client.vat || "", clientEmail: client.email || "", clientPhone: client.phone || "", clientId: client.id,
+          companyProfile: Object.assign({}, currentCompanyProfile()), issue: issue, validUntil: validUntil, status: status, total: total, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
         });
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "sent"));
       }
@@ -9128,11 +9322,12 @@ window.profactureTrack = function(name, params) {
       var total = parseFloat(document.getElementById("q-t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_quote"),
-        number: editingQuoteId || t("st_draft"),
-        client: client ? client.company : "—",
+        number: editingQuoteId || nextDocumentId("QUO-", QUOTES),
+        client: clientDisplayName(client),
         clientAddress: document.getElementById("q-new-client-address").value.trim(),
         siteAddress: document.getElementById("q-new-site-address").value.trim(),
         siret: document.getElementById("q-new-siret").value.trim(),
+        clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("q-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_valid_until"), dueDate: fmtDate(document.getElementById("q-new-valid").value || new Date().toISOString().slice(0, 10)),
         items: getQuoteLineItemsData(), total: total, currencyCode: document.getElementById("q-new-currency").value,
@@ -10627,6 +10822,7 @@ window.profactureTrack = function(name, params) {
 	      console.warn("Cloud account load skipped:", error && error.code ? error.code : error);
 	    }
 	    await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => loadCloudCollection(user, cfg.collection, cfg.windowName)));
+	    if (typeof window.profactureEnsureActiveCompany === "function") window.profactureEnsureActiveCompany();
 	    persistWorkspaceLocally(user);
 	    setWorkspaceSyncState(navigator.onLine ? "saved" : "offline");
 	  }
