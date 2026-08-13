@@ -50,6 +50,14 @@ service cloud.firestore {
         allow read, create, update, delete: if isOwner(userId)
           && collectionName in ['history', 'quotes', 'expenses', 'projects', 'clients', 'products', 'leads', 'customerCompanies', 'tasks', 'files', 'workspaces', 'notifications', 'teamMembers', 'teamInvites', 'teamTasks', 'teamActivity', 'feedback'];
       }
+
+      match /backups/{backupId} {
+        allow read, write: if false; // workspaceBackup callable only
+      }
+
+      match /private/{privateId} {
+        allow read, write: if false; // trusted Cloud Functions only
+      }
     }
 
     // ═══════════════════════════════════════════════

@@ -69,6 +69,14 @@ assert(functionsSource.includes('perDay: 25') && functionsSource.includes('globa
 assert(functionsSource.includes('globalTokensPerMonth: 2500000'), "AI monthly token ceiling is missing");
 assert(functionsSource.includes('consumeAppCheckToken: true'), "AI callable replay protection must remain enabled");
 assert(functionsSource.includes('normalizeAiAction(parsed.action, context)'), "AI actions must be validated server-side");
+assert(functionsSource.includes('exports.storageManager = onCall'), "Server-enforced storage quota manager is missing");
+assert(functionsSource.includes('USER_STORAGE_LIMIT_BYTES = 500 * 1024 * 1024'), "500 MB account storage ceiling changed");
+assert(functionsSource.includes('exports.workspaceBackup = onCall'), "Cloud backup callable is missing");
+assert(functionsSource.includes('exports.aiUsage = onCall'), "Private AI usage dashboard callable is missing");
+assert(index.includes('id="settings-panel-data"') && index.includes('id="backup-export-btn"'), "Data and backup settings UI is missing");
+assert(index.includes('navigator.locks.request("profacture-cloud-sync-"'), "Cross-tab cloud sync lock is missing");
+assert(index.includes('function readAllCloudDocs(user, collectionName)'), "Cloud collection pagination is missing");
+assert(index.includes('integrity="sha384-'), "Pinned CDN integrity metadata is missing");
 assert(index.includes('id="ai-history-clear"') && index.includes('id="ai-usage"'), "AI history and usage controls are missing");
 assert(index.includes('Review & apply · '), "AI document actions must show a review step");
 assert(index.includes('aria-modal="true"') && index.includes('role="log"'), "AI dialog accessibility contract changed");

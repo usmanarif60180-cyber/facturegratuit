@@ -224,9 +224,9 @@
   ]
 }
 </script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc" crossorigin="anonymous"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JJCNL9THWD"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
@@ -4830,6 +4830,7 @@ window.profactureTrack = function(name, params) {
         <div class="ds-tabs" id="settings-tabs">
           <button class="on" data-settings-tab="general" data-i18n="tab_general">General</button>
           <button data-settings-tab="compliance" data-i18n="tab_compliance_center">Compliance Center</button>
+          <button data-settings-tab="data">Data &amp; usage</button>
         </div>
 
         <div class="ds-panel on" id="settings-panel-general">
@@ -4931,6 +4932,29 @@ window.profactureTrack = function(name, params) {
           <div class="card card-pad" style="margin-top:1.1rem;">
             <div class="card-title">✨ <span data-i18n="card_ai_compliance_assistant">AI Compliance Assistant</span></div>
             <div id="cc-ai-tips"></div>
+          </div>
+        </div>
+
+        <div class="ds-panel" id="settings-panel-data">
+          <div class="card card-pad" style="margin-bottom:1.1rem;">
+            <div class="card-title">Cloud storage</div>
+            <p style="font-size:.82rem;color:hsl(var(--muted-fg));margin-bottom:.65rem;">Secure storage is limited to 500 MB per account.</p>
+            <div style="height:.55rem;background:hsl(var(--muted));border-radius:999px;overflow:hidden;"><div id="storage-usage-bar" style="height:100%;width:0;background:hsl(var(--primary));"></div></div>
+            <p id="storage-usage-label" style="font-size:.75rem;color:hsl(var(--muted-fg));margin-top:.5rem;">Sign in to view usage.</p>
+          </div>
+          <div class="card card-pad" style="margin-bottom:1.1rem;">
+            <div class="card-title">Backup &amp; restore</div>
+            <p style="font-size:.82rem;color:hsl(var(--muted-fg));margin-bottom:.8rem;">Export an immediate JSON copy or create a rolling cloud backup. Seven daily cloud copies are retained.</p>
+            <div style="display:flex;gap:.55rem;flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" id="backup-export-btn">Download JSON backup</button>
+              <button class="btn btn-outline btn-sm" id="backup-cloud-btn">Create cloud backup</button>
+              <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Restore JSON<input type="file" accept="application/json,.json" id="backup-import-input" style="display:none;" /></label>
+            </div>
+            <p id="backup-status" style="font-size:.75rem;color:hsl(var(--muted-fg));margin-top:.65rem;"></p>
+          </div>
+          <div class="card card-pad" id="ai-owner-usage-card" hidden>
+            <div class="card-title">AI cost control</div>
+            <div id="ai-owner-usage-grid" class="stat-grid" style="margin-top:.7rem;"></div>
           </div>
         </div>
       </div>
@@ -8078,6 +8102,7 @@ window.profactureTrack = function(name, params) {
       var p = PROJECTS.filter(function (x) { return x.id === pdActiveProjectId; })[0];
       if (!p) return;
       if (confirm("Delete project \"" + p.name + "\"? This cannot be undone.")) {
+        if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("projects", p);
         var idx = PROJECTS.findIndex(function (x) { return x.id === pdActiveProjectId; });
         if (idx !== -1) PROJECTS.splice(idx, 1);
         pdActiveProjectId = null;
@@ -8107,6 +8132,7 @@ window.profactureTrack = function(name, params) {
         var projDelId = projDeleteBtn.getAttribute("data-project-delete");
         var proj = PROJECTS.filter(function (x) { return x.id === projDelId; })[0];
         if (proj && confirm("Delete project \"" + proj.name + "\"? This cannot be undone.")) {
+          if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("projects", proj);
           var projDelIdx = PROJECTS.findIndex(function (x) { return x.id === projDelId; });
           if (projDelIdx !== -1) PROJECTS.splice(projDelIdx, 1);
           renderProjectsAll();
@@ -8153,6 +8179,7 @@ window.profactureTrack = function(name, params) {
       var c = CLIENTS.filter(function (x) { return x.id === cdActiveClientId; })[0];
       if (!c) return;
       if (confirm("Delete client " + c.name + " (" + c.company + ")? This cannot be undone.")) {
+        if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("clients", c);
         var idx = CLIENTS.findIndex(function (x) { return x.id === cdActiveClientId; });
         if (idx !== -1) CLIENTS.splice(idx, 1);
         cdActiveClientId = null;
@@ -8550,6 +8577,7 @@ window.profactureTrack = function(name, params) {
       var tab = btn.getAttribute("data-settings-tab");
       settingsTabsEl.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === btn); });
       document.querySelectorAll("#view-settings .ds-panel").forEach(function (p) { p.classList.toggle("on", p.id === "settings-panel-" + tab); });
+      if (tab === "data" && window.profactureRenderDataUsage) window.profactureRenderDataUsage();
     });
     function populateDefaultCountrySelect() {
       var sel = document.getElementById("set-default-country");
@@ -9443,6 +9471,8 @@ window.profactureTrack = function(name, params) {
       if (invDeleteBtn) {
         var delId = invDeleteBtn.getAttribute("data-invoice-delete");
         if (confirm("Delete invoice " + delId + "? This cannot be undone.")) {
+          var invoiceToDelete = INVOICES.filter(function (x) { return x.id === delId; })[0];
+          if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("history", invoiceToDelete || { id: delId });
           var delIdx = INVOICES.findIndex(function (x) { return x.id === delId; });
           if (delIdx !== -1) INVOICES.splice(delIdx, 1);
           var phOverlayEl = document.getElementById("ph-overlay");
@@ -9889,6 +9919,8 @@ window.profactureTrack = function(name, params) {
       if (qDeleteBtn) {
         var qDelId = qDeleteBtn.getAttribute("data-quote-delete");
         if (confirm("Delete quote " + qDelId + "? This cannot be undone.")) {
+          var quoteToDelete = QUOTES.filter(function (x) { return x.id === qDelId; })[0];
+          if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("quotes", quoteToDelete || { id: qDelId });
           var qDelIdx = QUOTES.findIndex(function (x) { return x.id === qDelId; });
           if (qDelIdx !== -1) QUOTES.splice(qDelIdx, 1);
           renderQuotesTable();
@@ -9999,6 +10031,7 @@ window.profactureTrack = function(name, params) {
         var expDelId = expDeleteBtn.getAttribute("data-exp-delete");
         var expToDelete = EXPENSES.filter(function (x) { return x.id === expDelId; })[0];
         if (expToDelete && confirm("Delete expense \"" + expToDelete.title + "\"? This cannot be undone.")) {
+          if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("expenses", expToDelete);
           var expDelIdx = EXPENSES.findIndex(function (x) { return x.id === expDelId; });
           if (expDelIdx !== -1) EXPENSES.splice(expDelIdx, 1);
           renderExpensesAll();
@@ -10534,6 +10567,7 @@ window.profactureTrack = function(name, params) {
         var tDelId = taskDeleteBtn.getAttribute("data-task-delete");
         var tToDelete = TASKS.filter(function (x) { return x.id === tDelId; })[0];
         if (tToDelete && confirm("Delete task \"" + tToDelete.title + "\"? This cannot be undone.")) {
+          if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("tasks", tToDelete);
           var tDelIdx = TASKS.findIndex(function (x) { return x.id === tDelId; });
           if (tDelIdx !== -1) TASKS.splice(tDelIdx, 1);
           renderTasksAll();
@@ -10769,6 +10803,8 @@ window.profactureTrack = function(name, params) {
       if (folderBtn) { FILE_ACTIVE_FOLDER = folderBtn.getAttribute("data-file-folder"); renderFilesAll(); return; }
       var removeBtn = e.target.closest("[data-remove-file]");
       if (removeBtn) {
+        var fileToRemove = FILES.filter(function (f) { return f.id === removeBtn.getAttribute("data-remove-file"); })[0];
+        if (fileToRemove && window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("files", fileToRemove);
         var nextFiles = FILES.filter(function (f) { return f.id !== removeBtn.getAttribute("data-remove-file"); });
         FILES.splice(0, FILES.length, ...nextFiles);
         renderFilesAll();
@@ -11107,8 +11143,7 @@ window.profactureTrack = function(name, params) {
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, limit as firestoreLimit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
-  import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-storage.js";
+  import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, orderBy, documentId, startAfter, limit as firestoreLimit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
   import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
 
   const firebaseConfig = {
@@ -11123,10 +11158,12 @@ window.profactureTrack = function(name, params) {
   const firebaseApp = initializeApp(firebaseConfig);
   const auth = getAuth(firebaseApp);
   const db = getFirestore(firebaseApp);
-  const storage = getStorage(firebaseApp);
 	const functions = getFunctions(firebaseApp, "us-central1");
 	const askAiCallable = httpsCallable(functions, "aiAssistant", { limitedUseAppCheckTokens: true });
 	const aiHistoryCallable = httpsCallable(functions, "aiHistory", { limitedUseAppCheckTokens: true });
+	const storageManagerCallable = httpsCallable(functions, "storageManager", { limitedUseAppCheckTokens: true });
+	const aiUsageCallable = httpsCallable(functions, "aiUsage", { limitedUseAppCheckTokens: true });
+	const workspaceBackupCallable = httpsCallable(functions, "workspaceBackup", { limitedUseAppCheckTokens: true });
 	window.profactureAskAi = async payload => {
 	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
 	  const result = await askAiCallable(Object.assign({}, payload, { requestId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) }));
@@ -11136,6 +11173,11 @@ window.profactureTrack = function(name, params) {
 	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
 	  const result = await aiHistoryCallable({ operation, companyId });
 	  return result.data || { messages: [] };
+	};
+	window.profactureStorageManager = async payload => {
+	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
+	  const result = await storageManagerCallable(payload);
+	  return result.data || {};
 	};
 	  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "profile", "reports", "ai"]);
   let currentUser = null;
@@ -11386,7 +11428,12 @@ window.profactureTrack = function(name, params) {
 	    } catch (error) {
 	      console.warn("Cloud account load skipped:", error && error.code ? error.code : error);
 	    }
-	    await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => loadCloudCollection(user, cfg.collection, cfg.windowName)));
+	    const hydrationResults = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => loadCloudCollection(user, cfg.collection, cfg.windowName)));
+	    cloudHydratedUid = hydrationResults.every(result => result.status === "fulfilled" && result.value === true) ? user.uid : "";
+	    const today = new Date().toISOString().slice(0, 10);
+	    if (localStorage.getItem(accountStorageKeyFor(user.uid, "last_auto_backup")) !== today) {
+	      workspaceBackupCallable({ operation: "create" }).then(() => localStorage.setItem(accountStorageKeyFor(user.uid, "last_auto_backup"), today)).catch(() => {});
+	    }
 	    if (typeof window.profactureEnsureActiveCompany === "function") window.profactureEnsureActiveCompany();
 	    persistWorkspaceLocally(user);
 	    setWorkspaceSyncState(navigator.onLine ? "saved" : "offline");
@@ -11415,11 +11462,38 @@ window.profactureTrack = function(name, params) {
 	    const raw = String((item && (item.id || item.number || item.invoiceId || item.quoteId)) || ("item-" + index));
 	    return encodeURIComponent(raw).replace(/[.#$\[\]\/]/g, "-").slice(0, 160) || ("item-" + index);
 	  }
+	  function cloudTombstoneKey(uid, collectionName) { return accountStorageKeyFor(uid, "deleted_" + collectionName); }
+	  function readCloudTombstones(uid, collectionName) {
+	    try { return JSON.parse(localStorage.getItem(cloudTombstoneKey(uid, collectionName)) || "[]"); }
+	    catch (error) { return []; }
+	  }
+	  function markCloudDeleted(collectionName, item) {
+	    const uid = currentUser && currentUser.uid ? currentUser.uid : "guest";
+	    const id = cloudDocId(item || {}, 0);
+	    const ids = new Set(readCloudTombstones(uid, collectionName));
+	    ids.add(id);
+	    localStorage.setItem(cloudTombstoneKey(uid, collectionName), JSON.stringify(Array.from(ids).slice(-1000)));
+	  }
+	  window.profactureMarkCloudDeleted = markCloudDeleted;
+	  async function readAllCloudDocs(user, collectionName) {
+	    const items = [];
+	    let cursor = null;
+	    do {
+	      const parts = [collection(db, "users", user.uid, collectionName), orderBy(documentId()), firestoreLimit(200)];
+	      if (cursor) parts.splice(2, 0, startAfter(cursor));
+	      const snap = await getDocs(query(...parts));
+	      snap.docs.forEach(d => items.push({ id: d.id, data: d.data() }));
+	      cursor = snap.docs.length === 200 ? snap.docs[snap.docs.length - 1] : null;
+	    } while (cursor);
+	    return items;
+	  }
+	  let cloudHydratedUid = "";
 	  async function loadCloudCollection(user, collectionName, windowName) {
 	    const target = readGlobalArray(windowName);
 	    try {
-	      const snap = await getDocs(query(collection(db, "users", user.uid, collectionName), firestoreLimit(200)));
-	      const items = snap.docs.map(d => d.data()).filter(Boolean);
+	      const cloudDocs = await readAllCloudDocs(user, collectionName);
+	      const tombstones = new Set(readCloudTombstones(user.uid, collectionName));
+	      const items = cloudDocs.filter(entry => !tombstones.has(entry.id)).map(entry => entry.data).filter(Boolean);
 	      const emailKey = user && user.email ? user.email.toLowerCase() : "";
 	      const merged = mergeWorkspaceArrays(target, mergeWorkspaceArrays(readLocalCollection(user.uid, collectionName), mergeWorkspaceArrays(emailKey ? readLocalCollection(emailKey, collectionName) : [], items)));
 	      if (Array.isArray(window[windowName]) && (merged.length || target.length || items.length)) {
@@ -11427,22 +11501,36 @@ window.profactureTrack = function(name, params) {
 	        writeLocalCollection(user.uid, collectionName, merged);
 	        if (emailKey) writeLocalCollection(emailKey, collectionName, merged);
 	      }
+	      return true;
 	    } catch (error) {
 	      console.warn("Cloud collection load skipped:", collectionName, error && error.code ? error.code : error);
+	      return false;
 	    }
 	  }
-	  async function syncCollectionSnapshot(collectionName, windowName, limitCount) {
+	  async function syncCollectionSnapshot(collectionName, windowName) {
 	    if (!currentUser) return;
-	    const items = readGlobalArray(windowName).slice(0, limitCount);
-	    await Promise.allSettled(items.map((item, index) => {
+	    const items = readGlobalArray(windowName);
+	    const localIds = new Set(items.map((item, index) => cloudDocId(item, index)));
+	    const writes = await Promise.allSettled(items.map((item, index) => {
 	      const payload = Object.assign({}, cleanCloudValue(item || {}), {
 	        updatedAtClient: new Date().toISOString()
 	      });
 	      return setDoc(doc(db, "users", currentUser.uid, collectionName, cloudDocId(item, index)), payload, { merge: true });
 	    }));
+	    const failed = writes.filter(result => result.status === "rejected");
+	    if (failed.length) throw failed[0].reason || new Error("Cloud write failed");
+	    if (cloudHydratedUid === currentUser.uid) {
+	      const remoteDocs = await readAllCloudDocs(currentUser, collectionName);
+	      const deletions = remoteDocs.filter(entry => !localIds.has(entry.id)).map(entry => deleteDoc(doc(db, "users", currentUser.uid, collectionName, entry.id)));
+	      const deleted = await Promise.allSettled(deletions);
+	      const deleteFailed = deleted.filter(result => result.status === "rejected");
+	      if (deleteFailed.length) throw deleteFailed[0].reason || new Error("Cloud delete failed");
+	      localStorage.removeItem(cloudTombstoneKey(currentUser.uid, collectionName));
+	    }
 	  }
 	  let workspaceCloudSyncTimer = null;
-	  async function syncWorkspaceSnapshot() {
+	  let workspaceSyncInFlight = null;
+	  async function runWorkspaceSync() {
 	    if (!currentUser) return false;
 	    if (!navigator.onLine) { setWorkspaceSyncState("offline"); return false; }
 	    setWorkspaceSyncState("saving");
@@ -11451,10 +11539,18 @@ window.profactureTrack = function(name, params) {
 	      storageVersion: "2026.08-cloud-subcollections",
 	      companyProfile: collectCompanyProfileBundle()
 	    });
-	    const results = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => syncCollectionSnapshot(cfg.collection, cfg.windowName, cfg.collection === "projects" ? 100 : 200)));
+	    const results = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => syncCollectionSnapshot(cfg.collection, cfg.windowName)));
 	    const ok = accountSaved && results.every(result => result.status === "fulfilled");
 	    setWorkspaceSyncState(ok ? "saved" : "error");
 	    return ok;
+	  }
+	  async function syncWorkspaceSnapshot() {
+	    if (workspaceSyncInFlight) return workspaceSyncInFlight;
+	    const execute = () => runWorkspaceSync();
+	    workspaceSyncInFlight = (navigator.locks && currentUser
+	      ? navigator.locks.request("profacture-cloud-sync-" + currentUser.uid, execute)
+	      : execute()).finally(() => { workspaceSyncInFlight = null; });
+	    return workspaceSyncInFlight;
 	  }
 	  function scheduleWorkspaceCloudSync(delay = 900) {
 	    if (!currentUser) return;
@@ -11463,6 +11559,78 @@ window.profactureTrack = function(name, params) {
 	    workspaceCloudSyncTimer = setTimeout(syncWorkspaceSnapshot, delay);
 	  }
 	  window.profactureSyncWorkspaceCloud = scheduleWorkspaceCloudSync;
+	  function workspaceBackupPayload() {
+	    const collections = {};
+	    WORKSPACE_COLLECTIONS.forEach(cfg => { collections[cfg.collection] = cleanCloudValue(readGlobalArray(cfg.windowName)); });
+	    return { version: 1, exportedAt: new Date().toISOString(), companyProfile: collectCompanyProfileBundle(), collections };
+	  }
+	  function downloadWorkspaceBackup() {
+	    const blob = new Blob([JSON.stringify(workspaceBackupPayload(), null, 2)], { type: "application/json" });
+	    const link = document.createElement("a");
+	    link.href = URL.createObjectURL(blob);
+	    link.download = "profacture-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+	    link.click();
+	    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+	  }
+	  function restoreWorkspaceBackup(payload) {
+	    if (!payload || payload.version !== 1 || !payload.collections) throw new Error("Invalid ProFacture backup file.");
+	    WORKSPACE_COLLECTIONS.forEach(cfg => {
+	      const items = payload.collections[cfg.collection];
+	      if (Array.isArray(items) && Array.isArray(window[cfg.windowName])) window[cfg.windowName].splice(0, window[cfg.windowName].length, ...items.slice(0, 5000));
+	    });
+	    restoreCompanyProfileBundle(payload.companyProfile || {});
+	    WORKSPACE_COLLECTIONS.forEach(cfg => localStorage.removeItem(cloudTombstoneKey(currentUser.uid, cfg.collection)));
+	    persistWorkspaceLocally(currentUser);
+	    scheduleWorkspaceCloudSync(0);
+	    refreshActiveWorkspaceView();
+	  }
+	  async function renderDataUsagePanel() {
+	    if (!currentUser) return;
+	    try {
+	      const [storageResult, aiResult] = await Promise.all([window.profactureStorageManager({ operation: "status" }), aiUsageCallable({})]);
+	      const storageData = storageResult || {};
+	      const pct = Math.min(100, Math.max(0, Number(storageData.usedBytes || 0) / Number(storageData.limitBytes || 1) * 100));
+	      const bar = document.getElementById("storage-usage-bar");
+	      const label = document.getElementById("storage-usage-label");
+	      if (bar) bar.style.width = pct.toFixed(2) + "%";
+	      if (label) label.textContent = (Number(storageData.usedBytes || 0) / 1048576).toFixed(1) + " MB of " + (Number(storageData.limitBytes || 0) / 1048576).toFixed(0) + " MB used";
+	      const usage = aiResult.data || {};
+	      const card = document.getElementById("ai-owner-usage-card");
+	      const grid = document.getElementById("ai-owner-usage-grid");
+	      if (card) card.hidden = !usage.isOwner;
+	      if (grid && usage.isOwner) grid.innerHTML = [
+	        [usage.monthlyRequests + " / " + usage.monthlyRequestLimit, "Monthly requests"],
+	        [Number(usage.monthlyTokens || 0).toLocaleString(), "Monthly tokens"],
+	        ["$" + Number(usage.estimatedCostUsd || 0).toFixed(4), "Estimated AI cost"],
+	        [usage.recentFailures || 0, "Recent failures"]
+	      ].map(item => '<div class="stat-card"><div class="stat-value">' + item[0] + '</div><div class="stat-label">' + item[1] + '</div></div>').join("");
+	    } catch (error) { console.warn("Usage panel unavailable", error); }
+	  }
+	  const backupExportBtn = document.getElementById("backup-export-btn");
+	  if (backupExportBtn) backupExportBtn.addEventListener("click", downloadWorkspaceBackup);
+	  const backupCloudBtn = document.getElementById("backup-cloud-btn");
+	  if (backupCloudBtn) backupCloudBtn.addEventListener("click", async () => {
+	    const status = document.getElementById("backup-status");
+	    if (!currentUser) { if (status) status.textContent = "Sign in first."; return; }
+	    backupCloudBtn.disabled = true;
+	    try { await workspaceBackupCallable({ operation: "create" }); if (status) status.textContent = "Cloud backup created successfully."; }
+	    catch (error) { if (status) status.textContent = "Cloud backup could not be created."; }
+	    finally { backupCloudBtn.disabled = false; }
+	  });
+	  const backupImportInput = document.getElementById("backup-import-input");
+	  if (backupImportInput) backupImportInput.addEventListener("change", async event => {
+	    const status = document.getElementById("backup-status");
+	    try {
+	      const file = event.target.files && event.target.files[0];
+	      if (!file || file.size > 25 * 1024 * 1024) throw new Error("Backup file is too large.");
+	      const payload = JSON.parse(await file.text());
+	      if (!confirm("Restore this backup and merge it into your current workspace?")) return;
+	      restoreWorkspaceBackup(payload);
+	      if (status) status.textContent = "Backup restored and cloud sync started.";
+	    } catch (error) { if (status) status.textContent = error.message || "Backup restore failed."; }
+	    finally { event.target.value = ""; }
+	  });
+	  window.profactureRenderDataUsage = renderDataUsagePanel;
 	  function setInputValue(id, value) {
 	    const el = document.getElementById(id);
 	    if (el) el.value = value || "";
@@ -11558,13 +11726,9 @@ window.profactureTrack = function(name, params) {
 	      let photoURL = "";
 	      let photoStoragePath = "";
 	      try {
-	        photoStoragePath = "users/" + currentUser.uid + "/profile/avatar.jpg";
-	        const avatarRef = storageRef(storage, photoStoragePath);
-	        await uploadString(avatarRef, photoData, "data_url", {
-	          contentType: "image/jpeg",
-	          customMetadata: { owner: currentUser.uid }
-	        });
-	        photoURL = await getDownloadURL(avatarRef);
+	        const upload = await window.profactureStorageManager({ operation: "upload", path: "profile/avatar.jpg", dataUrl: photoData });
+	        photoStoragePath = upload.path || "";
+	        photoURL = upload.url || "";
 	        await updateProfile(currentUser, { photoURL });
 	      } catch (uploadError) {
 	        console.warn("Profile image cloud upload skipped:", uploadError && uploadError.code ? uploadError.code : uploadError);

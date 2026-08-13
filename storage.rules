@@ -10,20 +10,11 @@ service firebase.storage {
       return signedIn() && request.auth.uid == userId;
     }
 
-    function allowedImage() {
-      return request.resource.contentType.matches('image/(png|jpeg|jpg|webp)');
-    }
-
-    function allowedPdf() {
-      return request.resource.contentType == 'application/pdf';
-    }
-
     match /users/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
-      allow write: if isOwner(userId)
-        && request.resource.size <= 10 * 1024 * 1024
-        && (allowedImage() || allowedPdf());
-      allow delete: if isOwner(userId);
+      // Uploads and deletes go through storageManager, which enforces the
+      // account-wide 500 MB quota with the Admin SDK.
+      allow write, delete: if false;
     }
 
     match /{allPaths=**} {

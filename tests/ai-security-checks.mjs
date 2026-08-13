@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import zlib from "node:zlib";
 
 const root = path.resolve(import.meta.dirname, "..");
 const source = fs.readFileSync(path.join(root, "functions", "index.js"), "utf8")
@@ -24,6 +25,7 @@ const sandbox = {
   fetch: () => { throw new Error("Network calls are forbidden in policy tests"); },
   require(name) {
     if (name === "crypto") return crypto;
+    if (name === "zlib") return zlib;
     if (name === "firebase-functions/v2/https") return { onCall: (_options, handler) => handler, HttpsError: MockHttpsError };
     if (name === "firebase-functions/params") return { defineSecret: () => ({ value: () => "test" }) };
     if (name === "firebase-admin") return { initializeApp() {}, firestore };
@@ -63,5 +65,8 @@ const blockedNavigation = normalizeAiAction({ type: "navigate", destination: "ja
 assert.equal(blockedNavigation.type, "none");
 assert.equal(blockedNavigation.label, "");
 assert.throws(() => cleanAiContext({ payload: "x".repeat(AI_LIMITS.contextChars + 1) }), error => error.code === "invalid-argument");
+
+assert(source.includes('minuteCount: admin.firestore.FieldValue.increment(-1)'), "Failed AI calls must refund the minute allowance");
+assert(source.includes('requestCount: admin.firestore.FieldValue.increment(-1)'), "Failed AI calls must refund the global request allowance");
 
 console.log("AI policy security checks passed.");
