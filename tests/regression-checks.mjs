@@ -58,12 +58,20 @@ assert(index.includes('number: editingQuoteId || nextDocumentId("QUO-", QUOTES)'
 [
   'id="ai-fab-btn"',
   'id="ai-popup"',
-  'httpsCallable(functions, "aiAssistant")',
+  'httpsCallable(functions, "aiAssistant", { limitedUseAppCheckTokens: true })',
   'function applyAiAction(action)'
 ].forEach(marker => assert(index.includes(marker), `Missing AI assistant marker: ${marker}`));
 assert(!/>[^<]*Gemini[^<]*</i.test(index), "The public UI must not expose the AI provider name");
 assert(functionsSource.includes("defineSecret('PROFACTURE_AI_API_KEY')"), "AI provider key must use Firebase Secret Manager");
 assert(functionsSource.includes('exports.aiAssistant = onCall'), "AI callable backend must exist");
+assert(functionsSource.includes('exports.aiHistory = onCall'), "Company-scoped AI cloud history must exist");
+assert(functionsSource.includes('perDay: 25') && functionsSource.includes('globalPerMonth: 2000'), "AI cost ceilings must remain conservative");
+assert(functionsSource.includes('globalTokensPerMonth: 2500000'), "AI monthly token ceiling is missing");
+assert(functionsSource.includes('consumeAppCheckToken: true'), "AI callable replay protection must remain enabled");
+assert(functionsSource.includes('normalizeAiAction(parsed.action, context)'), "AI actions must be validated server-side");
+assert(index.includes('id="ai-history-clear"') && index.includes('id="ai-usage"'), "AI history and usage controls are missing");
+assert(index.includes('Review & apply · '), "AI document actions must show a review step");
+assert(index.includes('aria-modal="true"') && index.includes('role="log"'), "AI dialog accessibility contract changed");
 assert(functionsSource.includes('Never save, send, email, delete, or charge anything'), "AI backend must forbid destructive autonomous actions");
 
 assert(index.includes('var MOBILE_ADS_DISABLED = window.matchMedia("(max-width: 900px)").matches;'), "Mobile ad runtime must remain disabled");

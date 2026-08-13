@@ -1148,18 +1148,29 @@ window.profactureTrack = function(name, params) {
   .ai-fab-btn { position:absolute;right:0;bottom:4rem;width:3.2rem;height:3.2rem;border-radius:999px;border:none;background:#2563eb;color:#fff;font-size:1.2rem;box-shadow:0 12px 28px -8px rgba(37,99,235,.6); }
   .ai-fab-btn.open { background:#1d4ed8; }
   .ai-fab-btn:hover { transform:translateY(-2px); }
-  .ai-popup { position:absolute;right:0;bottom:7.9rem;width:min(25rem,calc(100vw - 2rem));height:min(34rem,calc(100vh - 11rem));display:none;overflow:hidden;background:hsl(var(--card));border:1px solid hsl(var(--border));box-shadow:0 24px 60px -18px rgba(15,23,42,.45); }
+  .ai-popup { position:absolute;right:0;bottom:7.9rem;width:min(27rem,calc(100vw - 2rem));height:min(38rem,calc(100vh - 11rem));display:none;overflow:hidden;background:hsl(var(--card));border:1px solid hsl(var(--border));box-shadow:0 24px 60px -18px rgba(15,23,42,.45); }
   .ai-popup.open { display:flex;flex-direction:column;animation:reveal-up .2s ease; }
-  .ai-popup-head { display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;border-bottom:1px solid hsl(var(--border)); }
+  .ai-popup-head { display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.8rem 1rem;border-bottom:1px solid hsl(var(--border)); }
+  .ai-popup-tools { display:flex;align-items:center;gap:.25rem; }
+  .ai-usage { padding:.38rem 1rem;border-bottom:1px solid hsl(var(--border));font-size:.7rem;color:hsl(var(--muted-fg));background:hsl(var(--muted)/.35); }
   .ai-popup-chat { flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:.65rem;padding:1rem; }
   .ai-popup-compose { display:flex;gap:.45rem;padding:.75rem;border-top:1px solid hsl(var(--border));background:hsl(var(--card)); }
-  .ai-popup-compose .field { min-width:0; }
+  .ai-popup-compose .field { min-width:0;font-size:1rem; }
   .msg { white-space:pre-wrap; }
-  .ai-action-card { align-self:flex-start;max-width:88%;padding:.7rem;border:1px solid hsl(var(--primary)/.25);border-radius:var(--radius-sm);background:hsl(var(--primary)/.07); }
+  .ai-action-card { align-self:stretch;max-width:100%;padding:.75rem;border:1px solid hsl(var(--primary)/.25);border-radius:var(--radius-sm);background:hsl(var(--primary)/.07); }
   .ai-action-card p { font-size:.78rem;color:hsl(var(--muted-fg));margin-bottom:.5rem; }
+  .ai-draft-head { display:flex;justify-content:space-between;gap:.5rem;margin-bottom:.55rem;font-size:.8rem;font-weight:700; }
+  .ai-draft-table { width:100%;border-collapse:collapse;font-size:.72rem;margin-bottom:.55rem; }
+  .ai-draft-table th,.ai-draft-table td { padding:.3rem .2rem;border-bottom:1px solid hsl(var(--border)/.7);text-align:left;vertical-align:top; }
+  .ai-draft-table th:last-child,.ai-draft-table td:last-child { text-align:right;white-space:nowrap; }
+  .ai-draft-total { display:flex;justify-content:flex-end;font-size:.8rem;font-weight:800;margin:.35rem 0 .65rem; }
+  .ai-action-controls { display:flex;gap:.4rem;justify-content:flex-end; }
+  .ai-popup [aria-busy="true"] { opacity:.72; }
   @media (max-width:640px) {
     .gfab-wrap { right:1rem;bottom:1rem; }
-    .ai-popup { position:fixed;left:.75rem;right:.75rem;bottom:5.3rem;width:auto;height:min(36rem,calc(100dvh - 6.5rem)); }
+    .ai-popup { position:fixed;left:.5rem;right:.5rem;bottom:calc(5rem + env(safe-area-inset-bottom));width:auto;height:min(38rem,calc(100dvh - 6rem - env(safe-area-inset-bottom))); }
+    .ai-popup-chat { padding:.75rem; }
+    .ai-popup-compose { padding:.65rem;padding-bottom:max(.65rem,env(safe-area-inset-bottom)); }
   }
 
   .barcode-strip { display: flex; align-items: flex-end; gap: 1px; height: 1.3rem; width: 4.2rem; }
@@ -1312,9 +1323,10 @@ window.profactureTrack = function(name, params) {
 
 <!-- ============ GLOBAL QUICK ACTIONS FAB ============ -->
 <div class="gfab-wrap" id="gfab-wrap">
-  <div class="card ai-popup" id="ai-popup" role="dialog" aria-label="ProFacture AI Assistant" aria-hidden="true">
-    <div class="ai-popup-head"><div><strong>✦ ProFacture AI</strong><div style="font-size:.7rem;color:hsl(var(--muted-fg));">Invoice, quote and business help</div></div><button class="btn btn-ghost btn-icon" id="ai-popup-close" aria-label="Close assistant">✕</button></div>
-    <div class="ai-popup-chat" id="ai-popup-chat" aria-live="polite"><div class="msg bot">Bonjour. Je peux préparer une facture ou un devis, analyser votre activité et vous guider dans le workspace.</div></div>
+  <div class="card ai-popup" id="ai-popup" role="dialog" aria-modal="true" aria-labelledby="ai-popup-title" aria-hidden="true" tabindex="-1">
+    <div class="ai-popup-head"><div><strong id="ai-popup-title">✦ ProFacture AI</strong><div style="font-size:.7rem;color:hsl(var(--muted-fg));">Invoice, quote and business help</div></div><div class="ai-popup-tools"><button class="btn btn-ghost btn-icon" id="ai-history-clear" aria-label="Clear AI history" title="Clear AI history">↺</button><button class="btn btn-ghost btn-icon" id="ai-popup-close" aria-label="Close assistant">✕</button></div></div>
+    <div class="ai-usage" id="ai-usage" role="status">25 secure AI requests available per day</div>
+    <div class="ai-popup-chat" id="ai-popup-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="msg bot">Bonjour. Je peux préparer une facture ou un devis, analyser votre activité et vous guider dans le workspace.</div></div>
     <div class="ai-popup-compose"><input class="field" id="ai-popup-input" placeholder="Ask ProFacture AI…" autocomplete="off" /><button class="btn btn-primary btn-icon" id="ai-popup-send" aria-label="Send message">➤</button></div>
   </div>
   <div class="card glass-panel gfab-menu" id="gfab-menu">
@@ -5998,6 +6010,7 @@ window.profactureTrack = function(name, params) {
     var AI_SUGGESTIONS = ["Prepare an invoice draft", "Prepare a quote draft", "Show overdue invoices", "Find unpaid customers", "Show monthly profit", "Show stock alerts", "Summarize business performance", "Suggest next actions"];
     var aiConversation = [];
     var aiConversationCompanyId = "";
+    var aiHistoryLoadedCompanyId = "";
     function aiWorkspaceContext() {
       if (aiConversationCompanyId && aiConversationCompanyId !== wsActiveId) aiConversation = [];
       aiConversationCompanyId = wsActiveId;
@@ -6030,34 +6043,88 @@ window.profactureTrack = function(name, params) {
       chat.scrollTop = chat.scrollHeight;
       return msg;
     }
-    function aiActionSummary(action) {
-      var draft = action && action.draft ? action.draft : {};
-      var items = Array.isArray(draft.items) ? draft.items : [];
-      if (action.type === "create_invoice" || action.type === "create_quote") {
-        return (draft.clientName ? draft.clientName + " · " : "") + items.length + " line item" + (items.length === 1 ? "" : "s") + (draft.currency ? " · " + draft.currency : "");
-      }
-      return "Open the suggested workspace page.";
+    function aiDraftTotals(draft) {
+      var rates = { none: 0, vat20: .2, gst10: .1, sales8: .08 };
+      return (Array.isArray(draft.items) ? draft.items : []).reduce(function (totals, item) {
+        var ht = Math.max(0, Number(item.quantity || 0)) * Math.max(0, Number(item.unitPrice || 0));
+        totals.ht += ht;
+        totals.tax += ht * (rates[item.tax] || 0);
+        return totals;
+      }, { ht: 0, tax: 0 });
+    }
+    function aiMoney(value, code) {
+      try { return new Intl.NumberFormat(currentLang || "fr", { style: "currency", currency: code || currentCurrency || "EUR" }).format(Number(value || 0)); }
+      catch (error) { return Number(value || 0).toFixed(2) + " " + (code || "EUR"); }
     }
     function appendAiAction(chat, action) {
       if (!action || !action.type || action.type === "none") return;
       var card = document.createElement("div");
       card.className = "ai-action-card";
       var label = action.label || (action.type === "create_quote" ? "Open quote draft" : action.type === "create_invoice" ? "Open invoice draft" : "Open");
-      var summary = document.createElement("p");
-      summary.textContent = aiActionSummary(action);
+      var draft = action.draft || {};
+      var items = safeAiItems(draft);
+      if (action.type === "create_invoice" || action.type === "create_quote") {
+        var head = document.createElement("div");
+        head.className = "ai-draft-head";
+        head.innerHTML = "<span>" + (action.type === "create_quote" ? "Quote draft" : "Invoice draft") + "</span><span>" + escapeHtml(draft.currency || currentCurrency) + "</span>";
+        card.appendChild(head);
+        var client = document.createElement("p");
+        client.textContent = "Client: " + (draft.clientName || "To be selected") + (draft.dueDate ? " · Due " + draft.dueDate : "");
+        card.appendChild(client);
+        var table = document.createElement("table");
+        table.className = "ai-draft-table";
+        table.innerHTML = "<thead><tr><th>Description</th><th>Qty</th><th>Amount</th></tr></thead><tbody>" + items.map(function (item) {
+          return "<tr><td>" + escapeHtml(item.desc || "—") + "</td><td>" + item.qty + "</td><td>" + escapeHtml(aiMoney(item.qty * item.price, draft.currency)) + "</td></tr>";
+        }).join("") + "</tbody>";
+        card.appendChild(table);
+        var totals = aiDraftTotals(draft);
+        var total = document.createElement("div");
+        total.className = "ai-draft-total";
+        total.textContent = "Total: " + aiMoney(totals.ht + totals.tax, draft.currency) + " (tax " + aiMoney(totals.tax, draft.currency) + ")";
+        card.appendChild(total);
+      } else {
+        var summary = document.createElement("p");
+        summary.textContent = "Open the suggested workspace page.";
+        card.appendChild(summary);
+      }
+      var controls = document.createElement("div");
+      controls.className = "ai-action-controls";
       var button = document.createElement("button");
       button.className = "btn btn-primary btn-sm";
       button.type = "button";
-      button.textContent = "✓ " + label;
+      button.textContent = "Review & apply · " + label;
       button.addEventListener("click", function () {
         applyAiAction(action);
         button.disabled = true;
         button.textContent = "Applied";
       });
-      card.appendChild(summary);
-      card.appendChild(button);
+      controls.appendChild(button);
+      card.appendChild(controls);
       chat.appendChild(card);
       chat.scrollTop = chat.scrollHeight;
+    }
+    function renderAiHistory(chat, messages) {
+      if (!chat) return;
+      chat.innerHTML = "";
+      if (!messages.length) appendAiMessage(chat, "assistant", "Bonjour. Je peux préparer une facture ou un devis, analyser votre activité et vous guider dans le workspace.");
+      messages.forEach(function (entry) {
+        appendAiMessage(chat, entry.role, entry.text || "");
+        if (entry.role === "assistant" && entry.action) {
+          entry.action.workspaceCompanyId = wsActiveId;
+          appendAiAction(chat, entry.action);
+        }
+      });
+    }
+    async function loadAiHistory(chat) {
+      if (!window.profactureAiHistory || aiHistoryLoadedCompanyId === wsActiveId) return;
+      aiHistoryLoadedCompanyId = wsActiveId;
+      try {
+        var data = await window.profactureAiHistory("load", wsActiveId);
+        aiConversation = Array.isArray(data.messages) ? data.messages.map(function (entry) { return { role: entry.role, text: entry.text }; }).slice(-12) : [];
+        renderAiHistory(chat, Array.isArray(data.messages) ? data.messages : []);
+      } catch (error) {
+        aiHistoryLoadedCompanyId = "";
+      }
     }
     function findAiDraftClient(draft) {
       var clients = activeCompanyItems(CLIENTS);
@@ -6121,6 +6188,7 @@ window.profactureTrack = function(name, params) {
       appendAiMessage(chat, "user", text);
       input.value = "";
       button.disabled = true;
+      button.setAttribute("aria-busy", "true");
       var typing = appendAiMessage(chat, "assistant", "…");
       try {
         var localReply = aiFindReply(text);
@@ -6133,15 +6201,24 @@ window.profactureTrack = function(name, params) {
           throw new Error("AI_NOT_READY");
         }
         typing.textContent = response.reply || "Je peux vous aider avec votre workspace.";
+        var usageEl = document.getElementById("ai-usage");
+        if (usageEl && response.usage) usageEl.textContent = response.usage.dailyUsed + " of " + response.usage.dailyLimit + " secure AI requests used today";
         aiConversation.push({ role: "user", text: text }, { role: "assistant", text: typing.textContent });
         aiConversation = aiConversation.slice(-12);
         if (response.action && response.action.type && response.action.type !== "none") response.action.workspaceCompanyId = wsActiveId;
         appendAiAction(chat, response.action);
       } catch (error) {
         var fallback = aiFindReply(text);
-        typing.textContent = fallback ? fallback.replace(/<br>/g, "\n").replace(/<[^>]+>/g, "") : (error && error.message === "SIGN_IN_REQUIRED" ? "Connectez-vous pour utiliser ProFacture AI." : "L'assistant est temporairement indisponible. Vos données et vos brouillons restent enregistrés.");
+        var code = String(error && (error.code || error.message) || "");
+        var errorText = code.indexOf("SIGN_IN_REQUIRED") !== -1 || code.indexOf("unauthenticated") !== -1 ? "Connectez-vous pour utiliser ProFacture AI."
+          : code.indexOf("resource-exhausted") !== -1 ? "La limite IA est atteinte pour le moment. Vos données restent enregistrées; réessayez plus tard."
+          : code.indexOf("already-exists") !== -1 ? "Cette demande est déjà en cours."
+          : code.indexOf("failed-precondition") !== -1 ? "L'assistant est en configuration. Réessayez bientôt."
+          : "L'assistant est temporairement indisponible. Vos données et vos brouillons restent enregistrés.";
+        typing.textContent = fallback ? fallback.replace(/<br>/g, "\n").replace(/<[^>]+>/g, "") : errorText;
       } finally {
         button.disabled = false;
+        button.removeAttribute("aria-busy");
         input.focus();
         chat.scrollTop = chat.scrollHeight;
       }
@@ -10961,8 +11038,11 @@ window.profactureTrack = function(name, params) {
 	    var aiPopupInput = document.getElementById("ai-popup-input");
 	    var aiPopupSend = document.getElementById("ai-popup-send");
 	    var aiPopupChat = document.getElementById("ai-popup-chat");
+	    var aiHistoryClear = document.getElementById("ai-history-clear");
+	    var aiPopupReturnFocus = null;
 	    function setAiPopup(open) {
 	      if (!aiPopup || !aiFabBtn) return;
+	      if (open) aiPopupReturnFocus = document.activeElement;
 	      aiPopup.classList.toggle("open", open);
 	      aiFabBtn.classList.toggle("open", open);
 	      aiPopup.setAttribute("aria-hidden", open ? "false" : "true");
@@ -10970,8 +11050,9 @@ window.profactureTrack = function(name, params) {
 	      if (open) {
 	        gfabMenu.classList.remove("open");
 	        gfabBtn.classList.remove("open");
+	        loadAiHistory(aiPopupChat);
 	        setTimeout(function () { aiPopupInput.focus(); }, 60);
-	      }
+	      } else if (aiPopupReturnFocus && typeof aiPopupReturnFocus.focus === "function") aiPopupReturnFocus.focus();
 	    }
 	    if (aiFabBtn && aiPopup) {
 	      aiFabBtn.addEventListener("click", function (event) { event.stopPropagation(); setAiPopup(!aiPopup.classList.contains("open")); });
@@ -10979,8 +11060,32 @@ window.profactureTrack = function(name, params) {
 	      aiPopupClose.addEventListener("click", function () { setAiPopup(false); });
 	      aiPopupSend.addEventListener("click", function () { sendAiMessage(aiPopupInput, aiPopupChat, aiPopupSend); });
 	      aiPopupInput.addEventListener("keydown", function (event) { if (event.key === "Enter") sendAiMessage(aiPopupInput, aiPopupChat, aiPopupSend); });
-	      document.addEventListener("keydown", function (event) { if (event.key === "Escape" && aiPopup.classList.contains("open")) setAiPopup(false); });
+	      if (aiHistoryClear) aiHistoryClear.addEventListener("click", async function () {
+	        if (!confirm("Clear the AI conversation for this company?")) return;
+	        aiHistoryClear.disabled = true;
+	        try {
+	          if (window.profactureAiHistory) await window.profactureAiHistory("clear", wsActiveId);
+	          aiConversation = [];
+	          renderAiHistory(aiPopupChat, []);
+	        } catch (error) { showToast("AI history could not be cleared."); }
+	        finally { aiHistoryClear.disabled = false; }
+	      });
+	      document.addEventListener("keydown", function (event) {
+	        if (!aiPopup.classList.contains("open")) return;
+	        if (event.key === "Escape") { setAiPopup(false); return; }
+	        if (event.key === "Tab") {
+	          var focusable = Array.from(aiPopup.querySelectorAll('button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+	          if (!focusable.length) return;
+	          var first = focusable[0], last = focusable[focusable.length - 1];
+	          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+	          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+	        }
+	      });
 	      document.addEventListener("click", function (event) { if (aiPopup.classList.contains("open") && !event.target.closest("#ai-popup") && !event.target.closest("#ai-fab-btn")) setAiPopup(false); });
+	      if (window.visualViewport) window.visualViewport.addEventListener("resize", function () {
+	        if (!aiPopup.classList.contains("open") || window.innerWidth > 640) return;
+	        aiPopup.style.maxHeight = Math.max(280, window.visualViewport.height - 88) + "px";
+	      });
 	    }
 
 	    var cookieResetBtn = document.getElementById("cookie-reset-btn");
@@ -11020,11 +11125,17 @@ window.profactureTrack = function(name, params) {
   const db = getFirestore(firebaseApp);
   const storage = getStorage(firebaseApp);
 	const functions = getFunctions(firebaseApp, "us-central1");
-	const askAiCallable = httpsCallable(functions, "aiAssistant");
+	const askAiCallable = httpsCallable(functions, "aiAssistant", { limitedUseAppCheckTokens: true });
+	const aiHistoryCallable = httpsCallable(functions, "aiHistory", { limitedUseAppCheckTokens: true });
 	window.profactureAskAi = async payload => {
 	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
-	  const result = await askAiCallable(payload);
+	  const result = await askAiCallable(Object.assign({}, payload, { requestId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) }));
 	  return result.data || {};
+	};
+	window.profactureAiHistory = async (operation, companyId) => {
+	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
+	  const result = await aiHistoryCallable({ operation, companyId });
+	  return result.data || { messages: [] };
 	};
 	  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "profile", "reports", "ai"]);
   let currentUser = null;
