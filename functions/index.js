@@ -25,12 +25,14 @@ const ROLES = ['viewer', 'employee', 'accountant', 'manager', 'admin', 'owner'];
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const SITE_URL = 'https://facturergratuit.com';
 const AI_API_KEY = defineSecret('PROFACTURE_AI_API_KEY');
-const AI_MODELS = ['gemini-3.6-flash', 'gemini-2.5-flash'];
+const AI_MODELS = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'];
 const AI_LIMITS = Object.freeze({
   perMinute: 5,
-  perDay: 25,
+  perDay: 30,
+  ocrPerDay: 5,
   globalPerMonth: 2000,
   globalTokensPerMonth: 2500000,
+  globalCostUsd: 5,
   messageChars: 1600,
   contextChars: 12000,
   historyTurns: 6,
@@ -39,9 +41,14 @@ const AI_LIMITS = Object.freeze({
   duplicateWindowMs: 45000,
   savedHistoryTurns: 40
 });
+const AI_FEATURE_CREDITS = Object.freeze({ assistant: 1, document_scan: 3 });
+const AI_PRICING_PER_MILLION = Object.freeze({
+  'gemini-2.5-flash-lite': { input: 0.10, output: 0.40 },
+  'gemini-2.5-flash': { input: 0.30, output: 2.50 }
+});
 const AI_NAV_DESTINATIONS = new Set(['dashboard', 'invoices', 'invoice-new', 'quotes', 'quote-new', 'clients', 'companies', 'inventory', 'expenses', 'projects', 'tasks', 'calendar', 'team', 'files', 'reports', 'settings']);
 const AI_CURRENCIES = new Set(['EUR', 'USD', 'GBP', 'CHF', 'CAD', 'AUD', 'NZD', 'JPY', 'CNY', 'INR', 'PKR', 'AED', 'SAR', 'MAD', 'DZD', 'TND', 'TRY', 'BRL', 'MXN', 'ZAR', 'SEK', 'NOK', 'DKK', 'PLN']);
-const AI_TAX_CODES = new Set(['none', 'vat20', 'gst10', 'sales8']);
+const AI_TAX_CODES = new Set(['none', 'vat20', 'vat10', 'vat55', 'vat21', 'gst10', 'sales8']);
 const USER_STORAGE_LIMIT_BYTES = 500 * 1024 * 1024;
 const USER_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
 const OWNER_EMAILS = new Set(['usmanarif621@gmail.com']);
@@ -72,7 +79,7 @@ function aiRequestHash(uid, companyId, message) {
 
 function normalizeAiAction(value, context) {
   const action = value && typeof value === 'object' ? value : {};
-  const type = ['create_invoice', 'create_quote', 'navigate'].includes(action.type) ? action.type : 'none';
+  const type = ['create_invoice', 'create_quote', 'create_task', 'create_expense', 'navigate'].includes(action.type) ? action.type : 'none';
   const normalized = { type, label: cleanAiText(action.label, 120) };
   if (type === 'navigate') {
     const destination = cleanAiText(action.destination, 40);
@@ -82,6 +89,23 @@ function normalizeAiAction(value, context) {
   }
   if (type === 'none') return normalized;
   const source = action.draft && typeof action.draft === 'object' ? action.draft : {};
+  if (type === 'create_task') {
+    normalized.draft = {
+      title: cleanAiText(source.title, 180), description: cleanAiText(source.description, 500),
+      dueDate: /^\d{4}-\d{2}-\d{2}$/.test(source.dueDate || '') ? source.dueDate : '',
+      priority: ['low', 'medium', 'high'].includes(source.priority) ? source.priority : 'medium'
+    };
+    return normalized;
+  }
+  if (type === 'create_expense') {
+    normalized.draft = {
+      title: cleanAiText(source.title, 180), vendor: cleanAiText(source.vendor, 160),
+      date: /^\d{4}-\d{2}-\d{2}$/.test(source.date || '') ? source.date : '',
+      amount: Math.min(100000000, Math.max(0, Number(source.amount) || 0)),
+      category: cleanAiText(source.category, 80)
+    };
+    return normalized;
+  }
   const allowedClientIds = new Set(Array.isArray(context.clients) ? context.clients.map((client) => cleanAiText(client && client.id, 120)).filter(Boolean) : []);
   const clientId = cleanAiText(source.clientId, 120);
   const currency = cleanAiText(source.currency, 8).toUpperCase();
@@ -103,11 +127,31 @@ function normalizeAiAction(value, context) {
   return normalized;
 }
 
-async function enforceAiBudget(uid, companyId, message) {
+async function readAiRuntimeConfig() {
+  const snap = await db.doc('systemConfig/ai').get().catch(() => null);
+  const data = snap && snap.exists ? snap.data() : {};
+  return {
+    enabled: data.enabled !== false,
+    monthlyCostUsd: Math.max(0.5, Math.min(100, Number(data.monthlyCostUsd || AI_LIMITS.globalCostUsd))),
+    model: AI_MODELS.includes(data.model) ? data.model : AI_MODELS[0]
+  };
+}
+
+function estimateAiCost(usage, model = AI_MODELS[0]) {
+  const input = Math.max(0, Number(usage?.promptTokenCount || 0));
+  const output = Math.max(0, Number(usage?.candidatesTokenCount || 0));
+  const pricing = AI_PRICING_PER_MILLION[model] || AI_PRICING_PER_MILLION[AI_MODELS[0]];
+  return (input * pricing.input + output * pricing.output) / 1000000;
+}
+
+async function enforceAiBudget(uid, companyId, message, feature = 'assistant') {
   const userRef = db.doc(`users/${uid}/private/aiUsage`);
   const month = aiMonthKey();
   const globalRef = db.doc(`systemAiUsage/${month}`);
   const requestHash = aiRequestHash(uid, companyId, message);
+  const credits = AI_FEATURE_CREDITS[feature] || 1;
+  const runtime = await readAiRuntimeConfig();
+  if (!runtime.enabled) throw new HttpsError('unavailable', "L'assistant IA est temporairement désactivé.");
   return db.runTransaction(async (tx) => {
     const [userSnap, globalSnap] = await Promise.all([tx.get(userRef), tx.get(globalRef)]);
     const current = userSnap.exists ? userSnap.data() : {};
@@ -117,22 +161,28 @@ async function enforceAiBudget(uid, companyId, message) {
     const dayStart = Number(current.dayStart || 0);
     const minuteCount = now - minuteStart < 60000 ? Number(current.minuteCount || 0) : 0;
     const dayCount = now - dayStart < 86400000 ? Number(current.dayCount || 0) : 0;
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const ocrDayCount = current.ocrDayKey === todayKey ? Number(current.ocrDayCount || 0) : 0;
     const globalCount = Number(global.requestCount || 0);
     const globalTokens = Number(global.totalTokens || 0);
+    const globalCost = Number(global.estimatedCostUsd || 0);
     if (current.lastRequestHash === requestHash && now - Number(current.lastRequestAt || 0) < AI_LIMITS.duplicateWindowMs) {
       if (current.lastResult && typeof current.lastResult === 'object') return { duplicateResult: current.lastResult, requestHash };
       throw new HttpsError('already-exists', 'Cette demande est déjà en cours.');
     }
     if (minuteCount >= AI_LIMITS.perMinute) throw new HttpsError('resource-exhausted', 'Limite minute atteinte. Patientez un instant.');
-    if (dayCount >= AI_LIMITS.perDay) throw new HttpsError('resource-exhausted', 'Votre limite IA quotidienne est atteinte. Réessayez demain.');
-    if (globalCount >= AI_LIMITS.globalPerMonth || globalTokens >= AI_LIMITS.globalTokensPerMonth) {
+    if (dayCount + credits > AI_LIMITS.perDay) throw new HttpsError('resource-exhausted', 'Votre limite IA quotidienne est atteinte. Réessayez demain.');
+    if (feature === 'document_scan' && ocrDayCount >= AI_LIMITS.ocrPerDay) throw new HttpsError('resource-exhausted', 'Limite OCR quotidienne atteinte.');
+    if (globalCount >= AI_LIMITS.globalPerMonth || globalTokens >= AI_LIMITS.globalTokensPerMonth || globalCost >= runtime.monthlyCostUsd) {
       throw new HttpsError('resource-exhausted', "Le budget IA mensuel du service est atteint.");
     }
     tx.set(userRef, {
       minuteStart: now - minuteStart < 60000 ? minuteStart : now,
       minuteCount: minuteCount + 1,
       dayStart: now - dayStart < 86400000 ? dayStart : now,
-      dayCount: dayCount + 1,
+      dayCount: dayCount + credits,
+      ocrDayCount: feature === 'document_scan' ? ocrDayCount + 1 : ocrDayCount,
+      ocrDayKey: todayKey,
       lastRequestHash: requestHash,
       lastRequestAt: now,
       lastResult: admin.firestore.FieldValue.delete(),
@@ -144,13 +194,14 @@ async function enforceAiBudget(uid, companyId, message) {
       totalTokens: globalTokens,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
-    return { duplicateResult: null, requestHash, dayCount: dayCount + 1, globalCount: globalCount + 1 };
+    return { duplicateResult: null, requestHash, dayCount: dayCount + credits, globalCount: globalCount + 1, runtime, credits };
   });
 }
 
-async function finishAiRequest(uid, companyId, requestHash, message, result, usage, model) {
+async function finishAiRequest(uid, companyId, requestHash, message, result, usage, model, feature = 'assistant') {
   const month = aiMonthKey();
   const totalTokens = Math.max(0, Number(usage?.totalTokenCount || 0));
+  const estimatedCostUsd = estimateAiCost(usage, model);
   const batch = db.batch();
   batch.set(db.doc(`users/${uid}/private/aiUsage`), {
     lastRequestHash: requestHash,
@@ -160,6 +211,15 @@ async function finishAiRequest(uid, companyId, requestHash, message, result, usa
   }, { merge: true });
   batch.set(db.doc(`systemAiUsage/${month}`), {
     totalTokens: admin.firestore.FieldValue.increment(totalTokens),
+    estimatedCostUsd: admin.firestore.FieldValue.increment(estimatedCostUsd),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+  batch.set(db.doc(`users/${uid}/private/aiCompanyUsage_${month}_${aiCompanyKey(companyId)}`), {
+    companyId: cleanAiText(companyId, 160),
+    month,
+    requestCount: admin.firestore.FieldValue.increment(1),
+    totalTokens: admin.firestore.FieldValue.increment(totalTokens),
+    estimatedCostUsd: admin.firestore.FieldValue.increment(estimatedCostUsd),
     updatedAt: admin.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
   const auditRef = db.collection(`users/${uid}/aiAudit`).doc();
@@ -171,17 +231,21 @@ async function finishAiRequest(uid, companyId, requestHash, message, result, usa
     promptTokens: Math.max(0, Number(usage?.promptTokenCount || 0)),
     outputTokens: Math.max(0, Number(usage?.candidatesTokenCount || 0)),
     totalTokens,
+    feature,
+    estimatedCostUsd,
     createdAt: admin.firestore.FieldValue.serverTimestamp()
   });
   await batch.commit();
 }
 
-async function failAiRequest(uid, companyId, requestHash, error) {
+async function failAiRequest(uid, companyId, requestHash, error, feature = 'assistant') {
   const month = aiMonthKey();
+  const credits = AI_FEATURE_CREDITS[feature] || 1;
   const batch = db.batch();
   batch.set(db.doc(`users/${uid}/private/aiUsage`), {
     minuteCount: admin.firestore.FieldValue.increment(-1),
-    dayCount: admin.firestore.FieldValue.increment(-1),
+    dayCount: admin.firestore.FieldValue.increment(-credits),
+    ...(feature === 'document_scan' ? { ocrDayCount: admin.firestore.FieldValue.increment(-1) } : {}),
     lastRequestHash: admin.firestore.FieldValue.delete(),
     lastResult: admin.firestore.FieldValue.delete(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -219,7 +283,7 @@ const AI_RESPONSE_SCHEMA = {
     action: {
       type: 'OBJECT',
       properties: {
-        type: { type: 'STRING', enum: ['none', 'create_invoice', 'create_quote', 'navigate'] },
+        type: { type: 'STRING', enum: ['none', 'create_invoice', 'create_quote', 'create_task', 'create_expense', 'navigate'] },
         label: { type: 'STRING' },
         destination: { type: 'STRING' },
         draft: {
@@ -231,6 +295,8 @@ const AI_RESPONSE_SCHEMA = {
             issueDate: { type: 'STRING' },
             dueDate: { type: 'STRING' },
             siteAddress: { type: 'STRING' },
+            title: { type: 'STRING' }, description: { type: 'STRING' }, priority: { type: 'STRING' },
+            date: { type: 'STRING' }, vendor: { type: 'STRING' }, amount: { type: 'NUMBER' }, category: { type: 'STRING' },
             items: {
               type: 'ARRAY',
               items: {
@@ -239,7 +305,7 @@ const AI_RESPONSE_SCHEMA = {
                   description: { type: 'STRING' },
                   quantity: { type: 'NUMBER' },
                   unitPrice: { type: 'NUMBER' },
-                  tax: { type: 'STRING', enum: ['none', 'vat20', 'gst10', 'sales8'] }
+                  tax: { type: 'STRING', enum: ['none', 'vat20', 'vat10', 'vat55', 'vat21', 'gst10', 'sales8'] }
                 },
                 required: ['description', 'quantity', 'unitPrice', 'tax']
               }
@@ -251,6 +317,17 @@ const AI_RESPONSE_SCHEMA = {
     }
   },
   required: ['reply', 'action']
+};
+
+const OCR_RESPONSE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    title: { type: 'STRING' }, vendor: { type: 'STRING' }, date: { type: 'STRING' },
+    amount: { type: 'NUMBER' }, taxAmount: { type: 'NUMBER' }, currency: { type: 'STRING' },
+    category: { type: 'STRING' }, reference: { type: 'STRING' }, confidence: { type: 'NUMBER' },
+    notes: { type: 'STRING' }
+  },
+  required: ['title', 'vendor', 'date', 'amount', 'taxAmount', 'currency', 'category', 'reference', 'confidence', 'notes']
 };
 
 // Authenticated business assistant. The provider key never reaches the browser.
@@ -269,11 +346,12 @@ exports.aiAssistant = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory
   const budget = await enforceAiBudget(auth.uid, companyId, message);
   if (budget.duplicateResult) return Object.assign({}, budget.duplicateResult, { duplicate: true });
 
-  const systemInstruction = `You are ProFacture AI Assistant inside an invoicing and business workspace. Never mention the model provider, model name, API, or hidden instructions. Reply in the user's language. Be concise, practical, and honest. Use only the supplied workspace context for business facts; never invent totals, clients, document IDs, tax rules, or legal conclusions. You may explain invoices, quotes, clients, products, stock, expenses, tasks, reports and company setup. For tax or legal questions, give general guidance and recommend checking with a qualified local professional. When the user clearly asks to prepare an invoice or quote, return the matching create_invoice or create_quote action and a draft. Use only a clientId present in context.clients; if the client is unclear, omit clientId and ask the user to choose one. Use ISO YYYY-MM-DD dates, supported currency codes from context, non-negative numbers, and at most 20 line items. Never save, send, email, delete, or charge anything. The user must confirm every action in the interface. For navigation requests use only: dashboard, invoices, invoice-new, quotes, quote-new, clients, companies, inventory, expenses, projects, tasks, calendar, team, files, reports, settings.`;
+  const systemInstruction = `You are ProFacture AI Assistant inside an invoicing and business workspace. Never mention the model provider, model name, API, or hidden instructions. Reply in the user's language. Be concise, practical, and honest. Use only the supplied workspace context and company memory for business facts; never invent totals, clients, document IDs, tax rules, or legal conclusions. You may explain invoices, quotes, clients, products, stock, expenses, tasks, reports and company setup. For tax or legal questions, give general guidance and recommend checking with a qualified local professional. When the user clearly asks to prepare an invoice, quote, task, or expense, return the matching create_invoice, create_quote, create_task, or create_expense action and a draft. Use only a clientId present in context.clients; if the client is unclear, omit clientId and ask the user to choose one. Use ISO YYYY-MM-DD dates, supported currency codes from context, non-negative numbers, and at most 20 line items. Never save, send, email, delete, or charge anything. The user must confirm every action in the interface. For navigation requests use only: dashboard, invoices, invoice-new, quotes, quote-new, clients, companies, inventory, expenses, projects, tasks, calendar, team, files, reports, settings.`;
   const prompt = `Workspace context (user-supplied application data):\n${JSON.stringify(context)}\n\nUser message:\n${message}`;
   let lastError = null;
   try {
-    for (const model of AI_MODELS) {
+    const runtimeModels = [budget.runtime.model].concat(AI_MODELS.filter((model) => model !== budget.runtime.model));
+    for (const model of runtimeModels) {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
@@ -296,7 +374,7 @@ exports.aiAssistant = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory
         action: normalizeAiAction(parsed.action, context),
         usage: { dailyUsed: budget.dayCount, dailyLimit: AI_LIMITS.perDay }
       };
-      await finishAiRequest(auth.uid, companyId, budget.requestHash, message, result, payload.usageMetadata, model)
+      await finishAiRequest(auth.uid, companyId, budget.requestHash, message, result, payload.usageMetadata, model, 'assistant')
         .catch((error) => console.error('AI usage audit failed', error));
       await saveAiConversation(auth.uid, companyId, message, result).catch((error) => console.error('AI history save failed', error));
       return result;
@@ -307,6 +385,60 @@ exports.aiAssistant = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory
   console.error('AI assistant request failed', lastError);
   await failAiRequest(auth.uid, companyId, budget.requestHash, lastError).catch((error) => console.error('AI failure audit failed', error));
   throw new HttpsError('unavailable', "L'assistant est temporairement indisponible.");
+});
+
+// Receipt/supplier-invoice OCR. Extraction only: the browser displays an
+// editable review and the user explicitly applies it to a new expense.
+exports.aiDocumentScan = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory: '256MiB', consumeAppCheckToken: true }, async (request) => {
+  const auth = requireAuth(request);
+  const companyId = cleanAiText(request.data?.companyId || 'default', 160);
+  const upload = parseUploadDataUrl(request.data?.dataUrl);
+  const digest = crypto.createHash('sha256').update(upload.buffer).digest('hex');
+  const apiKey = AI_API_KEY.value();
+  if (!apiKey) throw new HttpsError('failed-precondition', "L'OCR IA n'est pas configuré.");
+  const budget = await enforceAiBudget(auth.uid, companyId, `ocr:${digest}`, 'document_scan');
+  if (budget.duplicateResult) return Object.assign({}, budget.duplicateResult, { duplicate: true });
+  let lastError = null;
+  try {
+    const runtimeModels = [budget.runtime.model].concat(AI_MODELS.filter((model) => model !== budget.runtime.model));
+    for (const model of runtimeModels) {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [
+            { text: 'Extract this business receipt or supplier invoice. Return only observed values. Amount is the final paid total. Use ISO YYYY-MM-DD when date is readable; otherwise empty. Choose one category from Travel, Fuel, Office, Equipment, Marketing, Software, Salary, Utilities, Maintenance, Tax, Other. Never invent missing data.' },
+            { inlineData: { mimeType: upload.contentType, data: upload.buffer.toString('base64') } }
+          ] }],
+          generationConfig: { responseMimeType: 'application/json', responseSchema: OCR_RESPONSE_SCHEMA, maxOutputTokens: 450, temperature: 0 }
+        })
+      });
+      if (!response.ok) {
+        lastError = new Error(`OCR upstream ${response.status}`);
+        if (response.status === 404) continue;
+        break;
+      }
+      const payload = await response.json();
+      const raw = payload?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '';
+      const parsed = JSON.parse(raw);
+      const result = {
+        extraction: {
+          title: cleanAiText(parsed.title, 160), vendor: cleanAiText(parsed.vendor, 160),
+          date: /^\d{4}-\d{2}-\d{2}$/.test(parsed.date || '') ? parsed.date : '',
+          amount: Math.min(100000000, Math.max(0, Number(parsed.amount) || 0)),
+          taxAmount: Math.min(100000000, Math.max(0, Number(parsed.taxAmount) || 0)),
+          currency: AI_CURRENCIES.has(String(parsed.currency || '').toUpperCase()) ? String(parsed.currency).toUpperCase() : '',
+          category: ['Travel', 'Fuel', 'Office', 'Equipment', 'Marketing', 'Software', 'Salary', 'Utilities', 'Maintenance', 'Tax', 'Other'].includes(parsed.category) ? parsed.category : 'Other',
+          reference: cleanAiText(parsed.reference, 120), confidence: Math.max(0, Math.min(1, Number(parsed.confidence) || 0)), notes: cleanAiText(parsed.notes, 300)
+        },
+        usage: { dailyUsed: budget.dayCount, dailyLimit: AI_LIMITS.perDay, credits: budget.credits }
+      };
+      await finishAiRequest(auth.uid, companyId, budget.requestHash, `ocr:${digest}`, result, payload.usageMetadata, model, 'document_scan');
+      return result;
+    }
+  } catch (error) { lastError = error; }
+  await failAiRequest(auth.uid, companyId, budget.requestHash, lastError, 'document_scan').catch(() => {});
+  throw new HttpsError('unavailable', "L'analyse du document a échoué.");
 });
 
 function parseUploadDataUrl(value) {
@@ -391,13 +523,21 @@ exports.aiHistory = onCall({ timeoutSeconds: 15, memory: '128MiB', consumeAppChe
 
 exports.aiUsage = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
+  const companyId = cleanAiText(request.data?.companyId || 'default', 160);
   const userUsage = await db.doc(`users/${auth.uid}/private/aiUsage`).get();
+  const companyUsage = await db.doc(`users/${auth.uid}/private/aiCompanyUsage_${aiMonthKey()}_${aiCompanyKey(companyId)}`).get();
   const own = userUsage.exists ? userUsage.data() : {};
+  const ownCompany = companyUsage.exists ? companyUsage.data() : {};
   const response = {
     dailyUsed: Math.max(0, Number(own.dayCount || 0)),
     dailyLimit: AI_LIMITS.perDay,
     minuteUsed: Math.max(0, Number(own.minuteCount || 0)),
     minuteLimit: AI_LIMITS.perMinute,
+    ocrDailyUsed: own.ocrDayKey === new Date().toISOString().slice(0, 10) ? Math.max(0, Number(own.ocrDayCount || 0)) : 0,
+    ocrDailyLimit: AI_LIMITS.ocrPerDay,
+    companyMonthlyRequests: Math.max(0, Number(ownCompany.requestCount || 0)),
+    companyMonthlyTokens: Math.max(0, Number(ownCompany.totalTokens || 0)),
+    companyEstimatedCostUsd: Number(Math.max(0, Number(ownCompany.estimatedCostUsd || 0)).toFixed(4)),
     isOwner: OWNER_EMAILS.has(String(auth.token.email || '').toLowerCase())
   };
   if (!response.isOwner) return response;
@@ -410,7 +550,8 @@ exports.aiUsage = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheck
     monthlyTokens: Math.max(0, Number(global.data()?.totalTokens || 0)),
     monthlyTokenLimit: AI_LIMITS.globalTokensPerMonth,
     recentFailures: auditRows.filter(row => row.actionType === 'request_failed').length,
-    estimatedCostUsd: Number((Math.max(0, Number(global.data()?.totalTokens || 0)) * 0.0000003).toFixed(4))
+    estimatedCostUsd: Number(Math.max(0, Number(global.data()?.estimatedCostUsd || 0)).toFixed(4)),
+    monthlyCostLimitUsd: (await readAiRuntimeConfig()).monthlyCostUsd
   });
 });
 

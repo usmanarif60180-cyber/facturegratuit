@@ -769,6 +769,11 @@ window.profactureTrack = function(name, params) {
   .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.9rem; }
   @media (max-width: 1100px) { .stat-grid { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 640px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) {
+    #cashflow-forecast-grid { grid-template-columns: 1fr !important; }
+    #ai-automation-rules { grid-template-columns: 1fr !important; }
+    #view-ai .dash-grid { grid-template-columns: 1fr !important; }
+  }
   .stat-card { padding: 1.15rem 1.25rem; display: flex; align-items: flex-start; justify-content: space-between; }
   .stat-card .lbl { font-size: 0.8rem; color: hsl(var(--muted-fg)); }
   .stat-card .val { font-size: 1.4rem; font-weight: 800; margin-top: 0.3rem; }
@@ -4152,9 +4157,11 @@ window.profactureTrack = function(name, params) {
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="ae-recurring" style="width:1.05rem;height:1.05rem;" /><label for="ae-recurring" style="font-size:0.85rem;font-weight:600;" data-i18n="lbl_recurring_expense">Recurring expense</label></div>
         <div>
-          <label class="field-label" data-i18n="fld_receipt">Receipt</label> <span class="badge badge-default" style="margin-left:0.3rem;" data-i18n="lbl_ocr_soon">OCR scanning — Coming soon</span>
+          <label class="field-label" data-i18n="fld_receipt">Receipt</label> <span class="badge badge-primary" style="margin-left:0.3rem;">Secure AI scan</span>
           <input class="field" type="file" accept="image/*,.pdf" id="ae-receipt" style="padding:0.4rem 0.6rem;" />
           <div id="ae-receipt-preview" style="margin-top:0.5rem;"></div>
+          <button class="btn btn-outline btn-sm" type="button" id="ae-scan-receipt" style="margin-top:0.55rem;" disabled>Scan and review fields</button>
+          <div id="ae-ocr-review" style="margin-top:0.55rem;"></div>
         </div>
       </div>
     </div>
@@ -4391,6 +4398,12 @@ window.profactureTrack = function(name, params) {
           <div class="card-title">✨ <span data-i18n="card_ai_business_insights">AI Business Insights</span></div>
           <div id="rpt-ai-insights"></div>
         </div>
+        <div class="card card-pad" style="margin-top:1.1rem;">
+          <div class="card-title">Cash-flow forecast <span class="badge badge-default">Actual workspace data</span></div>
+          <div class="stat-grid" id="cashflow-forecast-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));"></div>
+          <div id="cashflow-forecast-chart" style="margin-top:1rem;"></div>
+          <p id="cashflow-forecast-assumptions" style="margin-top:0.75rem;font-size:0.75rem;color:hsl(var(--muted-fg));"></p>
+        </div>
       </div>
     </div>
   </div>
@@ -4402,7 +4415,19 @@ window.profactureTrack = function(name, params) {
     <div class="app-main">
       <div id="topbar-ai"></div>
       <div class="app-content">
-        <div class="page-head"><div><h1 data-i18n="page_ai_title">AI Business Assistant</h1><p data-i18n="page_ai_sub">Ask about invoices, cash flow, inventory, tasks and performance — in plain language.</p></div></div>
+        <div class="page-head"><div><h1>AI Command Center</h1><p>Company-aware assistance with review-before-apply controls.</p></div><span class="badge badge-primary" id="ai-usage">Secure usage loading...</span></div>
+        <div class="dash-grid" style="margin-bottom:1.1rem;grid-template-columns:1.15fr 0.85fr;">
+          <div class="card card-pad">
+            <div class="card-title">Company AI memory <span class="badge badge-default" id="ai-memory-company">Current company</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
+              <div><label class="field-label">Default tax</label><select class="field" id="ai-memory-tax"><option value="none">No tax</option><option value="vat20">TVA 20%</option><option value="vat10">TVA 10%</option><option value="vat55">TVA 5.5%</option><option value="vat21">TVA 2.1%</option></select></div>
+              <div><label class="field-label">Payment terms</label><input class="field" id="ai-memory-payment" placeholder="Example: 30 days" /></div>
+            </div>
+            <div style="margin-top:0.7rem;"><label class="field-label">Tone and business preferences</label><textarea class="field" id="ai-memory-notes" rows="3" placeholder="Formal tone, preferred services, document instructions..."></textarea></div>
+            <button class="btn btn-primary btn-sm" id="ai-memory-save" style="margin-top:0.7rem;">Save for this company</button>
+          </div>
+          <div class="card card-pad"><div class="card-title">AI cost guard</div><div id="ai-cost-panel" style="font-size:0.82rem;color:hsl(var(--muted-fg));">Loading protected usage...</div></div>
+        </div>
         <div class="ai-layout">
           <div class="card card-pad">
             <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:hsl(var(--muted-fg));margin-bottom:0.5rem;" data-i18n="lbl_capabilities">Capabilities</div>
@@ -4421,6 +4446,11 @@ window.profactureTrack = function(name, params) {
             <div class="chip-row" id="ai-suggest-chips" style="margin:0 1.25rem 0.75rem;"></div>
             <div class="ai-input-row"><input class="field" id="ai-input" placeholder="Message AI Business Assistant…" data-i18n-placeholder="ph_ai_message" autocomplete="off" /><button class="btn btn-primary btn-icon" id="ai-send" aria-label="Send AI message">➤</button></div>
           </div>
+        </div>
+        <div class="card card-pad" style="margin-top:1.1rem;">
+          <div class="page-head" style="margin-bottom:0.75rem;"><div><div class="card-title">Smart automations</div><p style="font-size:0.78rem;color:hsl(var(--muted-fg));">Rules create recommendations only. You approve every resulting task.</p></div><button class="btn btn-outline btn-sm" id="ai-run-automations">Run rules now</button></div>
+          <div id="ai-automation-rules" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.6rem;"></div>
+          <div id="ai-automation-queue" style="margin-top:0.8rem;"></div>
         </div>
       </div>
     </div>
@@ -4451,6 +4481,7 @@ window.profactureTrack = function(name, params) {
           </div>
           <p style="margin-top:1rem;padding-top:1rem;border-top:1px solid hsl(var(--border));font-size:0.75rem;color:hsl(var(--muted-fg));" data-i18n="txt_revenue_forecast_note">Revenue forecast is an estimate — each stage's open value weighted by a typical win probability, not a prediction.</p>
         </div>
+        <div class="card card-pad" style="margin-top:1.1rem;"><div class="card-title">CRM intelligence <span class="badge badge-default">Real customer activity</span></div><div id="crm-intelligence-list"></div></div>
       </div>
     </div>
   </div>
@@ -6089,7 +6120,7 @@ window.profactureTrack = function(name, params) {
         language: currentLang,
         currentView: (document.querySelector(".view.active") || {}).id || "",
         today: new Date().toISOString().slice(0, 10),
-        company: { id: wsActiveId, name: company.name, country: currentDefaultCountry, currency: currentCurrency, badge: company.badge || "" },
+        company: { id: wsActiveId, name: company.name, country: currentDefaultCountry, currency: currentCurrency, badge: company.badge || "", memory: (activeCompanyWorkspace() || {}).aiMemory || {} },
         supportedCurrencies: Object.keys(CURRENCY_SYMBOLS),
         clients: clients.slice(0, 60).map(function (c) { return { id: c.id, name: clientDisplayName(c) }; }),
         products: products.slice(0, 60).map(function (p) { return { id: p.id, name: p.name, price: Number(p.price || 0), stock: Number(p.stock || 0), unit: p.unit || "" }; }),
@@ -6108,7 +6139,7 @@ window.profactureTrack = function(name, params) {
       return msg;
     }
     function aiDraftTotals(draft) {
-      var rates = { none: 0, vat20: .2, gst10: .1, sales8: .08 };
+      var rates = { none: 0, vat20: .2, vat10: .1, vat55: .055, vat21: .021, gst10: .1, sales8: .08 };
       return (Array.isArray(draft.items) ? draft.items : []).reduce(function (totals, item) {
         var ht = Math.max(0, Number(item.quantity || 0)) * Math.max(0, Number(item.unitPrice || 0));
         totals.ht += ht;
@@ -6146,6 +6177,12 @@ window.profactureTrack = function(name, params) {
         total.className = "ai-draft-total";
         total.textContent = "Total: " + aiMoney(totals.ht + totals.tax, draft.currency) + " (tax " + aiMoney(totals.tax, draft.currency) + ")";
         card.appendChild(total);
+      } else if (action.type === "create_task") {
+        var taskDraft = action.draft || {};
+        card.innerHTML = '<div class="ai-draft-head"><span>Task draft</span><span>' + escapeHtml(taskDraft.priority || "medium") + '</span></div><p><strong>' + escapeHtml(taskDraft.title || "Untitled task") + '</strong></p><p>' + escapeHtml(taskDraft.description || "") + (taskDraft.dueDate ? " · Due " + escapeHtml(taskDraft.dueDate) : "") + '</p>';
+      } else if (action.type === "create_expense") {
+        var expenseDraft = action.draft || {};
+        card.innerHTML = '<div class="ai-draft-head"><span>Expense draft</span><span>' + escapeHtml(aiMoney(expenseDraft.amount || 0, currentCurrency)) + '</span></div><p><strong>' + escapeHtml(expenseDraft.title || "Untitled expense") + '</strong></p><p>' + escapeHtml(expenseDraft.vendor || "") + (expenseDraft.date ? " · " + escapeHtml(expenseDraft.date) : "") + '</p>';
       } else {
         var summary = document.createElement("p");
         summary.textContent = "Open the suggested workspace page.";
@@ -6220,6 +6257,29 @@ window.profactureTrack = function(name, params) {
         if (destinations.indexOf(action.destination) !== -1) showView(action.destination);
         return;
       }
+      if (action.type === "create_task") {
+        var taskDraft = action.draft || {};
+        showView("tasks");
+        atOpen();
+        document.getElementById("at-title").value = taskDraft.title || "";
+        document.getElementById("at-priority").value = taskDraft.priority || "medium";
+        document.getElementById("at-due").value = taskDraft.dueDate || "";
+        document.getElementById("at-notes").value = taskDraft.description || "";
+        showToast("Task draft prepared. Review it before adding.");
+        return;
+      }
+      if (action.type === "create_expense") {
+        var expenseDraft = action.draft || {};
+        showView("expenses");
+        aeOpen();
+        document.getElementById("ae-title").value = expenseDraft.title || "";
+        document.getElementById("ae-vendor").value = expenseDraft.vendor || "";
+        document.getElementById("ae-date").value = expenseDraft.date || new Date().toISOString().slice(0, 10);
+        document.getElementById("ae-amount").value = Number(expenseDraft.amount || 0);
+        if (EXPENSE_CATEGORIES.indexOf(expenseDraft.category) !== -1) document.getElementById("ae-category").value = expenseDraft.category;
+        showToast("Expense draft prepared. Review it before adding.");
+        return;
+      }
       if (action.type !== "create_invoice" && action.type !== "create_quote") return;
       var draft = action.draft || {};
       var client = findAiDraftClient(draft);
@@ -6287,12 +6347,104 @@ window.profactureTrack = function(name, params) {
         chat.scrollTop = chat.scrollHeight;
       }
     }
+    var AI_AUTOMATION_DEFAULTS = [
+      { id: "overdue", label: "Overdue invoice follow-up", enabled: true },
+      { id: "quote", label: "Sent quote follow-up", enabled: true },
+      { id: "stock", label: "Low stock alert", enabled: true },
+      { id: "recurring", label: "Recurring expense review", enabled: false }
+    ];
+    function aiActiveWorkspace() { return activeCompanyWorkspace() || {}; }
+    function persistAiWorkspace() {
+      var workspace = aiActiveWorkspace();
+      workspace.updatedAt = new Date().toISOString();
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(700);
+    }
+    function renderAiMemory() {
+      var workspace = aiActiveWorkspace();
+      var memory = workspace.aiMemory || {};
+      var companyLabel = document.getElementById("ai-memory-company");
+      if (companyLabel) companyLabel.textContent = workspace.name || "Current company";
+      var tax = document.getElementById("ai-memory-tax");
+      var payment = document.getElementById("ai-memory-payment");
+      var notes = document.getElementById("ai-memory-notes");
+      if (tax) tax.value = memory.defaultTax || "none";
+      if (payment) payment.value = memory.paymentTerms || "";
+      if (notes) notes.value = memory.notes || "";
+    }
+    async function loadAiUsagePanel() {
+      var panel = document.getElementById("ai-cost-panel");
+      if (!panel || !window.profactureAiUsage) return;
+      try {
+        var usage = await window.profactureAiUsage(wsActiveId);
+        var dailyPct = Math.min(100, Math.round((usage.dailyUsed / Math.max(1, usage.dailyLimit)) * 100));
+        panel.innerHTML = '<div style="display:grid;gap:0.55rem;"><div><strong>Daily credits</strong><span style="float:right;">' + usage.dailyUsed + '/' + usage.dailyLimit + '</span><div class="bar-track"><div class="bar-fill" style="width:' + dailyPct + '%;"></div></div></div>' +
+          '<div>Receipt scans today <strong style="float:right;">' + usage.ocrDailyUsed + '/' + usage.ocrDailyLimit + '</strong></div>' +
+          '<div>This company this month <strong style="float:right;">' + usage.companyMonthlyRequests + ' requests · $' + Number(usage.companyEstimatedCostUsd || 0).toFixed(4) + '</strong></div>' +
+          (usage.isOwner ? '<div>Service monthly guard <strong style="float:right;">$' + Number(usage.estimatedCostUsd || 0).toFixed(4) + ' / $' + Number(usage.monthlyCostLimitUsd || 0).toFixed(2) + '</strong></div>' : '') +
+          '<p style="font-size:0.72rem;">Flash-Lite is preferred, duplicate requests are cached, and scanning costs 3 credits. Processing stops at the server budget cap.</p></div>';
+        var badge = document.getElementById("ai-usage");
+        if (badge) badge.textContent = (usage.dailyLimit - usage.dailyUsed) + " secure credits left today";
+      } catch (error) {
+        panel.textContent = "Sign in to view protected AI usage.";
+      }
+    }
+    function automationRules() {
+      var workspace = aiActiveWorkspace();
+      if (!Array.isArray(workspace.automationRules)) workspace.automationRules = AI_AUTOMATION_DEFAULTS.map(function (rule) { return Object.assign({}, rule); });
+      return workspace.automationRules;
+    }
+    function evaluateAutomationRules() {
+      var rules = automationRules();
+      var suggestions = [];
+      function enabled(id) { var rule = rules.filter(function (item) { return item.id === id; })[0]; return rule && rule.enabled; }
+      var overdue = activeCompanyItems(INVOICES).filter(function (invoice) { return invoice.status === "Overdue" || (invoice.due && invoice.due < new Date().toISOString().slice(0, 10) && invoiceBalance(invoice) > 0); });
+      if (enabled("overdue") && overdue[0]) suggestions.push({ id: "overdue-" + overdue[0].id, title: "Follow up overdue " + overdue[0].id, due: new Date().toISOString().slice(0, 10), priority: "high", reason: overdue[0].client + " · " + currency(invoiceBalance(overdue[0])) + " outstanding" });
+      var sentQuote = activeCompanyItems(QUOTES).filter(function (quote) { return quote.status === "Sent"; })[0];
+      if (enabled("quote") && sentQuote) suggestions.push({ id: "quote-" + sentQuote.id, title: "Follow up quote " + sentQuote.id, due: sentQuote.valid || "", priority: "medium", reason: sentQuote.client || "Pending customer response" });
+      var low = activeCompanyItems(PRODUCTS).filter(function (product) { return Number(product.stock || 0) <= Number(product.minStock || 0); })[0];
+      if (enabled("stock") && low) suggestions.push({ id: "stock-" + low.id, title: "Review stock for " + low.name, due: "", priority: "high", reason: Number(low.stock || 0) + " remaining" });
+      var recurring = activeCompanyItems(EXPENSES).filter(function (expense) { return expense.recurring; })[0];
+      if (enabled("recurring") && recurring) suggestions.push({ id: "expense-" + recurring.id, title: "Review recurring expense: " + recurring.title, due: "", priority: "medium", reason: currency(recurring.amount || 0) + " · " + (recurring.vendor || "No vendor") });
+      return suggestions;
+    }
+    function renderAutomationCenter() {
+      var rulesWrap = document.getElementById("ai-automation-rules");
+      var queue = document.getElementById("ai-automation-queue");
+      if (!rulesWrap || !queue) return;
+      rulesWrap.innerHTML = automationRules().map(function (rule) { return '<label class="card" style="padding:0.7rem;display:flex;align-items:center;gap:0.6rem;"><input type="checkbox" data-ai-rule="' + rule.id + '"' + (rule.enabled ? ' checked' : '') + ' /><span style="font-weight:650;">' + escapeHtml(rule.label) + '</span></label>'; }).join("");
+      var suggestions = evaluateAutomationRules();
+      queue.innerHTML = suggestions.length ? suggestions.map(function (item) { return '<div class="ai-action-card" style="margin-top:0.55rem;"><div><strong>' + escapeHtml(item.title) + '</strong><p>' + escapeHtml(item.reason) + '</p></div><button class="btn btn-primary btn-sm" data-ai-automation-apply="' + item.id + '">Review task</button></div>'; }).join("") : '<p class="widget-empty">No recommendation from the enabled rules and current data.</p>';
+    }
+    function renderAiCommandCenter() { renderAiMemory(); renderAutomationCenter(); loadAiUsagePanel(); }
+    var aiMemorySave = document.getElementById("ai-memory-save");
+    if (aiMemorySave) aiMemorySave.addEventListener("click", function () {
+      var workspace = aiActiveWorkspace();
+      workspace.aiMemory = { defaultTax: document.getElementById("ai-memory-tax").value, paymentTerms: document.getElementById("ai-memory-payment").value.trim().slice(0, 120), notes: document.getElementById("ai-memory-notes").value.trim().slice(0, 1200) };
+      persistAiWorkspace(); showToast("AI memory saved for " + (workspace.name || "this company"));
+    });
+    var automationRulesWrap = document.getElementById("ai-automation-rules");
+    if (automationRulesWrap) automationRulesWrap.addEventListener("change", function (event) {
+      var input = event.target.closest("[data-ai-rule]"); if (!input) return;
+      var rule = automationRules().filter(function (item) { return item.id === input.getAttribute("data-ai-rule"); })[0];
+      if (rule) { rule.enabled = input.checked; persistAiWorkspace(); renderAutomationCenter(); }
+    });
+    var automationRun = document.getElementById("ai-run-automations");
+    if (automationRun) automationRun.addEventListener("click", function () { renderAutomationCenter(); showToast("Automation rules evaluated with current company data."); });
+    var automationQueue = document.getElementById("ai-automation-queue");
+    if (automationQueue) automationQueue.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-ai-automation-apply]"); if (!button) return;
+      var item = evaluateAutomationRules().filter(function (suggestion) { return suggestion.id === button.getAttribute("data-ai-automation-apply"); })[0];
+      if (!item) return;
+      showView("tasks"); atOpen(); document.getElementById("at-title").value = item.title; document.getElementById("at-priority").value = item.priority; document.getElementById("at-due").value = item.due || ""; document.getElementById("at-notes").value = item.reason; showToast("Automation prepared a task. Review before adding.");
+    });
     function initAiAssistant(focusInput) {
       var aiChat = document.getElementById("ai-chat") || document.querySelector(".ai-chat");
       var aiInput = document.getElementById("ai-input") || document.querySelector(".ai-input-row input");
       var aiSendBtn = document.getElementById("ai-send") || document.querySelector(".ai-input-row button");
       var aiSuggestChipsEl = document.getElementById("ai-suggest-chips");
       if (!aiChat || !aiInput || !aiSendBtn) return;
+      renderAiCommandCenter();
 
       function aiSend() { sendAiMessage(aiInput, aiChat, aiSendBtn); }
 
@@ -7704,6 +7856,32 @@ window.profactureTrack = function(name, params) {
           return '<div class="pipeline-row"><span class="stage-lbl">' + s.label + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;"></div></div><span class="stage-count">' + s.count + '</span><span class="stage-val">' + currency(s.value) + "</span></div>";
         }).join("");
       }
+      renderCrmIntelligence();
+    }
+    function renderCrmIntelligence() {
+      var wrap = document.getElementById("crm-intelligence-list");
+      if (!wrap) return;
+      var clients = activeCompanyItems(CLIENTS);
+      var invoices = activeCompanyItems(INVOICES);
+      var quotes = activeCompanyItems(QUOTES);
+      var rows = clients.map(function (client) {
+        var name = clientDisplayName(client);
+        var clientInvoices = invoices.filter(function (invoice) { return invoice.clientId === client.id || String(invoice.client || "").toLowerCase() === name.toLowerCase(); });
+        var clientQuotes = quotes.filter(function (quote) { return quote.clientId === client.id || String(quote.client || "").toLowerCase() === name.toLowerCase(); });
+        var value = clientInvoices.reduce(function (sum, invoice) { return sum + Number(invoice.total || 0); }, 0);
+        var outstanding = clientInvoices.reduce(function (sum, invoice) { return sum + invoiceBalance(invoice); }, 0);
+        var overdue = clientInvoices.filter(function (invoice) { return invoice.status === "Overdue"; }).length;
+        var accepted = clientQuotes.filter(function (quote) { return quote.status === "Accepted" || quote.status === "Converted"; }).length;
+        var score = Math.max(0, Math.min(100, 50 + Math.min(25, value / 500) + accepted * 5 - overdue * 18 - (outstanding > value * .6 && value ? 12 : 0)));
+        var segment = overdue ? "At risk" : score >= 75 ? "Priority" : score >= 58 ? "Growth" : clientInvoices.length ? "Stable" : "New";
+        var action = overdue ? "Follow up overdue balance" : clientQuotes.some(function (quote) { return quote.status === "Sent"; }) ? "Follow up open quote" : clientInvoices.length ? "Schedule relationship check-in" : "Create first document";
+        return { name: name, score: Math.round(score), segment: segment, value: value, outstanding: outstanding, action: action };
+      }).sort(function (a, b) { return b.score - a.score; });
+      if (!rows.length) { wrap.innerHTML = '<p class="widget-empty">Add clients and documents to calculate customer intelligence.</p>'; return; }
+      wrap.innerHTML = '<div class="table-wrap"><table class="data-table"><thead><tr><th>Customer</th><th>Health</th><th>Segment</th><th>Lifetime value</th><th>Outstanding</th><th>Suggested next action</th></tr></thead><tbody>' + rows.map(function (row) {
+        var badge = row.segment === "At risk" ? "badge-danger" : row.segment === "Priority" ? "badge-success" : "badge-default";
+        return '<tr><td><strong>' + escapeHtml(row.name) + '</strong></td><td>' + row.score + '/100</td><td><span class="badge ' + badge + '">' + row.segment + '</span></td><td>' + currency(row.value) + '</td><td>' + currency(row.outstanding) + '</td><td>' + escapeHtml(row.action) + '</td></tr>';
+      }).join("") + '</tbody></table></div><p style="margin-top:0.65rem;font-size:0.72rem;color:hsl(var(--muted-fg));">Scores use only saved invoice, quote and payment activity. They are operational indicators, not credit scores.</p>';
     }
     function populateLeadStageSelect() {
       var sel = document.getElementById("al-stage");
@@ -10150,6 +10328,8 @@ window.profactureTrack = function(name, params) {
       document.getElementById("ae-recurring").checked = false;
       document.getElementById("ae-receipt").value = "";
       document.getElementById("ae-receipt-preview").innerHTML = "";
+      document.getElementById("ae-ocr-review").innerHTML = "";
+      document.getElementById("ae-scan-receipt").disabled = true;
       aeReceiptDataUrl = null;
       document.getElementById("ae-overlay").classList.add("open");
       document.body.style.overflow = "hidden";
@@ -10165,13 +10345,34 @@ window.profactureTrack = function(name, params) {
     var aeReceiptEl = document.getElementById("ae-receipt");
     if (aeReceiptEl) aeReceiptEl.addEventListener("change", function (e) {
       var file = e.target.files[0];
-      if (!file || file.type.indexOf("image/") !== 0) return;
+      if (!file || (file.type.indexOf("image/") !== 0 && file.type !== "application/pdf")) return;
+      if (file.size > 10 * 1024 * 1024) { showToast("Receipt must be 10 MB or smaller."); e.target.value = ""; return; }
       var reader = new FileReader();
       reader.onload = function () {
         aeReceiptDataUrl = reader.result;
-        document.getElementById("ae-receipt-preview").innerHTML = '<img src="' + aeReceiptDataUrl + '" style="width:4rem;height:4rem;border-radius:var(--radius-sm);object-fit:cover;" />';
+        document.getElementById("ae-receipt-preview").innerHTML = file.type === "application/pdf" ? '<span class="badge badge-default">PDF · ' + escapeHtml(file.name) + '</span>' : '<img src="' + aeReceiptDataUrl + '" alt="Receipt preview" style="width:4rem;height:4rem;border-radius:var(--radius-sm);object-fit:cover;" />';
+        document.getElementById("ae-scan-receipt").disabled = false;
       };
       reader.readAsDataURL(file);
+    });
+    var aeScanReceiptBtn = document.getElementById("ae-scan-receipt");
+    if (aeScanReceiptBtn) aeScanReceiptBtn.addEventListener("click", async function () {
+      if (!aeReceiptDataUrl || !window.profactureScanDocument) { showToast("Sign in and choose a receipt first."); return; }
+      aeScanReceiptBtn.disabled = true; aeScanReceiptBtn.textContent = "Scanning securely...";
+      var review = document.getElementById("ae-ocr-review"); review.innerHTML = '<span class="badge badge-default">Extracting fields for review</span>';
+      try {
+        var response = await window.profactureScanDocument({ dataUrl: aeReceiptDataUrl, companyId: wsActiveId });
+        var value = response.extraction || {};
+        if (value.title) document.getElementById("ae-title").value = value.title;
+        if (value.vendor) document.getElementById("ae-vendor").value = value.vendor;
+        if (value.date) document.getElementById("ae-date").value = value.date;
+        if (Number(value.amount) > 0) document.getElementById("ae-amount").value = Number(value.amount).toFixed(2);
+        if (EXPENSE_CATEGORIES.indexOf(value.category) !== -1) document.getElementById("ae-category").value = value.category;
+        review.innerHTML = '<div class="ai-action-card"><strong>Review extracted fields</strong><p>Confidence ' + Math.round(Number(value.confidence || 0) * 100) + '% · Tax ' + aiMoney(value.taxAmount || 0, value.currency || currentCurrency) + (value.reference ? ' · Ref ' + escapeHtml(value.reference) : '') + '</p><p>No expense has been saved yet.</p></div>';
+        showToast("Receipt fields extracted. Please verify before adding.");
+      } catch (error) {
+        review.innerHTML = '<p style="color:hsl(var(--danger));">Scan unavailable or daily OCR limit reached. Enter fields manually.</p>';
+      } finally { aeScanReceiptBtn.disabled = false; aeScanReceiptBtn.textContent = "Scan again"; }
     });
     var aeSubmitBtn = document.getElementById("ae-submit");
     if (aeSubmitBtn) aeSubmitBtn.addEventListener("click", function () {
@@ -10188,6 +10389,8 @@ window.profactureTrack = function(name, params) {
         approval: "Pending",
         recurring: document.getElementById("ae-recurring").checked,
         receipt: aeReceiptDataUrl,
+        companyId: wsActiveId,
+        updatedAt: new Date().toISOString(),
       });
       renderExpensesAll();
       aeClose();
@@ -10497,6 +10700,42 @@ window.profactureTrack = function(name, params) {
       var invoicesLbl = document.getElementById("rpt-ring-invoices-lbl");
       if (invoicesLbl) invoicesLbl.innerHTML = invoicesPct + '% <span style="font-weight:500;color:hsl(var(--muted-fg));">Invoices paid</span>';
     }
+    function renderCashflowForecast() {
+      var grid = document.getElementById("cashflow-forecast-grid");
+      var chart = document.getElementById("cashflow-forecast-chart");
+      var assumptions = document.getElementById("cashflow-forecast-assumptions");
+      if (!grid || !chart || !assumptions) return;
+      var invoices = activeCompanyItems(INVOICES);
+      var quotes = activeCompanyItems(QUOTES);
+      var expenses = activeCompanyItems(EXPENSES);
+      if (!invoices.length && !quotes.length && !expenses.length) {
+        grid.innerHTML = '<p class="widget-empty" style="grid-column:1/-1;">Save invoices, quotes or expenses to build a forecast.</p>'; chart.innerHTML = ""; assumptions.textContent = "No synthetic figures are shown."; return;
+      }
+      var today = new Date();
+      var recurringMonthly = expenses.filter(function (expense) { return expense.recurring; }).reduce(function (sum, expense) { return sum + Number(expense.amount || 0); }, 0);
+      function forecast(days) {
+        var horizon = new Date(today.getTime() + days * 86400000);
+        var invoiceIn = invoices.reduce(function (sum, invoice) {
+          var balance = invoiceBalance(invoice); if (!balance) return sum;
+          var due = invoice.due ? new Date(invoice.due + "T23:59:59") : horizon;
+          if (due > horizon) return sum;
+          var probability = invoice.status === "Overdue" ? .45 : invoice.status === "Viewed" ? .8 : invoice.status === "Sent" || invoice.status === "Partially paid" ? .7 : .25;
+          return sum + balance * probability;
+        }, 0);
+        var quoteIn = quotes.reduce(function (sum, quote) {
+          if (["Rejected", "Converted"].indexOf(quote.status) !== -1) return sum;
+          var probability = quote.status === "Accepted" ? .85 : quote.status === "Sent" ? .35 : .1;
+          return sum + Number(quote.total || 0) * probability;
+        }, 0);
+        var out = recurringMonthly * (days / 30);
+        return { days: days, inflow: invoiceIn + quoteIn, outflow: out, net: invoiceIn + quoteIn - out };
+      }
+      var forecasts = [forecast(30), forecast(60), forecast(90)];
+      grid.innerHTML = forecasts.map(function (item) { return '<div class="card stat-card"><div><div class="lbl">Next ' + item.days + ' days</div><div class="val tnum" style="color:' + (item.net >= 0 ? 'hsl(var(--success))' : 'hsl(var(--danger))') + ';">' + currency(item.net) + '</div><div style="font-size:0.7rem;color:hsl(var(--muted-fg));">In ' + currency(item.inflow) + ' · Out ' + currency(item.outflow) + '</div></div></div>'; }).join("");
+      var max = Math.max.apply(null, forecasts.map(function (item) { return Math.max(Math.abs(item.inflow), Math.abs(item.outflow)); }).concat([1]));
+      chart.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;height:150px;align-items:end;">' + forecasts.map(function (item) { return '<div style="display:flex;gap:0.35rem;height:100%;align-items:end;justify-content:center;border-bottom:1px solid hsl(var(--border));"><div title="Expected inflow" style="width:28px;height:' + Math.max(4, item.inflow / max * 125) + 'px;background:hsl(var(--success));border-radius:4px 4px 0 0;"></div><div title="Recurring outflow" style="width:28px;height:' + Math.max(4, item.outflow / max * 125) + 'px;background:hsl(var(--danger));border-radius:4px 4px 0 0;"></div></div>'; }).join("") + '</div>';
+      assumptions.textContent = "Estimate only: open invoices are weighted 25-80% by status, overdue balances 45%, sent quotes 35%, accepted quotes 85%, and recurring expenses repeat monthly. Green is expected inflow; red is recurring outflow.";
+    }
     function renderReportsInit() {
       renderReportsStats();
       renderReportsMonthChart();
@@ -10505,7 +10744,9 @@ window.profactureTrack = function(name, params) {
       renderTopCustomers();
       renderBestSellers();
       renderAIInsights("rpt-ai-insights");
+      renderCashflowForecast();
     }
+    window.renderReportsInit = renderReportsInit;
     var rptExportCsvBtn = document.getElementById("rpt-export-csv-btn");
     if (rptExportCsvBtn) rptExportCsvBtn.addEventListener("click", function () {
       var rptRevenue = 0, rptOutstanding = 0, rptExpenses = 0;
@@ -10713,6 +10954,9 @@ window.profactureTrack = function(name, params) {
         recurring: document.getElementById("at-recurring").value === "1",
         attachments: 0,
         project: document.getElementById("at-project") ? document.getElementById("at-project").value : "",
+        notes: document.getElementById("at-notes").value.trim(),
+        companyId: wsActiveId,
+        updatedAt: new Date().toISOString(),
       });
       renderTasksAll();
       if (typeof renderProjectsAll === "function") renderProjectsAll();
@@ -11258,6 +11502,7 @@ window.profactureTrack = function(name, params) {
   const db = getFirestore(firebaseApp);
 	const functions = getFunctions(firebaseApp, "us-central1");
 	const askAiCallable = httpsCallable(functions, "aiAssistant", { limitedUseAppCheckTokens: true });
+	const aiDocumentScanCallable = httpsCallable(functions, "aiDocumentScan", { limitedUseAppCheckTokens: true });
 	const aiHistoryCallable = httpsCallable(functions, "aiHistory", { limitedUseAppCheckTokens: true });
 	const storageManagerCallable = httpsCallable(functions, "storageManager", { limitedUseAppCheckTokens: true });
 	const aiUsageCallable = httpsCallable(functions, "aiUsage", { limitedUseAppCheckTokens: true });
@@ -11271,6 +11516,16 @@ window.profactureTrack = function(name, params) {
 	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
 	  const result = await aiHistoryCallable({ operation, companyId });
 	  return result.data || { messages: [] };
+	};
+	window.profactureScanDocument = async payload => {
+	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
+	  const result = await aiDocumentScanCallable(payload);
+	  return result.data || {};
+	};
+	window.profactureAiUsage = async companyId => {
+	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
+	  const result = await aiUsageCallable({ companyId });
+	  return result.data || {};
 	};
 	window.profactureStorageManager = async payload => {
 	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");

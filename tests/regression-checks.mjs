@@ -65,8 +65,9 @@ assert(!/>[^<]*Gemini[^<]*</i.test(index), "The public UI must not expose the AI
 assert(functionsSource.includes("defineSecret('PROFACTURE_AI_API_KEY')"), "AI provider key must use Firebase Secret Manager");
 assert(functionsSource.includes('exports.aiAssistant = onCall'), "AI callable backend must exist");
 assert(functionsSource.includes('exports.aiHistory = onCall'), "Company-scoped AI cloud history must exist");
-assert(functionsSource.includes('perDay: 25') && functionsSource.includes('globalPerMonth: 2000'), "AI cost ceilings must remain conservative");
+assert(functionsSource.includes('perDay: 30') && functionsSource.includes('ocrPerDay: 5') && functionsSource.includes('globalPerMonth: 2000'), "AI cost ceilings must remain conservative");
 assert(functionsSource.includes('globalTokensPerMonth: 2500000'), "AI monthly token ceiling is missing");
+assert(functionsSource.includes('globalCostUsd: 5') && functionsSource.includes('estimatedCostUsd'), "AI monetary budget guard is missing");
 assert(functionsSource.includes('consumeAppCheckToken: true'), "AI callable replay protection must remain enabled");
 assert(functionsSource.includes('normalizeAiAction(parsed.action, context)'), "AI actions must be validated server-side");
 assert(functionsSource.includes('exports.storageManager = onCall'), "Server-enforced storage quota manager is missing");
@@ -79,6 +80,11 @@ assert(index.includes('function readAllCloudDocs(user, collectionName)'), "Cloud
 assert(index.includes('integrity="sha384-'), "Pinned CDN integrity metadata is missing");
 assert(index.includes('id="ai-history-clear"') && index.includes('id="ai-usage"'), "AI history and usage controls are missing");
 assert(index.includes('Review & apply · '), "AI document actions must show a review step");
+assert(functionsSource.includes('exports.aiDocumentScan = onCall') && index.includes('id="ae-scan-receipt"'), "Secure receipt OCR review is missing");
+assert(index.includes('id="ai-cost-panel"') && index.includes('id="ai-memory-notes"'), "AI company memory and cost controls are missing");
+assert(index.includes('id="ai-automation-rules"') && index.includes('function evaluateAutomationRules()'), "Review-only automations are missing");
+assert(index.includes('id="cashflow-forecast-grid"') && index.includes('function renderCashflowForecast()'), "Cash-flow forecast is missing");
+assert(index.includes('id="crm-intelligence-list"') && index.includes('function renderCrmIntelligence()'), "CRM intelligence is missing");
 assert(index.includes('aria-modal="true"') && index.includes('role="log"'), "AI dialog accessibility contract changed");
 assert(functionsSource.includes('Never save, send, email, delete, or charge anything'), "AI backend must forbid destructive autonomous actions");
 
