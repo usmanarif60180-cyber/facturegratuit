@@ -697,6 +697,7 @@ window.profactureTrack = function(name, params) {
   .ad-slot .ad-lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
   @media (max-width: 900px) {
     .ad-strip, .ad-slot, [data-adsterra-live] { display: none !important; }
+    .acp-brand-grid { grid-template-columns: 1fr !important; }
   }
   #print-area { display: none; }
   .print-doc { box-sizing: border-box; display: flex; flex-direction: column; background: #fff; color: #111; }
@@ -4021,6 +4022,17 @@ window.profactureTrack = function(name, params) {
           <div><label class="field-label" data-i18n="fld_industry">Industry</label><input class="field" id="acp-industry" placeholder="Construction, Freelance…" /></div>
           <div><label class="field-label" data-i18n="fld_website">Website</label><input class="field" id="acp-website" placeholder="example.com" /></div>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
+          <div><label class="field-label">Marque / badge</label><select class="field" id="acp-badge"><option value="">Standard</option><option value="VIP">VIP</option><option value="Premium">Premium</option><option value="Partner">Partner</option></select></div>
+          <div><label class="field-label">Tags</label><input class="field" id="acp-tags" placeholder="Bâtiment, automobile, marketplace…" /></div>
+        </div>
+        <div><label class="field-label">Logo, cachet et signature de cette entreprise</label>
+          <div class="acp-brand-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0.7rem;">
+            <div class="card" style="padding:0.7rem;"><div id="acp-logo-preview" style="height:70px;display:flex;align-items:center;justify-content:center;margin-bottom:0.5rem;color:hsl(var(--muted-fg));font-size:0.72rem;">Aucun logo</div><label class="btn btn-outline btn-sm" style="width:100%;justify-content:center;cursor:pointer;">Logo<input id="acp-logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden /></label><button class="btn btn-ghost btn-sm" type="button" data-acp-asset-remove="logo" style="width:100%;color:hsl(var(--danger));">Supprimer</button></div>
+            <div class="card" style="padding:0.7rem;"><div id="acp-stamp-preview" style="height:70px;display:flex;align-items:center;justify-content:center;margin-bottom:0.5rem;color:hsl(var(--muted-fg));font-size:0.72rem;">Aucun cachet</div><label class="btn btn-outline btn-sm" style="width:100%;justify-content:center;cursor:pointer;">Cachet<input id="acp-stamp-file" type="file" accept="image/png,image/jpeg,image/webp" hidden /></label><button class="btn btn-ghost btn-sm" type="button" data-acp-asset-remove="stamp" style="width:100%;color:hsl(var(--danger));">Supprimer</button></div>
+            <div class="card" style="padding:0.7rem;"><div id="acp-signature-preview" style="height:70px;display:flex;align-items:center;justify-content:center;margin-bottom:0.5rem;color:hsl(var(--muted-fg));font-size:0.72rem;">Aucune signature</div><label class="btn btn-outline btn-sm" style="width:100%;justify-content:center;cursor:pointer;">Signature<input id="acp-signature-file" type="file" accept="image/png,image/jpeg,image/webp" hidden /></label><button class="btn btn-ghost btn-sm" type="button" data-acp-asset-remove="signature" style="width:100%;color:hsl(var(--danger));">Supprimer</button></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="cw-foot"><span></span><button class="btn btn-primary btn-sm" id="acp-submit" data-i18n="btn_add_company">Add company</button></div>
@@ -6517,18 +6529,57 @@ window.profactureTrack = function(name, params) {
 
     // ---- workspace switcher: multiple independent companies, one account ----
     var COMPANIES = [
-      { id: "c1", name: "Your Business", type: "General business", currency: "USD", country: "United States" },
+      { id: "c1", name: "Your Business", type: "General business", currency: "USD", country: "United States", isPlaceholder: true },
     ];
     window.COMPANIES = COMPANIES;
     var wsActiveId = localStorage.getItem("profacture_active_company_id") || "c1";
     function rememberActiveCompany() { localStorage.setItem("profacture_active_company_id", wsActiveId); }
+    function managedCompanyWorkspaces() {
+      var list = Array.isArray(COMPANIES) ? COMPANIES : [];
+      var live = list.filter(function (company) { return company && !company.deletedAt; });
+      var real = live.filter(function (company) { return !company.isPlaceholder && company.sourceCompanyId; });
+      return real.length ? real : live;
+    }
+    function activeCompanyWorkspace() {
+      var list = Array.isArray(COMPANIES) ? COMPANIES : [];
+      return list.filter(function (company) { return company && !company.deletedAt && company.id === wsActiveId; })[0] || managedCompanyWorkspaces()[0] || null;
+    }
+    function normalizeCompanyWorkspaces() {
+      if (!Array.isArray(COMPANIES)) return;
+      var seenSources = {};
+      COMPANIES.forEach(function (workspace) {
+        if (!workspace || workspace.deletedAt || !workspace.sourceCompanyId) return;
+        if (seenSources[workspace.sourceCompanyId]) {
+          workspace.deletedAt = workspace.deletedAt || new Date().toISOString();
+          workspace.updatedAt = workspace.deletedAt;
+          return;
+        }
+        seenSources[workspace.sourceCompanyId] = workspace.id;
+      });
+      (Array.isArray(window.CUSTOMER_COMPANIES) ? window.CUSTOMER_COMPANIES : []).forEach(function (company) {
+        if (!company || company.deletedAt) return;
+        var workspace = COMPANIES.filter(function (item) { return item && !item.deletedAt && item.sourceCompanyId === company.id; })[0];
+        if (!workspace) {
+          workspace = Object.assign({}, company, { id: "ws-" + company.id, sourceCompanyId: company.id, type: company.industry || company.type || "General business" });
+          COMPANIES.push(workspace);
+        } else {
+          Object.assign(workspace, company, { id: workspace.id, sourceCompanyId: company.id, type: company.industry || company.type || "General business" });
+        }
+      });
+      var active = activeCompanyWorkspace();
+      if (active) wsActiveId = active.id;
+    }
     function ensureActiveCompany() {
-      if (!COMPANIES.some(function (company) { return company.id === wsActiveId; })) {
-        wsActiveId = COMPANIES.length ? COMPANIES[0].id : "c1";
+      normalizeCompanyWorkspaces();
+      if (!COMPANIES.some(function (company) { return !company.deletedAt && company.id === wsActiveId; })) {
+        var fallbackCompany = managedCompanyWorkspaces()[0];
+        wsActiveId = fallbackCompany ? fallbackCompany.id : "c1";
         rememberActiveCompany();
       }
       wsRenderAll();
       populateDocumentCompanySelects();
+      renderCompaniesTable();
+      renderCompanyScopedViews();
     }
     window.profactureEnsureActiveCompany = ensureActiveCompany;
 
@@ -6537,6 +6588,7 @@ window.profactureTrack = function(name, params) {
     }
 
     function wsRenderAll() {
+      normalizeCompanyWorkspaces();
       var active = COMPANIES.filter(function (c) { return c.id === wsActiveId; })[0];
       if (!active) return;
       var activeProfile = currentCompanyProfile();
@@ -6546,12 +6598,13 @@ window.profactureTrack = function(name, params) {
       document.querySelectorAll("[data-ws-menu-inner]").forEach(function (el) {
         el.innerHTML =
           '<p class="ws-menu-label">Your companies</p>' +
-          COMPANIES.map(function (c) {
+          managedCompanyWorkspaces().map(function (c) {
             var displayName = c.id === wsActiveId ? activeName : c.name;
+            var badge = c.badge ? '<span class="badge badge-primary" style="margin-left:auto;">' + escapeHtml(c.badge) + '</span>' : "";
             return (
               '<button class="ws-item" data-ws-switch="' + c.id + '">' +
               '<span class="ws-avatar">' + wsInitials(displayName) + "</span>" +
-              '<span class="meta"><span class="n">' + escapeHtml(displayName) + '</span><span class="t">' + escapeHtml(c.type) + "</span></span>" +
+              '<span class="meta"><span class="n">' + escapeHtml(displayName) + '</span><span class="t">' + escapeHtml(c.type) + "</span></span>" + badge +
               (c.id === wsActiveId ? '<span class="check">✓</span>' : "") +
               "</button>"
             );
@@ -6587,6 +6640,10 @@ window.profactureTrack = function(name, params) {
           currentCurrency = c.currency || currentCurrency;
           populateDocumentCompanySelects();
           renderCompanyProfileForm();
+          renderLogoPreview();
+          renderStampPreview();
+          renderSignatureStatus();
+          renderCompanyScopedViews();
           renderInvoicePreview();
           renderQuotePreview();
           showToast("Switched to " + c.name);
@@ -6706,10 +6763,17 @@ window.profactureTrack = function(name, params) {
         if (cwStep === 0 && !cwDraft.name.trim()) { nameInput.focus(); return; }
         playSound("click");
         if (isLast) {
-          var id = "c" + (COMPANIES.length + 1);
-          COMPANIES.push({ id: id, name: cwDraft.name.trim(), type: cwDraft.industry || "General business", currency: cwDraft.currency, country: cwDraft.country });
-          wsActiveId = id;
+          var customerId = "co" + Date.now();
+          var company = { id: customerId, name: cwDraft.name.trim(), industry: cwDraft.industry || "General business", type: cwDraft.industry || "General business", currency: cwDraft.currency, country: cwDraft.country, paletteId: cwDraft.paletteId, templateId: cwDraft.templateId, updatedAt: new Date().toISOString() };
+          CUSTOMER_COMPANIES.push(company);
+          var workspace = Object.assign({}, company, { id: "ws-" + customerId, sourceCompanyId: customerId });
+          COMPANIES.push(workspace);
+          wsActiveId = workspace.id;
           rememberActiveCompany();
+          renderCompaniesTable();
+          populateDocumentCompanySelects();
+          if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+          if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
           wsRenderAll();
           cwClose();
           showToast(cwDraft.name.trim() + " is ready — switched to your new workspace");
@@ -7113,11 +7177,29 @@ window.profactureTrack = function(name, params) {
     function clientStatusBadgeClass(s) { return s === "Active" ? "badge-success" : s === "Lead" ? "badge-info" : s === "At risk" ? "badge-warning" : "badge-danger"; }
     function findClientByCompany(company) { return CLIENTS.filter(function (c) { return c.company === company; })[0]; }
     function clientDisplayName(client) { return client && client.company && client.company !== "—" ? client.company : (client ? client.name : "—"); }
+    function belongsToActiveCompany(item) {
+      if (!item) return false;
+      if (!item.companyId) {
+        var savedName = item.companyProfile && item.companyProfile.name ? String(item.companyProfile.name).trim().toLowerCase() : "";
+        var matched = savedName ? managedCompanyWorkspaces().filter(function (company) { return String(company.name || "").trim().toLowerCase() === savedName; })[0] : null;
+        item.companyId = matched ? matched.id : wsActiveId;
+      }
+      return item.companyId === wsActiveId;
+    }
+    function activeCompanyItems(items) { return (Array.isArray(items) ? items : []).filter(belongsToActiveCompany); }
+    function renderCompanyScopedViews() {
+      renderClientsTable(document.getElementById("clients-search") ? document.getElementById("clients-search").value : "");
+      renderInvoicesAll();
+      renderQuotesTable();
+      populateInvoiceNewClientSelect();
+      populateQuoteNewClientSelect();
+    }
     function renderClientsTable(filterText) {
       var tbody = document.querySelector("#clients-table tbody");
       if (!tbody) return;
       var q = (filterText || "").toLowerCase();
       var rows = CLIENTS.filter(function (c) {
+        if (!belongsToActiveCompany(c)) return false;
         return !q || c.name.toLowerCase().indexOf(q) !== -1 || c.company.toLowerCase().indexOf(q) !== -1 || c.email.toLowerCase().indexOf(q) !== -1;
       });
       tbody.innerHTML = rows.length ? rows.map(function (c) {
@@ -7244,6 +7326,7 @@ window.profactureTrack = function(name, params) {
         since: clientRecord ? clientRecord.since : new Date().toISOString().slice(0, 10),
         contacts: clientRecord ? clientContacts(clientRecord) : [],
         timeline: clientRecord ? clientTimeline(clientRecord) : [{ type: "note", text: "Client added", date: new Date().toISOString().slice(0, 10) }],
+        companyId: clientRecord ? (clientRecord.companyId || wsActiveId) : wsActiveId,
         updatedAt: new Date().toISOString()
       };
       if (clientRecord) Object.assign(clientRecord, clientData); else CLIENTS.push(clientData);
@@ -7383,26 +7466,93 @@ window.profactureTrack = function(name, params) {
     // ---- Companies (organizations behind customers/leads) ----
     var CUSTOMER_COMPANIES = [];
     window.CUSTOMER_COMPANIES = CUSTOMER_COMPANIES;
+    function companyBadgeHtml(company) {
+      var parts = [];
+      if (company.badge) parts.push('<span class="badge badge-primary">' + escapeHtml(company.badge) + "</span>");
+      String(company.tags || "").split(",").map(function (tag) { return tag.trim(); }).filter(Boolean).slice(0, 3).forEach(function (tag) {
+        parts.push('<span class="badge badge-default">' + escapeHtml(tag) + "</span>");
+      });
+      return parts.length ? '<div style="display:flex;gap:0.3rem;flex-wrap:wrap;margin-top:0.3rem;">' + parts.join("") + "</div>" : "";
+    }
     function renderCompaniesTable() {
       var tbody = document.querySelector("#companies-table tbody");
       if (!tbody) return;
-      tbody.innerHTML = CUSTOMER_COMPANIES.length ? CUSTOMER_COMPANIES.map(function (c) {
+      var visibleCompanies = CUSTOMER_COMPANIES.filter(function (company) { return company && !company.deletedAt; });
+      tbody.innerHTML = visibleCompanies.length ? visibleCompanies.map(function (c) {
         var active = COMPANIES.some(function (workspace) { return workspace.sourceCompanyId === c.id && workspace.id === wsActiveId; });
-        return '<tr><td class="link-strong">' + escapeHtml(c.name) + (active ? ' <span class="badge badge-success">Active</span>' : "") + "</td><td>" + escapeHtml(c.siret || "—") + "</td><td>" + escapeHtml(c.address || "—") + "</td><td>" + escapeHtml(c.email || c.phone || "—") +
-          '</td><td style="text-align:right;white-space:nowrap;"><button class="btn btn-primary btn-sm" data-company-apply="' + c.id + '">✓ Use</button> <button class="btn btn-outline btn-sm" data-company-edit="' + c.id + '">✎ ' + escapeHtml(t("btn_edit")) + "</button></td></tr>";
+        return '<tr><td class="link-strong">' + escapeHtml(c.name) + (active ? ' <span class="badge badge-success">Active</span>' : "") + companyBadgeHtml(c) + "</td><td>" + escapeHtml(c.siret || "—") + "</td><td>" + escapeHtml(c.address || "—") + "</td><td>" + escapeHtml(c.email || c.phone || "—") +
+          '</td><td style="text-align:right;white-space:nowrap;"><button class="btn btn-primary btn-sm" data-company-apply="' + c.id + '">✓ Use</button> <button class="btn btn-outline btn-sm" data-company-edit="' + c.id + '">✎ ' + escapeHtml(t("btn_edit")) + '</button> <button class="btn btn-ghost btn-sm" data-company-delete="' + c.id + '" title="Supprimer cette entreprise" style="color:hsl(var(--danger));">🗑️</button></td></tr>';
       }).join("") : '<tr><td colspan="5" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No companies yet.</td></tr>';
     }
     var editingCustomerCompanyId = null;
+    var acpAssetDraft = { logo: "", stamp: "", signature: "" };
+    function renderAcpAssetPreviews() {
+      [["logo", "Logo"], ["stamp", "Cachet"], ["signature", "Signature"]].forEach(function (entry) {
+        var key = entry[0], label = entry[1];
+        var preview = document.getElementById("acp-" + key + "-preview");
+        if (!preview) return;
+        preview.innerHTML = acpAssetDraft[key]
+          ? '<img src="' + escapeHtml(acpAssetDraft[key]) + '" alt="' + label + '" style="max-width:100%;max-height:68px;object-fit:contain;" />'
+          : "Aucun " + (key === "signature" ? "signature" : key === "stamp" ? "cachet" : "logo");
+      });
+    }
+    function readOptimizedCompanyAsset(file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onerror = function () { reject(new Error("Lecture impossible")); };
+        reader.onload = function () {
+          var image = new Image();
+          image.onerror = function () { reject(new Error("Image invalide")); };
+          image.onload = function () {
+            var maxSide = 560;
+            var scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+            var canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(image.width * scale));
+            canvas.height = Math.max(1, Math.round(image.height * scale));
+            canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+            var result = canvas.toDataURL("image/webp", 0.78);
+            if (result.length > 240000) result = canvas.toDataURL("image/webp", 0.52);
+            resolve(result);
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    function bindAcpAssetInput(key) {
+      var input = document.getElementById("acp-" + key + "-file");
+      if (!input || input.dataset.bound === "1") return;
+      input.dataset.bound = "1";
+      input.addEventListener("change", async function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        if (!/^image\/(png|jpe?g|webp)$/i.test(file.type || "") || file.size > 5 * 1024 * 1024) {
+          showToast("Utilisez une image PNG, JPG ou WebP de moins de 5 Mo");
+          input.value = "";
+          return;
+        }
+        try {
+          acpAssetDraft[key] = await readOptimizedCompanyAsset(file);
+          renderAcpAssetPreviews();
+        } catch (error) {
+          showToast("Impossible de lire cette image");
+        }
+      });
+    }
     function acpOpen(companyId) {
       editingCustomerCompanyId = companyId || null;
       var company = editingCustomerCompanyId ? CUSTOMER_COMPANIES.filter(function (c) { return c.id === editingCustomerCompanyId; })[0] : null;
       var values = {
         "acp-name": company ? company.name : "", "acp-siret": company ? (company.siret || "") : "", "acp-vat": company ? (company.vat || "") : "",
         "acp-address": company ? (company.address || "") : "", "acp-email": company ? (company.email || "") : "", "acp-phone": company ? (company.phone || "") : "",
-        "acp-country": company ? (company.country || "France") : "France", "acp-industry": company ? (company.industry || "") : "", "acp-website": company ? (company.website || "") : ""
+        "acp-country": company ? (company.country || "France") : "France", "acp-industry": company ? (company.industry || "") : "", "acp-website": company ? (company.website || "") : "",
+        "acp-badge": company ? (company.badge || "") : "", "acp-tags": company ? (company.tags || "") : ""
       };
       Object.keys(values).forEach(function (id) { document.getElementById(id).value = values[id]; });
       document.getElementById("acp-currency").value = company ? (company.currency || "EUR") : "EUR";
+      acpAssetDraft = { logo: company ? (company.logo || "") : "", stamp: company ? (company.stamp || "") : "", signature: company ? (company.signature || "") : "" };
+      ["logo", "stamp", "signature"].forEach(bindAcpAssetInput);
+      renderAcpAssetPreviews();
       document.getElementById("acp-title").textContent = company ? t("btn_edit") + " " + t("fld_company_name") : t("btn_add_company");
       document.getElementById("acp-submit").textContent = company ? t("btn_save_changes") : t("btn_add_company");
       document.getElementById("acp-overlay").classList.add("open");
@@ -7434,6 +7584,11 @@ window.profactureTrack = function(name, params) {
         currency: document.getElementById("acp-currency").value,
         industry: document.getElementById("acp-industry").value.trim(),
         website: document.getElementById("acp-website").value.trim(),
+        badge: document.getElementById("acp-badge").value,
+        tags: document.getElementById("acp-tags").value.trim(),
+        logo: acpAssetDraft.logo || "",
+        stamp: acpAssetDraft.stamp || "",
+        signature: acpAssetDraft.signature || "",
         updatedAt: new Date().toISOString()
       };
       if (existing) Object.assign(existing, companyData); else CUSTOMER_COMPANIES.push(companyData);
@@ -7448,7 +7603,7 @@ window.profactureTrack = function(name, params) {
     var companyAddBtnEl = document.getElementById("company-add-btn");
     if (companyAddBtnEl) companyAddBtnEl.addEventListener("click", function () { acpOpen(); });
     function applyCustomerCompany(companyId, silent) {
-      var company = CUSTOMER_COMPANIES.filter(function (c) { return c.id === companyId; })[0];
+      var company = CUSTOMER_COMPANIES.filter(function (c) { return c.id === companyId && !c.deletedAt; })[0];
       if (!company) return;
       var workspace = COMPANIES.filter(function (c) { return c.sourceCompanyId === company.id; })[0];
       if (!workspace) {
@@ -7464,16 +7619,54 @@ window.profactureTrack = function(name, params) {
       renderInvoicePreview();
       renderQuotePreview();
       renderCompaniesTable();
+      renderLogoPreview();
+      renderStampPreview();
+      renderSignatureStatus();
+      renderCompanyScopedViews();
       if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
       if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
       if (!silent) showToast(company.name + " selected for invoices and quotes");
     }
     document.body.addEventListener("click", function (e) {
+      var removeAssetBtn = e.target.closest("[data-acp-asset-remove]");
+      if (removeAssetBtn) {
+        var assetKey = removeAssetBtn.getAttribute("data-acp-asset-remove");
+        acpAssetDraft[assetKey] = "";
+        var assetInput = document.getElementById("acp-" + assetKey + "-file");
+        if (assetInput) assetInput.value = "";
+        renderAcpAssetPreviews();
+        return;
+      }
       var editCompanyBtn = e.target.closest("[data-company-edit]");
       if (editCompanyBtn) { acpOpen(editCompanyBtn.getAttribute("data-company-edit")); return; }
       var applyCompanyBtn = e.target.closest("[data-company-apply]");
       if (applyCompanyBtn) applyCustomerCompany(applyCompanyBtn.getAttribute("data-company-apply"));
+      var deleteCompanyBtn = e.target.closest("[data-company-delete]");
+      if (deleteCompanyBtn) deleteCustomerCompany(deleteCompanyBtn.getAttribute("data-company-delete"));
     });
+    function deleteCustomerCompany(companyId) {
+      var company = CUSTOMER_COMPANIES.filter(function (item) { return item.id === companyId && !item.deletedAt; })[0];
+      if (!company) return;
+      var workspace = COMPANIES.filter(function (item) { return item.sourceCompanyId === companyId && !item.deletedAt; })[0];
+      var linkedId = workspace ? workspace.id : "";
+      var invoiceCount = INVOICES.filter(function (item) { return item.companyId === linkedId; }).length;
+      var quoteCount = QUOTES.filter(function (item) { return item.companyId === linkedId; }).length;
+      var warning = "Supprimer " + company.name + " ?" + (invoiceCount || quoteCount ? "\n\nSes " + invoiceCount + " facture(s) et " + quoteCount + " devis resteront archivés, mais cette entreprise ne sera plus disponible." : "") + "\n\nCette action est irréversible.";
+      if (!confirm(warning)) return;
+      var deletedAt = new Date().toISOString();
+      company.deletedAt = deletedAt;
+      company.updatedAt = deletedAt;
+      if (workspace) { workspace.deletedAt = deletedAt; workspace.updatedAt = deletedAt; }
+      if (wsActiveId === linkedId) {
+        var nextCompany = managedCompanyWorkspaces()[0];
+        wsActiveId = nextCompany ? nextCompany.id : "c1";
+        rememberActiveCompany();
+      }
+      ensureActiveCompany();
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+      showToast(company.name + " supprimée");
+    }
     var companiesInitDone = false;
     function renderCompaniesInit() {
       if (companiesInitDone) return;
@@ -8144,9 +8337,34 @@ window.profactureTrack = function(name, params) {
     function htmlLines(value) {
       return escapeHtml(value).replace(/\n/g, "<br>");
     }
-    function getCompanyLogo() { return localStorage.getItem("profacture_company_logo") || ""; }
-    function getCompanyStamp() { return localStorage.getItem("profacture_company_stamp") || ""; }
-    function getCompanySignature() { return localStorage.getItem("profacture_company_signature") || ""; }
+    function getCompanyAsset(field, legacyKey) {
+      var active = activeCompanyWorkspace();
+      if (active && active[field]) return active[field];
+      var legacy = localStorage.getItem(legacyKey) || "";
+      var migrationKey = "profacture_company_assets_migrated_" + field;
+      if (active && legacy && !localStorage.getItem(migrationKey)) {
+        active[field] = legacy;
+        localStorage.setItem(migrationKey, active.id);
+        return legacy;
+      }
+      return "";
+    }
+    function setCompanyAsset(field, legacyKey, value) {
+      var active = activeCompanyWorkspace();
+      if (active) {
+        active[field] = value || "";
+        active.updatedAt = new Date().toISOString();
+        var company = CUSTOMER_COMPANIES.filter(function (item) { return item.id === active.sourceCompanyId; })[0];
+        if (company) { company[field] = value || ""; company.updatedAt = active.updatedAt; }
+      }
+      if (value) localStorage.setItem(legacyKey, value); else localStorage.removeItem(legacyKey);
+      localStorage.setItem("profacture_company_assets_migrated_" + field, active ? active.id : "legacy");
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
+    }
+    function getCompanyLogo() { return getCompanyAsset("logo", "profacture_company_logo"); }
+    function getCompanyStamp() { return getCompanyAsset("stamp", "profacture_company_stamp"); }
+    function getCompanySignature() { return getCompanyAsset("signature", "profacture_company_signature"); }
     function getSavedCompanyProfile() {
       try {
         return JSON.parse(localStorage.getItem("profacture_company_profile") || "{}") || {};
@@ -8155,7 +8373,7 @@ window.profactureTrack = function(name, params) {
       }
     }
     function saveCompanyProfile(profile) {
-      var active = COMPANIES.filter(function (c) { return c.id === wsActiveId; })[0];
+      var active = activeCompanyWorkspace();
       var normalized = {
         name: (profile.name || "").trim(),
         siret: (profile.siret || "").trim(),
@@ -8165,14 +8383,18 @@ window.profactureTrack = function(name, params) {
         vat: (profile.vat != null ? profile.vat : (active && active.vat) || "").trim(),
         updatedAt: new Date().toISOString()
       };
-      if (active) Object.assign(active, normalized);
+      if (active) {
+        Object.assign(active, normalized);
+        var company = CUSTOMER_COMPANIES.filter(function (item) { return item.id === active.sourceCompanyId; })[0];
+        if (company) Object.assign(company, normalized);
+      }
       localStorage.setItem("profacture_company_profile", JSON.stringify(normalized));
       if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
       if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
     }
     function currentCompanyProfile() {
       var companyList = Array.isArray(COMPANIES) ? COMPANIES : [];
-      var active = companyList.filter(function (c) { return c.id === wsActiveId; })[0];
+      var active = activeCompanyWorkspace();
       var saved = getSavedCompanyProfile();
       var activeHasProfile = !!(active && (active.sourceCompanyId || active.siret || active.address || active.email || active.phone || active.vat));
       return {
@@ -8182,6 +8404,8 @@ window.profactureTrack = function(name, params) {
         email: (activeHasProfile ? active.email : saved.email) || "",
         phone: (activeHasProfile ? active.phone : saved.phone) || "",
         vat: (activeHasProfile ? active.vat : saved.vat) || "",
+        badge: (active && active.badge) || "",
+        tags: (active && active.tags) || "",
       };
     }
     function currentWorkspaceName() {
@@ -8197,9 +8421,9 @@ window.profactureTrack = function(name, params) {
       return key ? t(key) : status;
     }
     function buildDocPrintHtml(opts) {
-      var logo = getCompanyLogo();
-      var stamp = getCompanyStamp();
-      var sig = getCompanySignature();
+      var logo = opts.logo != null ? opts.logo : getCompanyLogo();
+      var stamp = opts.stamp != null ? opts.stamp : getCompanyStamp();
+      var sig = opts.signature != null ? opts.signature : getCompanySignature();
       var company = opts.companyProfile || currentCompanyProfile();
       var code = opts.currencyCode || "USD";
       var fmt = function (n) { return formatCurrency(n, code); };
@@ -8252,7 +8476,7 @@ window.profactureTrack = function(name, params) {
       if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "invoice", document_id: inv.id || "draft", currency: inv.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_invoice"), number: inv.id, client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress,
-        siret: inv.siret, clientContact: inv.clientContact, clientVat: inv.clientVat, clientEmail: inv.clientEmail, clientPhone: inv.clientPhone, companyProfile: inv.companyProfile,
+        siret: inv.siret, clientContact: inv.clientContact, clientVat: inv.clientVat, clientEmail: inv.clientEmail, clientPhone: inv.clientPhone, companyProfile: inv.companyProfile, logo: inv.logo, stamp: inv.stamp, signature: inv.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(inv.issue), dueLabel: t("fld_due_date"), dueDate: fmtDate(inv.due),
         items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency,
       }));
@@ -8261,7 +8485,7 @@ window.profactureTrack = function(name, params) {
       if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "quote", document_id: q.id || "draft", currency: q.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_quote"), number: q.id, client: q.client, clientAddress: q.clientAddress, siteAddress: q.siteAddress,
-        siret: q.siret, clientContact: q.clientContact, clientVat: q.clientVat, clientEmail: q.clientEmail, clientPhone: q.clientPhone, companyProfile: q.companyProfile,
+        siret: q.siret, clientContact: q.clientContact, clientVat: q.clientVat, clientEmail: q.clientEmail, clientPhone: q.clientPhone, companyProfile: q.companyProfile, logo: q.logo, stamp: q.stamp, signature: q.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(q.issue), dueLabel: t("fld_valid_until"), dueDate: fmtDate(q.validUntil),
         items: q.items, total: q.total, status: q.status, currencyCode: q.currency,
       }));
@@ -8327,7 +8551,7 @@ window.profactureTrack = function(name, params) {
       if (!file) return;
       var reader = new FileReader();
       reader.onload = function () {
-        localStorage.setItem("profacture_company_logo", reader.result);
+        setCompanyAsset("logo", "profacture_company_logo", reader.result);
         if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
         if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
         renderLogoPreview();
@@ -8339,7 +8563,7 @@ window.profactureTrack = function(name, params) {
     });
     var setLogoRemoveBtn = document.getElementById("set-logo-remove");
     if (setLogoRemoveBtn) setLogoRemoveBtn.addEventListener("click", function () {
-      localStorage.removeItem("profacture_company_logo");
+      setCompanyAsset("logo", "profacture_company_logo", "");
       if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
       if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
       if (setLogoFileEl) setLogoFileEl.value = "";
@@ -8353,7 +8577,7 @@ window.profactureTrack = function(name, params) {
       if (!file) return;
       var reader = new FileReader();
       reader.onload = function () {
-        localStorage.setItem("profacture_company_stamp", reader.result);
+        setCompanyAsset("stamp", "profacture_company_stamp", reader.result);
         if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
         if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
         renderStampPreview();
@@ -8365,7 +8589,7 @@ window.profactureTrack = function(name, params) {
     });
     var setStampRemoveBtn = document.getElementById("set-stamp-remove");
     if (setStampRemoveBtn) setStampRemoveBtn.addEventListener("click", function () {
-      localStorage.removeItem("profacture_company_stamp");
+      setCompanyAsset("stamp", "profacture_company_stamp", "");
       if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
       if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
       if (setStampFileEl) setStampFileEl.value = "";
@@ -8424,7 +8648,7 @@ window.profactureTrack = function(name, params) {
       var sigSaveBtn = document.getElementById("set-signature-save");
       if (sigSaveBtn) sigSaveBtn.addEventListener("click", function () {
         if (!sigHasStrokes) { showToast("Draw a signature first, or upload an image"); return; }
-        localStorage.setItem("profacture_company_signature", sigCanvas.toDataURL("image/png"));
+        setCompanyAsset("signature", "profacture_company_signature", sigCanvas.toDataURL("image/png"));
         if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
         if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
         renderSignatureStatus();
@@ -8439,7 +8663,7 @@ window.profactureTrack = function(name, params) {
       if (!file) return;
       var reader = new FileReader();
       reader.onload = function () {
-        localStorage.setItem("profacture_company_signature", reader.result);
+        setCompanyAsset("signature", "profacture_company_signature", reader.result);
         if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
         if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(900);
         renderSignatureStatus();
@@ -8502,10 +8726,12 @@ window.profactureTrack = function(name, params) {
 
     // ---- New Invoice: client select, addresses, SIRET, and save ----
     function populateDocumentCompanySelects() {
+      normalizeCompanyWorkspaces();
+      var availableCompanies = managedCompanyWorkspaces();
       ["inv-new-company", "q-new-company"].forEach(function (id) {
         var select = document.getElementById(id);
         if (!select) return;
-        select.innerHTML = COMPANIES.map(function (company) { return '<option value="' + company.id + '">' + escapeHtml(company.name) + "</option>"; }).join("");
+        select.innerHTML = availableCompanies.map(function (company) { return '<option value="' + company.id + '">' + escapeHtml(company.name) + (company.badge ? " · " + escapeHtml(company.badge) : "") + "</option>"; }).join("");
         select.value = wsActiveId;
       });
     }
@@ -8522,6 +8748,10 @@ window.profactureTrack = function(name, params) {
       wsRenderAll();
       populateDocumentCompanySelects();
       renderCompanyProfileForm();
+      renderLogoPreview();
+      renderStampPreview();
+      renderSignatureStatus();
+      renderCompanyScopedViews();
       renderInvoicePreview();
       renderQuotePreview();
     }
@@ -8544,8 +8774,9 @@ window.profactureTrack = function(name, params) {
     function populateInvoiceNewClientSelect() {
       var sel = document.getElementById("inv-new-client");
       if (!sel) return;
-      sel.innerHTML = CLIENTS.length
-        ? CLIENTS.map(function (c) { return '<option value="' + c.id + '">' + c.company + " — " + c.name + "</option>"; }).join("")
+      var companyClients = activeCompanyItems(CLIENTS);
+      sel.innerHTML = companyClients.length
+        ? companyClients.map(function (c) { return '<option value="' + c.id + '">' + c.company + " — " + c.name + "</option>"; }).join("")
         : '<option value="">No clients yet — add one first</option>';
       fillInvoiceClientAddress();
     }
@@ -8571,19 +8802,19 @@ window.profactureTrack = function(name, params) {
         siteAddress: document.getElementById("inv-new-site-address").value,
         siret: document.getElementById("inv-new-siret").value,
         currency: document.getElementById("inv-new-currency").value,
-        items: getLineItemsData(), updatedAt: new Date().toISOString()
+        companyId: wsActiveId, items: getLineItemsData(), updatedAt: new Date().toISOString()
       };
     }
     function scheduleInvoiceDraftSave() {
       if (editingInvoiceId) return;
       clearTimeout(invoiceDraftTimer);
       invoiceDraftTimer = setTimeout(function () {
-        try { localStorage.setItem("profacture_invoice_builder_draft", JSON.stringify(invoiceDraftData())); } catch (e) { /* ignore */ }
+        try { localStorage.setItem("profacture_invoice_builder_draft_" + wsActiveId, JSON.stringify(invoiceDraftData())); } catch (e) { /* ignore */ }
       }, 350);
     }
     function restoreInvoiceBuilderDraft() {
       var draft = null;
-      try { draft = JSON.parse(localStorage.getItem("profacture_invoice_builder_draft") || "null"); } catch (e) { draft = null; }
+      try { draft = JSON.parse(localStorage.getItem("profacture_invoice_builder_draft_" + wsActiveId) || "null"); } catch (e) { draft = null; }
       if (!draft || !draft.updatedAt) return false;
       document.getElementById("inv-new-client").value = draft.clientId || "";
       document.getElementById("inv-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
@@ -8661,7 +8892,7 @@ window.profactureTrack = function(name, params) {
       var file = e.target.files[0];
       if (!file) return;
       var reader = new FileReader();
-      reader.onload = function () { localStorage.setItem("profacture_company_logo", reader.result); renderInvoicePreview(); showToast("Logo saved"); };
+      reader.onload = function () { setCompanyAsset("logo", "profacture_company_logo", reader.result); renderInvoicePreview(); showToast("Logo saved"); };
       reader.readAsDataURL(file);
     });
     var invNewSigFileEl = document.getElementById("inv-new-sig-file");
@@ -8669,7 +8900,7 @@ window.profactureTrack = function(name, params) {
       var file = e.target.files[0];
       if (!file) return;
       var reader = new FileReader();
-      reader.onload = function () { localStorage.setItem("profacture_company_signature", reader.result); renderInvoicePreview(); showToast("Signature saved"); };
+      reader.onload = function () { setCompanyAsset("signature", "profacture_company_signature", reader.result); renderInvoicePreview(); showToast("Signature saved"); };
       reader.readAsDataURL(file);
     });
     document.querySelectorAll("#view-invoice-new .card input, #view-invoice-new .card textarea, #view-invoice-new .card select").forEach(function (field) {
@@ -8703,7 +8934,11 @@ window.profactureTrack = function(name, params) {
           existing.clientEmail = client.email || "";
           existing.clientPhone = client.phone || "";
           existing.clientId = client.id;
+          existing.companyId = wsActiveId;
           existing.companyProfile = Object.assign({}, currentCompanyProfile());
+          existing.logo = getCompanyLogo();
+          existing.stamp = getCompanyStamp();
+          existing.signature = getCompanySignature();
           existing.issue = issue;
           existing.due = due;
           existing.total = total;
@@ -8727,7 +8962,9 @@ window.profactureTrack = function(name, params) {
           clientEmail: client.email || "",
           clientPhone: client.phone || "",
           clientId: client.id,
+          companyId: wsActiveId,
           companyProfile: Object.assign({}, currentCompanyProfile()),
+          logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(),
           issue: issue,
           due: due,
           status: status,
@@ -8739,7 +8976,7 @@ window.profactureTrack = function(name, params) {
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "pending"));
       }
       renderInvoicesAll();
-      try { localStorage.removeItem("profacture_invoice_builder_draft"); } catch (e) { /* ignore */ }
+      try { localStorage.removeItem("profacture_invoice_builder_draft_" + wsActiveId); localStorage.removeItem("profacture_invoice_builder_draft"); } catch (e) { /* ignore */ }
       if (window.profactureTrack) window.profactureTrack("invoice_saved", { status: status, currency: currencyCode, value: total });
       if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
       if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
@@ -8788,6 +9025,7 @@ window.profactureTrack = function(name, params) {
       if (!tbody) return;
       var q = invoiceFilter.q.toLowerCase();
       var rows = INVOICES.filter(function (inv) {
+        if (!belongsToActiveCompany(inv)) return false;
         var matchesQ = !q || inv.id.toLowerCase().indexOf(q) !== -1 || inv.client.toLowerCase().indexOf(q) !== -1;
         var matchesStatus = invoiceFilter.status === "all" || inv.status === invoiceFilter.status;
         return matchesQ && matchesStatus;
@@ -8817,7 +9055,7 @@ window.profactureTrack = function(name, params) {
       if (!grid) return;
       var outstanding = 0, overdueCount = 0, paidThisMonth = 0, dayDiffs = [];
       var now = new Date();
-      INVOICES.forEach(function (inv) {
+      activeCompanyItems(INVOICES).forEach(function (inv) {
         var balance = invoiceBalance(inv);
         if (["Sent", "Viewed", "Partially paid", "Overdue"].indexOf(inv.status) !== -1) outstanding += balance;
         if (inv.status === "Overdue") overdueCount++;
@@ -9049,7 +9287,7 @@ window.profactureTrack = function(name, params) {
     function renderQuotesTable() {
       var tbody = document.querySelector("#quotes-table tbody");
       if (!tbody) return;
-      var sorted = QUOTES.slice().sort(function (a, b) { return new Date(b.issue) - new Date(a.issue); });
+      var sorted = activeCompanyItems(QUOTES).slice().sort(function (a, b) { return new Date(b.issue) - new Date(a.issue); });
       tbody.innerHTML = sorted.length ? sorted.map(function (q) {
         return (
           '<tr><td class="link-strong">' + q.id + "</td><td>" + q.client + "</td><td>" + fmtDate(q.issue) + "</td><td>" + fmtDate(q.validUntil) + "</td>" +
@@ -9145,8 +9383,9 @@ window.profactureTrack = function(name, params) {
     function populateQuoteNewClientSelect() {
       var sel = document.getElementById("q-new-client");
       if (!sel) return;
-      sel.innerHTML = CLIENTS.length
-        ? CLIENTS.map(function (c) { return '<option value="' + c.id + '">' + c.company + " — " + c.name + "</option>"; }).join("")
+      var companyClients = activeCompanyItems(CLIENTS);
+      sel.innerHTML = companyClients.length
+        ? companyClients.map(function (c) { return '<option value="' + c.id + '">' + c.company + " — " + c.name + "</option>"; }).join("")
         : '<option value="">No clients yet — add one first</option>';
       fillQuoteNewClientAddress();
     }
@@ -9178,7 +9417,7 @@ window.profactureTrack = function(name, params) {
       var file = e.target.files[0];
       if (!file) return;
       var reader = new FileReader();
-      reader.onload = function () { localStorage.setItem("profacture_company_logo", reader.result); renderQuotePreview(); showToast("Logo saved"); };
+      reader.onload = function () { setCompanyAsset("logo", "profacture_company_logo", reader.result); renderQuotePreview(); showToast("Logo saved"); };
       reader.readAsDataURL(file);
     });
     var qNewSigFileEl = document.getElementById("q-new-sig-file");
@@ -9186,7 +9425,7 @@ window.profactureTrack = function(name, params) {
       var file = e.target.files[0];
       if (!file) return;
       var reader = new FileReader();
-      reader.onload = function () { localStorage.setItem("profacture_company_signature", reader.result); renderQuotePreview(); showToast("Signature saved"); };
+      reader.onload = function () { setCompanyAsset("signature", "profacture_company_signature", reader.result); renderQuotePreview(); showToast("Signature saved"); };
       reader.readAsDataURL(file);
     });
     document.querySelectorAll("#view-quote-new .card input, #view-quote-new .card textarea, #view-quote-new .card select").forEach(function (field) {
@@ -9206,19 +9445,19 @@ window.profactureTrack = function(name, params) {
         siteAddress: document.getElementById("q-new-site-address").value,
         siret: document.getElementById("q-new-siret").value,
         currency: document.getElementById("q-new-currency").value,
-        items: getQuoteLineItemsData(), updatedAt: new Date().toISOString()
+        companyId: wsActiveId, items: getQuoteLineItemsData(), updatedAt: new Date().toISOString()
       };
     }
     function scheduleQuoteDraftSave() {
       if (editingQuoteId) return;
       clearTimeout(quoteDraftTimer);
       quoteDraftTimer = setTimeout(function () {
-        try { localStorage.setItem("profacture_quote_builder_draft", JSON.stringify(quoteDraftData())); } catch (e) { /* ignore */ }
+        try { localStorage.setItem("profacture_quote_builder_draft_" + wsActiveId, JSON.stringify(quoteDraftData())); } catch (e) { /* ignore */ }
       }, 350);
     }
     function restoreQuoteBuilderDraft() {
       var draft = null;
-      try { draft = JSON.parse(localStorage.getItem("profacture_quote_builder_draft") || "null"); } catch (e) { draft = null; }
+      try { draft = JSON.parse(localStorage.getItem("profacture_quote_builder_draft_" + wsActiveId) || "null"); } catch (e) { draft = null; }
       if (!draft || !draft.updatedAt) return false;
       document.getElementById("q-new-client").value = draft.clientId || "";
       document.getElementById("q-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
@@ -9294,7 +9533,11 @@ window.profactureTrack = function(name, params) {
           existing.clientEmail = client.email || "";
           existing.clientPhone = client.phone || "";
           existing.clientId = client.id;
+          existing.companyId = wsActiveId;
           existing.companyProfile = Object.assign({}, currentCompanyProfile());
+          existing.logo = getCompanyLogo();
+          existing.stamp = getCompanyStamp();
+          existing.signature = getCompanySignature();
           existing.issue = issue;
           existing.validUntil = validUntil;
           existing.total = total;
@@ -9310,12 +9553,12 @@ window.profactureTrack = function(name, params) {
         QUOTES.push({
           id: newId, client: clientDisplayName(client), clientAddress: clientAddress, siteAddress: siteAddress,
           siret: siret, clientContact: client.name, clientVat: client.vat || "", clientEmail: client.email || "", clientPhone: client.phone || "", clientId: client.id,
-          companyProfile: Object.assign({}, currentCompanyProfile()), issue: issue, validUntil: validUntil, status: status, total: total, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
+          companyId: wsActiveId, companyProfile: Object.assign({}, currentCompanyProfile()), logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(), issue: issue, validUntil: validUntil, status: status, total: total, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
         });
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "sent"));
       }
       renderQuotesTable();
-      try { localStorage.removeItem("profacture_quote_builder_draft"); } catch (e) { /* ignore */ }
+      try { localStorage.removeItem("profacture_quote_builder_draft_" + wsActiveId); localStorage.removeItem("profacture_quote_builder_draft"); } catch (e) { /* ignore */ }
       if (window.profactureTrack) window.profactureTrack("quote_saved", { status: status, currency: currencyCode, value: total });
       if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
       if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
@@ -9375,7 +9618,7 @@ window.profactureTrack = function(name, params) {
           id: nextDocumentId("INV-", INVOICES), client: quoteToConvert.client, clientAddress: quoteToConvert.clientAddress || "",
           siteAddress: quoteToConvert.siteAddress || "", siret: quoteToConvert.siret || "", issue: new Date().toISOString().slice(0, 10), due: "",
           status: "Draft", total: quoteToConvert.total || 0, items: (quoteToConvert.items || []).map(function (item) { return Object.assign({}, item); }),
-          currency: quoteToConvert.currency || currentCurrency || "USD", payments: [], sourceQuoteId: quoteToConvert.id, updatedAt: new Date().toISOString()
+          currency: quoteToConvert.currency || currentCurrency || "USD", companyId: quoteToConvert.companyId || wsActiveId, companyProfile: quoteToConvert.companyProfile, logo: quoteToConvert.logo, stamp: quoteToConvert.stamp, signature: quoteToConvert.signature, payments: [], sourceQuoteId: quoteToConvert.id, updatedAt: new Date().toISOString()
         };
         INVOICES.push(convertedInvoice);
         quoteToConvert.status = "Converted";
@@ -10849,7 +11092,7 @@ window.profactureTrack = function(name, params) {
 	    if (depth > 8) return null;
 	    if (value === undefined || typeof value === "function") return null;
 	    if (typeof value === "string") {
-	      if (/^data:image\//i.test(value) && value.length > 120000) return "";
+		      if (/^data:image\//i.test(value) && value.length > 300000) return "";
 	      return value;
 	    }
 	    if (value === null || typeof value !== "object") return value;

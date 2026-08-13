@@ -40,6 +40,17 @@ requiredProductionMarkers.forEach(marker => assert(index.includes(marker), `Miss
   'id="ac-site-address"',
   'sourceCompanyId: company.id'
 ].forEach(marker => assert(index.includes(marker), `Missing company/client workflow marker: ${marker}`));
+[
+  'data-company-delete=',
+  'id="acp-logo-file"',
+  'id="acp-stamp-file"',
+  'id="acp-signature-file"',
+  'function activeCompanyItems(items)',
+  'existing.companyId = wsActiveId',
+  'logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature()',
+  'profacture_invoice_builder_draft_" + wsActiveId',
+  'profacture_quote_builder_draft_" + wsActiveId'
+].forEach(marker => assert(index.includes(marker), `Missing multi-company isolation marker: ${marker}`));
 assert(index.includes('number: editingInvoiceId || nextDocumentId("INV-", INVOICES)'), "Invoice preview must show its next number instead of Draft");
 assert(index.includes('number: editingQuoteId || nextDocumentId("QUO-", QUOTES)'), "Quote preview must show its next number instead of Draft");
 
