@@ -712,7 +712,13 @@ window.profactureTrack = function(name, params) {
   .print-doc-table th, .print-doc-table td { border-bottom: 1px solid #e5e7eb; padding: 0.78rem 0.72rem; font-size: 0.85rem; text-align: left; color: #111; }
   .print-doc-table th { font-size: 0.72rem; text-transform: uppercase; }
   .print-doc-table tbody tr:last-child td { border-bottom: 0; }
-  .print-doc-total { align-self: flex-end; min-width: 15rem; padding: 0.85rem 1rem; border: 1px solid #dbe3ee; border-radius: 6px; background: #f8fafc; text-align: right; font-size: 1.2rem; font-weight: 800; margin-bottom: 1.5rem; color: #111; }
+  .print-doc-summary { align-self: flex-end; width: min(100%, 21rem); margin-bottom: 1rem; border: 1px solid #dbe3ee; border-radius: 6px; background: #f8fafc; overflow: hidden; break-inside: avoid; page-break-inside: avoid; }
+  .print-doc-summary-row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.48rem 0.85rem; border-bottom: 1px solid #e5e7eb; font-size: 0.82rem; color: #334155; }
+  .print-doc-summary-row:last-child { border-bottom: 0; }
+  .print-doc-summary-row strong { color: #111; }
+  .print-doc-total { align-self: flex-end; min-width: 15rem; padding: 0.78rem 0.85rem; text-align: right; font-size: 1.12rem; font-weight: 800; color: #111; }
+  .print-doc-tax-note { align-self: flex-end; width: min(100%, 21rem); margin: -0.35rem 0 1rem; padding: 0.55rem 0.75rem; border-left: 3px solid #64748b; background: #f8fafc; color: #475569; font-size: 0.72rem; line-height: 1.4; break-inside: avoid; page-break-inside: avoid; }
+  .print-doc-legal { margin-bottom: 1rem; padding-top: 0.7rem; border-top: 1px solid #e5e7eb; color: #64748b; font-size: 0.68rem; line-height: 1.45; break-inside: avoid; page-break-inside: avoid; }
   .print-doc-sig { width: 100%; margin-top: auto; padding-top: 1rem; border-top: 1px solid #e5e7eb; text-align: right; break-inside: avoid; page-break-inside: avoid; }
   .print-doc-sig img { max-height: 4.6rem; }
   .doc-builder-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(30rem, 0.9fr); gap: 1.5rem; align-items: start; }
@@ -2404,7 +2410,7 @@ window.profactureTrack = function(name, params) {
       fld_status: "Statut", fld_address: "Adresse", fld_billing_address: "Adresse de facturation",
       fld_client_address: "Adresse du client", fld_site_address: "Adresse du chantier", fld_issue_date: "Date d'émission",
       fld_due_date: "Date d'échéance", fld_valid_until: "Valable jusqu'au", fld_currency: "Devise", fld_total: "Total",
-      fld_description: "Description", fld_qty: "Qté", fld_unit_price: "Prix unitaire", fld_amount: "Montant", fld_tax: "Taxe",
+      fld_description: "Description", fld_qty: "Qté", fld_unit_price: "Prix unitaire HT", fld_amount: "Montant HT", fld_tax: "TVA",
       fld_siret: "Numéro SIRET", fld_tags: "Étiquettes", fld_industry: "Secteur", fld_size: "Taille", fld_website: "Site web",
       page_dashboard_title: "Tableau de bord", page_dashboard_sub: "Un aperçu de votre entreprise, en temps réel.",
       page_crm_title: "CRM", page_crm_sub: "Votre pipeline commercial et vos relations clients en un coup d'œil.",
@@ -5770,7 +5776,7 @@ window.profactureTrack = function(name, params) {
     });
 
     // line item editor with live totals
-    var TAX_RATES = { none: 0, vat20: 20, gst10: 10, sales8: 8 };
+    var TAX_RATES = { none: 0, vat20: 20, vat10: 10, vat55: 5.5, vat21: 2.1, gst10: 10, sales8: 8 };
     var liBody = document.getElementById("li-body");
     var nextRow = 0;
 
@@ -5786,6 +5792,45 @@ window.profactureTrack = function(name, params) {
       return formatCurrency(n, currentCurrency || "USD");
     }
 
+    function taxOptionLabel(code) {
+      var french = getI18nLang(currentLang) === "fr";
+      var labels = french
+        ? { none: "Sans TVA", vat20: "TVA 20 %", vat10: "TVA 10 %", vat55: "TVA 5,5 %", vat21: "TVA 2,1 %", gst10: "GST 10 %", sales8: "Sales Tax 8 %" }
+        : { none: "No tax", vat20: "VAT 20%", vat10: "VAT 10%", vat55: "VAT 5.5%", vat21: "VAT 2.1%", gst10: "GST 10%", sales8: "Sales Tax 8%" };
+      return labels[code] || labels.none;
+    }
+    function taxOptionsHtml(selected) {
+      return Object.keys(TAX_RATES).map(function (code) {
+        return '<option value="' + code + '"' + (selected === code ? " selected" : "") + ">" + taxOptionLabel(code) + "</option>";
+      }).join("");
+    }
+    function calculateDocumentTotals(items) {
+      var result = { subtotal: 0, taxTotal: 0, total: 0, breakdown: [] };
+      var grouped = {};
+      (Array.isArray(items) ? items : []).forEach(function (item) {
+        var qty = Number(item.qty) || 0;
+        var price = Number(item.price) || 0;
+        var base = qty * price;
+        var code = TAX_RATES[item.tax] != null ? item.tax : "none";
+        var rate = TAX_RATES[code] || 0;
+        var tax = base * rate / 100;
+        result.subtotal += base;
+        result.taxTotal += tax;
+        if (rate > 0) {
+          grouped[code] = grouped[code] || { code: code, rate: rate, base: 0, amount: 0 };
+          grouped[code].base += base;
+          grouped[code].amount += tax;
+        }
+      });
+      result.total = result.subtotal + result.taxTotal;
+      result.breakdown = Object.keys(grouped).map(function (code) { return grouped[code]; }).sort(function (a, b) { return b.rate - a.rate; });
+      return result;
+    }
+    function readCurrencyAmount(id) {
+      var el = document.getElementById(id);
+      return el ? (parseFloat(el.textContent.replace(/,/g, "").replace(/[^0-9.-]/g, "")) || 0) : 0;
+    }
+
     function addRow(desc, qty, price, tax) {
       var rid = "row" + nextRow++;
       var tr = document.createElement("tr");
@@ -5793,12 +5838,7 @@ window.profactureTrack = function(name, params) {
         '<td><input class="field" data-role="desc" value="' + escapeHtml(desc) + '" /></td>' +
         '<td><input class="field" data-role="qty" type="number" min="0" step="any" value="' + qty + '" style="width:4.5rem;" /></td>' +
         '<td><input class="field" data-role="price" type="number" min="0" step="any" value="' + price + '" style="width:6rem;" /></td>' +
-        '<td><select class="field" data-role="tax" style="width:8rem;">' +
-          '<option value="none"' + (tax === "none" ? " selected" : "") + '>No tax</option>' +
-          '<option value="vat20"' + (tax === "vat20" ? " selected" : "") + '>VAT 20%</option>' +
-          '<option value="gst10"' + (tax === "gst10" ? " selected" : "") + '>GST 10%</option>' +
-          '<option value="sales8"' + (tax === "sales8" ? " selected" : "") + '>Sales Tax 8%</option>' +
-        "</select></td>" +
+        '<td><select class="field" data-role="tax" style="width:8rem;">' + taxOptionsHtml(tax) + "</select></td>" +
         '<td style="text-align:right;font-weight:700;" class="tnum" data-role="amount">' + currency(qty * price) + "</td>" +
         '<td><button class="btn btn-ghost btn-icon" data-role="remove">✕</button></td>';
       liBody.appendChild(tr);
@@ -6160,7 +6200,7 @@ window.profactureTrack = function(name, params) {
       return clients.filter(function (c) { return clientDisplayName(c).toLowerCase() === wanted || String(c.company || "").toLowerCase() === wanted; })[0] || null;
     }
     function safeAiItems(draft) {
-      var validTaxes = ["none", "vat20", "gst10", "sales8"];
+      var validTaxes = Object.keys(TAX_RATES);
       return (Array.isArray(draft.items) ? draft.items : []).slice(0, 20).map(function (item) {
         return {
           desc: String(item.description || "").slice(0, 300),
@@ -7129,7 +7169,7 @@ window.profactureTrack = function(name, params) {
     if (invoicePrintBtn) invoicePrintBtn.addEventListener("click", function () {
       var clientSel = document.getElementById("inv-new-client");
       var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
-      var total = parseFloat(document.getElementById("t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
+      var total = readCurrencyAmount("t-total");
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_invoice"),
         number: editingInvoiceId || nextDocumentId("INV-", INVOICES),
@@ -7140,6 +7180,7 @@ window.profactureTrack = function(name, params) {
         clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
+        documentType: "invoice", country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
       }));
     });
@@ -8684,6 +8725,29 @@ window.profactureTrack = function(name, params) {
       var key = DOC_STATUS_KEYS[status];
       return key ? t(key) : status;
     }
+    function documentCopy(opts) {
+      var french = (opts.country || currentDefaultCountry) === "FR" || getI18nLang(currentLang) === "fr";
+      return french ? {
+        subtotal: "Sous-total HT", tax: "TVA", taxTotal: "Total TVA", total: "Total TTC",
+        taxBase: "base HT", noTax: "TVA non applicable, art. 293 B du CGI",
+        number: "N° de facture", currency: "Devise", payment: "Conditions de paiement",
+        earlyDiscount: "Escompte pour paiement anticipé : néant",
+        lateFees: "Pénalités de retard : taux directeur de la BCE majoré de 10 points. Indemnité forfaitaire pour frais de recouvrement : 40 €.",
+        taxNumber: "N° TVA"
+      } : {
+        subtotal: "Subtotal excl. tax", tax: "Tax", taxTotal: "Total tax", total: "Total incl. tax",
+        taxBase: "taxable base", noTax: "Tax not applicable",
+        number: "Invoice no.", currency: "Currency", payment: "Payment terms",
+        earlyDiscount: "", lateFees: "", taxNumber: "Tax / VAT no."
+      };
+    }
+    function documentTaxLabel(code, copy) {
+      var rate = TAX_RATES[code] || 0;
+      if (code === "gst10") return "GST 10 %";
+      if (code === "sales8") return "Sales Tax 8 %";
+      if (!rate) return copy.tax + " 0 %";
+      return copy.tax + " " + String(rate).replace(".", ",") + " %";
+    }
     function buildDocPrintHtml(opts) {
       var logo = opts.logo != null ? opts.logo : getCompanyLogo();
       var stamp = opts.stamp != null ? opts.stamp : getCompanyStamp();
@@ -8701,12 +8765,43 @@ window.profactureTrack = function(name, params) {
       var headColor = dark ? "#fff" : "#111";
       var headBorder = accentPos === "top" ? primary : (dark ? primary : "#ddd");
       var singleLineDesc = opts.description || (opts.client + " — services");
+      var copy = documentCopy(opts);
+      var isInvoice = opts.documentType === "invoice" || (!opts.documentType && opts.title === t("doc_invoice"));
+      var totals = calculateDocumentTotals(opts.items);
+      if (!opts.items || !opts.items.length) {
+        totals.subtotal = Number(opts.subtotal != null ? opts.subtotal : opts.total) || 0;
+        totals.taxTotal = Number(opts.taxTotal) || 0;
+        totals.total = Number(opts.total) || totals.subtotal + totals.taxTotal;
+      }
       var dueBlock = opts.dueDate ? '<div style="margin-top:0.2rem;font-size:0.74rem;opacity:0.82;">' + escapeHtml(opts.dueLabel) + ": " + escapeHtml(opts.dueDate) + "</div>" : "";
       var itemsRows = (opts.items && opts.items.length)
         ? opts.items.map(function (it) {
-            return "<tr><td>" + escapeHtml(it.desc || "—") + "</td><td style=\"text-align:right;\">" + escapeHtml(it.qty) + "</td><td style=\"text-align:right;\">" + fmt(it.price) + "</td><td style=\"text-align:right;\">" + fmt(it.qty * it.price) + "</td></tr>";
+            return "<tr><td>" + escapeHtml(it.desc || "—") + "</td><td style=\"text-align:right;\">" + escapeHtml(it.qty) + "</td><td style=\"text-align:right;\">" + fmt(it.price) + "</td><td style=\"text-align:right;\">" + escapeHtml(documentTaxLabel(it.tax, copy)) + "</td><td style=\"text-align:right;\">" + fmt(it.qty * it.price) + "</td></tr>";
           }).join("")
-        : "<tr><td>" + escapeHtml(singleLineDesc) + "</td><td style=\"text-align:right;\">1</td><td style=\"text-align:right;\">" + fmt(opts.total) + "</td><td style=\"text-align:right;\">" + fmt(opts.total) + "</td></tr>";
+        : "<tr><td>" + escapeHtml(singleLineDesc) + "</td><td style=\"text-align:right;\">1</td><td style=\"text-align:right;\">" + fmt(totals.subtotal) + "</td><td style=\"text-align:right;\">" + escapeHtml(documentTaxLabel("none", copy)) + "</td><td style=\"text-align:right;\">" + fmt(totals.subtotal) + "</td></tr>";
+      var taxRows = totals.breakdown.map(function (taxLine) {
+        return '<div class="print-doc-summary-row"><span>' + escapeHtml(documentTaxLabel(taxLine.code, copy)) + " (" + escapeHtml(copy.taxBase) + " " + fmt(taxLine.base) + ')</span><strong>' + fmt(taxLine.amount) + "</strong></div>";
+      }).join("");
+      var totalSummary = '<div class="print-doc-summary">' +
+        '<div class="print-doc-summary-row"><span>' + escapeHtml(copy.subtotal) + '</span><strong>' + fmt(totals.subtotal) + "</strong></div>" +
+        taxRows +
+        '<div class="print-doc-summary-row"><span>' + escapeHtml(copy.taxTotal) + '</span><strong>' + fmt(totals.taxTotal) + "</strong></div>" +
+        '<div class="print-doc-total" style="color:' + primary + ';"><span>' + escapeHtml(copy.total) + ": </span>" + fmt(totals.total) + "</div></div>";
+      var hasConfiguredTax = (opts.items || []).some(function (item) { return (TAX_RATES[item.tax] || 0) > 0; });
+      var noTaxNote = isInvoice && !hasConfiguredTax && (opts.country || currentDefaultCountry) === "FR"
+        ? '<div class="print-doc-tax-note">' + escapeHtml(copy.noTax) + "</div>" : "";
+      var paymentTerms = opts.paymentTerms || ((opts.country || currentDefaultCountry) === "FR" ? ccGet("FR", "paymentTerms") : "");
+      var configuredFooter = opts.legalFooter || ((opts.country || currentDefaultCountry) === "FR" ? ccGet("FR", "legalFooter") : "");
+      var professionalDetails = isInvoice ? [
+        copy.number + " : " + opts.number,
+        opts.dueDate ? opts.dueLabel + " : " + opts.dueDate : "",
+        copy.currency + " : " + code,
+        paymentTerms ? copy.payment + " : " + paymentTerms : "",
+        configuredFooter,
+        (opts.country || currentDefaultCountry) === "FR" ? copy.earlyDiscount : "",
+        (opts.country || currentDefaultCountry) === "FR" ? copy.lateFees : ""
+      ].filter(Boolean) : [];
+      var legalBlock = professionalDetails.length ? '<div class="print-doc-legal">' + professionalDetails.map(escapeHtml).join("<br>") + "</div>" : "";
       return (
         '<div class="print-doc" style="' + docStyle + "font-family:" + docFont + ';">' +
         '<div class="print-doc-head" style="background:' + headBg + ';color:' + headColor + ';border-bottom-color:' + headBorder + ';">' +
@@ -8721,11 +8816,11 @@ window.profactureTrack = function(name, params) {
         '<div style="margin-top:0.2rem;font-weight:700;">' + escapeHtml(opts.issueDate) + "</div>" + dueBlock +
         "</div></div>" +
         '<div class="print-doc-grid">' +
-        '<div class="print-doc-party"><strong>' + escapeHtml(t("fld_company_name")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(company.name) + "</strong>" + (company.siret ? "<br>SIRET: " + escapeHtml(company.siret) : "") + (company.vat ? "<br>TVA / VAT: " + escapeHtml(company.vat) : "") + (company.address ? "<br>" + htmlLines(company.address) : "") + (company.email ? "<br>" + escapeHtml(company.email) : "") + (company.phone ? " · " + escapeHtml(company.phone) : "") + "</div>" +
-        '<div class="print-doc-party"><strong>' + escapeHtml(t("lbl_billed_to")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(opts.client) + "</strong>" + (opts.clientContact && opts.clientContact !== opts.client ? "<br>Contact: " + escapeHtml(opts.clientContact) : "") + (opts.siret ? "<br>SIRET: " + escapeHtml(opts.siret) : "") + (opts.clientVat ? "<br>TVA / VAT: " + escapeHtml(opts.clientVat) : "") + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + (opts.clientEmail ? "<br>" + escapeHtml(opts.clientEmail) : "") + (opts.clientPhone ? " · " + escapeHtml(opts.clientPhone) : "") + (opts.siteAddress ? '<div class="print-doc-site"><b>' + escapeHtml(t("lbl_jobsite")) + "</b>" + htmlLines(opts.siteAddress) + "</div>" : "") + "</div>" +
+        '<div class="print-doc-party"><strong>' + escapeHtml(t("fld_company_name")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(company.name) + "</strong>" + (company.siret ? "<br>SIRET: " + escapeHtml(company.siret) : "") + (company.vat ? "<br>" + escapeHtml(copy.taxNumber) + ": " + escapeHtml(company.vat) : "") + (company.address ? "<br>" + htmlLines(company.address) : "") + (company.email ? "<br>" + escapeHtml(company.email) : "") + (company.phone ? " · " + escapeHtml(company.phone) : "") + "</div>" +
+        '<div class="print-doc-party"><strong>' + escapeHtml(t("lbl_billed_to")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(opts.client) + "</strong>" + (opts.clientContact && opts.clientContact !== opts.client ? "<br>Contact: " + escapeHtml(opts.clientContact) : "") + (opts.siret ? "<br>SIRET: " + escapeHtml(opts.siret) : "") + (opts.clientVat ? "<br>" + escapeHtml(copy.taxNumber) + ": " + escapeHtml(opts.clientVat) : "") + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + (opts.clientEmail ? "<br>" + escapeHtml(opts.clientEmail) : "") + (opts.clientPhone ? " · " + escapeHtml(opts.clientPhone) : "") + (opts.siteAddress ? '<div class="print-doc-site"><b>' + escapeHtml(t("lbl_jobsite")) + "</b>" + htmlLines(opts.siteAddress) + "</div>" : "") + "</div>" +
         "</div>" +
-        '<table class="print-doc-table"><thead style="background:' + tableBg + ';"><tr><th>' + t("fld_description") + '</th><th style="text-align:right;">' + t("fld_qty") + '</th><th style="text-align:right;">' + t("fld_unit_price") + '</th><th style="text-align:right;">' + t("fld_amount") + "</th></tr></thead><tbody>" + itemsRows + "</tbody></table>" +
-        '<div class="print-doc-total" style="color:' + primary + ';">' + t("fld_total") + ": " + fmt(opts.total) + "</div>" +
+        '<table class="print-doc-table"><thead style="background:' + tableBg + ';"><tr><th>' + t("fld_description") + '</th><th style="text-align:right;">' + t("fld_qty") + '</th><th style="text-align:right;">' + t("fld_unit_price") + '</th><th style="text-align:right;">' + escapeHtml(copy.tax) + '</th><th style="text-align:right;">' + t("fld_amount") + " HT</th></tr></thead><tbody>" + itemsRows + "</tbody></table>" +
+        totalSummary + noTaxNote + legalBlock +
         ((stamp || sig) ? '<div class="print-doc-sig"><div style="font-size:0.78rem;color:#555;">' + escapeHtml(t("fld_company_stamp")) + " / " + escapeHtml(t("fld_signature")) + '</div><div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:0.9rem;flex-wrap:wrap;">' + (stamp ? '<img src="' + stamp + '" alt="" style="max-height:4.6rem;max-width:8rem;object-fit:contain;" />' : "") + (sig ? '<img src="' + sig + '" alt="" />' : "") + "</div></div>" : "") +
         "</div>"
       );
@@ -8742,7 +8837,7 @@ window.profactureTrack = function(name, params) {
         title: t("doc_invoice"), number: inv.id, client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress,
         siret: inv.siret, clientContact: inv.clientContact, clientVat: inv.clientVat, clientEmail: inv.clientEmail, clientPhone: inv.clientPhone, companyProfile: inv.companyProfile, logo: inv.logo, stamp: inv.stamp, signature: inv.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(inv.issue), dueLabel: t("fld_due_date"), dueDate: fmtDate(inv.due),
-        items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency,
+        documentType: "invoice", country: inv.country || currentDefaultCountry, items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency,
       }));
     }
     function downloadQuotePdf(q) {
@@ -9066,6 +9161,7 @@ window.profactureTrack = function(name, params) {
         siteAddress: document.getElementById("inv-new-site-address").value,
         siret: document.getElementById("inv-new-siret").value,
         currency: document.getElementById("inv-new-currency").value,
+        country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
         companyId: wsActiveId, items: getLineItemsData(), updatedAt: new Date().toISOString()
       };
     }
@@ -9087,6 +9183,8 @@ window.profactureTrack = function(name, params) {
       document.getElementById("inv-new-site-address").value = draft.siteAddress || "";
       document.getElementById("inv-new-siret").value = draft.siret || "";
       document.getElementById("inv-new-currency").value = draft.currency || currentCurrency || "USD";
+      var draftCountry = document.getElementById("inv-compliance-country");
+      if (draftCountry && draft.country && draftCountry.querySelector('option[value="' + draft.country + '"]')) draftCountry.value = draft.country;
       liBody.innerHTML = "";
       (draft.items && draft.items.length ? draft.items : [{ desc: "", qty: 1, price: 0, tax: "none" }]).forEach(function (it) { addRow(it.desc, it.qty, it.price, it.tax); });
       showToast("Invoice draft restored");
@@ -9115,6 +9213,8 @@ window.profactureTrack = function(name, params) {
         document.getElementById("inv-new-site-address").value = editing.siteAddress || "";
         document.getElementById("inv-new-siret").value = editing.siret || "";
         document.getElementById("inv-new-currency").value = editing.currency || "USD";
+        var editingCountry = document.getElementById("inv-compliance-country");
+        if (editingCountry && editing.country && editingCountry.querySelector('option[value="' + editing.country + '"]')) editingCountry.value = editing.country;
         if (editing.items && editing.items.length) editing.items.forEach(function (it) { addRow(it.desc, it.qty, it.price, it.tax); });
         else addRow(editing.client + " services", 1, editing.total, "none");
       } else {
@@ -9137,7 +9237,7 @@ window.profactureTrack = function(name, params) {
       if (!preview) return;
       var clientSel = document.getElementById("inv-new-client");
       var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
-      var total = parseFloat(document.getElementById("t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
+      var total = readCurrencyAmount("t-total");
       renderDocPreview(preview, buildDocPrintHtml({
         title: t("doc_invoice"),
         number: editingInvoiceId || nextDocumentId("INV-", INVOICES),
@@ -9148,6 +9248,7 @@ window.profactureTrack = function(name, params) {
         clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
+        documentType: "invoice", country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
       }));
     }
@@ -9179,7 +9280,7 @@ window.profactureTrack = function(name, params) {
       if (!client) { showToast("Add a client before saving an invoice"); return; }
       var issue = document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10);
       var due = document.getElementById("inv-new-due").value || "";
-      var total = parseFloat(document.getElementById("t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
+      var total = readCurrencyAmount("t-total");
       var items = getLineItemsData();
       var clientAddress = document.getElementById("inv-new-client-address").value.trim();
       var siteAddress = document.getElementById("inv-new-site-address").value.trim();
@@ -9208,6 +9309,7 @@ window.profactureTrack = function(name, params) {
           existing.total = total;
           existing.items = items;
           existing.currency = currencyCode;
+          existing.country = document.getElementById("inv-compliance-country").value || currentDefaultCountry;
           existing.updatedAt = new Date().toISOString();
           showToast(existing.id + " updated");
         }
@@ -9235,6 +9337,7 @@ window.profactureTrack = function(name, params) {
           total: total,
           items: items,
           currency: currencyCode,
+          country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
           payments: [], updatedAt: new Date().toISOString()
         });
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "pending"));
@@ -9585,12 +9688,7 @@ window.profactureTrack = function(name, params) {
         '<td><input class="field" data-role="desc" value="' + escapeHtml(desc) + '" /></td>' +
         '<td><input class="field" data-role="qty" type="number" min="0" step="any" value="' + qty + '" style="width:4.5rem;" /></td>' +
         '<td><input class="field" data-role="price" type="number" min="0" step="any" value="' + price + '" style="width:6rem;" /></td>' +
-        '<td><select class="field" data-role="tax" style="width:8rem;">' +
-          '<option value="none"' + (tax === "none" ? " selected" : "") + '>No tax</option>' +
-          '<option value="vat20"' + (tax === "vat20" ? " selected" : "") + '>VAT 20%</option>' +
-          '<option value="gst10"' + (tax === "gst10" ? " selected" : "") + '>GST 10%</option>' +
-          '<option value="sales8"' + (tax === "sales8" ? " selected" : "") + '>Sales Tax 8%</option>' +
-        "</select></td>" +
+        '<td><select class="field" data-role="tax" style="width:8rem;">' + taxOptionsHtml(tax) + "</select></td>" +
         '<td style="text-align:right;font-weight:700;" class="tnum" data-role="amount">' + currency(qty * price) + "</td>" +
         '<td><button class="btn btn-ghost btn-icon" data-role="remove">✕</button></td>';
       qLiBody.appendChild(tr);
@@ -9664,7 +9762,7 @@ window.profactureTrack = function(name, params) {
       if (!preview) return;
       var clientSel = document.getElementById("q-new-client");
       var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
-      var total = parseFloat(document.getElementById("q-t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
+      var total = readCurrencyAmount("q-t-total");
       renderDocPreview(preview, buildDocPrintHtml({
         title: t("doc_quote"),
         number: editingQuoteId || nextDocumentId("QUO-", QUOTES),
@@ -9783,7 +9881,7 @@ window.profactureTrack = function(name, params) {
       var siret = document.getElementById("q-new-siret").value.trim();
       var issue = document.getElementById("q-new-issue").value || new Date().toISOString().slice(0, 10);
       var validUntil = document.getElementById("q-new-valid").value || new Date().toISOString().slice(0, 10);
-      var total = parseFloat(document.getElementById("q-t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
+      var total = readCurrencyAmount("q-t-total");
       var items = getQuoteLineItemsData();
       var currencyCode = document.getElementById("q-new-currency").value;
 
@@ -9843,7 +9941,7 @@ window.profactureTrack = function(name, params) {
     if (quotePrintBtn) quotePrintBtn.addEventListener("click", function () {
       var clientSel = document.getElementById("q-new-client");
       var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
-      var total = parseFloat(document.getElementById("q-t-total").textContent.replace(/[^0-9.-]/g, "")) || 0;
+      var total = readCurrencyAmount("q-t-total");
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_quote"),
         number: editingQuoteId || nextDocumentId("QUO-", QUOTES),
