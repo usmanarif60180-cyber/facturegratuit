@@ -695,6 +695,9 @@ window.profactureTrack = function(name, params) {
   .ad-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; min-height: 90px; background: hsl(var(--muted) / 0.5); border: 1px dashed hsl(var(--border)); border-radius: var(--radius-md); color: hsl(var(--muted-fg)); font-size: 0.7rem; font-weight: 600; flex-shrink: 0; box-sizing: border-box; overflow:hidden; }
   .ad-slot iframe { width:100%; max-width:728px; height:90px; border:0; overflow:hidden; display:block; background:transparent; }
   .ad-slot .ad-lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
+  @media (max-width: 900px) {
+    .ad-strip, .ad-slot, [data-adsterra-live] { display: none !important; }
+  }
   #print-area { display: none; }
   .print-doc { box-sizing: border-box; display: flex; flex-direction: column; background: #fff; color: #111; }
   .print-doc-head { display: flex; align-items: center; gap: 1rem; min-height: 5.4rem; border: 1px solid #e5e7eb; border-bottom: 3px solid #111; border-radius: 6px; padding: 1rem 1.15rem; margin-bottom: 1.5rem; }
@@ -4998,6 +5001,7 @@ window.profactureTrack = function(name, params) {
     ];
     var ADSTERRA_728_KEY = "d1bc43d9c361497fe84f0149e51b36ae";
     var ADSTERRA_728_INVOKE = "https://www.highperformanceformat.com/" + ADSTERRA_728_KEY + "/invoke.js";
+    var MOBILE_ADS_DISABLED = window.matchMedia("(max-width: 900px)").matches;
     var adSlotCounter = 0;
     function renderAdSlotsHtml(sizes) {
       return sizes.map(function (s) {
@@ -5010,6 +5014,11 @@ window.profactureTrack = function(name, params) {
     }
     function mountAdsterraSlot(slot) {
       if (!slot || slot.dataset.adsterraMounted === "1") return;
+      if (MOBILE_ADS_DISABLED) {
+        slot.dataset.adsterraMounted = "blocked-mobile";
+        slot.hidden = true;
+        return;
+      }
       slot.dataset.adsterraMounted = "1";
       var w = parseInt(slot.getAttribute("data-adsterra-width") || "728", 10);
       var h = parseInt(slot.getAttribute("data-adsterra-height") || "90", 10);
@@ -5019,18 +5028,23 @@ window.profactureTrack = function(name, params) {
       slot.style.height = h + "px";
       slot.style.maxWidth = "100%";
       slot.innerHTML = "";
-      var inline = document.createElement("script");
-      inline.type = "text/javascript";
-      inline.text = "atOptions={key:'" + ADSTERRA_728_KEY + "',format:'iframe',height:" + h + ",width:" + w + ",params:{}};";
-      var live = document.createElement("script");
-      live.type = "text/javascript";
-      live.src = ADSTERRA_728_INVOKE;
-      live.async = true;
+      // Run third-party ads in an opaque sandbox. Without popup or top-navigation
+      // permissions the creative cannot redirect the app or open a new tab.
+      var frame = document.createElement("iframe");
+      frame.title = t("lbl_advertisement");
+      frame.setAttribute("sandbox", "allow-scripts");
+      frame.setAttribute("referrerpolicy", "no-referrer");
+      frame.setAttribute("loading", "lazy");
+      frame.setAttribute("scrolling", "no");
+      frame.style.width = w + "px";
+      frame.style.height = h + "px";
+      frame.style.maxWidth = "100%";
+      frame.style.border = "0";
+      frame.srcdoc = "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;padding:0;overflow:hidden;background:transparent}</style></head><body><script>atOptions={key:'" + ADSTERRA_728_KEY + "',format:'iframe',height:" + h + ",width:" + w + ",params:{}};<\\/script><script async src='" + ADSTERRA_728_INVOKE + "'><\\/script></body></html>";
       var label = document.createElement("span");
       label.className = "ad-lbl";
       label.textContent = "Adsterra · " + t("lbl_advertisement") + " · " + w + " × " + h;
-      slot.appendChild(inline);
-      slot.appendChild(live);
+      slot.appendChild(frame);
       slot.appendChild(label);
     }
     function isAdsterraSlotVisible(slot) {
@@ -5062,6 +5076,7 @@ window.profactureTrack = function(name, params) {
       mountAllAdsterraSlots(document.querySelector(".view.active") || document);
     }
     function placeAdStrips() {
+      if (MOBILE_ADS_DISABLED) return;
       document.querySelectorAll(".view").forEach(function (view) {
         if (view.dataset.adsPlaced) return;
         view.dataset.adsPlaced = "1";

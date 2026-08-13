@@ -5,7 +5,7 @@
 // Bump CACHE_NAME on every deploy that touches the app shell
 // (index.html/app.js/style.css); activate purges any other cache.
 // ─────────────────────────────────────────────────────────────
-const CACHE_NAME = 'facturepro-v4';
+const CACHE_NAME = 'facturepro-v5-no-mobile-redirects';
 const APP_SHELL = [
   '/',
   '/index.html',

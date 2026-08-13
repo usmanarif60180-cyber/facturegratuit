@@ -43,6 +43,11 @@ requiredProductionMarkers.forEach(marker => assert(index.includes(marker), `Miss
 assert(index.includes('number: editingInvoiceId || nextDocumentId("INV-", INVOICES)'), "Invoice preview must show its next number instead of Draft");
 assert(index.includes('number: editingQuoteId || nextDocumentId("QUO-", QUOTES)'), "Quote preview must show its next number instead of Draft");
 
+assert(index.includes('var MOBILE_ADS_DISABLED = window.matchMedia("(max-width: 900px)").matches;'), "Mobile ad runtime must remain disabled");
+assert(index.includes('frame.setAttribute("sandbox", "allow-scripts")'), "Third-party banners must run in an opaque sandbox");
+assert(!index.includes('frame.setAttribute("sandbox", "allow-scripts allow-same-origin")'), "Ad iframe sandbox must not allow same-origin access");
+assert(!index.includes("commendtwisted.com") && !index.includes("soleniva.net"), "Redirect/popunder domains must not be present");
+
 assert(index.includes("@media print"), "Print stylesheet is missing");
 assert(index.includes('class="print-doc"'), "Printable invoice markup is missing");
 assert(index.includes("width: 794px"), "A4 preview width contract changed");
@@ -67,6 +72,7 @@ htmlFiles.forEach(name => {
   const html = fs.readFileSync(path.join(root, name), "utf8");
   assert(/<title>[^<]{10,}<\/title>/i.test(html), `${name}: missing useful title`);
   assert(/<meta\s+name="description"\s+content="[^"]{50,}"/i.test(html), `${name}: missing useful meta description`);
+  assert(!html.includes('sandbox="allow-scripts allow-same-origin"'), `${name}: advertising iframe has unsafe sandbox permissions`);
 });
 
 console.log(`Regression checks passed: ${htmlFiles.length} HTML pages and ${localUrls.length} sitemap URLs.`);
