@@ -3,7 +3,7 @@
   "description": "FacturePro team/company Cloud Functions",
   "private": true,
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "index.js",
   "dependencies": {

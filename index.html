@@ -1141,10 +1141,26 @@ window.profactureTrack = function(name, params) {
   .gfab-btn { width: 3.2rem; height: 3.2rem; border-radius: 999px; background: hsl(var(--primary)); color: hsl(var(--primary-fg)); border: none; font-size: 1.4rem; box-shadow: 0 12px 28px -8px hsl(var(--primary) / 0.5); transition: transform 0.15s; }
   .gfab-btn:hover { transform: scale(1.06); }
   .gfab-btn.open { transform: rotate(45deg); }
-  .gfab-menu { position: absolute; right: 0; bottom: calc(100% + 0.75rem); width: 15.5rem; display: none; padding: 0.4rem; }
+  .gfab-menu { position: absolute; right: 0; bottom: calc(100% + 4.75rem); width: 15.5rem; display: none; padding: 0.4rem; }
   .gfab-menu.open { display: block; animation: reveal-up 0.2s ease; }
   .gfab-item { display: flex; align-items: center; gap: 0.65rem; width: 100%; border: none; background: none; border-radius: var(--radius-sm); padding: 0.55rem 0.6rem; text-align: left; font-size: 0.85rem; font-weight: 600; }
   .gfab-item:hover { background: hsl(var(--muted)); }
+  .ai-fab-btn { position:absolute;right:0;bottom:4rem;width:3.2rem;height:3.2rem;border-radius:999px;border:none;background:#2563eb;color:#fff;font-size:1.2rem;box-shadow:0 12px 28px -8px rgba(37,99,235,.6); }
+  .ai-fab-btn.open { background:#1d4ed8; }
+  .ai-fab-btn:hover { transform:translateY(-2px); }
+  .ai-popup { position:absolute;right:0;bottom:7.9rem;width:min(25rem,calc(100vw - 2rem));height:min(34rem,calc(100vh - 11rem));display:none;overflow:hidden;background:hsl(var(--card));border:1px solid hsl(var(--border));box-shadow:0 24px 60px -18px rgba(15,23,42,.45); }
+  .ai-popup.open { display:flex;flex-direction:column;animation:reveal-up .2s ease; }
+  .ai-popup-head { display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;border-bottom:1px solid hsl(var(--border)); }
+  .ai-popup-chat { flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:.65rem;padding:1rem; }
+  .ai-popup-compose { display:flex;gap:.45rem;padding:.75rem;border-top:1px solid hsl(var(--border));background:hsl(var(--card)); }
+  .ai-popup-compose .field { min-width:0; }
+  .msg { white-space:pre-wrap; }
+  .ai-action-card { align-self:flex-start;max-width:88%;padding:.7rem;border:1px solid hsl(var(--primary)/.25);border-radius:var(--radius-sm);background:hsl(var(--primary)/.07); }
+  .ai-action-card p { font-size:.78rem;color:hsl(var(--muted-fg));margin-bottom:.5rem; }
+  @media (max-width:640px) {
+    .gfab-wrap { right:1rem;bottom:1rem; }
+    .ai-popup { position:fixed;left:.75rem;right:.75rem;bottom:5.3rem;width:auto;height:min(36rem,calc(100dvh - 6.5rem)); }
+  }
 
   .barcode-strip { display: flex; align-items: flex-end; gap: 1px; height: 1.3rem; width: 4.2rem; }
   .barcode-strip span { display: block; background: hsl(var(--fg)); width: 2px; height: 100%; }
@@ -1296,6 +1312,11 @@ window.profactureTrack = function(name, params) {
 
 <!-- ============ GLOBAL QUICK ACTIONS FAB ============ -->
 <div class="gfab-wrap" id="gfab-wrap">
+  <div class="card ai-popup" id="ai-popup" role="dialog" aria-label="ProFacture AI Assistant" aria-hidden="true">
+    <div class="ai-popup-head"><div><strong>✦ ProFacture AI</strong><div style="font-size:.7rem;color:hsl(var(--muted-fg));">Invoice, quote and business help</div></div><button class="btn btn-ghost btn-icon" id="ai-popup-close" aria-label="Close assistant">✕</button></div>
+    <div class="ai-popup-chat" id="ai-popup-chat" aria-live="polite"><div class="msg bot">Bonjour. Je peux préparer une facture ou un devis, analyser votre activité et vous guider dans le workspace.</div></div>
+    <div class="ai-popup-compose"><input class="field" id="ai-popup-input" placeholder="Ask ProFacture AI…" autocomplete="off" /><button class="btn btn-primary btn-icon" id="ai-popup-send" aria-label="Send message">➤</button></div>
+  </div>
   <div class="card glass-panel gfab-menu" id="gfab-menu">
     <button class="gfab-item" data-goto="invoice-new"><span>📄+</span>Create invoice</button>
     <button class="gfab-item" data-goto="quote-new"><span>🧾+</span>Create quote</button>
@@ -1306,6 +1327,7 @@ window.profactureTrack = function(name, params) {
     <button class="gfab-item" data-goto="files"><span>🗂️+</span>Upload file</button>
     <button class="gfab-item" data-goto="ai"><span>✨</span>Open AI Assistant</button>
   </div>
+  <button class="ai-fab-btn" id="ai-fab-btn" aria-label="Open ProFacture AI" aria-expanded="false">✦</button>
   <button class="btn gfab-btn" id="gfab-btn" aria-label="Quick actions" aria-haspopup="menu">+</button>
 </div>
 
@@ -4367,12 +4389,12 @@ window.profactureTrack = function(name, params) {
           <div class="card card-pad">
             <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:hsl(var(--muted-fg));margin-bottom:0.5rem;" data-i18n="lbl_capabilities">Capabilities</div>
             <button class="ai-cap current" data-i18n="page_ai_title">AI Business Assistant</button>
-            <button class="ai-cap"><span data-i18n="ai_invoice_generator">AI Invoice Generator</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
-            <button class="ai-cap"><span data-i18n="ai_email_writer">AI Email Writer</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
-            <button class="ai-cap"><span data-i18n="ai_reminder_writer">AI Reminder Writer</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
-            <button class="ai-cap"><span data-i18n="ai_tax_assistant">AI Tax Assistant</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
-            <button class="ai-cap"><span data-i18n="ai_contract_generator">AI Contract Generator</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
-            <button class="ai-cap"><span data-i18n="ai_inventory_analyst">AI Inventory Analyst</span> <span class="badge badge-default" data-i18n="lbl_soon">Soon</span></button>
+            <button class="ai-cap" data-ai-prompt="Prepare a new invoice draft"><span data-i18n="ai_invoice_generator">AI Invoice Generator</span></button>
+            <button class="ai-cap" data-ai-prompt="Write a professional customer email"><span data-i18n="ai_email_writer">AI Email Writer</span></button>
+            <button class="ai-cap" data-ai-prompt="Write a polite unpaid invoice reminder"><span data-i18n="ai_reminder_writer">AI Reminder Writer</span></button>
+            <button class="ai-cap" data-ai-prompt="Help me review the tax information on my documents"><span data-i18n="ai_tax_assistant">AI Tax Assistant</span></button>
+            <button class="ai-cap" data-ai-prompt="Help me outline a service contract"><span data-i18n="ai_contract_generator">AI Contract Generator</span></button>
+            <button class="ai-cap" data-ai-prompt="Analyze my inventory and suggest next actions"><span data-i18n="ai_inventory_analyst">AI Inventory Analyst</span></button>
           </div>
           <div class="card">
             <div class="ai-chat" id="ai-chat" aria-live="polite">
@@ -5732,7 +5754,7 @@ window.profactureTrack = function(name, params) {
       var rid = "row" + nextRow++;
       var tr = document.createElement("tr");
       tr.innerHTML =
-        '<td><input class="field" data-role="desc" value="' + desc + '" /></td>' +
+        '<td><input class="field" data-role="desc" value="' + escapeHtml(desc) + '" /></td>' +
         '<td><input class="field" data-role="qty" type="number" min="0" step="any" value="' + qty + '" style="width:4.5rem;" /></td>' +
         '<td><input class="field" data-role="price" type="number" min="0" step="any" value="' + price + '" style="width:6rem;" /></td>' +
         '<td><select class="field" data-role="tax" style="width:8rem;">' +
@@ -5973,7 +5995,157 @@ window.profactureTrack = function(name, params) {
       }
       return null;
     }
-    var AI_SUGGESTIONS = ["Show overdue invoices", "Create follow-up tasks", "Find unpaid customers", "Show monthly profit", "Show stock alerts", "Generate inventory report", "Summarize business performance", "Suggest next actions", "Recommend improvements"];
+    var AI_SUGGESTIONS = ["Prepare an invoice draft", "Prepare a quote draft", "Show overdue invoices", "Find unpaid customers", "Show monthly profit", "Show stock alerts", "Summarize business performance", "Suggest next actions"];
+    var aiConversation = [];
+    var aiConversationCompanyId = "";
+    function aiWorkspaceContext() {
+      if (aiConversationCompanyId && aiConversationCompanyId !== wsActiveId) aiConversation = [];
+      aiConversationCompanyId = wsActiveId;
+      var company = currentCompanyProfile();
+      var invoices = activeCompanyItems(INVOICES);
+      var quotes = activeCompanyItems(QUOTES);
+      var clients = activeCompanyItems(CLIENTS);
+      var products = activeCompanyItems(PRODUCTS);
+      var expenses = activeCompanyItems(EXPENSES);
+      var tasks = activeCompanyItems(TASKS);
+      return {
+        language: currentLang,
+        currentView: (document.querySelector(".view.active") || {}).id || "",
+        today: new Date().toISOString().slice(0, 10),
+        company: { id: wsActiveId, name: company.name, country: currentDefaultCountry, currency: currentCurrency, badge: company.badge || "" },
+        supportedCurrencies: Object.keys(CURRENCY_SYMBOLS),
+        clients: clients.slice(0, 60).map(function (c) { return { id: c.id, name: clientDisplayName(c) }; }),
+        products: products.slice(0, 60).map(function (p) { return { id: p.id, name: p.name, price: Number(p.price || 0), stock: Number(p.stock || 0), unit: p.unit || "" }; }),
+        invoiceSummary: { count: invoices.length, unpaid: invoices.filter(function (inv) { return invoiceBalance(inv) > 0; }).length, outstanding: invoices.reduce(function (sum, inv) { return sum + invoiceBalance(inv); }, 0) },
+        quoteSummary: { count: quotes.length, pending: quotes.filter(function (q) { return q.status === "Sent" || q.status === "Draft"; }).length },
+        expenseSummary: { count: expenses.length, total: expenses.reduce(function (sum, item) { return sum + Number(item.amount || 0); }, 0) },
+        taskSummary: { count: tasks.length, open: tasks.filter(function (task) { return task.status !== "done"; }).length }
+      };
+    }
+    function appendAiMessage(chat, role, text) {
+      var msg = document.createElement("div");
+      msg.className = "msg " + (role === "user" ? "user" : "bot");
+      msg.textContent = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+      return msg;
+    }
+    function aiActionSummary(action) {
+      var draft = action && action.draft ? action.draft : {};
+      var items = Array.isArray(draft.items) ? draft.items : [];
+      if (action.type === "create_invoice" || action.type === "create_quote") {
+        return (draft.clientName ? draft.clientName + " · " : "") + items.length + " line item" + (items.length === 1 ? "" : "s") + (draft.currency ? " · " + draft.currency : "");
+      }
+      return "Open the suggested workspace page.";
+    }
+    function appendAiAction(chat, action) {
+      if (!action || !action.type || action.type === "none") return;
+      var card = document.createElement("div");
+      card.className = "ai-action-card";
+      var label = action.label || (action.type === "create_quote" ? "Open quote draft" : action.type === "create_invoice" ? "Open invoice draft" : "Open");
+      var summary = document.createElement("p");
+      summary.textContent = aiActionSummary(action);
+      var button = document.createElement("button");
+      button.className = "btn btn-primary btn-sm";
+      button.type = "button";
+      button.textContent = "✓ " + label;
+      button.addEventListener("click", function () {
+        applyAiAction(action);
+        button.disabled = true;
+        button.textContent = "Applied";
+      });
+      card.appendChild(summary);
+      card.appendChild(button);
+      chat.appendChild(card);
+      chat.scrollTop = chat.scrollHeight;
+    }
+    function findAiDraftClient(draft) {
+      var clients = activeCompanyItems(CLIENTS);
+      if (draft.clientId) {
+        var exact = clients.filter(function (c) { return c.id === draft.clientId; })[0];
+        if (exact) return exact;
+      }
+      var wanted = String(draft.clientName || "").toLowerCase();
+      return clients.filter(function (c) { return clientDisplayName(c).toLowerCase() === wanted || String(c.company || "").toLowerCase() === wanted; })[0] || null;
+    }
+    function safeAiItems(draft) {
+      var validTaxes = ["none", "vat20", "gst10", "sales8"];
+      return (Array.isArray(draft.items) ? draft.items : []).slice(0, 20).map(function (item) {
+        return {
+          desc: String(item.description || "").slice(0, 300),
+          qty: Math.max(0, Number(item.quantity || 0)),
+          price: Math.max(0, Number(item.unitPrice || 0)),
+          tax: validTaxes.indexOf(item.tax) !== -1 ? item.tax : "none"
+        };
+      }).filter(function (item) { return item.desc || item.price; });
+    }
+    function applyAiAction(action) {
+      if (action.workspaceCompanyId && action.workspaceCompanyId !== wsActiveId) {
+        showToast("This draft belongs to another company. Ask the assistant again after switching.");
+        return;
+      }
+      var destinations = ["dashboard", "invoices", "invoice-new", "quotes", "quote-new", "clients", "companies", "inventory", "expenses", "projects", "tasks", "calendar", "team", "files", "reports", "settings"];
+      if (action.type === "navigate") {
+        if (destinations.indexOf(action.destination) !== -1) showView(action.destination);
+        return;
+      }
+      if (action.type !== "create_invoice" && action.type !== "create_quote") return;
+      var draft = action.draft || {};
+      var client = findAiDraftClient(draft);
+      var items = safeAiItems(draft);
+      var isInvoice = action.type === "create_invoice";
+      editingInvoiceId = isInvoice ? null : editingInvoiceId;
+      editingQuoteId = isInvoice ? editingQuoteId : null;
+      showView(isInvoice ? "invoice-new" : "quote-new");
+      var prefix = isInvoice ? "inv-new-" : "q-new-";
+      var clientSelect = document.getElementById(prefix + "client");
+      if (client && clientSelect) clientSelect.value = client.id;
+      if (isInvoice) fillInvoiceClientAddress(); else fillQuoteNewClientAddress();
+      var currencyEl = document.getElementById(prefix + "currency");
+      if (currencyEl && Array.from(currencyEl.options).some(function (option) { return option.value === draft.currency; })) currencyEl.value = draft.currency;
+      var issueEl = document.getElementById(prefix + "issue");
+      if (issueEl && /^\d{4}-\d{2}-\d{2}$/.test(draft.issueDate || "")) issueEl.value = draft.issueDate;
+      var dueEl = document.getElementById(isInvoice ? "inv-new-due" : "q-new-valid");
+      if (dueEl && /^\d{4}-\d{2}-\d{2}$/.test(draft.dueDate || "")) dueEl.value = draft.dueDate;
+      var siteEl = document.getElementById(prefix + "site-address");
+      if (siteEl && draft.siteAddress) siteEl.value = String(draft.siteAddress).slice(0, 500);
+      if (items.length) {
+        if (isInvoice) { liBody.innerHTML = ""; items.forEach(function (item) { addRow(item.desc, item.qty, item.price, item.tax); }); recalc(); renderInvoicePreview(); scheduleInvoiceDraftSave(); }
+        else { qLiBody.innerHTML = ""; items.forEach(function (item) { qAddRow(item.desc, item.qty, item.price, item.tax); }); qRecalc(); renderQuotePreview(); scheduleQuoteDraftSave(); }
+      }
+      showToast((isInvoice ? "Invoice" : "Quote") + " draft prepared. Review it before saving.");
+    }
+    async function sendAiMessage(input, chat, button) {
+      var text = input.value.trim();
+      if (!text || button.disabled) return;
+      appendAiMessage(chat, "user", text);
+      input.value = "";
+      button.disabled = true;
+      var typing = appendAiMessage(chat, "assistant", "…");
+      try {
+        var localReply = aiFindReply(text);
+        var response;
+        if (window.profactureAskAi) {
+          response = await window.profactureAskAi({ message: text, history: aiConversation.slice(-8), context: aiWorkspaceContext() });
+        } else if (localReply) {
+          response = { reply: localReply.replace(/<br>/g, "\n").replace(/<[^>]+>/g, ""), action: { type: "none", label: "" } };
+        } else {
+          throw new Error("AI_NOT_READY");
+        }
+        typing.textContent = response.reply || "Je peux vous aider avec votre workspace.";
+        aiConversation.push({ role: "user", text: text }, { role: "assistant", text: typing.textContent });
+        aiConversation = aiConversation.slice(-12);
+        if (response.action && response.action.type && response.action.type !== "none") response.action.workspaceCompanyId = wsActiveId;
+        appendAiAction(chat, response.action);
+      } catch (error) {
+        var fallback = aiFindReply(text);
+        typing.textContent = fallback ? fallback.replace(/<br>/g, "\n").replace(/<[^>]+>/g, "") : (error && error.message === "SIGN_IN_REQUIRED" ? "Connectez-vous pour utiliser ProFacture AI." : "L'assistant est temporairement indisponible. Vos données et vos brouillons restent enregistrés.");
+      } finally {
+        button.disabled = false;
+        input.focus();
+        chat.scrollTop = chat.scrollHeight;
+      }
+    }
     function initAiAssistant(focusInput) {
       var aiChat = document.getElementById("ai-chat") || document.querySelector(".ai-chat");
       var aiInput = document.getElementById("ai-input") || document.querySelector(".ai-input-row input");
@@ -5981,28 +6153,7 @@ window.profactureTrack = function(name, params) {
       var aiSuggestChipsEl = document.getElementById("ai-suggest-chips");
       if (!aiChat || !aiInput || !aiSendBtn) return;
 
-      function aiSend() {
-        var text = aiInput.value.trim();
-        if (!text) return;
-        var userMsg = document.createElement("div");
-        userMsg.className = "msg user";
-        userMsg.textContent = text;
-        aiChat.appendChild(userMsg);
-        aiInput.value = "";
-        aiChat.scrollTop = aiChat.scrollHeight;
-
-        var typing = document.createElement("div");
-        typing.className = "msg bot";
-        typing.innerHTML = '<span class="wf-dots" style="display:inline-flex;"><span></span><span style="animation-delay:.2s"></span><span style="animation-delay:.4s"></span></span>';
-        aiChat.appendChild(typing);
-        aiChat.scrollTop = aiChat.scrollHeight;
-
-        setTimeout(function () {
-          var reply = aiFindReply(text);
-          typing.innerHTML = reply || "AI Assistant is active in business mode. Try asking about overdue invoices, unpaid customers, cash flow, stock alerts, monthly profit or next actions.";
-          aiChat.scrollTop = aiChat.scrollHeight;
-        }, 900);
-      }
+      function aiSend() { sendAiMessage(aiInput, aiChat, aiSendBtn); }
 
       if (!aiSendBtn.dataset.aiWired) {
         aiSendBtn.addEventListener("click", aiSend);
@@ -6029,6 +6180,14 @@ window.profactureTrack = function(name, params) {
       }
       if (focusInput) setTimeout(function () { aiInput.focus(); }, 80);
     }
+    document.querySelectorAll("#view-ai [data-ai-prompt]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var input = document.getElementById("ai-input");
+        if (!input) return;
+        input.value = button.getAttribute("data-ai-prompt");
+        sendAiMessage(input, document.getElementById("ai-chat"), document.getElementById("ai-send"));
+      });
+    });
     initAiAssistant(false);
     window.profactureShowView = showView;
     window.ivoxaShowView = showView;
@@ -9316,7 +9475,7 @@ window.profactureTrack = function(name, params) {
     function qAddRow(desc, qty, price, tax) {
       var tr = document.createElement("tr");
       tr.innerHTML =
-        '<td><input class="field" data-role="desc" value="' + desc + '" /></td>' +
+        '<td><input class="field" data-role="desc" value="' + escapeHtml(desc) + '" /></td>' +
         '<td><input class="field" data-role="qty" type="number" min="0" step="any" value="' + qty + '" style="width:4.5rem;" /></td>' +
         '<td><input class="field" data-role="price" type="number" min="0" step="any" value="' + price + '" style="width:6rem;" /></td>' +
         '<td><select class="field" data-role="tax" style="width:8rem;">' +
@@ -10778,6 +10937,7 @@ window.profactureTrack = function(name, params) {
 	    if (gfabBtn && gfabMenu) {
 	      gfabBtn.addEventListener("click", function (e) {
 	        e.stopPropagation();
+	        if (typeof setAiPopup === "function") setAiPopup(false);
 	        var open = gfabMenu.classList.toggle("open");
         gfabBtn.classList.toggle("open", open);
       });
@@ -10793,6 +10953,34 @@ window.profactureTrack = function(name, params) {
           gfabBtn.classList.remove("open");
 	        }
 	      });
+	    }
+
+	    var aiFabBtn = document.getElementById("ai-fab-btn");
+	    var aiPopup = document.getElementById("ai-popup");
+	    var aiPopupClose = document.getElementById("ai-popup-close");
+	    var aiPopupInput = document.getElementById("ai-popup-input");
+	    var aiPopupSend = document.getElementById("ai-popup-send");
+	    var aiPopupChat = document.getElementById("ai-popup-chat");
+	    function setAiPopup(open) {
+	      if (!aiPopup || !aiFabBtn) return;
+	      aiPopup.classList.toggle("open", open);
+	      aiFabBtn.classList.toggle("open", open);
+	      aiPopup.setAttribute("aria-hidden", open ? "false" : "true");
+	      aiFabBtn.setAttribute("aria-expanded", open ? "true" : "false");
+	      if (open) {
+	        gfabMenu.classList.remove("open");
+	        gfabBtn.classList.remove("open");
+	        setTimeout(function () { aiPopupInput.focus(); }, 60);
+	      }
+	    }
+	    if (aiFabBtn && aiPopup) {
+	      aiFabBtn.addEventListener("click", function (event) { event.stopPropagation(); setAiPopup(!aiPopup.classList.contains("open")); });
+	      aiPopup.addEventListener("click", function (event) { event.stopPropagation(); });
+	      aiPopupClose.addEventListener("click", function () { setAiPopup(false); });
+	      aiPopupSend.addEventListener("click", function () { sendAiMessage(aiPopupInput, aiPopupChat, aiPopupSend); });
+	      aiPopupInput.addEventListener("keydown", function (event) { if (event.key === "Enter") sendAiMessage(aiPopupInput, aiPopupChat, aiPopupSend); });
+	      document.addEventListener("keydown", function (event) { if (event.key === "Escape" && aiPopup.classList.contains("open")) setAiPopup(false); });
+	      document.addEventListener("click", function (event) { if (aiPopup.classList.contains("open") && !event.target.closest("#ai-popup") && !event.target.closest("#ai-fab-btn")) setAiPopup(false); });
 	    }
 
 	    var cookieResetBtn = document.getElementById("cookie-reset-btn");
@@ -10816,6 +11004,7 @@ window.profactureTrack = function(name, params) {
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, limit as firestoreLimit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
   import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-storage.js";
+  import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
@@ -10830,6 +11019,13 @@ window.profactureTrack = function(name, params) {
   const auth = getAuth(firebaseApp);
   const db = getFirestore(firebaseApp);
   const storage = getStorage(firebaseApp);
+	const functions = getFunctions(firebaseApp, "us-central1");
+	const askAiCallable = httpsCallable(functions, "aiAssistant");
+	window.profactureAskAi = async payload => {
+	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
+	  const result = await askAiCallable(payload);
+	  return result.data || {};
+	};
 	  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "profile", "reports", "ai"]);
   let currentUser = null;
   function setWorkspaceSyncState(state) {

@@ -4,6 +4,7 @@ import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const functionsSource = fs.readFileSync(path.join(root, "functions", "index.js"), "utf8");
 
 const requiredProductionMarkers = [
   'content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso"',
@@ -53,6 +54,17 @@ requiredProductionMarkers.forEach(marker => assert(index.includes(marker), `Miss
 ].forEach(marker => assert(index.includes(marker), `Missing multi-company isolation marker: ${marker}`));
 assert(index.includes('number: editingInvoiceId || nextDocumentId("INV-", INVOICES)'), "Invoice preview must show its next number instead of Draft");
 assert(index.includes('number: editingQuoteId || nextDocumentId("QUO-", QUOTES)'), "Quote preview must show its next number instead of Draft");
+
+[
+  'id="ai-fab-btn"',
+  'id="ai-popup"',
+  'httpsCallable(functions, "aiAssistant")',
+  'function applyAiAction(action)'
+].forEach(marker => assert(index.includes(marker), `Missing AI assistant marker: ${marker}`));
+assert(!/>[^<]*Gemini[^<]*</i.test(index), "The public UI must not expose the AI provider name");
+assert(functionsSource.includes("defineSecret('PROFACTURE_AI_API_KEY')"), "AI provider key must use Firebase Secret Manager");
+assert(functionsSource.includes('exports.aiAssistant = onCall'), "AI callable backend must exist");
+assert(functionsSource.includes('Never save, send, email, delete, or charge anything'), "AI backend must forbid destructive autonomous actions");
 
 assert(index.includes('var MOBILE_ADS_DISABLED = window.matchMedia("(max-width: 900px)").matches;'), "Mobile ad runtime must remain disabled");
 assert(index.includes('frame.setAttribute("sandbox", "allow-scripts")'), "Third-party banners must run in an opaque sandbox");
