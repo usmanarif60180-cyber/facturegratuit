@@ -577,6 +577,32 @@ window.profactureTrack = function(name, params) {
   .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; padding: 3rem 0 5rem; }
   @media (max-width: 860px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 560px) { .feature-grid { grid-template-columns: 1fr; } }
+  .ai-tools-band { border-top: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); background: hsl(var(--muted) / 0.28); padding: 4.5rem 0; }
+  .section-heading { max-width: 43rem; margin-bottom: 2rem; }
+  .section-heading h2 { margin-top: 0.55rem; font-size: clamp(1.8rem, 3vw, 2.7rem); line-height: 1.08; }
+  .section-heading p { margin-top: 0.8rem; color: hsl(var(--muted-fg)); line-height: 1.7; }
+  .ai-tools-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .ai-tool-card { padding: 1.25rem; min-height: 12rem; display: flex; flex-direction: column; }
+  .ai-tool-card .tool-num { width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: hsl(var(--primary) / 0.1); color: hsl(var(--primary)); font-size: 0.72rem; font-weight: 800; }
+  .ai-tool-card h3 { margin-top: 1rem; font-size: 1rem; }
+  .ai-tool-card p { margin-top: 0.45rem; color: hsl(var(--muted-fg)); font-size: 0.84rem; line-height: 1.6; }
+  .ai-tool-card .review-note { margin-top: auto; padding-top: 0.8rem; font-size: 0.7rem; font-weight: 700; color: hsl(var(--success)); }
+  .reviews-band { padding: 4.5rem 0; }
+  .reviews-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 0.7fr); gap: 1.25rem; align-items: start; }
+  .reviews-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .review-card { padding: 1.2rem; min-height: 11rem; display: flex; flex-direction: column; }
+  .review-stars { color: hsl(38 92% 46%); letter-spacing: 0; font-size: 0.9rem; }
+  .review-card blockquote { margin: 0.75rem 0 1rem; color: hsl(var(--fg)); font-size: 0.9rem; line-height: 1.65; }
+  .review-author { margin-top: auto; display: flex; align-items: center; gap: 0.65rem; }
+  .review-avatar { width: 2.25rem; height: 2.25rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); font-size: 0.75rem; font-weight: 800; }
+  .review-form { padding: 1.25rem; position: sticky; top: 6rem; }
+  .review-form .field-label { margin-top: 0.8rem; }
+  .review-form-status { min-height: 1.2rem; margin-top: 0.65rem; font-size: 0.75rem; color: hsl(var(--muted-fg)); }
+  .star-picker { display: flex; gap: 0.2rem; }
+  .star-picker button { border: 0; background: transparent; color: hsl(var(--border)); font-size: 1.5rem; cursor: pointer; padding: 0.1rem; }
+  .star-picker button.on { color: hsl(38 92% 46%); }
+  @media (max-width: 900px) { .ai-tools-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .reviews-layout { grid-template-columns: 1fr; } .review-form { position: static; } }
+  @media (max-width: 600px) { .ai-tools-grid, .reviews-grid { grid-template-columns: 1fr; } .ai-tools-band, .reviews-band { padding: 3.25rem 0; } }
   .feature-card { padding: 1.5rem; }
   .feature-icon {
     width: 2.6rem; height: 2.6rem; border-radius: var(--radius-md);
@@ -1521,6 +1547,49 @@ window.profactureTrack = function(name, params) {
     <div class="card card-hover feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="12" cy="12.5" r="7" fill="hsl(var(--secondary))" fill-opacity=".15"/><circle cx="12" cy="12" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 12h13M12 5.5c1.8 1.9 2.8 4.2 2.8 6.5s-1 4.6-2.8 6.5c-1.8-1.9-2.8-4.2-2.8-6.5s1-4.6 2.8-6.5Z" stroke="currentColor" stroke-width="1.4"/></svg></div><h3>Built for the world</h3><p>Any country, currency, language or tax system — nothing is hardcoded.</p></div>
     <div class="card card-hover feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="12" cy="12.5" r="7" fill="hsl(var(--secondary))" fill-opacity=".15"/><path d="M12 4.5 18 7v5c0 4-2.6 6.6-6 8-3.4-1.4-6-4-6-8V7l6-2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.3 12.2l1.8 1.8 3.6-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Enterprise-grade security</h3><p>Firebase-backed authentication and strict, organization-scoped data access.</p></div>
   </div>
+
+  <section class="ai-tools-band" id="home-ai-tools">
+    <div class="container">
+      <div class="section-heading">
+        <span class="eyebrow">Powered by AI</span>
+        <h2>Practical AI tools for everyday business work</h2>
+        <p>ProFacture AI uses your active company's workspace context to prepare drafts, extract receipt details and surface useful business signals. Nothing is sent, saved or deleted without your confirmation.</p>
+      </div>
+      <div class="ai-tools-grid">
+        <article class="card card-hover ai-tool-card"><span class="tool-num">01</span><h3>Invoice &amp; quote drafts</h3><p>Describe the work in plain language and receive structured line items, quantities, prices, tax and dates ready to edit.</p><span class="review-note">Review before saving</span></article>
+        <article class="card card-hover ai-tool-card"><span class="tool-num">02</span><h3>Receipt &amp; expense scan</h3><p>Upload a receipt or supplier PDF to extract vendor, date, total, tax, reference and expense category into an editable form.</p><span class="review-note">Original file stays under your control</span></article>
+        <article class="card card-hover ai-tool-card"><span class="tool-num">03</span><h3>Company-aware assistant</h3><p>Ask about unpaid invoices, customers, inventory, tasks and performance using only the currently selected company data.</p><span class="review-note">Separate memory per company</span></article>
+        <article class="card card-hover ai-tool-card"><span class="tool-num">04</span><h3>Cash-flow forecast</h3><p>See 30, 60 and 90-day estimates based on real invoices, quote status and recurring expenses, with assumptions clearly shown.</p><span class="review-note">Estimate, never fabricated revenue</span></article>
+        <article class="card card-hover ai-tool-card"><span class="tool-num">05</span><h3>CRM intelligence</h3><p>Identify priority, growth and at-risk customers from saved invoice, quote and payment activity, with suggested next actions.</p><span class="review-note">Operational guidance only</span></article>
+        <article class="card card-hover ai-tool-card"><span class="tool-num">06</span><h3>Smart automation reviews</h3><p>Detect overdue invoices, open quotes, low stock and recurring expenses, then prepare a task for you to approve.</p><span class="review-note">No autonomous email or payment</span></article>
+      </div>
+      <div class="cta-row" style="margin-top:2rem;"><a href="#" class="btn btn-primary" data-goto="register">Start using AI tools</a><a href="#" class="btn btn-outline" data-goto="ai">Open AI Command Center</a></div>
+    </div>
+  </section>
+
+  <section class="reviews-band" id="customer-reviews">
+    <div class="container">
+      <div class="section-heading">
+        <span class="eyebrow">User feedback</span>
+        <h2>What ProFacture users say</h2>
+        <p>Only reviews submitted by signed-in users and approved after moderation appear here. We do not publish invented testimonials.</p>
+      </div>
+      <div class="reviews-layout">
+        <div class="reviews-grid" id="public-reviews-grid" aria-live="polite"><div class="card review-card"><p class="widget-empty">Loading approved user reviews...</p></div></div>
+        <form class="card review-form" id="public-review-form">
+          <div class="card-title">Share your experience</div>
+          <p style="font-size:0.78rem;color:hsl(var(--muted-fg));margin-top:0.35rem;">A signed-in account is required. Reviews appear after moderation.</p>
+          <label class="field-label" for="review-public-name">Public name</label><input class="field" id="review-public-name" maxlength="60" placeholder="First name or business name" />
+          <label class="field-label" for="review-occupation">Business type</label><input class="field" id="review-occupation" maxlength="80" placeholder="Artisan, freelancer, online seller..." />
+          <label class="field-label">Rating</label><div class="star-picker" id="review-star-picker" role="radiogroup" aria-label="Rating out of five"><button type="button" data-review-rating="1" aria-label="1 star">★</button><button type="button" data-review-rating="2" aria-label="2 stars">★</button><button type="button" data-review-rating="3" aria-label="3 stars">★</button><button type="button" data-review-rating="4" aria-label="4 stars">★</button><button type="button" data-review-rating="5" aria-label="5 stars">★</button></div>
+          <label class="field-label" for="review-message">Review</label><textarea class="field" id="review-message" minlength="20" maxlength="600" rows="5" placeholder="Tell other businesses what was useful..."></textarea>
+          <label style="display:flex;gap:0.5rem;align-items:flex-start;margin-top:0.8rem;font-size:0.75rem;color:hsl(var(--muted-fg));"><input type="checkbox" id="review-consent" required /> I agree that this review and public name may appear on the website.</label>
+          <button class="btn btn-primary" id="review-submit" type="submit" style="width:100%;justify-content:center;margin-top:0.9rem;">Submit review</button>
+          <div class="review-form-status" id="review-form-status" role="status"></div>
+        </form>
+      </div>
+    </div>
+  </section>
 
   <section class="template-library-section">
     <div class="container">
@@ -11506,6 +11575,8 @@ window.profactureTrack = function(name, params) {
 	const aiHistoryCallable = httpsCallable(functions, "aiHistory", { limitedUseAppCheckTokens: true });
 	const storageManagerCallable = httpsCallable(functions, "storageManager", { limitedUseAppCheckTokens: true });
 	const aiUsageCallable = httpsCallable(functions, "aiUsage", { limitedUseAppCheckTokens: true });
+	const submitPublicReviewCallable = httpsCallable(functions, "submitPublicReview", { limitedUseAppCheckTokens: true });
+	const listPublicReviewsCallable = httpsCallable(functions, "listPublicReviews", { limitedUseAppCheckTokens: true });
 	const workspaceBackupCallable = httpsCallable(functions, "workspaceBackup", { limitedUseAppCheckTokens: true });
 	window.profactureAskAi = async payload => {
 	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
@@ -11534,6 +11605,68 @@ window.profactureTrack = function(name, params) {
 	};
 	  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "profile", "reports", "ai"]);
   let currentUser = null;
+  let publicReviewRating = 0;
+  function reviewInitials(name) {
+    return String(name || "U").split(/\s+/).filter(Boolean).map(part => part[0]).slice(0, 2).join("").toUpperCase() || "U";
+  }
+  function renderPublicReviews(reviews) {
+    const grid = document.getElementById("public-reviews-grid");
+    if (!grid) return;
+    grid.innerHTML = "";
+    if (!Array.isArray(reviews) || !reviews.length) {
+      const empty = document.createElement("div");
+      empty.className = "card review-card";
+      const text = document.createElement("p");
+      text.className = "widget-empty";
+      text.textContent = "No approved reviews yet. Signed-in users can submit the first one for moderation.";
+      empty.appendChild(text);
+      grid.appendChild(empty);
+      return;
+    }
+    reviews.forEach(review => {
+      const card = document.createElement("article"); card.className = "card review-card";
+      const stars = document.createElement("div"); stars.className = "review-stars"; stars.setAttribute("aria-label", review.rating + " out of 5 stars"); stars.textContent = "★★★★★".slice(0, review.rating) + "☆☆☆☆☆".slice(review.rating);
+      const quote = document.createElement("blockquote"); quote.textContent = review.message;
+      const author = document.createElement("div"); author.className = "review-author";
+      const avatar = document.createElement("span"); avatar.className = "review-avatar"; avatar.textContent = reviewInitials(review.publicName);
+      const meta = document.createElement("div");
+      const name = document.createElement("strong"); name.textContent = review.publicName || "ProFacture user";
+      const role = document.createElement("div"); role.style.cssText = "font-size:0.72rem;color:hsl(var(--muted-fg));margin-top:0.12rem;"; role.textContent = review.occupation || "Verified account";
+      meta.append(name, role); author.append(avatar, meta); card.append(stars, quote, author); grid.appendChild(card);
+    });
+  }
+  async function loadPublicReviews() {
+    try { const result = await listPublicReviewsCallable({}); renderPublicReviews(result.data && result.data.reviews); }
+    catch (error) { renderPublicReviews([]); }
+  }
+  const reviewStarPicker = document.getElementById("review-star-picker");
+  if (reviewStarPicker) reviewStarPicker.addEventListener("click", event => {
+    const button = event.target.closest("[data-review-rating]"); if (!button) return;
+    publicReviewRating = Number(button.getAttribute("data-review-rating"));
+    reviewStarPicker.querySelectorAll("[data-review-rating]").forEach(star => {
+      const selected = Number(star.getAttribute("data-review-rating")) <= publicReviewRating;
+      star.classList.toggle("on", selected); star.setAttribute("aria-checked", String(Number(star.getAttribute("data-review-rating")) === publicReviewRating));
+    });
+  });
+  const publicReviewForm = document.getElementById("public-review-form");
+  if (publicReviewForm) publicReviewForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    const status = document.getElementById("review-form-status");
+    const submit = document.getElementById("review-submit");
+    if (!currentUser) { status.textContent = "Please sign in before submitting a review."; window.profactureShowView("login"); return; }
+    const message = document.getElementById("review-message").value.trim();
+    if (!publicReviewRating) { status.textContent = "Please choose a rating from 1 to 5."; return; }
+    if (message.length < 20) { status.textContent = "Please write at least 20 characters."; return; }
+    if (!document.getElementById("review-consent").checked) { status.textContent = "Consent is required before publication."; return; }
+    submit.disabled = true; submit.textContent = "Submitting..."; status.textContent = "";
+    try {
+      await submitPublicReviewCallable({ publicName: document.getElementById("review-public-name").value.trim(), occupation: document.getElementById("review-occupation").value.trim(), rating: publicReviewRating, message, locale: document.documentElement.lang || "fr" });
+      status.textContent = "Thank you. Your review is waiting for moderation.";
+      document.getElementById("review-message").value = ""; document.getElementById("review-consent").checked = false;
+    } catch (error) { status.textContent = (error && error.message) ? error.message.replace(/^FirebaseError:\s*/, "") : "Review could not be submitted."; }
+    finally { submit.disabled = false; submit.textContent = "Submit review"; }
+  });
+  loadPublicReviews();
   function setWorkspaceSyncState(state) {
     const labels = { saving: "sync_saving", saved: "sync_saved", offline: "sync_offline", error: "sync_error" };
     document.querySelectorAll("[data-sync-chip]").forEach(chip => {
@@ -12460,6 +12593,10 @@ window.profactureTrack = function(name, params) {
 
   onAuthStateChanged(auth, async user => {
     currentUser = user;
+	    const reviewNameInput = document.getElementById("review-public-name");
+	    const reviewSubmitButton = document.getElementById("review-submit");
+	    if (user && reviewNameInput && !reviewNameInput.value.trim()) reviewNameInput.value = user.displayName || "";
+	    if (reviewSubmitButton) reviewSubmitButton.textContent = user ? "Submit review" : "Sign in to review";
 	    setWorkspaceSyncState(user ? (navigator.onLine ? "saving" : "offline") : "offline");
 	    if (user) {
 	      hydrateWorkspaceFromLocal(user);

@@ -5,6 +5,7 @@ import path from "node:path";
 const root = path.resolve(import.meta.dirname, "..");
 const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const functionsSource = fs.readFileSync(path.join(root, "functions", "index.js"), "utf8");
+const firestoreRules = fs.readFileSync(path.join(root, "firestore.rules"), "utf8");
 
 const requiredProductionMarkers = [
   'content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso"',
@@ -87,6 +88,19 @@ assert(index.includes('id="cashflow-forecast-grid"') && index.includes('function
 assert(index.includes('id="crm-intelligence-list"') && index.includes('function renderCrmIntelligence()'), "CRM intelligence is missing");
 assert(index.includes('aria-modal="true"') && index.includes('role="log"'), "AI dialog accessibility contract changed");
 assert(functionsSource.includes('Never save, send, email, delete, or charge anything'), "AI backend must forbid destructive autonomous actions");
+
+[
+  'id="home-ai-tools"',
+  'id="customer-reviews"',
+  'id="public-reviews-grid"',
+  'id="public-review-form"',
+  'httpsCallable(functions, "submitPublicReview"',
+  'httpsCallable(functions, "listPublicReviews"'
+].forEach(marker => assert(index.includes(marker), `Missing public review/AI homepage marker: ${marker}`));
+assert(functionsSource.includes('exports.submitPublicReview = onCall'), "Authenticated review submission callable is missing");
+assert(functionsSource.includes('exports.listPublicReviews = onCall'), "Moderated public review listing callable is missing");
+assert(functionsSource.includes("where('status', '==', 'approved')"), "Unapproved reviews must never be returned publicly");
+assert(firestoreRules.includes('match /publicFeedback/{feedbackId}') && firestoreRules.includes('allow read, create, update, delete: if false;'), "Public feedback must remain callable-only");
 
 assert(index.includes('var MOBILE_ADS_DISABLED = window.matchMedia("(max-width: 900px)").matches;'), "Mobile ad runtime must remain disabled");
 assert(index.includes('frame.setAttribute("sandbox", "allow-scripts")'), "Third-party banners must run in an opaque sandbox");

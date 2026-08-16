@@ -555,6 +555,51 @@ exports.aiUsage = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheck
   });
 });
 
+// Each account has one active review, moderated before publication.
+// The browser never reads this collection directly, so pending feedback and
+// user identifiers cannot leak through Firestore rules.
+exports.submitPublicReview = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheckToken: true }, async (request) => {
+  const auth = requireAuth(request);
+  const message = cleanAiText(request.data?.message, 600);
+  const publicName = cleanAiText(request.data?.publicName || auth.token.name || 'ProFacture user', 60);
+  const occupation = cleanAiText(request.data?.occupation, 80);
+  const locale = cleanAiText(request.data?.locale || 'fr', 10);
+  const rating = Math.round(Number(request.data?.rating || 0));
+  if (message.length < 20) throw new HttpsError('invalid-argument', 'Votre avis doit contenir au moins 20 caractères.');
+  if (rating < 1 || rating > 5) throw new HttpsError('invalid-argument', 'Une note de 1 à 5 est requise.');
+  const ref = db.doc(`publicFeedback/${auth.uid}`);
+  const existing = await ref.get();
+  const review = {
+    uid: auth.uid,
+    publicName: publicName || 'ProFacture user',
+    occupation,
+    locale,
+    rating,
+    message,
+    status: 'pending',
+    approvedAt: admin.firestore.FieldValue.delete(),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  };
+  if (!existing.exists) review.createdAt = admin.firestore.FieldValue.serverTimestamp();
+  await ref.set(review, { merge: true });
+  return { status: 'pending' };
+});
+
+exports.listPublicReviews = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheckToken: true }, async () => {
+  const snap = await db.collection('publicFeedback').where('status', '==', 'approved').limit(50).get();
+  const reviews = snap.docs.map((doc) => doc.data()).sort((a, b) => {
+    const aTime = a.approvedAt?.toMillis?.() || a.updatedAt?.toMillis?.() || 0;
+    const bTime = b.approvedAt?.toMillis?.() || b.updatedAt?.toMillis?.() || 0;
+    return bTime - aTime;
+  }).slice(0, 12).map((review) => ({
+    publicName: cleanAiText(review.publicName || 'ProFacture user', 60),
+    occupation: cleanAiText(review.occupation, 80),
+    rating: Math.max(1, Math.min(5, Math.round(Number(review.rating || 5)))),
+    message: cleanAiText(review.message, 600)
+  }));
+  return { reviews };
+});
+
 async function readUserBackupData(uid) {
   const accountSnap = await db.doc(`users/${uid}`).get();
   const collections = {};

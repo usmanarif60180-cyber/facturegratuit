@@ -169,10 +169,7 @@ service cloud.firestore {
     }
 
     match /publicFeedback/{feedbackId} {
-      allow create: if signedIn()
-        && request.resource.data.message is string
-        && request.resource.data.message.size() <= 3000;
-      allow read, update, delete: if false;
+      allow read, create, update, delete: if false;
     }
 
     match /publicConfig/{configId} {
