@@ -323,11 +323,22 @@ const OCR_RESPONSE_SCHEMA = {
   type: 'OBJECT',
   properties: {
     title: { type: 'STRING' }, vendor: { type: 'STRING' }, date: { type: 'STRING' },
-    amount: { type: 'NUMBER' }, taxAmount: { type: 'NUMBER' }, currency: { type: 'STRING' },
-    category: { type: 'STRING' }, reference: { type: 'STRING' }, confidence: { type: 'NUMBER' },
-    notes: { type: 'STRING' }
+    amountHT: { type: 'NUMBER' }, taxAmount: { type: 'NUMBER' }, amountTTC: { type: 'NUMBER' }, 
+    currency: { type: 'STRING' }, category: { type: 'STRING' }, 
+    reference: { type: 'STRING' }, paymentMethod: { type: 'STRING' },
+    confidence: { type: 'NUMBER' }, notes: { type: 'STRING' },
+    items: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          description: { type: 'STRING' }, quantity: { type: 'NUMBER' }, unitPrice: { type: 'NUMBER' }, total: { type: 'NUMBER' }
+        },
+        required: ['description', 'quantity', 'unitPrice', 'total']
+      }
+    }
   },
-  required: ['title', 'vendor', 'date', 'amount', 'taxAmount', 'currency', 'category', 'reference', 'confidence', 'notes']
+  required: ['title', 'vendor', 'date', 'amountHT', 'taxAmount', 'amountTTC', 'currency', 'category', 'reference', 'paymentMethod', 'confidence', 'notes', 'items']
 };
 
 // Authenticated business assistant. The provider key never reaches the browser.
@@ -407,7 +418,7 @@ exports.aiDocumentScan = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, mem
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [
-            { text: 'Extract this business receipt or supplier invoice. Return only observed values. Amount is the final paid total. Use ISO YYYY-MM-DD when date is readable; otherwise empty. Choose one category from Travel, Fuel, Office, Equipment, Marketing, Software, Salary, Utilities, Maintenance, Tax, Other. Never invent missing data.' },
+            { text: 'Extract this business receipt or supplier invoice. Return only observed values. amountHT is total HT, taxAmount is total VAT, amountTTC is total paid. Use ISO YYYY-MM-DD when date is readable; otherwise empty. Choose one category from: Matériaux, Carburant, Main-d’œuvre, Salaires, Outils, Location matériel, Sous-traitance, Péage, Parking, Transport, Fournitures, Pièces automobile, Restaurant / Repas, Hébergement, Assurance, Autres dépenses. Never invent missing data.' },
             { inlineData: { mimeType: upload.contentType, data: upload.buffer.toString('base64') } }
           ] }],
           generationConfig: { responseMimeType: 'application/json', responseSchema: OCR_RESPONSE_SCHEMA, maxOutputTokens: 450, temperature: 0 }
@@ -421,15 +432,25 @@ exports.aiDocumentScan = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, mem
       const payload = await response.json();
       const raw = payload?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '';
       const parsed = JSON.parse(raw);
+      const VALID_CATEGORIES = ['Matériaux', 'Carburant', 'Main-d’œuvre', 'Salaires', 'Outils', 'Location matériel', 'Sous-traitance', 'Péage', 'Parking', 'Transport', 'Fournitures', 'Pièces automobile', 'Restaurant / Repas', 'Hébergement', 'Assurance', 'Autres dépenses'];
       const result = {
         extraction: {
           title: cleanAiText(parsed.title, 160), vendor: cleanAiText(parsed.vendor, 160),
           date: /^\d{4}-\d{2}-\d{2}$/.test(parsed.date || '') ? parsed.date : '',
-          amount: Math.min(100000000, Math.max(0, Number(parsed.amount) || 0)),
+          amountHT: Math.min(100000000, Math.max(0, Number(parsed.amountHT) || 0)),
           taxAmount: Math.min(100000000, Math.max(0, Number(parsed.taxAmount) || 0)),
+          amountTTC: Math.min(100000000, Math.max(0, Number(parsed.amountTTC) || 0)),
           currency: AI_CURRENCIES.has(String(parsed.currency || '').toUpperCase()) ? String(parsed.currency).toUpperCase() : '',
-          category: ['Travel', 'Fuel', 'Office', 'Equipment', 'Marketing', 'Software', 'Salary', 'Utilities', 'Maintenance', 'Tax', 'Other'].includes(parsed.category) ? parsed.category : 'Other',
-          reference: cleanAiText(parsed.reference, 120), confidence: Math.max(0, Math.min(1, Number(parsed.confidence) || 0)), notes: cleanAiText(parsed.notes, 300)
+          category: VALID_CATEGORIES.includes(parsed.category) ? parsed.category : 'Autres dépenses',
+          reference: cleanAiText(parsed.reference, 120),
+          paymentMethod: cleanAiText(parsed.paymentMethod, 120),
+          confidence: Math.max(0, Math.min(1, Number(parsed.confidence) || 0)), notes: cleanAiText(parsed.notes, 300),
+          items: Array.isArray(parsed.items) ? parsed.items.map(item => ({
+            description: cleanAiText(item.description, 200),
+            quantity: Math.max(0, Number(item.quantity) || 0),
+            unitPrice: Math.max(0, Number(item.unitPrice) || 0),
+            total: Math.max(0, Number(item.total) || 0)
+          })) : []
         },
         usage: { dailyUsed: budget.dayCount, dailyLimit: AI_LIMITS.perDay, credits: budget.credits }
       };

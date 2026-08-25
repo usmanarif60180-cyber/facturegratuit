@@ -4652,37 +4652,116 @@ window.profactureTrack = function(name, params) {
       <div class="app-content">
         <div class="page-head">
           <div>
-            <a href="#" data-goto="projects" style="font-size:0.8rem;color:hsl(var(--muted-fg));font-weight:600;" data-i18n="btn_back_to_projects">← Back to projects</a>
+            <a href="#" data-goto="projects" style="font-size:0.8rem;color:hsl(var(--muted-fg));font-weight:600;">← Chantiers</a>
             <h1 style="margin-top:0.4rem;" id="pd-name">Project name</h1>
             <p id="pd-meta">Client · Status</p>
           </div>
-          <div style="display:flex;gap:0.5rem;">
-            <button class="btn btn-outline btn-sm" id="pd-delete-btn" style="color:hsl(var(--danger));">🗑️ <span data-i18n="btn_delete_project">Delete project</span></button>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <button class="btn btn-primary btn-sm" id="pd-ai-scan-btn">📷 Scanner une dépense</button>
+            <button class="btn btn-outline btn-sm" id="pd-ai-ask-btn">✨ Assistant AI</button>
+            <button class="btn btn-outline btn-sm" id="pd-delete-btn" style="color:hsl(var(--danger));">🗑️ Supprimer</button>
           </div>
         </div>
 
         <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);" id="pd-stat-grid"></div>
 
-        <div class="dash-grid" style="margin-top:1.1rem;grid-template-columns:1fr 1.2fr;">
-          <div>
-            <div class="card card-pad">
-              <div class="card-title" data-i18n="fld_description">Description</div>
-              <p id="pd-description" style="font-size:0.85rem;line-height:1.6;color:hsl(var(--fg));"></p>
-            </div>
-            <div class="card card-pad" style="margin-top:1.1rem;">
-              <div class="card-title" data-i18n="card_notes">Notes</div>
-              <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;">
-                <input class="field" id="pd-note-input" placeholder="…" />
-                <button class="btn btn-outline btn-sm" id="pd-note-add-btn" data-i18n="btn_add_note">Add note</button>
+        <div class="tabs" style="margin-top:1.5rem;border-bottom:1px solid hsl(var(--border));display:flex;gap:1.5rem;overflow-x:auto;">
+          <a href="#" class="tab-link active" data-tab="apercu">Aperçu</a>
+          <a href="#" class="tab-link" data-tab="devis">Devis & Avenants</a>
+          <a href="#" class="tab-link" data-tab="factures">Factures</a>
+          <a href="#" class="tab-link" data-tab="paiements">Paiements</a>
+          <a href="#" class="tab-link" data-tab="depenses">Dépenses</a>
+          <a href="#" class="tab-link" data-tab="main-doeuvre">Main-d’œuvre</a>
+          <a href="#" class="tab-link" data-tab="documents">Documents</a>
+          <a href="#" class="tab-link" data-tab="rentabilite">Rentabilité</a>
+          <a href="#" class="tab-link" data-tab="historique">Historique</a>
+        </div>
+
+        <div id="pd-tab-apercu" class="tab-content" style="margin-top:1.5rem;display:block;">
+          <div class="dash-grid" style="grid-template-columns:1fr 1.2fr;">
+            <div>
+              <div class="card card-pad">
+                <div class="card-title">Description</div>
+                <p id="pd-description" style="font-size:0.85rem;line-height:1.6;color:hsl(var(--fg));"></p>
               </div>
-              <div id="pd-notes"></div>
+              <div class="card card-pad" style="margin-top:1.1rem;">
+                <div class="card-title">Notes</div>
+                <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;">
+                  <input class="field" id="pd-note-input" placeholder="…" />
+                  <button class="btn btn-outline btn-sm" id="pd-note-add-btn">Add note</button>
+                </div>
+                <div id="pd-notes"></div>
+              </div>
             </div>
-          </div>
-          <div class="card card-pad">
-            <div class="card-title" data-i18n="card_linked_tasks">Tasks</div>
-            <div id="pd-tasks"></div>
+            <div>
+               <div class="card card-pad">
+                 <div class="card-title">Progression Financière</div>
+                 <div id="pd-financial-progress"></div>
+               </div>
+               <div class="card card-pad" style="margin-top:1.1rem;">
+                 <div class="card-title">Dernières Actions</div>
+                 <div id="pd-recent-actions"></div>
+               </div>
+            </div>
           </div>
         </div>
+
+        <div id="pd-tab-devis" class="tab-content" style="margin-top:1.5rem;display:none;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+            <h3>Devis & Avenants</h3>
+            <button class="btn btn-outline btn-sm" id="pd-add-devis-btn">+ Nouveau Devis/Avenant</button>
+          </div>
+          <div id="pd-devis-list"></div>
+        </div>
+
+        <div id="pd-tab-factures" class="tab-content" style="margin-top:1.5rem;display:none;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+            <h3>Factures (Acompte, Situation, Solde)</h3>
+            <button class="btn btn-outline btn-sm" id="pd-add-facture-btn">+ Créer Facture</button>
+          </div>
+          <div id="pd-factures-list"></div>
+        </div>
+
+        <div id="pd-tab-paiements" class="tab-content" style="margin-top:1.5rem;display:none;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+            <h3>Paiements Reçus</h3>
+            <button class="btn btn-outline btn-sm" id="pd-add-paiement-btn">+ Ajouter Paiement</button>
+          </div>
+          <div id="pd-paiements-list"></div>
+        </div>
+
+        <div id="pd-tab-depenses" class="tab-content" style="margin-top:1.5rem;display:none;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+            <h3>Dépenses Chantier</h3>
+            <button class="btn btn-outline btn-sm" id="pd-add-depense-btn">+ Saisir Manuellement</button>
+          </div>
+          <div id="pd-depenses-list"></div>
+        </div>
+
+        <div id="pd-tab-main-doeuvre" class="tab-content" style="margin-top:1.5rem;display:none;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+            <h3>Heures & Salaires</h3>
+            <button class="btn btn-outline btn-sm" id="pd-add-heure-btn">+ Ajouter Heures</button>
+          </div>
+          <div id="pd-heures-list"></div>
+        </div>
+        
+        <div id="pd-tab-documents" class="tab-content" style="margin-top:1.5rem;display:none;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+            <h3>Documents et Photos</h3>
+            <button class="btn btn-outline btn-sm" id="pd-add-doc-btn">+ Uploader</button>
+          </div>
+          <div id="pd-docs-list"></div>
+        </div>
+
+        <div id="pd-tab-rentabilite" class="tab-content" style="margin-top:1.5rem;display:none;">
+          <div id="pd-rentabilite-view"></div>
+        </div>
+
+        <div id="pd-tab-historique" class="tab-content" style="margin-top:1.5rem;display:none;">
+          <div id="pd-historique-view"></div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -5098,7 +5177,7 @@ window.profactureTrack = function(name, params) {
     function mHeader(active) {
       var nav = M_NAV.map(function (item) {
         return '<a href="#" data-goto="' + item.id + '" class="' + (item.id === active ? "current" : "") + '">' + t(item.i18nKey) + "</a>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
       return (
         '<header class="m-header" data-mh-active="' + active + '"><div class="container m-header-inner">' +
         '<a href="#" class="logo" data-goto="landing"><span class="logo-mark">PA</span>ProFacture AI</a>' +
@@ -5164,7 +5243,7 @@ window.profactureTrack = function(name, params) {
 	    function populateStaticLangSelects() {
 	      var optionsHtml = LANG_LIST.map(function (l) {
 	        return '<option value="' + l.code + '">' + l.flag + " " + l.name + "</option>";
-	      }).join("");
+	      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
 	      document.querySelectorAll("select.m-lang-select").forEach(function (el) {
 	        if (!el.innerHTML.trim()) el.innerHTML = optionsHtml;
 	      });
@@ -5186,7 +5265,7 @@ window.profactureTrack = function(name, params) {
           '<div class="ad-slot" data-ad-slot="profacture-ad-' + adSlotCounter + '" data-adsterra-live="1" data-adsterra-width="' + s.w + '" data-adsterra-height="' + s.h + '" style="width:' + s.w + 'px;height:' + s.h + 'px;max-width:100%;">' +
           '<span class="ad-lbl">Adsterra · ' + t("lbl_advertisement") + " · " + s.w + " × " + s.h + "</span></div>"
         );
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function mountAdsterraSlot(slot) {
       if (!slot || slot.dataset.adsterraMounted === "1") return;
@@ -5502,7 +5581,7 @@ window.profactureTrack = function(name, params) {
       var cats = ["all"].concat(BLOG_POSTS.map(function (p) { return p.cat; }).filter(function (c, i, a) { return a.indexOf(c) === i; }));
       document.getElementById("blog-chips").innerHTML = cats.map(function (c) {
         return '<button class="chip' + (blogCategory === c ? " on" : "") + '" data-cat="' + c + '">' + (c === "all" ? "All" : c) + "</button>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function renderBlogGrid() {
       var q = blogQuery.toLowerCase();
@@ -5575,7 +5654,7 @@ window.profactureTrack = function(name, params) {
       legend.innerHTML = Object.keys(CAL_TYPES).map(function (k) {
         var t = CAL_TYPES[k];
         return '<span><span class="cal-dot" style="background:' + calRingColor(k) + ';"></span>' + t.icon + " " + t.label + "</span>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function renderCalMonthGrid() {
       var grid = document.getElementById("cal-grid");
@@ -5589,7 +5668,7 @@ window.profactureTrack = function(name, params) {
       var daysInMonth = new Date(year, month + 1, 0).getDate();
       var html = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(function (d) {
         return '<div class="cal-dow">' + d + "</div>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
       for (var i = 0; i < startOffset; i++) html += '<div class="cal-cell"></div>';
       for (var d = 1; d <= daysInMonth; d++) {
         var isToday = d === today.getDate();
@@ -5597,7 +5676,7 @@ window.profactureTrack = function(name, params) {
         var dots = dayEvents.map(function (ev) {
           var t = CAL_TYPES[ev.type];
           return '<span class="cal-dot cal-chip" draggable="true" data-event-id="' + ev.id + '" title="' + t.label + ": " + ev.title.replace(/"/g, "") + '" style="background:' + calRingColor(ev.type) + ';"></span>';
-        }).join("");
+        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
         html += '<div class="cal-cell' + (isToday ? " today" : "") + '" data-cal-day="' + d + '">' + d + '<div class="dots">' + dots + "</div></div>";
       }
       grid.innerHTML = html;
@@ -5769,7 +5848,7 @@ window.profactureTrack = function(name, params) {
       bar.setAttribute("role", "tablist");
       bar.innerHTML = steps.map(function (s) {
         return '<button type="button" role="tab" data-doc-step="' + s.id + '">' + s.label + "</button>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
       layout.parentNode.insertBefore(bar, layout);
       function setStep(stepId) {
         layout.classList.add("mobile-wizard-active");
@@ -5902,7 +5981,7 @@ window.profactureTrack = function(name, params) {
     function taxOptionsHtml(selected) {
       return Object.keys(TAX_RATES).map(function (code) {
         return '<option value="' + code + '"' + (selected === code ? " selected" : "") + ">" + taxOptionLabel(code) + "</option>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function calculateDocumentTotals(items) {
       var result = { subtotal: 0, taxTotal: 0, total: 0, breakdown: [] };
@@ -6647,7 +6726,7 @@ window.profactureTrack = function(name, params) {
 
       var dots = OB_STEPS.map(function (_, i) {
         return '<span class="' + (i === obStep ? "on" : i < obStep ? "past" : "") + '"></span>';
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
 
       var body = "";
       if (s === "welcome") {
@@ -6678,7 +6757,7 @@ window.profactureTrack = function(name, params) {
           var left = 8 + (i * 37) % 84;
           var hue = i % 2 === 0 ? "hsl(var(--primary))" : "hsl(var(--secondary))";
           return '<span style="left:' + left + '%;background:' + hue + ';animation-delay:' + ((i % 5) * 0.09).toFixed(2) + 's;"></span>';
-        }).join("");
+        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
         body = '<div class="ob-confetti">' + confetti + "</div>" +
           obIllus(OB_ICONS.check) + "<h3>You’re all set!</h3><p class=\"desc\">Your workspace is ready. Let’s create your first invoice or quote.</p>";
       }
@@ -6922,7 +7001,7 @@ window.profactureTrack = function(name, params) {
           '<div class="ds-tpl-meta"><div class="n">' + t.name + '</div><div class="c">' + t.cat + "</div></div>" +
           "</button>"
         );
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
 
     function dsRenderThemes() {
@@ -6935,7 +7014,7 @@ window.profactureTrack = function(name, params) {
           '<span class="n">' + th.name + "</span>" +
           "</button>"
         );
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
 
     function dsRenderFonts() {
@@ -6948,7 +7027,7 @@ window.profactureTrack = function(name, params) {
           '<span class="name">' + font.name + "</span>" +
           "</button>"
         );
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
 
     function dsRenderSections() {
@@ -6961,7 +7040,7 @@ window.profactureTrack = function(name, params) {
           '<button data-sec-toggle="' + i + '">' + (s.visible ? "👁" : "🚫") + "</button>" +
           "</div>"
         );
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
 
     var dsTabsEl = document.getElementById("ds-tabs");
@@ -7205,7 +7284,7 @@ window.profactureTrack = function(name, params) {
       var isLast = cwStep === CW_STEPS.length - 1;
       var dots = CW_STEPS.map(function (_, i) {
         return '<span class="' + (i === cwStep ? "on" : i < cwStep ? "past" : "") + '"></span>';
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
 
       var body = "";
       if (s === "basics") {
@@ -7419,7 +7498,7 @@ window.profactureTrack = function(name, params) {
       if (!code) return "";
       var bars = code.split("").map(function (ch) {
         return '<span style="width:' + ((ch.charCodeAt(0) % 3) + 1) + 'px;"></span>';
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
       return '<div class="barcode-strip" title="' + code + '">' + bars + "</div>";
     }
     function invStockBadge(item) {
@@ -7792,7 +7871,7 @@ window.profactureTrack = function(name, params) {
           '<div class="activity-row"><div style="display:flex;gap:0.6rem;align-items:flex-start;"><span>' + (ACTIVITY_ICONS[t.type] || "•") + '</span>' +
           '<div><div class="num" style="font-weight:600;">' + t.text + '</div><div class="meta">' + new Date(t.date + "T00:00:00").toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" }) + "</div></div></div></div>"
         );
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     document.body.addEventListener("click", function (e) {
       var openBtn = e.target.closest("[data-client-open]");
@@ -7895,9 +7974,9 @@ window.profactureTrack = function(name, params) {
             LEAD_STAGES.map(function (s) { return '<option value="' + s.key + '"' + (s.key === l.stage ? " selected" : "") + ">" + s.label + "</option>"; }).join("") +
             "</select></div></div>"
           );
-        }).join("");
+        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
         return '<div class="kanban-col"><div class="kanban-col-head"><h4>' + stage.label + "</h4><span>" + items.length + "</span></div>" + (cards || '<p class="widget-empty">No leads yet.</p>') + "</div>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function renderCrmStatsAndPipeline() {
       var grid = document.getElementById("crm-stat-grid");
@@ -7923,7 +8002,7 @@ window.profactureTrack = function(name, params) {
         pipelineWrap.innerHTML = stageData.map(function (s) {
           var pct = max ? Math.round((s.value / max) * 100) : 0;
           return '<div class="pipeline-row"><span class="stage-lbl">' + s.label + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;"></div></div><span class="stage-count">' + s.count + '</span><span class="stage-val">' + currency(s.value) + "</span></div>";
-        }).join("");
+        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
       }
       renderCrmIntelligence();
     }
@@ -8382,7 +8461,7 @@ window.profactureTrack = function(name, params) {
     }
     function openProjectForEdit(id) {
       renderProjectDetail(id);
-      showView("project-detail");
+      showView("project-detail"); setTimeout(() => { const active = document.querySelector("#view-project-detail .tab-link.active"); if(active) active.click(); }, 10);
     }
     var pdDeleteBtn = document.getElementById("pd-delete-btn");
     if (pdDeleteBtn) pdDeleteBtn.addEventListener("click", function () {
@@ -8730,7 +8809,7 @@ window.profactureTrack = function(name, params) {
           "<td>" + (v.status === "Ready" ? "✅" : v.status === "Disabled" ? "—" : "⚠️") + "</td>" +
           '<td style="font-size:0.78rem;color:hsl(var(--muted-fg));">' + (p.upcoming || "—") + "</td></tr>"
         );
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     var ccActiveCountry = "GLOBAL";
     function ccRenderCountryList() {
@@ -8740,7 +8819,7 @@ window.profactureTrack = function(name, params) {
         var p = CompliancePlugins[code];
         var offBadge = !p.isFutureSlot && !p.alwaysOn && !p.enabled ? ' <span class="badge badge-default">Off</span>' : "";
         return '<button class="ai-cap' + (code === ccActiveCountry ? " current" : "") + '" data-cc-country="' + code + '">' + p.flag + " " + p.name + offBadge + "</button>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function ccRenderDetail() {
       var wrap = document.getElementById("cc-country-detail");
@@ -8794,7 +8873,7 @@ window.profactureTrack = function(name, params) {
           html += '<div class="card-title" style="margin-bottom:0.5rem;">Future-ready architecture</div>';
           html += p.architecture.map(function (a) {
             return '<div class="widget-row"><span>' + a.label + '</span><span class="badge badge-default">' + a.note + "</span></div>";
-          }).join("");
+          }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
         }
         html += '<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid hsl(var(--border));">';
         html += '<button class="btn btn-outline btn-sm" data-cc-validate="' + p.code + '">🛡️ Run validation</button>';
@@ -8873,7 +8952,7 @@ window.profactureTrack = function(name, params) {
       sel.innerHTML = CompliancePluginOrder.filter(function (c) { return c !== "GLOBAL" && c !== "FUTURE"; }).map(function (c) {
         var p = CompliancePlugins[c];
         return '<option value="' + c + '">' + p.flag + " " + p.name + "</option>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
       sel.value = CompliancePlugins[currentDefaultCountry] ? currentDefaultCountry : "FR";
     }
     var setDefaultCountryEl = document.getElementById("set-default-country");
@@ -9028,7 +9107,7 @@ window.profactureTrack = function(name, params) {
         : "<tr><td>" + escapeHtml(singleLineDesc) + "</td><td style=\"text-align:right;\">1</td><td style=\"text-align:right;\">" + fmt(totals.subtotal) + "</td><td style=\"text-align:right;\">" + escapeHtml(documentTaxLabel("none", copy)) + "</td><td style=\"text-align:right;\">" + fmt(totals.subtotal) + "</td></tr>";
       var taxRows = totals.breakdown.map(function (taxLine) {
         return '<div class="print-doc-summary-row"><span>' + escapeHtml(documentTaxLabel(taxLine.code, copy)) + " (" + escapeHtml(copy.taxBase) + " " + fmt(taxLine.base) + ')</span><strong>' + fmt(taxLine.amount) + "</strong></div>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
       var totalSummary = '<div class="print-doc-summary">' +
         '<div class="print-doc-summary-row"><span>' + escapeHtml(copy.subtotal) + '</span><strong>' + fmt(totals.subtotal) + "</strong></div>" +
         taxRows +
@@ -9319,7 +9398,7 @@ window.profactureTrack = function(name, params) {
       sel.innerHTML = CompliancePluginOrder.filter(function (c) { return c !== "GLOBAL" && c !== "FUTURE"; }).map(function (c) {
         var p = CompliancePlugins[c];
         return '<option value="' + c + '">' + p.flag + " " + p.name + "</option>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
       sel.value = CompliancePlugins[currentDefaultCountry] ? currentDefaultCountry : "FR";
       renderInvoiceComplianceBanner();
     }
@@ -10679,7 +10758,7 @@ window.profactureTrack = function(name, params) {
           '<div style="width:100%;max-width:2.6rem;height:' + h + '%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,hsl(var(--primary)),hsl(var(--secondary)));"></div>' +
           '<span style="font-size:0.78rem;font-weight:700;">' + y.y + "</span></div>"
         );
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function renderTopCustomers() {
       var tbody = document.querySelector("#rpt-top-customers-table tbody");
@@ -10905,9 +10984,9 @@ window.profactureTrack = function(name, params) {
             '<button class="btn btn-ghost btn-sm" data-task-delete="' + t.id + '" style="margin-left:auto;padding:0.1rem 0.4rem;" title="Delete task">🗑️</button>' +
             "</div></div>"
           );
-        }).join("");
+        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
         return '<div class="kanban-col"><div class="kanban-col-head"><h4>' + col.label + "</h4><span>" + items.length + "</span></div>" + (cards || '<p class="widget-empty">No tasks.</p>') + "</div>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function renderTaskList() {
       var tbody = document.querySelector("#task-list-table tbody");
@@ -11068,7 +11147,7 @@ window.profactureTrack = function(name, params) {
           '<td><select class="field" style="height:2rem;width:9.5rem;" data-member-role="' + m.id + '"' + (m.role === "Owner" ? " disabled" : "") + ">" + roleOptions + "</select></td>" +
           '<td><span class="badge ' + statusCls + '">' + m.status + "</span></td></tr>"
         );
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function renderInvites() {
       var tbody = document.querySelector("#team-invites-table tbody");
@@ -11108,7 +11187,7 @@ window.profactureTrack = function(name, params) {
       ];
       grid.innerHTML = items.map(function (i) {
         return '<div class="card feature-card" style="padding:1rem;"><div class="feature-icon" style="margin-bottom:0.5rem;">' + i.ic + '</div><h3 style="font-size:0.85rem;">' + i.t + ' <span class="badge badge-default">Soon</span></h3></div>';
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     var teamInitDone = false;
     function renderTeamInit() {
@@ -11176,7 +11255,7 @@ window.profactureTrack = function(name, params) {
       wrap.innerHTML = FILE_FOLDERS.map(function (f) {
         var count = f !== "All" ? " (" + FILES.filter(function (x) { return x.folder === f; }).length + ")" : "";
         return '<button class="chip' + (FILE_ACTIVE_FOLDER === f ? " on" : "") + '" data-file-folder="' + f + '">' + f + count + "</button>";
-      }).join("");
+      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function renderFileGrid(query) {
       var grid = document.getElementById("file-grid");
@@ -11300,7 +11379,7 @@ window.profactureTrack = function(name, params) {
       panel.innerHTML = '<p style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:hsl(var(--muted-fg));margin-bottom:0.4rem;padding:0 0.3rem;">Show widgets</p>' +
         DASH_WIDGET_DEFS.map(function (w) {
           return '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.3rem;font-size:0.82rem;cursor:pointer;"><input type="checkbox" data-dash-widget-toggle="' + w.id + '" ' + (dashWidgetVisibility[w.id] ? "checked" : "") + " />" + w.label + "</label>";
-        }).join("");
+        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
     }
     function applyDashWidgetVisibility() {
       document.querySelectorAll("#dash-widget-grid [data-widget-id]").forEach(function (card) {
@@ -11558,7 +11637,7 @@ window.profactureTrack = function(name, params) {
   import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
+    apiKey: "__FIREBASE_API_KEY__",
     authDomain: "facturergratuit.firebaseapp.com",
     projectId: "facturergratuit",
     storageBucket: "facturergratuit.firebasestorage.app",
@@ -11808,7 +11887,7 @@ window.profactureTrack = function(name, params) {
 	    { collection: "customerCompanies", windowName: "CUSTOMER_COMPANIES" },
 	    { collection: "tasks", windowName: "TASKS" },
 	    { collection: "files", windowName: "FILES" },
-	    { collection: "workspaces", windowName: "COMPANIES" }
+	    { collection: "workspaces", windowName: "COMPANIES" }, { collection: "payments", windowName: "PAYMENTS" }, { collection: "labor", windowName: "LABOR_ENTRIES" }, { collection: "avenants", windowName: "AVENANTS" }, { collection: "documents", windowName: "DOCUMENTS" }
 	  ];
 	  function identityForItem(item, index) {
 	    return String((item && (item.id || item.number || item.invoiceId || item.quoteId || item.email || item.sku || item.name)) || ("item-" + index));
@@ -12641,5 +12720,6 @@ if ('serviceWorker' in navigator) {
   }
 }
 </script>
+<script src="/ai-chantier.js"></script>
 </body>
 </html>

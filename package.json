@@ -1,0 +1,14 @@
+{
+  "name": "profacture-ai",
+  "version": "1.0.0",
+  "description": "Static site",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo \"No build step\""
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
