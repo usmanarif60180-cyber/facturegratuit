@@ -245,7 +245,7 @@ function showAIExtractionPreview(ext, file, defaultProjectId) {
   const projects = window.activeCompanyItems ? window.activeCompanyItems(window.PROJECTS) : (window.PROJECTS || []);
   const projectOptions = projects.map(p => `<option value="${p.id}" ${p.id === defaultProjectId ? 'selected' : ''}>${p.name}</option>`).join('');
 
-  preview.innerHTML = \`
+  preview.innerHTML = `
     <div class="ob-backdrop"></div>
     <div class="card glass-panel cw-panel">
       <div class="cw-head">
@@ -256,36 +256,36 @@ function showAIExtractionPreview(ext, file, defaultProjectId) {
          <div class="ob-fields">
            <div class="field-wrap">
              <label>Fournisseur</label>
-             <input type="text" class="field" id="ai-vendor" value="\${ext.vendor || ''}">
+             <input type="text" class="field" id="ai-vendor" value="${ext.vendor || ''}">
            </div>
            <div class="field-wrap">
              <label>Date</label>
-             <input type="date" class="field" id="ai-date" value="\${ext.date || ''}">
+             <input type="date" class="field" id="ai-date" value="${ext.date || ''}">
            </div>
            <div class="field-wrap">
-             <label>Catégorie (Suggérée: \${ext.category})</label>
+             <label>Catégorie (Suggérée: ${ext.category})</label>
              <select class="field" id="ai-category">
-               \${['Matériaux', 'Carburant', 'Main-d’œuvre', 'Salaires', 'Outils', 'Location matériel', 'Sous-traitance', 'Péage', 'Parking', 'Transport', 'Fournitures', 'Pièces automobile', 'Restaurant / Repas', 'Hébergement', 'Assurance', 'Autres dépenses']
-                 .map(c => \`<option value="\${c}" \${c === ext.category ? 'selected' : ''}>\${c}</option>\`).join('')}
+               ${['Matériaux', 'Carburant', 'Main-d’œuvre', 'Salaires', 'Outils', 'Location matériel', 'Sous-traitance', 'Péage', 'Parking', 'Transport', 'Fournitures', 'Pièces automobile', 'Restaurant / Repas', 'Hébergement', 'Assurance', 'Autres dépenses']
+                 .map(c => `<option value="${c}" ${c === ext.category ? 'selected' : ''}>${c}</option>`).join('')}
              </select>
            </div>
            <div class="field-wrap">
              <label>Montant HT</label>
-             <input type="number" class="field" id="ai-ht" value="\${ext.amountHT || 0}">
+             <input type="number" class="field" id="ai-ht" value="${ext.amountHT || 0}">
            </div>
            <div class="field-wrap">
              <label>TVA</label>
-             <input type="number" class="field" id="ai-tva" value="\${ext.taxAmount || 0}">
+             <input type="number" class="field" id="ai-tva" value="${ext.taxAmount || 0}">
            </div>
            <div class="field-wrap">
              <label>Montant TTC</label>
-             <input type="number" class="field" id="ai-ttc" value="\${ext.amountTTC || ext.amount || 0}">
+             <input type="number" class="field" id="ai-ttc" value="${ext.amountTTC || ext.amount || 0}">
            </div>
            <div class="field-wrap">
              <label>Chantier suggéré</label>
              <select class="field" id="ai-chantier">
                 <option value="">-- Aucun Chantier --</option>
-                \${projectOptions}
+                ${projectOptions}
              </select>
            </div>
          </div>
@@ -294,7 +294,7 @@ function showAIExtractionPreview(ext, file, defaultProjectId) {
          <button class="btn btn-primary" id="ai-confirm-btn" style="width:100%">Confirmer et Enregistrer</button>
       </div>
     </div>
-  \`;
+  `;
   document.body.appendChild(preview);
   
   document.getElementById('ai-confirm-btn').addEventListener('click', () => {
@@ -329,7 +329,7 @@ function openAIAssistantModal() {
   modal.className = 'cw-overlay';
   modal.style.zIndex = 9999;
   
-  modal.innerHTML = \`
+  modal.innerHTML = `
     <div class="ob-backdrop"></div>
     <div class="card glass-panel cw-panel" style="max-width: 500px">
       <div class="cw-head">
@@ -346,7 +346,7 @@ function openAIAssistantModal() {
          </div>
       </div>
     </div>
-  \`;
+  `;
   document.body.appendChild(modal);
   
   const sendBtn = document.getElementById('ai-chat-send');
@@ -358,7 +358,7 @@ function openAIAssistantModal() {
       if(!text) return;
       
       input.value = '';
-      history.innerHTML += \`<div style="text-align:right; margin-bottom:0.8rem;"><span style="background:hsl(var(--primary)); color:white; padding:0.5rem 0.8rem; border-radius:12px; display:inline-block;">\${text}</span></div>\`;
+      history.innerHTML += `<div style="text-align:right; margin-bottom:0.8rem;"><span style="background:hsl(var(--primary)); color:white; padding:0.5rem 0.8rem; border-radius:12px; display:inline-block;">${text}</span></div>`;
       history.scrollTop = history.scrollHeight;
       
       try {
@@ -376,10 +376,10 @@ function openAIAssistantModal() {
          const response = await firebaseFn({ message: text, context: context, companyId: window.wsActiveId || 'default' });
          const reply = response.data.text || "Désolé, je n'ai pas pu répondre.";
          
-         history.innerHTML += \`<div style="text-align:left; margin-bottom:0.8rem;"><span style="background:hsl(var(--border)); padding:0.5rem 0.8rem; border-radius:12px; display:inline-block;">\${reply}</span></div>\`;
+         history.innerHTML += `<div style="text-align:left; margin-bottom:0.8rem;"><span style="background:hsl(var(--border)); padding:0.5rem 0.8rem; border-radius:12px; display:inline-block;">${reply}</span></div>`;
          history.scrollTop = history.scrollHeight;
       } catch (err) {
-         history.innerHTML += \`<div style="text-align:left; margin-bottom:0.8rem; color:hsl(var(--danger))">Erreur: \${err.message}</div>\`;
+         history.innerHTML += `<div style="text-align:left; margin-bottom:0.8rem; color:hsl(var(--danger))">Erreur: ${err.message}</div>`;
       }
   });
 }

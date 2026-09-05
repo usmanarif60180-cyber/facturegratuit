@@ -10,11 +10,13 @@ const firestoreRules = fs.readFileSync(path.join(root, "firestore.rules"), "utf8
 const requiredProductionMarkers = [
   'content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso"',
   "ca-pub-4956341710070686",
+  'apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0"',
   'projectId: "facturergratuit"',
   'measurementId: "G-JJCNL9THWD"',
   "d1bc43d9c361497fe84f0149e51b36ae"
 ];
 requiredProductionMarkers.forEach(marker => assert(index.includes(marker), `Missing production marker: ${marker}`));
+assert(!index.includes('__FIREBASE_API_KEY__'), "Static GitHub Pages build must not contain an unresolved Firebase API key placeholder");
 
 [
   "profacture_invoice_builder_draft",
