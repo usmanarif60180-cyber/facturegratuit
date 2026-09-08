@@ -11637,7 +11637,7 @@ window.profactureTrack = function(name, params) {
   import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
 
   const firebaseConfig = {
-    apiKey: "__FIREBASE_API_KEY__",
+    apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
     authDomain: "facturergratuit.firebaseapp.com",
     projectId: "facturergratuit",
     storageBucket: "facturergratuit.firebasestorage.app",
@@ -12519,6 +12519,64 @@ window.profactureTrack = function(name, params) {
 
   let phoneConfirmation = null;
   let recaptchaVerifier = null;
+  const PHONE_OTP_DAILY_LIMIT = 5;
+  const PHONE_OTP_COOLDOWN_MS = 60 * 1000;
+  const PHONE_OTP_RATE_KEY = "profacture_phone_otp_rate_v1";
+
+  function phoneOtpDayKey() {
+    const now = new Date();
+    return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+  }
+
+  function phoneOtpHash(value) {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+  }
+
+  function readPhoneOtpRate() {
+    const empty = { day: phoneOtpDayKey(), deviceCount: 0, lastSentAt: 0, phones: {} };
+    try {
+      const saved = JSON.parse(localStorage.getItem(PHONE_OTP_RATE_KEY) || "null");
+      if (!saved || saved.day !== empty.day) return empty;
+      return {
+        day: empty.day,
+        deviceCount: Number(saved.deviceCount) || 0,
+        lastSentAt: Number(saved.lastSentAt) || 0,
+        phones: saved.phones && typeof saved.phones === "object" ? saved.phones : {}
+      };
+    } catch (error) {
+      return empty;
+    }
+  }
+
+  function phoneOtpAvailability(phone) {
+    const rate = readPhoneOtpRate();
+    const phoneKey = phoneOtpHash(phone);
+    const phoneRate = rate.phones[phoneKey] || { count: 0, lastSentAt: 0 };
+    const waitMs = Math.max(0, PHONE_OTP_COOLDOWN_MS - (Date.now() - Math.max(rate.lastSentAt, Number(phoneRate.lastSentAt) || 0)));
+    return {
+      allowed: rate.deviceCount < PHONE_OTP_DAILY_LIMIT && (Number(phoneRate.count) || 0) < PHONE_OTP_DAILY_LIMIT && waitMs === 0,
+      waitSeconds: Math.ceil(waitMs / 1000),
+      remaining: Math.max(0, PHONE_OTP_DAILY_LIMIT - Math.max(rate.deviceCount, Number(phoneRate.count) || 0)),
+      phoneKey,
+      rate
+    };
+  }
+
+  function recordPhoneOtpSent(availability) {
+    const now = Date.now();
+    const phoneRate = availability.rate.phones[availability.phoneKey] || { count: 0, lastSentAt: 0 };
+    availability.rate.deviceCount += 1;
+    availability.rate.lastSentAt = now;
+    availability.rate.phones[availability.phoneKey] = { count: (Number(phoneRate.count) || 0) + 1, lastSentAt: now };
+    try { localStorage.setItem(PHONE_OTP_RATE_KEY, JSON.stringify(availability.rate)); } catch (error) { /* Storage may be unavailable in private mode. */ }
+    return Math.max(0, PHONE_OTP_DAILY_LIMIT - availability.rate.deviceCount);
+  }
+
   function resetRecaptcha() {
     if (recaptchaVerifier) recaptchaVerifier.clear();
     recaptchaVerifier = null;
@@ -12528,6 +12586,15 @@ window.profactureTrack = function(name, params) {
     event.preventDefault();
     const phone = document.getElementById("recovery-phone").value.replace(/\s+/g, "");
     const button = document.getElementById("send-otp");
+    const availability = phoneOtpAvailability(phone);
+    if (!availability.allowed) {
+      if (availability.waitSeconds > 0) {
+        showAuthStatus("recovery-phone-status", "Please wait " + availability.waitSeconds + " seconds before requesting another code.");
+      } else {
+        showAuthStatus("recovery-phone-status", "Daily SMS limit reached. You can request up to 5 verification codes per day.");
+      }
+      return;
+    }
     button.disabled = true;
     button.textContent = "Sending…";
     showAuthStatus("recovery-phone-status", "", "");
@@ -12540,8 +12607,9 @@ window.profactureTrack = function(name, params) {
         await recaptchaVerifier.render();
       }
       phoneConfirmation = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+      const remaining = recordPhoneOtpSent(availability);
       document.getElementById("verify-otp-form").hidden = false;
-      showAuthStatus("recovery-phone-status", "Verification code sent by SMS.", "success");
+      showAuthStatus("recovery-phone-status", "Verification code sent by SMS. " + remaining + " request" + (remaining === 1 ? "" : "s") + " remaining today.", "success");
       document.getElementById("recovery-otp").focus();
     } catch (error) {
       resetRecaptcha();
