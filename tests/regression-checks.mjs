@@ -17,6 +17,8 @@ const requiredProductionMarkers = [
 ];
 requiredProductionMarkers.forEach(marker => assert(index.includes(marker), `Missing production marker: ${marker}`));
 assert(!index.includes('__FIREBASE_API_KEY__'), "Static GitHub Pages build must not contain an unresolved Firebase API key placeholder");
+assert(index.includes("PHONE_OTP_DAILY_LIMIT = 5"), "Daily phone OTP request limit is missing");
+assert(index.includes("PHONE_OTP_COOLDOWN_MS = 60 * 1000"), "Phone OTP resend cooldown is missing");
 
 [
   "profacture_invoice_builder_draft",
