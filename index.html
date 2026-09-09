@@ -748,6 +748,8 @@ window.profactureTrack = function(name, params) {
   .print-doc-sig { width: 100%; margin-top: auto; padding-top: 1rem; border-top: 1px solid #e5e7eb; text-align: right; break-inside: avoid; page-break-inside: avoid; }
   .print-doc-sig img { max-height: 4.6rem; }
   .doc-builder-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(30rem, 0.9fr); gap: 1.5rem; align-items: start; }
+  .line-description { display: block; width: 100%; min-height: 2.8rem; box-sizing: border-box; line-height: 1.5; resize: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .print-doc-table td:first-child { white-space: pre-wrap; overflow-wrap: anywhere; }
   .doc-preview-panel { position: sticky; top: 1rem; min-width: 0; }
   .doc-preview-frame { border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); overflow: auto; background: linear-gradient(135deg, hsl(var(--muted) / 0.45), hsl(var(--surface))); padding: 0; max-height: calc(100vh - 7rem); }
   .doc-preview-stage { position: relative; width: 100%; min-height: 20rem; }
@@ -6015,17 +6017,40 @@ window.profactureTrack = function(name, params) {
       return el ? (parseFloat(el.textContent.replace(/,/g, "").replace(/[^0-9.-]/g, "")) || 0) : 0;
     }
 
+    function resizeLineDescription(field) {
+      if (!field || !field.clientWidth) return;
+      field.style.height = "auto";
+      field.style.height = (field.scrollHeight + field.offsetHeight - field.clientHeight) + "px";
+    }
+    var descriptionWidths = new WeakMap();
+    var descriptionObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(function (entries) {
+      entries.forEach(function (entry) {
+        entry.target.querySelectorAll('.line-description').forEach(function (field) {
+          if (descriptionWidths.get(field) !== field.clientWidth) {
+            descriptionWidths.set(field, field.clientWidth);
+            resizeLineDescription(field);
+          }
+        });
+      });
+    }) : null;
+    function initLineDescription(tr) {
+      var field = tr.querySelector('[data-role="desc"]');
+      field.addEventListener("input", function () { resizeLineDescription(field); });
+      if (descriptionObserver) descriptionObserver.observe(tr.parentElement);
+      requestAnimationFrame(function () { resizeLineDescription(field); });
+    }
     function addRow(desc, qty, price, tax) {
       var rid = "row" + nextRow++;
       var tr = document.createElement("tr");
       tr.innerHTML =
-        '<td><input class="field" data-role="desc" value="' + escapeHtml(desc) + '" /></td>' +
+        '<td><textarea class="field line-description" data-role="desc" rows="2" aria-label="Description">' + escapeHtml(desc) + '</textarea></td>' +
         '<td><input class="field" data-role="qty" type="number" min="0" step="any" value="' + qty + '" style="width:4.5rem;" /></td>' +
         '<td><input class="field" data-role="price" type="number" min="0" step="any" value="' + price + '" style="width:6rem;" /></td>' +
         '<td><select class="field" data-role="tax" style="width:8rem;">' + taxOptionsHtml(tax) + "</select></td>" +
         '<td style="text-align:right;font-weight:700;" class="tnum" data-role="amount">' + currency(qty * price) + "</td>" +
         '<td><button class="btn btn-ghost btn-icon" data-role="remove">✕</button></td>';
       liBody.appendChild(tr);
+      initLineDescription(tr);
       recalc();
     }
 
@@ -10067,13 +10092,14 @@ window.profactureTrack = function(name, params) {
     function qAddRow(desc, qty, price, tax) {
       var tr = document.createElement("tr");
       tr.innerHTML =
-        '<td><input class="field" data-role="desc" value="' + escapeHtml(desc) + '" /></td>' +
+        '<td><textarea class="field line-description" data-role="desc" rows="2" aria-label="Description">' + escapeHtml(desc) + '</textarea></td>' +
         '<td><input class="field" data-role="qty" type="number" min="0" step="any" value="' + qty + '" style="width:4.5rem;" /></td>' +
         '<td><input class="field" data-role="price" type="number" min="0" step="any" value="' + price + '" style="width:6rem;" /></td>' +
         '<td><select class="field" data-role="tax" style="width:8rem;">' + taxOptionsHtml(tax) + "</select></td>" +
         '<td style="text-align:right;font-weight:700;" class="tnum" data-role="amount">' + currency(qty * price) + "</td>" +
         '<td><button class="btn btn-ghost btn-icon" data-role="remove">✕</button></td>';
       qLiBody.appendChild(tr);
+      initLineDescription(tr);
       qRecalc();
     }
     function qRecalc() {
