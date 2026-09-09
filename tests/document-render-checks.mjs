@@ -42,4 +42,20 @@ for (const type of ['invoice', 'quote']) {
   }
 }
 assert.equal(prints, 4);
+const description = 'Preparation du chantier\n' + 'Details des travaux '.repeat(100) + '\n</textarea><script>test</script>';
+const multiline = context.buildDocPrintHtml({ documentType: 'quote', items: [{ desc: description, qty: 1, price: 10, tax: 'none' }] });
+assert.ok(multiline.includes('Preparation du chantier\n'));
+assert.ok(multiline.includes('&lt;/textarea&gt;'));
+assert.ok(!multiline.includes('<script>test'));
+assert.equal((source.match(/textarea class="field line-description"/g) || []).length, 2);
+vm.runInContext(section('    function resizeLineDescription(', '    var descriptionWidths'), context);
+const field = { clientWidth: 180, scrollHeight: 240, offsetHeight: 52, clientHeight: 50, style: {} };
+context.resizeLineDescription(field);
+assert.equal(field.style.height, '242px');
+field.scrollHeight = 48;
+context.resizeLineDescription(field);
+assert.equal(field.style.height, '50px');
+field.clientWidth = 0;
+context.resizeLineDescription(field);
+assert.equal(field.style.height, '50px');
 console.log('Document render checks passed: invoice/quote previews, empty drafts, TVA and print/PDF dispatch.');
