@@ -4501,6 +4501,11 @@ window.profactureTrack = function(name, params) {
           <div class="card card-pad">
             <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:hsl(var(--muted-fg));margin-bottom:0.5rem;" data-i18n="lbl_capabilities">Capabilities</div>
             <button class="ai-cap current" data-i18n="page_ai_title">AI Business Assistant</button>
+            <button class="ai-cap" data-ai-prompt="Give me a concise business briefing using businessFacts, separating every currency. Prioritize three actions grounded in my records. State missing data.">Bilan d'entreprise</button>
+            <button class="ai-cap" data-ai-prompt="Analyze businessFacts expected receipts over 30, 60 and 90 days per currency. Explain overdue balances separately and the on-time-payment assumption. Do not present expected inflows as bank balance or profit.">Prévisions d'encaissement</button>
+            <button class="ai-cap" data-ai-prompt="Review businessFacts.pendingQuotes and propose client follow-ups. Ask me which quote to use before drafting a personalized follow-up. Never send anything.">Suivi commercial</button>
+            <button class="ai-cap" data-ai-prompt="Review businessFacts.unpaidInvoices and prioritize collections by due date and balance, per currency. Ask which invoice to use before drafting a payment reminder. Never send anything.">Relances de paiement</button>
+            <button class="ai-cap" data-ai-prompt="Explain businessFacts.documentIssues and suggest specific corrections. Acknowledge the limited sample and basic checks. Never claim legal or tax compliance or alter a finalized invoice.">Contrôle des documents</button>
             <button class="ai-cap" data-ai-prompt="Prepare a new invoice draft"><span data-i18n="ai_invoice_generator">AI Invoice Generator</span></button>
             <button class="ai-cap" data-ai-prompt="Write a professional customer email"><span data-i18n="ai_email_writer">AI Email Writer</span></button>
             <button class="ai-cap" data-ai-prompt="Write a polite unpaid invoice reminder"><span data-i18n="ai_reminder_writer">AI Reminder Writer</span></button>
@@ -6254,6 +6259,48 @@ window.profactureTrack = function(name, params) {
     var aiConversation = [];
     var aiConversationCompanyId = "";
     var aiHistoryLoadedCompanyId = "";
+    function aiBusinessFacts(invoices, quotes, expenses, products, today) {
+      var groups = {};
+      function amount(value) { var n = Number(value); return Number.isFinite(n) ? n : 0; }
+      function group(item) {
+        var code = item.currency || "UNKNOWN";
+        if (!groups[code]) groups[code] = { currency: code, billed: 0, outstanding: 0, expenses: 0, expectedReceipts30: 0, expectedReceipts60: 0, expectedReceipts90: 0 };
+        return groups[code];
+      }
+      var issues = [], seen = new Set();
+      invoices.forEach(function (inv) {
+        var g = group(inv), balance = Math.max(0, amount(invoiceBalance(inv)));
+        if (inv.status !== "Draft" && inv.status !== "Cancelled") {
+          g.billed += amount(inv.total); g.outstanding += balance;
+          var days = (Date.parse(inv.due) - Date.parse(today)) / 86400000;
+          [30, 60, 90].forEach(function (horizon) { if (Number.isFinite(days) && days >= 0 && days <= horizon) g["expectedReceipts" + horizon] += balance; });
+        }
+        var problems = [];
+        if (!inv.clientId && !inv.client) problems.push("missing client");
+        if (!inv.issue || !Number.isFinite(Date.parse(inv.issue))) problems.push("missing or invalid issue date");
+        if (!Number.isFinite(Number(inv.total)) || inv.total < 0) problems.push("invalid total");
+        if (!inv.currency) problems.push("missing currency");
+        if (!inv.id || seen.has(inv.id)) problems.push("missing or duplicate document ID");
+        seen.add(inv.id);
+        if (problems.length) issues.push({ id: String(inv.id || "").slice(0, 60), problems: problems });
+      });
+      expenses.forEach(function (expense) { group(expense).expenses += amount(expense.amount); });
+      Object.values(groups).forEach(function (g) { Object.keys(g).forEach(function (key) { if (typeof g[key] === "number") g[key] = Math.round(g[key] * 100) / 100; }); });
+      function documentRef(doc) { return { id: String(doc.id || "").slice(0, 60), client: String(doc.client || doc.clientId || "").slice(0, 80), currency: doc.currency || "UNKNOWN", total: amount(doc.total), due: doc.due || doc.validUntil || "", status: doc.status || "" }; }
+      var unpaid = invoices.filter(function (inv) { return inv.status !== "Draft" && inv.status !== "Cancelled" && invoiceBalance(inv) > 0; }).sort(function (a, b) { return (Date.parse(a.due) || Infinity) - (Date.parse(b.due) || Infinity); });
+      var pending = quotes.filter(function (quote) { return quote.status === "Sent"; });
+      return {
+        byCurrency: Object.values(groups),
+        assumptions: "Currencies are separate; UNKNOWN means missing currency. Expected receipts are cumulative unpaid issued invoices due within each horizon, exclude overdue/undated invoices, and assume on-time payment. These are expected inflows, not cash balances or profit. Expenses are recorded amounts, not confirmed payments. Details are capped; summaries cover all supplied company records. Checks are basic data checks, not tax certification.",
+        unpaidCount: unpaid.length,
+        unpaidInvoices: unpaid.slice(0, 8).map(function (inv) { return Object.assign(documentRef(inv), { balance: Math.round(invoiceBalance(inv) * 100) / 100 }); }),
+        pendingQuoteCount: pending.length,
+        pendingQuotes: pending.slice(0, 8).map(documentRef),
+        documentIssueCount: issues.length,
+        documentIssues: issues.slice(0, 8),
+        stockAlerts: products.filter(function (p) { return p.stock != null && p.minStock != null && amount(p.stock) <= amount(p.minStock); }).slice(0, 8).map(function (p) { return { name: String(p.name || "").slice(0, 80), stock: amount(p.stock), minimum: amount(p.minStock) }; })
+      };
+    }
     function aiWorkspaceContext() {
       if (aiConversationCompanyId && aiConversationCompanyId !== wsActiveId) aiConversation = [];
       aiConversationCompanyId = wsActiveId;
@@ -6264,19 +6311,27 @@ window.profactureTrack = function(name, params) {
       var products = activeCompanyItems(PRODUCTS);
       var expenses = activeCompanyItems(EXPENSES);
       var tasks = activeCompanyItems(TASKS);
-      return {
+      var context = {
         language: currentLang,
         currentView: (document.querySelector(".view.active") || {}).id || "",
         today: new Date().toISOString().slice(0, 10),
         company: { id: wsActiveId, name: company.name, country: currentDefaultCountry, currency: currentCurrency, badge: company.badge || "", memory: (activeCompanyWorkspace() || {}).aiMemory || {} },
         supportedCurrencies: Object.keys(CURRENCY_SYMBOLS),
-        clients: clients.slice(0, 60).map(function (c) { return { id: c.id, name: clientDisplayName(c) }; }),
-        products: products.slice(0, 60).map(function (p) { return { id: p.id, name: p.name, price: Number(p.price || 0), stock: Number(p.stock || 0), unit: p.unit || "" }; }),
-        invoiceSummary: { count: invoices.length, unpaid: invoices.filter(function (inv) { return invoiceBalance(inv) > 0; }).length, outstanding: invoices.reduce(function (sum, inv) { return sum + invoiceBalance(inv); }, 0) },
+        businessFacts: aiBusinessFacts(invoices, quotes, expenses, products, new Date().toISOString().slice(0, 10)),
+        clients: clients.slice(0, 20).map(function (c) { return { id: String(c.id).slice(0, 60), name: String(clientDisplayName(c)).slice(0, 80) }; }),
+        products: products.slice(0, 15).map(function (p) { return { id: String(p.id).slice(0, 60), name: String(p.name || "").slice(0, 80), price: Number(p.selling || p.price || 0), unit: String(p.unit || "").slice(0, 20) }; }),
+        invoiceSummary: { count: invoices.length, unpaid: invoices.filter(function (inv) { return invoiceBalance(inv) > 0; }).length },
         quoteSummary: { count: quotes.length, pending: quotes.filter(function (q) { return q.status === "Sent" || q.status === "Draft"; }).length },
-        expenseSummary: { count: expenses.length, total: expenses.reduce(function (sum, item) { return sum + Number(item.amount || 0); }, 0) },
+        expenseSummary: { count: expenses.length },
         taskSummary: { count: tasks.length, open: tasks.filter(function (task) { return task.status !== "done"; }).length }
       };
+      var detailLists = [context.products, context.clients, context.businessFacts.pendingQuotes, context.businessFacts.documentIssues, context.businessFacts.stockAlerts, context.businessFacts.unpaidInvoices];
+      detailLists.forEach(function (list) {
+        while (list.length && JSON.stringify(context).length > 11000) { list.pop(); context.detailsTruncated = true; }
+      });
+      if (JSON.stringify(context).length > 11000) { context.company.memory = {}; context.detailsTruncated = true; }
+      while (context.businessFacts.byCurrency.length && JSON.stringify(context).length > 11000) { context.businessFacts.byCurrency.pop(); context.currencySummariesTruncated = true; }
+      return context;
     }
     function appendAiMessage(chat, role, text) {
       var msg = document.createElement("div");
