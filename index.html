@@ -5182,7 +5182,7 @@ window.profactureTrack = function(name, params) {
     function mHeader(active) {
       var nav = M_NAV.map(function (item) {
         return '<a href="#" data-goto="' + item.id + '" class="' + (item.id === active ? "current" : "") + '">' + t(item.i18nKey) + "</a>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
       return (
         '<header class="m-header" data-mh-active="' + active + '"><div class="container m-header-inner">' +
         '<a href="#" class="logo" data-goto="landing"><span class="logo-mark">PA</span>ProFacture AI</a>' +
@@ -5248,7 +5248,7 @@ window.profactureTrack = function(name, params) {
 	    function populateStaticLangSelects() {
 	      var optionsHtml = LANG_LIST.map(function (l) {
 	        return '<option value="' + l.code + '">' + l.flag + " " + l.name + "</option>";
-	      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+	      }).join("");
 	      document.querySelectorAll("select.m-lang-select").forEach(function (el) {
 	        if (!el.innerHTML.trim()) el.innerHTML = optionsHtml;
 	      });
@@ -5270,7 +5270,7 @@ window.profactureTrack = function(name, params) {
           '<div class="ad-slot" data-ad-slot="profacture-ad-' + adSlotCounter + '" data-adsterra-live="1" data-adsterra-width="' + s.w + '" data-adsterra-height="' + s.h + '" style="width:' + s.w + 'px;height:' + s.h + 'px;max-width:100%;">' +
           '<span class="ad-lbl">Adsterra · ' + t("lbl_advertisement") + " · " + s.w + " × " + s.h + "</span></div>"
         );
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function mountAdsterraSlot(slot) {
       if (!slot || slot.dataset.adsterraMounted === "1") return;
@@ -5586,7 +5586,7 @@ window.profactureTrack = function(name, params) {
       var cats = ["all"].concat(BLOG_POSTS.map(function (p) { return p.cat; }).filter(function (c, i, a) { return a.indexOf(c) === i; }));
       document.getElementById("blog-chips").innerHTML = cats.map(function (c) {
         return '<button class="chip' + (blogCategory === c ? " on" : "") + '" data-cat="' + c + '">' + (c === "all" ? "All" : c) + "</button>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function renderBlogGrid() {
       var q = blogQuery.toLowerCase();
@@ -5659,7 +5659,7 @@ window.profactureTrack = function(name, params) {
       legend.innerHTML = Object.keys(CAL_TYPES).map(function (k) {
         var t = CAL_TYPES[k];
         return '<span><span class="cal-dot" style="background:' + calRingColor(k) + ';"></span>' + t.icon + " " + t.label + "</span>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function renderCalMonthGrid() {
       var grid = document.getElementById("cal-grid");
@@ -5673,7 +5673,7 @@ window.profactureTrack = function(name, params) {
       var daysInMonth = new Date(year, month + 1, 0).getDate();
       var html = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(function (d) {
         return '<div class="cal-dow">' + d + "</div>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
       for (var i = 0; i < startOffset; i++) html += '<div class="cal-cell"></div>';
       for (var d = 1; d <= daysInMonth; d++) {
         var isToday = d === today.getDate();
@@ -5681,7 +5681,7 @@ window.profactureTrack = function(name, params) {
         var dots = dayEvents.map(function (ev) {
           var t = CAL_TYPES[ev.type];
           return '<span class="cal-dot cal-chip" draggable="true" data-event-id="' + ev.id + '" title="' + t.label + ": " + ev.title.replace(/"/g, "") + '" style="background:' + calRingColor(ev.type) + ';"></span>';
-        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+        }).join("");
         html += '<div class="cal-cell' + (isToday ? " today" : "") + '" data-cal-day="' + d + '">' + d + '<div class="dots">' + dots + "</div></div>";
       }
       grid.innerHTML = html;
@@ -5853,7 +5853,7 @@ window.profactureTrack = function(name, params) {
       bar.setAttribute("role", "tablist");
       bar.innerHTML = steps.map(function (s) {
         return '<button type="button" role="tab" data-doc-step="' + s.id + '">' + s.label + "</button>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
       layout.parentNode.insertBefore(bar, layout);
       function setStep(stepId) {
         layout.classList.add("mobile-wizard-active");
@@ -5986,7 +5986,7 @@ window.profactureTrack = function(name, params) {
     function taxOptionsHtml(selected) {
       return Object.keys(TAX_RATES).map(function (code) {
         return '<option value="' + code + '"' + (selected === code ? " selected" : "") + ">" + taxOptionLabel(code) + "</option>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function calculateDocumentTotals(items) {
       var result = { subtotal: 0, taxTotal: 0, total: 0, breakdown: [] };
@@ -6781,7 +6781,7 @@ window.profactureTrack = function(name, params) {
 
       var dots = OB_STEPS.map(function (_, i) {
         return '<span class="' + (i === obStep ? "on" : i < obStep ? "past" : "") + '"></span>';
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
 
       var body = "";
       if (s === "welcome") {
@@ -6812,7 +6812,7 @@ window.profactureTrack = function(name, params) {
           var left = 8 + (i * 37) % 84;
           var hue = i % 2 === 0 ? "hsl(var(--primary))" : "hsl(var(--secondary))";
           return '<span style="left:' + left + '%;background:' + hue + ';animation-delay:' + ((i % 5) * 0.09).toFixed(2) + 's;"></span>';
-        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+        }).join("");
         body = '<div class="ob-confetti">' + confetti + "</div>" +
           obIllus(OB_ICONS.check) + "<h3>You’re all set!</h3><p class=\"desc\">Your workspace is ready. Let’s create your first invoice or quote.</p>";
       }
@@ -7056,7 +7056,7 @@ window.profactureTrack = function(name, params) {
           '<div class="ds-tpl-meta"><div class="n">' + t.name + '</div><div class="c">' + t.cat + "</div></div>" +
           "</button>"
         );
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
 
     function dsRenderThemes() {
@@ -7069,7 +7069,7 @@ window.profactureTrack = function(name, params) {
           '<span class="n">' + th.name + "</span>" +
           "</button>"
         );
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
 
     function dsRenderFonts() {
@@ -7082,7 +7082,7 @@ window.profactureTrack = function(name, params) {
           '<span class="name">' + font.name + "</span>" +
           "</button>"
         );
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
 
     function dsRenderSections() {
@@ -7095,7 +7095,7 @@ window.profactureTrack = function(name, params) {
           '<button data-sec-toggle="' + i + '">' + (s.visible ? "👁" : "🚫") + "</button>" +
           "</div>"
         );
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
 
     var dsTabsEl = document.getElementById("ds-tabs");
@@ -7339,7 +7339,7 @@ window.profactureTrack = function(name, params) {
       var isLast = cwStep === CW_STEPS.length - 1;
       var dots = CW_STEPS.map(function (_, i) {
         return '<span class="' + (i === cwStep ? "on" : i < cwStep ? "past" : "") + '"></span>';
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
 
       var body = "";
       if (s === "basics") {
@@ -7553,7 +7553,7 @@ window.profactureTrack = function(name, params) {
       if (!code) return "";
       var bars = code.split("").map(function (ch) {
         return '<span style="width:' + ((ch.charCodeAt(0) % 3) + 1) + 'px;"></span>';
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
       return '<div class="barcode-strip" title="' + code + '">' + bars + "</div>";
     }
     function invStockBadge(item) {
@@ -7905,6 +7905,7 @@ window.profactureTrack = function(name, params) {
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_timeline_events") + '</div><div class="val tnum">' + clientTimeline(c).length + '</div></div><div class="ic">🕒</div></div>' +
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_contacts") + '</div><div class="val tnum">' + clientContacts(c).length + "</div></div><div class=\"ic\">👤</div></div>";
       document.getElementById("cd-ai-summary").textContent = aiCustomerSummary(c);
+      if (window.renderClientFinancials) window.renderClientFinancials(c);
       var businessDetails = document.getElementById("cd-business-details");
       if (businessDetails) businessDetails.innerHTML = [
         c.company && c.company !== "—" ? "<strong>" + escapeHtml(c.company) + "</strong>" : "",
@@ -7926,7 +7927,7 @@ window.profactureTrack = function(name, params) {
           '<div class="activity-row"><div style="display:flex;gap:0.6rem;align-items:flex-start;"><span>' + (ACTIVITY_ICONS[t.type] || "•") + '</span>' +
           '<div><div class="num" style="font-weight:600;">' + t.text + '</div><div class="meta">' + new Date(t.date + "T00:00:00").toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" }) + "</div></div></div></div>"
         );
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     document.body.addEventListener("click", function (e) {
       var openBtn = e.target.closest("[data-client-open]");
@@ -8029,9 +8030,9 @@ window.profactureTrack = function(name, params) {
             LEAD_STAGES.map(function (s) { return '<option value="' + s.key + '"' + (s.key === l.stage ? " selected" : "") + ">" + s.label + "</option>"; }).join("") +
             "</select></div></div>"
           );
-        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+        }).join("");
         return '<div class="kanban-col"><div class="kanban-col-head"><h4>' + stage.label + "</h4><span>" + items.length + "</span></div>" + (cards || '<p class="widget-empty">No leads yet.</p>') + "</div>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function renderCrmStatsAndPipeline() {
       var grid = document.getElementById("crm-stat-grid");
@@ -8057,7 +8058,7 @@ window.profactureTrack = function(name, params) {
         pipelineWrap.innerHTML = stageData.map(function (s) {
           var pct = max ? Math.round((s.value / max) * 100) : 0;
           return '<div class="pipeline-row"><span class="stage-lbl">' + s.label + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;"></div></div><span class="stage-count">' + s.count + '</span><span class="stage-val">' + currency(s.value) + "</span></div>";
-        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+        }).join("");
       }
       renderCrmIntelligence();
     }
@@ -8864,7 +8865,7 @@ window.profactureTrack = function(name, params) {
           "<td>" + (v.status === "Ready" ? "✅" : v.status === "Disabled" ? "—" : "⚠️") + "</td>" +
           '<td style="font-size:0.78rem;color:hsl(var(--muted-fg));">' + (p.upcoming || "—") + "</td></tr>"
         );
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     var ccActiveCountry = "GLOBAL";
     function ccRenderCountryList() {
@@ -8874,7 +8875,7 @@ window.profactureTrack = function(name, params) {
         var p = CompliancePlugins[code];
         var offBadge = !p.isFutureSlot && !p.alwaysOn && !p.enabled ? ' <span class="badge badge-default">Off</span>' : "";
         return '<button class="ai-cap' + (code === ccActiveCountry ? " current" : "") + '" data-cc-country="' + code + '">' + p.flag + " " + p.name + offBadge + "</button>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function ccRenderDetail() {
       var wrap = document.getElementById("cc-country-detail");
@@ -8928,7 +8929,7 @@ window.profactureTrack = function(name, params) {
           html += '<div class="card-title" style="margin-bottom:0.5rem;">Future-ready architecture</div>';
           html += p.architecture.map(function (a) {
             return '<div class="widget-row"><span>' + a.label + '</span><span class="badge badge-default">' + a.note + "</span></div>";
-          }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+          }).join("");
         }
         html += '<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid hsl(var(--border));">';
         html += '<button class="btn btn-outline btn-sm" data-cc-validate="' + p.code + '">🛡️ Run validation</button>';
@@ -9007,7 +9008,7 @@ window.profactureTrack = function(name, params) {
       sel.innerHTML = CompliancePluginOrder.filter(function (c) { return c !== "GLOBAL" && c !== "FUTURE"; }).map(function (c) {
         var p = CompliancePlugins[c];
         return '<option value="' + c + '">' + p.flag + " " + p.name + "</option>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
       sel.value = CompliancePlugins[currentDefaultCountry] ? currentDefaultCountry : "FR";
     }
     var setDefaultCountryEl = document.getElementById("set-default-country");
@@ -9162,7 +9163,7 @@ window.profactureTrack = function(name, params) {
         : "<tr><td>" + escapeHtml(singleLineDesc) + "</td><td style=\"text-align:right;\">1</td><td style=\"text-align:right;\">" + fmt(totals.subtotal) + "</td><td style=\"text-align:right;\">" + escapeHtml(documentTaxLabel("none", copy)) + "</td><td style=\"text-align:right;\">" + fmt(totals.subtotal) + "</td></tr>";
       var taxRows = totals.breakdown.map(function (taxLine) {
         return '<div class="print-doc-summary-row"><span>' + escapeHtml(documentTaxLabel(taxLine.code, copy)) + " (" + escapeHtml(copy.taxBase) + " " + fmt(taxLine.base) + ')</span><strong>' + fmt(taxLine.amount) + "</strong></div>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
       var totalSummary = '<div class="print-doc-summary">' +
         '<div class="print-doc-summary-row"><span>' + escapeHtml(copy.subtotal) + '</span><strong>' + fmt(totals.subtotal) + "</strong></div>" +
         taxRows +
@@ -9453,7 +9454,7 @@ window.profactureTrack = function(name, params) {
       sel.innerHTML = CompliancePluginOrder.filter(function (c) { return c !== "GLOBAL" && c !== "FUTURE"; }).map(function (c) {
         var p = CompliancePlugins[c];
         return '<option value="' + c + '">' + p.flag + " " + p.name + "</option>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
       sel.value = CompliancePlugins[currentDefaultCountry] ? currentDefaultCountry : "FR";
       renderInvoiceComplianceBanner();
     }
@@ -10813,7 +10814,7 @@ window.profactureTrack = function(name, params) {
           '<div style="width:100%;max-width:2.6rem;height:' + h + '%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,hsl(var(--primary)),hsl(var(--secondary)));"></div>' +
           '<span style="font-size:0.78rem;font-weight:700;">' + y.y + "</span></div>"
         );
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function renderTopCustomers() {
       var tbody = document.querySelector("#rpt-top-customers-table tbody");
@@ -11039,9 +11040,9 @@ window.profactureTrack = function(name, params) {
             '<button class="btn btn-ghost btn-sm" data-task-delete="' + t.id + '" style="margin-left:auto;padding:0.1rem 0.4rem;" title="Delete task">🗑️</button>' +
             "</div></div>"
           );
-        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+        }).join("");
         return '<div class="kanban-col"><div class="kanban-col-head"><h4>' + col.label + "</h4><span>" + items.length + "</span></div>" + (cards || '<p class="widget-empty">No tasks.</p>') + "</div>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function renderTaskList() {
       var tbody = document.querySelector("#task-list-table tbody");
@@ -11202,7 +11203,7 @@ window.profactureTrack = function(name, params) {
           '<td><select class="field" style="height:2rem;width:9.5rem;" data-member-role="' + m.id + '"' + (m.role === "Owner" ? " disabled" : "") + ">" + roleOptions + "</select></td>" +
           '<td><span class="badge ' + statusCls + '">' + m.status + "</span></td></tr>"
         );
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function renderInvites() {
       var tbody = document.querySelector("#team-invites-table tbody");
@@ -11242,7 +11243,7 @@ window.profactureTrack = function(name, params) {
       ];
       grid.innerHTML = items.map(function (i) {
         return '<div class="card feature-card" style="padding:1rem;"><div class="feature-icon" style="margin-bottom:0.5rem;">' + i.ic + '</div><h3 style="font-size:0.85rem;">' + i.t + ' <span class="badge badge-default">Soon</span></h3></div>';
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     var teamInitDone = false;
     function renderTeamInit() {
@@ -11310,7 +11311,7 @@ window.profactureTrack = function(name, params) {
       wrap.innerHTML = FILE_FOLDERS.map(function (f) {
         var count = f !== "All" ? " (" + FILES.filter(function (x) { return x.folder === f; }).length + ")" : "";
         return '<button class="chip' + (FILE_ACTIVE_FOLDER === f ? " on" : "") + '" data-file-folder="' + f + '">' + f + count + "</button>";
-      }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+      }).join("");
     }
     function renderFileGrid(query) {
       var grid = document.getElementById("file-grid");
@@ -11434,7 +11435,7 @@ window.profactureTrack = function(name, params) {
       panel.innerHTML = '<p style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:hsl(var(--muted-fg));margin-bottom:0.4rem;padding:0 0.3rem;">Show widgets</p>' +
         DASH_WIDGET_DEFS.map(function (w) {
           return '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.3rem;font-size:0.82rem;cursor:pointer;"><input type="checkbox" data-dash-widget-toggle="' + w.id + '" ' + (dashWidgetVisibility[w.id] ? "checked" : "") + " />" + w.label + "</label>";
-        }).join(""); if (window.renderClientFinancials) window.renderClientFinancials(c);
+        }).join("");
     }
     function applyDashWidgetVisibility() {
       document.querySelectorAll("#dash-widget-grid [data-widget-id]").forEach(function (card) {
