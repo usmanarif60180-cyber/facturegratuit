@@ -27,6 +27,15 @@ service cloud.firestore {
         'customerCompanies',
         'tasks',
         'files',
+        'payments',
+        'amendments',
+        'labourEntries',
+        'suppliers',
+        'vehicles',
+        'departments',
+        'labor',
+        'avenants',
+        'documents',
         'workspaces',
         'notifications',
         'teamMembers',
@@ -42,13 +51,33 @@ service cloud.firestore {
       ]);
     }
 
+    function quoteUpdateAllowed() {
+      return resource.data.status in ['Accepted', 'Converted']
+        ? (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAtClient'])
+          || (resource.data.status == 'Accepted'
+            && request.resource.data.status == 'Converted'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'convertedAt', 'convertedInvoiceId', 'updatedAt', 'updatedAtClient'])))
+        : !(request.resource.data.status in ['Accepted', 'Converted']);
+    }
+
     match /users/{userId} {
       allow read, delete: if isOwner(userId);
       allow create, update: if isOwner(userId) && validAccountDoc();
 
       match /{collectionName}/{docId} {
         allow read, create, update, delete: if isOwner(userId)
-          && collectionName in ['history', 'quotes', 'expenses', 'projects', 'clients', 'products', 'leads', 'customerCompanies', 'tasks', 'files', 'workspaces', 'notifications', 'teamMembers', 'teamInvites', 'teamTasks', 'teamActivity', 'feedback'];
+          && collectionName in ['history', 'expenses', 'projects', 'clients', 'products', 'leads', 'customerCompanies', 'tasks', 'files', 'workspaces', 'notifications', 'teamMembers', 'teamInvites', 'teamTasks', 'teamActivity', 'feedback', 'payments', 'amendments', 'labourEntries', 'suppliers', 'vehicles', 'departments', 'labor', 'avenants', 'documents'];
+      }
+
+      match /quotes/{quoteId} {
+        allow read, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && !(request.resource.data.status in ['Accepted', 'Converted']);
+        allow update: if isOwner(userId) && quoteUpdateAllowed();
+      }
+
+      match /auditEvents/{eventId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
       }
 
       match /backups/{backupId} {
@@ -128,6 +157,77 @@ service cloud.firestore {
         allow read: if isActiveMember(companyId);
         allow create, update: if hasMinRole(companyId, 'accountant');
         allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /quotes/{quoteId} {
+        allow read: if isActiveMember(companyId);
+        allow create: if hasMinRole(companyId, 'accountant') && !(request.resource.data.status in ['Accepted', 'Converted']);
+        allow update: if hasMinRole(companyId, 'accountant') && quoteUpdateAllowed();
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /expenses/{expenseId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'employee');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /payments/{paymentId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'accountant');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /amendments/{amendmentId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'accountant');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /labourEntries/{entryId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'employee');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /labor/{entryId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'employee');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /avenants/{amendmentId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'accountant');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /documents/{documentId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'employee');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /suppliers/{supplierId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'employee');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /vehicles/{vehicleId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'employee');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /departments/{departmentId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update, delete: if hasMinRole(companyId, 'admin');
+      }
+
+      match /auditEvents/{eventId} {
+        allow read: if isActiveMember(companyId);
+        allow write: if false;
       }
 
       match /projects/{projectId} {

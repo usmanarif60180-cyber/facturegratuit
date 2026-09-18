@@ -1,420 +1,316 @@
-// AI Chantier System
+(function () {
+  "use strict";
 
-window.PAYMENTS = window.PAYMENTS || [];
-window.LABOR_ENTRIES = window.LABOR_ENTRIES || [];
-window.DOCUMENTS = window.DOCUMENTS || [];
-window.AVENANTS = window.AVENANTS || [];
+  window.PAYMENTS = window.PAYMENTS || [];
+  window.LABOR_ENTRIES = window.LABOR_ENTRIES || [];
+  window.DOCUMENTS = window.DOCUMENTS || [];
+  window.AVENANTS = window.AVENANTS || [];
 
-function setupChantierTabs() {
-  const tabs = document.querySelectorAll('.tab-link');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', (e) => {
-      e.preventDefault();
-      // Remove active from all tabs
-      document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-      
-      // Add active to clicked
-      tab.classList.add('active');
-      const targetId = `pd-tab-${tab.dataset.tab}`;
-      const target = document.getElementById(targetId);
+  function projectId() {
+    return window.profactureGetActiveProjectId ? window.profactureGetActiveProjectId() : "";
+  }
+
+  function companyId() {
+    return window.profactureGetActiveCompanyId ? window.profactureGetActiveCompanyId() : "";
+  }
+
+  function escape(value) {
+    return String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function formatMoney(value, currencyCode) {
+    try { return new Intl.NumberFormat(undefined, { style: "currency", currency: currencyCode || "EUR" }).format(Number(value) || 0); }
+    catch (error) { return (Number(value) || 0).toFixed(2) + " " + (currencyCode || "EUR"); }
+  }
+
+  function scoped(records, project) {
+    return (Array.isArray(records) ? records : []).filter(function (record) {
+      return record && (record.projectId === project.id || record.project === project.id) && (!companyId() || !record.companyId || record.companyId === companyId());
+    });
+  }
+
+  function moneyMinor(value, currencyCode) {
+    return formatMoney(window.ProFactureFinancial.fromMinor(value), currencyCode);
+  }
+
+  function projectData(project) {
+    var invoices = scoped(window.INVOICES, project);
+    var quotes = scoped(window.QUOTES, project);
+    var expenses = scoped(window.EXPENSES, project);
+    var payments = scoped(window.PAYMENTS, project);
+    var labourEntries = scoped(window.LABOR_ENTRIES, project);
+    var amendments = scoped(window.AVENANTS, project);
+    var documents = scoped(window.DOCUMENTS, project).concat(scoped(window.FILES, project));
+    return {
+      invoices: invoices,
+      quotes: quotes,
+      expenses: expenses,
+      payments: payments,
+      labourEntries: labourEntries,
+      amendments: amendments,
+      documents: documents,
+      summary: window.ProFactureFinancial.chantierSummary({
+        invoices: invoices, quotes: quotes, expenses: expenses, payments: payments,
+        labourEntries: labourEntries, amendments: amendments
+      })
+    };
+  }
+
+  function closureIssues(project, data) {
+    var issues = [];
+    if (data.summary.remainingToInvoiceMinor !== 0) issues.push("Reste à facturer HT : " + data.summary.remainingToInvoiceMinor);
+    if (data.summary.outstandingMinor !== 0) issues.push("Solde client TTC : " + data.summary.outstandingMinor);
+    if (data.expenses.some(function (item) { return !item.category || item.category === "Other" || item.category === "Autres dépenses"; })) issues.push("Dépenses non classées");
+    if (data.expenses.some(function (item) { return item.approval && item.approval !== "Approved" && item.approval !== "Rejected"; })) issues.push("Dépenses fournisseur en attente");
+    if (data.summary.contractMinor > 0 && !data.invoices.some(function (item) { return item.invoiceType === "final"; })) issues.push("Facture finale absente");
+    return issues;
+  }
+
+  function empty(text) {
+    return '<p class="widget-empty">' + escape(text) + '</p>';
+  }
+
+  function rows(records, renderer, emptyText) {
+    return records.length ? records.map(renderer).join("") : empty(emptyText);
+  }
+
+  function recordCard(title, detail, amount) {
+    return '<div class="card card-pad" style="margin-bottom:0.6rem"><div style="display:flex;gap:1rem;justify-content:space-between;align-items:flex-start"><div><strong>' + escape(title) + '</strong><div class="meta">' + escape(detail || "—") + '</div></div>' + (amount ? '<strong class="tnum">' + escape(amount) + '</strong>' : '') + '</div></div>';
+  }
+
+  function renderProjectTab(tabId, id) {
+    var project = (window.PROJECTS || []).find(function (item) { return item.id === id; });
+    if (!project) return;
+    var data = projectData(project);
+    var code = project.currency || (window.profactureGetCurrentCurrency ? window.profactureGetCurrentCurrency() : "EUR");
+    var target;
+
+    if (tabId === "apercu") {
+      target = document.getElementById("pd-financial-progress");
+      if (target) target.innerHTML = [
+        ["Valeur acceptée HT", data.summary.contractMinor], ["Facturé HT", data.summary.invoicedHtMinor],
+        ["Encaissé TTC", data.summary.receivedMinor], ["Reste à facturer HT", data.summary.remainingToInvoiceMinor],
+        ["Reste à encaisser TTC", data.summary.outstandingMinor], ["Coûts directs HT", data.summary.directCostsMinor],
+        ["Marge brute actuelle HT", data.summary.grossMarginMinor]
+      ].map(function (entry) { return '<div class="widget-row"><span>' + entry[0] + '</span><strong>' + moneyMinor(entry[1], code) + '</strong></div>'; }).join("") + '<p class="meta" style="margin-top:0.7rem">Marge basée sur le chiffre d’affaires facturé HT. Paiements suivis séparément en TTC.</p>' + (project.status === "completed" ? '<div class="callout" style="margin-top:0.8rem"><span>✓</span><span>Travaux terminés le ' + escape(project.actualCompletionDate || "date non renseignée") + '. Situation financière : ' + (closureIssues(project, data).length ? escape(closureIssues(project, data).join(" · ")) : "soldée") + '.</span></div>' : '');
+      return;
+    }
+    if (tabId === "devis") {
+      target = document.getElementById("pd-devis-list");
+      if (target) target.innerHTML = rows(data.quotes.concat(data.amendments), function (item) { return recordCard(item.id || item.number || "Devis", (item.issue || item.date || "") + " · " + (item.status || "Brouillon"), formatMoney(item.total || item.amount || 0, item.currency || code)); }, "Aucun devis ou avenant lié à ce chantier.");
+      return;
+    }
+    if (tabId === "factures") {
+      target = document.getElementById("pd-factures-list");
+      if (target) target.innerHTML = rows(data.invoices, function (item) { return recordCard(item.id || "Facture", (item.issue || "") + " · " + (item.status || "Brouillon"), formatMoney(item.total || 0, item.currency || code)); }, "Aucune facture liée à ce chantier.");
+      return;
+    }
+    if (tabId === "paiements") {
+      target = document.getElementById("pd-paiements-list");
+      if (target) target.innerHTML = rows(data.payments, function (item) { return recordCard(item.reference || item.id || "Paiement", (item.date || "") + " · " + (item.method || "Autre"), formatMoney(item.amount || window.ProFactureFinancial.fromMinor(item.amountMinor), item.currency || code)); }, "Aucun paiement séparé et alloué à ce chantier.");
+      return;
+    }
+    if (tabId === "depenses") {
+      target = document.getElementById("pd-depenses-list");
+      if (target) target.innerHTML = rows(data.expenses, function (item) { return recordCard(item.vendor || item.title || "Dépense", (item.date || "") + " · " + (item.category || "Autres dépenses"), formatMoney(item.amountHT || item.amount || 0, item.currency || code)); }, "Aucune dépense liée à ce chantier.");
+      return;
+    }
+    if (tabId === "main-doeuvre") {
+      target = document.getElementById("pd-heures-list");
+      if (target) target.innerHTML = rows(data.labourEntries, function (item) { return recordCard(item.employee || "Main-d’œuvre", (item.date || "") + " · " + (item.hours || 0) + " h", moneyMinor(window.ProFactureFinancial.labourCostMinor([item]), code)); }, "Aucune entrée de main-d’œuvre liée à ce chantier.");
+      return;
+    }
+    if (tabId === "documents") {
+      target = document.getElementById("pd-docs-list");
+      if (target) target.innerHTML = rows(data.documents, function (item) { return recordCard(item.name || "Document", item.date || item.updatedAt || item.type || "", ""); }, "Aucun document lié à ce chantier.");
+      return;
+    }
+    if (tabId === "rentabilite") {
+      target = document.getElementById("pd-rentabilite-view");
       if (target) {
-         target.style.display = 'block';
-         renderChantierTabContent(tab.dataset.tab, window.pdActiveProjectId);
+        var margin = data.summary.marginBasisPoints == null ? "Non applicable" : (data.summary.marginBasisPoints / 100).toFixed(2) + " %";
+        target.innerHTML = '<div class="stat-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="card stat-card"><div><div class="lbl">Facturé HT</div><div class="val tnum">' + moneyMinor(data.summary.invoicedHtMinor, code) + '</div></div></div><div class="card stat-card"><div><div class="lbl">Coûts directs HT</div><div class="val tnum">' + moneyMinor(data.summary.directCostsMinor, code) + '</div></div></div><div class="card stat-card"><div><div class="lbl">Marge brute actuelle</div><div class="val tnum">' + moneyMinor(data.summary.grossMarginMinor, code) + '</div><div class="meta">' + margin + ' du facturé HT</div></div></div></div>' +
+          (data.summary.overInvoicedMinor ? '<div class="callout" style="margin-top:1rem"><span>⚠️</span><span>Dépassement du contrat accepté : ' + moneyMinor(data.summary.overInvoicedMinor, code) + ' HT.</span></div>' : '') +
+          (data.summary.overpaidMinor ? '<div class="callout" style="margin-top:1rem"><span>⚠️</span><span>Trop-perçu ou paiement non rapproché : ' + moneyMinor(data.summary.overpaidMinor, code) + ' TTC.</span></div>' : '') +
+          '<p class="meta" style="margin-top:1rem">Cette marge brute chantier n’est pas un bénéfice net final. Les frais généraux et impôts ne sont pas inclus.</p>';
+      }
+      return;
+    }
+    if (tabId === "historique") {
+      target = document.getElementById("pd-historique-view");
+      var timeline = [];
+      data.quotes.forEach(function (item) { timeline.push({ date: item.acceptedAt || item.issue, label: (item.id || "Devis") + " · " + (item.status || "") }); });
+      data.invoices.forEach(function (item) { timeline.push({ date: item.issue, label: (item.id || "Facture") + " · " + (item.status || "") }); });
+      data.payments.forEach(function (item) { timeline.push({ date: item.date, label: (item.reference || "Paiement") + " · " + (item.method || "") }); });
+      data.expenses.forEach(function (item) { timeline.push({ date: item.date, label: (item.vendor || item.title || "Dépense") + " · " + (item.category || "") }); });
+      timeline.sort(function (a, b) { return String(b.date || "").localeCompare(String(a.date || "")); });
+      if (target) target.innerHTML = rows(timeline, function (item) { return recordCard(item.label, item.date, ""); }, "Aucune activité enregistrée pour ce chantier.");
+    }
+  }
+
+  function openProjectAssistant() {
+    var id = projectId();
+    var project = (window.PROJECTS || []).find(function (item) { return item.id === id; });
+    if (!project || !window.profactureShowView) return;
+    window.profactureShowView("ai");
+    var input = document.getElementById("ai-input");
+    if (input) {
+      input.value = "Analyse le chantier " + (project.name || project.id) + ". Indique clairement le périmètre, la période, la base HT/TTC et les données manquantes.";
+      input.focus();
+    }
+  }
+
+  function reportRows(entries, code) {
+    return entries.map(function (entry) {
+      return '<div class="widget-row"><span>' + escape(entry[0]) + '</span><strong>' + moneyMinor(entry[1] || 0, code) + '</strong></div>';
+    }).join("");
+  }
+
+  async function loadProjectReport(monthly) {
+    var id = projectId();
+    var project = (window.PROJECTS || []).find(function (item) {
+      return item.id === id && (!companyId() || !item.companyId || item.companyId === companyId());
+    });
+    var result = document.getElementById("pd-report-result");
+    if (!project || !result) return;
+    if (!window.profactureChantierFinancialSummary) {
+      result.textContent = "Le rapport serveur n'est pas disponible.";
+      return;
+    }
+    var month = document.getElementById("pd-report-month").value;
+    if (monthly && !/^\d{4}-\d{2}$/.test(month)) {
+      result.textContent = "Choisissez d'abord un mois.";
+      return;
+    }
+    var range = monthly ? { start: month + "-01", end: new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).toISOString().slice(0, 10) } : {};
+    result.textContent = "Calcul du rapport en cours…";
+    try {
+      var report = await window.profactureChantierFinancialSummary({ companyId: companyId(), projectId: id, range: range });
+      if (id !== projectId()) return;
+      var code = report.currency || project.currency || "EUR";
+      var summary = report.summary || {};
+      var activity = report.activity || {};
+      var categories = monthly ? report.periodCostCategoriesMinor : report.costCategoriesMinor;
+      var categoryRows = Object.keys(categories || {}).sort().map(function (category) {
+        return [category + " HT", categories[category]];
+      });
+      var headline = monthly ? "Activité de " + month : "Depuis le début du chantier";
+      var financialRows = monthly
+        ? [["Facturé pendant la période HT", activity.invoicedHtMinor], ["Encaissé pendant la période TTC", activity.receivedMinor],
+           ["Coûts directs pendant la période HT", activity.directCostsMinor], ["Marge brute de la période HT", activity.grossMarginMinor]]
+        : [["Devis initiaux acceptés HT", report.acceptedInitialHtMinor], ["Avenants acceptés HT", report.acceptedAmendmentsHtMinor],
+           ["Contrat accepté HT", summary.contractMinor], ["Facturé net HT", summary.invoicedHtMinor],
+           ["Encaissé TTC", summary.receivedMinor], ["Reste à facturer HT", summary.remainingToInvoiceMinor],
+           ["Reste à encaisser TTC", summary.outstandingMinor], ["Coûts directs HT", summary.directCostsMinor],
+           ["Marge brute actuelle HT", summary.grossMarginMinor]];
+      var margin = summary.marginBasisPoints == null ? "Non applicable" : (summary.marginBasisPoints / 100).toFixed(2) + " %";
+      var warningText = (report.warnings || []).map(function (warning) {
+        return warning.code === "OVER_INVOICED" ? "Facturation supérieure au contrat accepté : " + moneyMinor(warning.amountMinor, code) + " HT"
+          : warning.code === "OVERPAID" ? "Trop-perçu : " + moneyMinor(warning.amountMinor, code) + " TTC"
+          : warning.code === "MISSING_ACCEPTED_CONTRACT" ? "Aucun devis accepté lié au chantier" : warning.code;
+      });
+      result.innerHTML = '<div class="callout"><span>✓</span><span>Rapport calculé sur les données autorisées de la société.</span></div>' +
+        '<h4 style="margin:0.85rem 0 0.35rem">' + escape(report.projectName || project.name) + ' · ' + escape(headline) + '</h4>' +
+        '<p class="meta">' + escape(report.projectReference || id) + (report.startDate ? " · Début : " + escape(report.startDate) : "") +
+        (report.completionDate ? " · Travaux terminés : " + escape(report.completionDate) : "") + '</p>' +
+        reportRows(financialRows, code) +
+        (categoryRows.length ? '<h4 style="margin:0.9rem 0 0.3rem">Coûts directs par catégorie</h4>' + reportRows(categoryRows, code) : '<p class="meta" style="margin-top:0.7rem">Aucun coût direct enregistré.</p>') +
+        (monthly ? '<p class="meta" style="margin-top:0.7rem">Activité datée du mois; les soldes cumulés ne sont pas additionnés à cette période.</p>' : '<p class="meta" style="margin-top:0.7rem">Marge brute : ' + escape(margin) + ' du facturé net HT. Ce n’est pas un bénéfice net après frais généraux et impôts.</p>') +
+        (warningText.length ? '<div class="callout" style="margin-top:0.7rem"><span>!</span><span>' + escape(warningText.join(" · ")) + '</span></div>' : '');
+    } catch (error) {
+      result.textContent = "Rapport indisponible. Vérifiez votre connexion, les droits de la société et le déploiement des fonctions Firebase.";
+    }
+  }
+
+  function setup() {
+    var reportMonth = document.getElementById("pd-report-month");
+    if (reportMonth) reportMonth.value = new Date().toISOString().slice(0, 7);
+    var monthlyReport = document.getElementById("pd-report-monthly");
+    if (monthlyReport) monthlyReport.addEventListener("click", function () { loadProjectReport(true); });
+    var finalReport = document.getElementById("pd-report-final");
+    if (finalReport) finalReport.addEventListener("click", function () { loadProjectReport(false); });
+    document.querySelectorAll("#view-project-detail .tab-link").forEach(function (tab) {
+      tab.addEventListener("click", function (event) {
+        event.preventDefault();
+        document.querySelectorAll("#view-project-detail .tab-link").forEach(function (item) { item.classList.toggle("active", item === tab); });
+        document.querySelectorAll("#view-project-detail .tab-content").forEach(function (panel) { panel.style.display = "none"; });
+        var target = document.getElementById("pd-tab-" + tab.dataset.tab);
+        if (target) target.style.display = "block";
+        renderProjectTab(tab.dataset.tab, projectId());
+      });
+    });
+    var scan = document.getElementById("pd-ai-scan-btn");
+    if (scan) scan.addEventListener("click", function () { if (window.profactureOpenExpenseModal) window.profactureOpenExpenseModal(projectId()); });
+    var expense = document.getElementById("pd-add-depense-btn");
+    if (expense) expense.addEventListener("click", function () { if (window.profactureOpenExpenseModal) window.profactureOpenExpenseModal(projectId()); });
+    var quote = document.getElementById("pd-add-devis-btn");
+    if (quote) quote.addEventListener("click", function () {
+      if (window.profactureStartProjectDocument) window.profactureStartProjectDocument("quote", projectId());
+    });
+    var invoice = document.getElementById("pd-add-facture-btn");
+    if (invoice) invoice.addEventListener("click", function () {
+      if (window.profactureStartProjectDocument) window.profactureStartProjectDocument("invoice", projectId());
+    });
+    var payment = document.getElementById("pd-add-paiement-btn");
+    if (payment) payment.addEventListener("click", function () {
+      var id = projectId();
+      var openInvoice = (window.INVOICES || []).filter(function (item) {
+        return item && (item.projectId === id || item.project === id) &&
+          (!companyId() || !item.companyId || item.companyId === companyId()) &&
+          (!window.profactureInvoiceBalance || window.profactureInvoiceBalance(item) > 0);
+      }).sort(function (a, b) { return String(a.due || a.issue || "").localeCompare(String(b.due || b.issue || "")); })[0];
+      if (openInvoice && window.profactureOpenPaymentModal) {
+        window.profactureOpenPaymentModal(openInvoice.id);
+      } else {
+        window.alert("Aucune facture avec un solde à encaisser n'est liée à ce chantier.");
       }
     });
-  });
-}
-
-function renderChantierTabContent(tabId, projectId) {
-  if (!projectId) return;
-  const project = window.PROJECTS.find(p => p.id === projectId);
-  if (!project) return;
-
-  if (tabId === 'apercu') {
-      // Handled by main renderProjectDetail
-      renderChantierApercu(project);
-  } else if (tabId === 'devis') {
-      renderChantierDevis(project);
-  } else if (tabId === 'factures') {
-      renderChantierFactures(project);
-  } else if (tabId === 'paiements') {
-      renderChantierPaiements(project);
-  } else if (tabId === 'depenses') {
-      renderChantierDepenses(project);
-  } else if (tabId === 'main-doeuvre') {
-      renderChantierLabor(project);
-  } else if (tabId === 'documents') {
-      renderChantierDocuments(project);
-  } else if (tabId === 'rentabilite') {
-      renderChantierRentabilite(project);
-  } else if (tabId === 'historique') {
-      renderChantierHistorique(project);
+    var labour = document.getElementById("pd-add-heure-btn");
+    if (labour) labour.addEventListener("click", function () {
+      if (window.profactureOpenLabourModal) window.profactureOpenLabourModal(projectId());
+    });
+    var documentUpload = document.getElementById("pd-add-doc-btn");
+    if (documentUpload) documentUpload.addEventListener("click", function () {
+      if (window.profactureOpenProjectFileUpload) window.profactureOpenProjectFileUpload(projectId());
+    });
+    var assistant = document.getElementById("pd-ai-ask-btn");
+    if (assistant) assistant.addEventListener("click", openProjectAssistant);
+    var closeProject = document.getElementById("pd-close-project-btn");
+    if (closeProject) closeProject.addEventListener("click", function () {
+      var project = (window.PROJECTS || []).find(function (item) { return item.id === projectId(); });
+      if (!project) return;
+      var data = projectData(project);
+      var code = project.currency || (window.profactureGetCurrentCurrency ? window.profactureGetCurrentCurrency() : "EUR");
+      var issues = closureIssues(project, data).map(function (issue) {
+        var parts = issue.split(": ");
+        return parts.length === 2 && /^-?\d+$/.test(parts[1]) ? parts[0] + ": " + moneyMinor(Number(parts[1]), code) : issue;
+      });
+      var message = "Marquer les travaux comme terminés ?" + (issues.length ? "\n\nPoints financiers non résolus :\n- " + issues.join("\n- ") : "\n\nAucun point financier bloquant détecté.");
+      if (!window.confirm(message)) return;
+      project.status = "completed";
+      project.actualCompletionDate = new Date().toISOString().slice(0, 10);
+      project.closureIssues = issues;
+      project.updatedAt = new Date().toISOString();
+      project.notes = Array.isArray(project.notes) ? project.notes : [];
+      project.notes.unshift({ text: "Clôture travaux" + (issues.length ? " avec " + issues.length + " point(s) financier(s) à suivre" : " · situation soldée"), date: project.actualCompletionDate, type: "closure" });
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+      if (window.profactureRenderProjectDetail) window.profactureRenderProjectDetail(project.id);
+      renderProjectTab("apercu", project.id);
+    });
   }
-}
 
-// Ensure the UI triggers our AI modal
-document.addEventListener('DOMContentLoaded', () => {
-   setupChantierTabs();
-   
-   document.getElementById('pd-ai-scan-btn')?.addEventListener('click', openAIScannerModal);
-   document.getElementById('pd-ai-ask-btn')?.addEventListener('click', openAIAssistantModal);
-   document.getElementById('pd-add-depense-btn')?.addEventListener('click', () => {
-      // Just normal expense add
-      if(window.openExpenseModal) window.openExpenseModal(window.pdActiveProjectId);
-   });
-});
-
-// Render logic for each tab
-function renderChantierDevis(project) {
-  const container = document.getElementById('pd-devis-list');
-  const quotes = window.QUOTES.filter(q => q.projectId === project.id || q.clientId === project.clientId);
-  container.innerHTML = quotes.length ? quotes.map(q => `<div class="card card-pad" style="margin-bottom:0.5rem">
-     <div style="display:flex;justify-content:space-between">
-        <div><strong>${q.id}</strong> - ${q.issue}</div>
-        <div>${q.total}</div>
-     </div>
-  </div>`).join('') : '<p class="widget-empty">Aucun devis</p>';
-}
-
-function renderChantierFactures(project) {
-  const container = document.getElementById('pd-factures-list');
-  const invs = window.INVOICES.filter(q => q.projectId === project.id || q.clientId === project.clientId);
-  container.innerHTML = invs.length ? invs.map(q => `<div class="card card-pad" style="margin-bottom:0.5rem">
-     <div style="display:flex;justify-content:space-between">
-        <div><strong>${q.id}</strong> - ${q.issue}</div>
-        <div>${q.total}</div>
-     </div>
-  </div>`).join('') : '<p class="widget-empty">Aucune facture</p>';
-}
-
-function renderChantierPaiements(project) {
-  const container = document.getElementById('pd-paiements-list');
-  const pays = window.PAYMENTS.filter(q => q.projectId === project.id);
-  container.innerHTML = pays.length ? pays.map(q => `<div class="card card-pad" style="margin-bottom:0.5rem">
-     <div style="display:flex;justify-content:space-between">
-        <div><strong>${q.date}</strong> - ${q.method}</div>
-        <div>${q.amount}</div>
-     </div>
-  </div>`).join('') : '<p class="widget-empty">Aucun paiement</p>';
-}
-
-function renderChantierDepenses(project) {
-  const container = document.getElementById('pd-depenses-list');
-  const exps = window.EXPENSES.filter(q => q.projectId === project.id);
-  container.innerHTML = exps.length ? exps.map(q => `<div class="card card-pad" style="margin-bottom:0.5rem">
-     <div style="display:flex;justify-content:space-between">
-        <div><strong>${q.date}</strong> - ${q.vendor} (${q.category})</div>
-        <div>${q.amountTTC || q.amount}</div>
-     </div>
-  </div>`).join('') : '<p class="widget-empty">Aucune dépense</p>';
-}
-
-function renderChantierLabor(project) {
-  const container = document.getElementById('pd-heures-list');
-  const labors = window.LABOR_ENTRIES.filter(q => q.projectId === project.id);
-  container.innerHTML = labors.length ? labors.map(q => `<div class="card card-pad" style="margin-bottom:0.5rem">
-     <div style="display:flex;justify-content:space-between">
-        <div><strong>${q.employee}</strong> - ${q.date} (${q.hours}h)</div>
-        <div>${q.totalCost}</div>
-     </div>
-  </div>`).join('') : '<p class="widget-empty">Aucune main-d\'œuvre</p>';
-}
-
-function renderChantierDocuments(project) {
-  const container = document.getElementById('pd-docs-list');
-  const docs = window.DOCUMENTS.filter(q => q.projectId === project.id);
-  container.innerHTML = docs.length ? docs.map(q => `<div class="card card-pad" style="margin-bottom:0.5rem">
-     <div style="display:flex;justify-content:space-between">
-        <div><strong>${q.name}</strong> - ${q.date}</div>
-     </div>
-  </div>`).join('') : '<p class="widget-empty">Aucun document</p>';
-}
-
-function calculateChantierRentabilite(project) {
-   const quotes = window.QUOTES.filter(q => q.projectId === project.id || q.clientId === project.clientId);
-   const invs = window.INVOICES.filter(q => q.projectId === project.id || q.clientId === project.clientId);
-   const exps = window.EXPENSES.filter(q => q.projectId === project.id);
-   const labors = window.LABOR_ENTRIES.filter(q => q.projectId === project.id);
-   const pays = window.PAYMENTS.filter(q => q.projectId === project.id);
-   
-   const totalQuoted = quotes.reduce((s, x) => s + (Number(x.total) || 0), 0);
-   const totalInvoiced = invs.reduce((s, x) => s + (Number(x.total) || 0), 0);
-   const totalReceived = pays.reduce((s, x) => s + (Number(x.amount) || 0), 0);
-   
-   const costMaterials = exps.filter(e => e.category === 'Matériaux').reduce((s, x) => s + (Number(x.amountHT) || Number(x.amount) || 0), 0);
-   const costFuel = exps.filter(e => e.category === 'Carburant').reduce((s, x) => s + (Number(x.amountHT) || Number(x.amount) || 0), 0);
-   const costLabor = labors.reduce((s, x) => s + (Number(x.totalCost) || 0), 0);
-   const costOther = exps.filter(e => e.category !== 'Matériaux' && e.category !== 'Carburant').reduce((s, x) => s + (Number(x.amountHT) || Number(x.amount) || 0), 0);
-   
-   const totalCosts = costMaterials + costFuel + costLabor + costOther;
-   const grossMargin = totalInvoiced - totalCosts;
-   const marginPercent = totalInvoiced > 0 ? ((grossMargin / totalInvoiced) * 100).toFixed(1) : 0;
-   
-   return {
-      totalQuoted, totalInvoiced, totalReceived,
-      costMaterials, costFuel, costLabor, costOther, totalCosts,
-      grossMargin, marginPercent
-   };
-}
-
-function renderChantierRentabilite(project) {
-  const container = document.getElementById('pd-rentabilite-view');
-  const stats = calculateChantierRentabilite(project);
-  
-  container.innerHTML = `
-    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom: 1rem;">
-       <div class="card stat-card"><div><div class="lbl">Total Facturé</div><div class="val tnum">${stats.totalInvoiced.toFixed(2)}</div></div></div>
-       <div class="card stat-card"><div><div class="lbl">Coûts Directs (HT)</div><div class="val tnum" style="color:var(--danger)">${stats.totalCosts.toFixed(2)}</div></div></div>
-       <div class="card stat-card"><div><div class="lbl">Marge Brute</div><div class="val tnum" style="color:var(--success)">${stats.grossMargin.toFixed(2)} (${stats.marginPercent}%)</div></div></div>
-    </div>
-    
-    <div class="card card-pad">
-       <div class="card-title">Détail des coûts</div>
-       <table style="width:100%; text-align:left;">
-          <tr><th>Catégorie</th><th>Montant HT</th></tr>
-          <tr><td>Matériaux</td><td>${stats.costMaterials.toFixed(2)}</td></tr>
-          <tr><td>Main-d'œuvre</td><td>${stats.costLabor.toFixed(2)}</td></tr>
-          <tr><td>Carburant</td><td>${stats.costFuel.toFixed(2)}</td></tr>
-          <tr><td>Autres</td><td>${stats.costOther.toFixed(2)}</td></tr>
-       </table>
-    </div>
-  `;
-}
-
-function renderChantierApercu(project) {
-   const container = document.getElementById('pd-financial-progress');
-   const stats = calculateChantierRentabilite(project);
-   if(container) {
-       container.innerHTML = `
-       <p style="display:flex;justify-content:space-between;"><span>Facturé:</span> <strong>${stats.totalInvoiced.toFixed(2)}</strong></p>
-       <p style="display:flex;justify-content:space-between;"><span>Encaissé:</span> <strong>${stats.totalReceived.toFixed(2)}</strong></p>
-       <p style="display:flex;justify-content:space-between;"><span>Reste à encaisser:</span> <strong>${(stats.totalInvoiced - stats.totalReceived).toFixed(2)}</strong></p>
-       `;
-   }
-}
-
-function renderChantierHistorique(project) {
-  const container = document.getElementById('pd-historique-view');
-  container.innerHTML = '<p class="widget-empty">Historique en cours de développement...</p>';
-}
-
-// AI Scanner
-function openAIScannerModal() {
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*,application/pdf';
-  fileInput.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Show loading
-    const aiLoading = document.createElement('div');
-    aiLoading.className = 'cw-overlay';
-    aiLoading.innerHTML = '<div class="glass-panel" style="padding: 2rem;text-align:center;"><h2>AI Scanning...</h2><p>Extraction des données en cours...</p></div>';
-    document.body.appendChild(aiLoading);
-    
-    try {
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-         const dataUrl = ev.target.result;
-         
-         const firebaseFn = window.profactureHttpsCallable ? window.profactureHttpsCallable('aiDocumentScan') : null;
-         if(!firebaseFn) throw new Error("Firebase non initialisé");
-         
-         const response = await firebaseFn({ companyId: window.wsActiveId || 'default', dataUrl: dataUrl });
-         document.body.removeChild(aiLoading);
-         
-         const ext = response.data.extraction;
-         showAIExtractionPreview(ext, file, window.pdActiveProjectId);
-      };
-      reader.readAsDataURL(file);
-    } catch(err) {
-      document.body.removeChild(aiLoading);
-      alert('Erreur: ' + err.message);
-    }
+  window.renderChantierTabContent = renderProjectTab;
+  window.calculateChantierRentabilite = function (project) { return projectData(project).summary; };
+  window.renderClientFinancials = function (client) {
+    var target = document.getElementById("cd-ai-summary");
+    if (!target) return;
+    var projects = (window.PROJECTS || []).filter(function (project) { return project.clientId === client.id && (!companyId() || !project.companyId || project.companyId === companyId()); });
+    if (!projects.length) { target.innerHTML = empty("Aucun chantier lié à ce client."); return; }
+    var total = { contractMinor: 0, invoicedHtMinor: 0, receivedMinor: 0, outstandingMinor: 0, directCostsMinor: 0, grossMarginMinor: 0 };
+    projects.forEach(function (project) { var summary = projectData(project).summary; Object.keys(total).forEach(function (key) { total[key] += summary[key] || 0; }); });
+    var code = projects[0].currency || (window.profactureGetCurrentCurrency ? window.profactureGetCurrentCurrency() : "EUR");
+    target.innerHTML = [["Travaux acceptés HT", total.contractMinor], ["Facturé HT", total.invoicedHtMinor], ["Encaissé TTC", total.receivedMinor], ["Reste à encaisser TTC", total.outstandingMinor], ["Coûts directs HT", total.directCostsMinor], ["Marge brute HT", total.grossMarginMinor]].map(function (entry) { return '<div class="widget-row"><span>' + entry[0] + '</span><strong>' + moneyMinor(entry[1], code) + '</strong></div>'; }).join("");
   };
-  fileInput.click();
-}
-
-function showAIExtractionPreview(ext, file, defaultProjectId) {
-  const preview = document.createElement('div');
-  preview.className = 'cw-overlay';
-  preview.style.zIndex = 9999;
-  
-  const projects = window.activeCompanyItems ? window.activeCompanyItems(window.PROJECTS) : (window.PROJECTS || []);
-  const projectOptions = projects.map(p => `<option value="${p.id}" ${p.id === defaultProjectId ? 'selected' : ''}>${p.name}</option>`).join('');
-
-  preview.innerHTML = `
-    <div class="ob-backdrop"></div>
-    <div class="card glass-panel cw-panel">
-      <div class="cw-head">
-         <h3 style="font-size:1rem;font-weight:800;">Confirmation AI</h3>
-         <button class="ob-skip" onclick="this.closest('.cw-overlay').remove()">Annuler</button>
-      </div>
-      <div class="cw-body" style="overflow-y:auto;max-height:80vh;">
-         <div class="ob-fields">
-           <div class="field-wrap">
-             <label>Fournisseur</label>
-             <input type="text" class="field" id="ai-vendor" value="${ext.vendor || ''}">
-           </div>
-           <div class="field-wrap">
-             <label>Date</label>
-             <input type="date" class="field" id="ai-date" value="${ext.date || ''}">
-           </div>
-           <div class="field-wrap">
-             <label>Catégorie (Suggérée: ${ext.category})</label>
-             <select class="field" id="ai-category">
-               ${['Matériaux', 'Carburant', 'Main-d’œuvre', 'Salaires', 'Outils', 'Location matériel', 'Sous-traitance', 'Péage', 'Parking', 'Transport', 'Fournitures', 'Pièces automobile', 'Restaurant / Repas', 'Hébergement', 'Assurance', 'Autres dépenses']
-                 .map(c => `<option value="${c}" ${c === ext.category ? 'selected' : ''}>${c}</option>`).join('')}
-             </select>
-           </div>
-           <div class="field-wrap">
-             <label>Montant HT</label>
-             <input type="number" class="field" id="ai-ht" value="${ext.amountHT || 0}">
-           </div>
-           <div class="field-wrap">
-             <label>TVA</label>
-             <input type="number" class="field" id="ai-tva" value="${ext.taxAmount || 0}">
-           </div>
-           <div class="field-wrap">
-             <label>Montant TTC</label>
-             <input type="number" class="field" id="ai-ttc" value="${ext.amountTTC || ext.amount || 0}">
-           </div>
-           <div class="field-wrap">
-             <label>Chantier suggéré</label>
-             <select class="field" id="ai-chantier">
-                <option value="">-- Aucun Chantier --</option>
-                ${projectOptions}
-             </select>
-           </div>
-         </div>
-      </div>
-      <div class="cw-foot">
-         <button class="btn btn-primary" id="ai-confirm-btn" style="width:100%">Confirmer et Enregistrer</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(preview);
-  
-  document.getElementById('ai-confirm-btn').addEventListener('click', () => {
-     const savedExpense = {
-       id: 'EXP-' + Date.now(),
-       vendor: document.getElementById('ai-vendor').value,
-       date: document.getElementById('ai-date').value,
-       category: document.getElementById('ai-category').value,
-       amountHT: parseFloat(document.getElementById('ai-ht').value),
-       taxAmount: parseFloat(document.getElementById('ai-tva').value),
-       amountTTC: parseFloat(document.getElementById('ai-ttc').value),
-       projectId: document.getElementById('ai-chantier').value,
-       companyId: window.wsActiveId
-     };
-     
-     window.EXPENSES.push(savedExpense);
-     if(window.profactureSaveToCloud) window.profactureSaveToCloud('expenses', savedExpense);
-     
-     preview.remove();
-     if(window.showToast) window.showToast('Dépense enregistrée');
-     
-     // Refresh current view if we are on project detail
-     if(window.pdActiveProjectId) {
-         renderChantierTabContent('depenses', window.pdActiveProjectId);
-         renderChantierRentabilite(window.PROJECTS.find(p => p.id === window.pdActiveProjectId));
-     }
-  });
-}
-
-function openAIAssistantModal() {
-  const modal = document.createElement('div');
-  modal.className = 'cw-overlay';
-  modal.style.zIndex = 9999;
-  
-  modal.innerHTML = `
-    <div class="ob-backdrop"></div>
-    <div class="card glass-panel cw-panel" style="max-width: 500px">
-      <div class="cw-head">
-         <h3 style="font-size:1rem;font-weight:800;">Assistant AI Chantier</h3>
-         <button class="ob-skip" onclick="this.closest('.cw-overlay').remove()">Fermer</button>
-      </div>
-      <div class="cw-body" style="height: 400px; display:flex; flex-direction:column;">
-         <div id="ai-chat-history" style="flex:1; overflow-y:auto; padding:1rem; background:hsl(var(--bg)); border-radius:8px; margin-bottom:1rem;">
-            <p style="color:hsl(var(--muted-fg));font-size:0.9rem">Demandez-moi n'importe quoi sur ce chantier. Par exemple: "Quel est la marge actuelle ?" ou "Combien ai-je dépensé en matériaux ?"</p>
-         </div>
-         <div style="display:flex; gap:0.5rem;">
-            <input type="text" id="ai-chat-input" class="field" placeholder="Posez votre question..." style="flex:1">
-            <button class="btn btn-primary" id="ai-chat-send">Envoyer</button>
-         </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  
-  const sendBtn = document.getElementById('ai-chat-send');
-  const input = document.getElementById('ai-chat-input');
-  const history = document.getElementById('ai-chat-history');
-  
-  sendBtn.addEventListener('click', async () => {
-      const text = input.value.trim();
-      if(!text) return;
-      
-      input.value = '';
-      history.innerHTML += `<div style="text-align:right; margin-bottom:0.8rem;"><span style="background:hsl(var(--primary)); color:white; padding:0.5rem 0.8rem; border-radius:12px; display:inline-block;">${text}</span></div>`;
-      history.scrollTop = history.scrollHeight;
-      
-      try {
-         const firebaseFn = window.profactureHttpsCallable ? window.profactureHttpsCallable('aiAssistant') : null;
-         if(!firebaseFn) throw new Error("Firebase non initialisé");
-         
-         const project = window.PROJECTS.find(p => p.id === window.pdActiveProjectId);
-         const stats = calculateChantierRentabilite(project);
-         
-         const context = JSON.stringify({
-            chantier: project,
-            stats: stats
-         });
-         
-         const response = await firebaseFn({ message: text, context: context, companyId: window.wsActiveId || 'default' });
-         const reply = response.data.text || "Désolé, je n'ai pas pu répondre.";
-         
-         history.innerHTML += `<div style="text-align:left; margin-bottom:0.8rem;"><span style="background:hsl(var(--border)); padding:0.5rem 0.8rem; border-radius:12px; display:inline-block;">${reply}</span></div>`;
-         history.scrollTop = history.scrollHeight;
-      } catch (err) {
-         history.innerHTML += `<div style="text-align:left; margin-bottom:0.8rem; color:hsl(var(--danger))">Erreur: ${err.message}</div>`;
-      }
-  });
-}
-
-window.renderClientFinancials = function(client) {
-   const container = document.getElementById("cd-ai-summary");
-   if (!container) return;
-   
-   const projects = window.PROJECTS.filter(p => p.clientId === client.id);
-   let totalQuoted = 0;
-   let totalInvoiced = 0;
-   let totalReceived = 0;
-   let totalCosts = 0;
-   
-   projects.forEach(p => {
-       const stats = calculateChantierRentabilite(p);
-       totalQuoted += stats.totalQuoted;
-       totalInvoiced += stats.totalInvoiced;
-       totalReceived += stats.totalReceived;
-       totalCosts += stats.totalCosts;
-   });
-   
-   const outstanding = totalInvoiced - totalReceived;
-   const grossMargin = totalInvoiced - totalCosts;
-   const activeProjects = projects.filter(p => p.status !== 'Terminé' && p.status !== 'Annulé').length;
-   
-   container.innerHTML = `
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-         <div><strong>Total Devis:</strong> ${totalQuoted.toFixed(2)}</div>
-         <div><strong>Total Facturé:</strong> ${totalInvoiced.toFixed(2)}</div>
-         <div><strong>Total Encaissé:</strong> ${totalReceived.toFixed(2)}</div>
-         <div><strong>Reste à encaisser:</strong> <span style="color:var(--danger)">${outstanding.toFixed(2)}</span></div>
-         <div><strong>Total Dépenses (HT):</strong> ${totalCosts.toFixed(2)}</div>
-         <div><strong>Marge globale:</strong> <span style="color:var(--success)">${grossMargin.toFixed(2)}</span></div>
-         <div><strong>Chantiers Actifs:</strong> ${activeProjects} / ${projects.length}</div>
-      </div>
-   `;
-};
+  document.addEventListener("DOMContentLoaded", setup);
+})();

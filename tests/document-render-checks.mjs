@@ -3,11 +3,13 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const source = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const financialEngine = await import('../financial-engine.js');
 const section = (start, end) => source.slice(source.indexOf(start), source.indexOf(end, source.indexOf(start)));
 const area = { innerHTML: '' };
 let prints = 0;
 const context = vm.createContext({
   window: {
+    ProFactureFinancial: financialEngine.default,
     renderClientFinancials() { throw new Error('Document rendering must not call client analytics'); },
     print() { prints++; }
   },

@@ -92,6 +92,31 @@ assert(index.includes('id="cashflow-forecast-grid"') && index.includes('function
 assert(index.includes('id="crm-intelligence-list"') && index.includes('function renderCrmIntelligence()'), "CRM intelligence is missing");
 assert(index.includes('aria-modal="true"') && index.includes('role="log"'), "AI dialog accessibility contract changed");
 assert(functionsSource.includes('Never save, send, email, delete, or charge anything'), "AI backend must forbid destructive autonomous actions");
+assert(functionsSource.includes('exports.acceptQuote = onCall'), "Accepted quote locking callable is missing");
+assert(functionsSource.includes('acceptedVersionId') && firestoreRules.includes('quoteUpdateAllowed()'), "Accepted quote immutability contract is missing");
+assert(index.includes('id="dash-project-period"') && index.includes('periodActivity('), "Chantier period reporting is missing");
+assert(index.includes('allocations: [{ invoiceId: inv.id'), "Separate payment allocation records are missing");
+assert(index.includes('receiptFingerprint') && index.includes('receiptPath'), "Receipt preservation and duplicate warning metadata are missing");
+[
+  'id="project-reference"',
+  'id="project-address"',
+  'id="project-contact"',
+  'id="pd-edit-btn"',
+  'companyId: wsActiveId',
+  'window.profactureStartProjectDocument',
+  'window.profactureOpenPaymentModal',
+  'window.profactureOpenLabourModal',
+  'window.profactureOpenProjectFileUpload',
+  'hourlyCostMinor: calculated.rateMinor',
+  'totalCostMinor: calculated.totalMinor',
+  'storagePath: upload.path || ""',
+  'activeCompanyItems(PROJECTS).filter'
+].forEach(marker => assert(index.includes(marker), `Missing chantier workflow marker: ${marker}`));
+assert(functionsSource.includes('vnd\\.openxmlformats-officedocument'), "Protected project document upload types are missing");
+assert(index.includes('id="pd-report-monthly"') && index.includes('id="pd-report-final"'), "Chantier reporting controls are missing");
+assert(functionsSource.includes('periodCostCategoriesMinor') && functionsSource.includes('acceptedInitialHtMinor'), "Server-calculated chantier report breakdown is missing");
+assert(functionsSource.includes('loadCompleteFinancialRecords') && functionsSource.includes("records.length > maxRecords"), "Financial reports must paginate or explicitly reject incomplete data");
+assert(functionsSource.includes("snap.size > limit"), "AI context must reject truncated financial datasets");
 
 [
   'id="home-ai-tools"',

@@ -810,6 +810,67 @@ window.profactureTrack = function(name, params) {
     color: hsl(var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 1rem;
   }
 
+  /* ---- AI command dashboard ---- */
+  .ai-command-hero { display: grid; grid-template-columns: minmax(0, 1.25fr) auto; gap: 1.25rem; align-items: center; margin-bottom: 1rem; padding: 1.35rem 1.45rem; border: 1px solid hsl(var(--border)); border-left: 4px solid hsl(var(--primary)); border-radius: var(--radius-lg); background: hsl(var(--surface)); box-shadow: var(--shadow-sm); }
+  .ai-command-kicker { display: flex; align-items: center; gap: 0.45rem; color: hsl(var(--primary)); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+  .ai-command-hero h2 { margin-top: 0.35rem; font-size: 1.22rem; line-height: 1.25; }
+  .ai-command-hero p { max-width: 48rem; margin-top: 0.35rem; color: hsl(var(--muted-fg)); font-size: 0.84rem; line-height: 1.5; }
+  .ai-command-actions { display: flex; gap: 0.55rem; flex-wrap: wrap; justify-content: flex-end; }
+  .ai-ops-layout { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(18rem, 0.75fr); gap: 1rem; margin-top: 1rem; align-items: stretch; }
+  .project-command { padding: 1.15rem; min-width: 0; }
+  .project-command-head { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+  .project-command-head select { width: min(100%, 20rem); }
+  .project-overview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.65rem; }
+  .project-metric { min-width: 0; padding: 0.85rem; border: 1px solid hsl(var(--border)); border-radius: var(--radius-md); background: hsl(var(--muted) / 0.35); }
+  .project-metric span { display: block; color: hsl(var(--muted-fg)); font-size: 0.7rem; font-weight: 700; }
+  .project-metric strong { display: block; margin-top: 0.3rem; font-size: 1rem; overflow-wrap: anywhere; }
+  .project-metric.good strong { color: hsl(var(--success)); }
+  .project-metric.warn strong { color: hsl(var(--warning)); }
+  .project-health { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(15rem, 0.9fr); gap: 0.85rem; margin-top: 0.85rem; }
+  .project-health-panel { padding: 0.95rem; border: 1px solid hsl(var(--border)); border-radius: var(--radius-md); }
+  .project-health-title { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; margin-bottom: 0.65rem; font-size: 0.78rem; font-weight: 800; }
+  .project-progress { height: 0.55rem; overflow: hidden; border-radius: 999px; background: hsl(var(--muted)); }
+  .project-progress span { display: block; height: 100%; border-radius: inherit; background: hsl(var(--primary)); transition: width 250ms ease; }
+  .project-health-copy { margin-top: 0.65rem; color: hsl(var(--muted-fg)); font-size: 0.76rem; line-height: 1.45; }
+  .project-intel-tabs { display: flex; gap: 0.35rem; margin-top: 0.9rem; padding-bottom: 0.25rem; overflow-x: auto; scrollbar-width: thin; }
+  .project-intel-tabs button { flex: 0 0 auto; padding: 0.5rem 0.65rem; border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm); background: hsl(var(--surface)); color: hsl(var(--muted-fg)); font: inherit; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+  .project-intel-tabs button.on { border-color: hsl(var(--primary)); background: hsl(var(--primary)); color: white; }
+  .project-intel-panel { min-height: 10rem; margin-top: 0.55rem; padding: 0.9rem; border: 1px solid hsl(var(--border)); border-radius: var(--radius-md); }
+  .project-intel-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; margin-bottom: 0.7rem; }
+  .project-intel-toolbar h3 { font-size: 0.82rem; }
+  .project-intel-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .project-intel-table th, .project-intel-table td { padding: 0.55rem 0.45rem; border-bottom: 1px solid hsl(var(--border)); text-align: left; vertical-align: top; }
+  .project-intel-table th { color: hsl(var(--muted-fg)); font-size: 0.64rem; text-transform: uppercase; }
+  .project-intel-table td:last-child, .project-intel-table th:last-child { text-align: right; }
+  .project-intel-empty { display: grid; min-height: 7rem; place-items: center; color: hsl(var(--muted-fg)); text-align: center; font-size: 0.76rem; }
+  .project-cost-grid { display: grid; grid-template-columns: minmax(12rem, 0.75fr) minmax(0, 1.25fr); gap: 0.85rem; }
+  .project-cost-total { display: grid; place-items: center; min-height: 9rem; border-radius: var(--radius-md); background: hsl(var(--primary) / 0.08); text-align: center; }
+  .project-cost-total strong { display: block; margin-top: 0.25rem; font-size: 1.25rem; }
+  .project-cost-bars { display: grid; gap: 0.55rem; align-content: center; }
+  .project-cost-row { display: grid; grid-template-columns: 7rem minmax(0, 1fr) auto; gap: 0.55rem; align-items: center; font-size: 0.7rem; }
+  .project-mini-bar { height: 0.45rem; overflow: hidden; border-radius: 999px; background: hsl(var(--muted)); }
+  .project-mini-bar span { display: block; height: 100%; border-radius: inherit; background: hsl(var(--primary)); }
+  .project-empty { min-height: 11rem; display: grid; place-items: center; text-align: center; color: hsl(var(--muted-fg)); }
+  .ai-copilot { display: flex; flex-direction: column; min-width: 0; padding: 1.1rem; border-color: hsl(var(--primary) / 0.35); }
+  .ai-copilot-head { display: flex; align-items: center; gap: 0.65rem; }
+  .ai-copilot-mark { width: 2.2rem; height: 2.2rem; display: grid; place-items: center; border-radius: var(--radius-md); background: hsl(var(--primary)); color: white; font-weight: 800; }
+  .ai-copilot-head strong { display: block; font-size: 0.9rem; }
+  .ai-copilot-head small { display: flex; align-items: center; gap: 0.3rem; color: hsl(var(--muted-fg)); }
+  .ai-copilot-scope { margin: 0.9rem 0 0.7rem; padding: 0.55rem 0.65rem; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-fg)); font-size: 0.72rem; }
+  .ai-copilot-insights { display: grid; gap: 0.5rem; flex: 1; }
+  .ai-copilot-insight { width: 100%; padding: 0.7rem; border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm); background: hsl(var(--surface)); color: hsl(var(--fg)); text-align: left; font: inherit; cursor: pointer; }
+  .ai-copilot-insight:hover { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.04); }
+  .ai-copilot-insight b { display: block; font-size: 0.78rem; }
+  .ai-copilot-insight span { display: block; margin-top: 0.2rem; color: hsl(var(--muted-fg)); font-size: 0.7rem; line-height: 1.4; }
+  .ai-copilot-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.45rem; margin-top: 0.75rem; }
+  .ai-copilot-form .field { min-width: 0; }
+  .dashboard-section-label { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 1.35rem 0 0.7rem; }
+  .dashboard-section-label h2 { font-size: 1rem; }
+  .dashboard-section-label span { color: hsl(var(--muted-fg)); font-size: 0.75rem; }
+  @media (max-width: 1050px) { .ai-ops-layout, .project-health { grid-template-columns: 1fr; } .project-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) { .ai-command-hero { grid-template-columns: 1fr; } .ai-command-actions { justify-content: flex-start; } .project-command-head { align-items: flex-start; flex-direction: column; } .project-command-head select { width: 100%; } .project-cost-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 480px) { .project-overview { grid-template-columns: 1fr; } }
+
   .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; padding: 1.15rem; }
   @media (max-width: 700px) { .quick-actions { grid-template-columns: repeat(2, 1fr); } }
   .qa-item {
@@ -1276,8 +1337,10 @@ window.profactureTrack = function(name, params) {
   @media (max-width: 640px) {
     .template-library-grid { grid-template-columns: 1fr; }
     .template-library-section { padding-bottom: 2.25rem; }
+    .labour-entry-grid, .project-contact-grid { grid-template-columns: 1fr !important; }
   }
 </style>
+<script src="/financial-engine.js"></script>
 </head>
 <body>
 
@@ -3676,6 +3739,17 @@ window.profactureTrack = function(name, params) {
             </div>
           </div>
         </div>
+        <section class="ai-command-hero" aria-label="AI business command center">
+          <div>
+            <div class="ai-command-kicker"><span>✦</span><span>ProFacture AI Command Center</span></div>
+            <h2>Votre activité, vos chantiers et vos priorités dans une seule vue</h2>
+            <p id="dash-ai-briefing">Les recommandations apparaissent à partir de vos vraies factures, devis, dépenses, projets et tâches.</p>
+          </div>
+          <div class="ai-command-actions">
+            <a href="#" class="btn btn-outline" data-goto="expenses">⌁ Scanner une dépense</a>
+            <a href="#" class="btn btn-primary" data-goto="ai">✦ Ouvrir l'assistant IA</a>
+          </div>
+        </section>
         <div class="stat-grid" id="dash-stat-grid">
           <div class="card stat-card"><div><div class="lbl" data-i18n="stat_revenue">Revenue</div><div class="val tnum" data-count="0" data-prefix="$">$0.00</div></div><div class="ic">$</div></div>
           <div class="card stat-card"><div><div class="lbl" data-i18n="stat_profit">Profit</div><div class="val tnum" data-count="0" data-prefix="$">$0.00</div></div><div class="ic">📈</div></div>
@@ -3693,6 +3767,30 @@ window.profactureTrack = function(name, params) {
           <a href="#" class="qa-item" data-goto="clients"><span>👥+</span><span data-i18n="btn_add_client">Add client</span></a>
           <a href="#" class="qa-item" data-goto="inventory"><span>📦+</span><span data-i18n="btn_add_product">Add product</span></a>
         </div>
+        <div class="ai-ops-layout">
+          <section class="card project-command">
+            <div class="project-command-head">
+              <div><div class="card-title" style="margin:0;">Pilotage chantier</div><p style="margin-top:0.2rem;color:hsl(var(--muted-fg));font-size:0.76rem;">Budget, facturation, coûts, marge et avancement réels</p></div>
+              <div style="display:flex;gap:0.45rem;flex-wrap:wrap;justify-content:flex-end;">
+                <select class="field" id="dash-project-period" aria-label="Période d'analyse" style="width:auto"><option value="since_start">Depuis le début</option><option value="day">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option><option value="quarter">Ce trimestre</option><option value="year">Cette année</option><option value="custom">Période personnalisée</option></select>
+                <input class="field" type="date" id="dash-period-start" aria-label="Début" style="display:none;width:auto" />
+                <input class="field" type="date" id="dash-period-end" aria-label="Fin" style="display:none;width:auto" />
+                <select class="field" id="dash-project-select" aria-label="Sélectionner un chantier"></select>
+              </div>
+            </div>
+            <div id="dash-project-command"></div>
+          </section>
+          <aside class="card ai-copilot">
+            <div class="ai-copilot-head"><span class="ai-copilot-mark">✦</span><div><strong>Copilote d'entreprise</strong><small><span class="dot"></span> Connecté à votre espace</small></div></div>
+            <div class="ai-copilot-scope" id="dash-ai-scope">Contexte : toute l'entreprise</div>
+            <div class="ai-copilot-insights" id="dash-ai-copilot-insights"></div>
+            <form class="ai-copilot-form" id="dash-ai-copilot-form">
+              <input class="field" id="dash-ai-question" placeholder="Posez une question sur votre activité…" aria-label="Question à l'assistant IA" />
+              <button class="btn btn-primary btn-icon" type="submit" title="Envoyer">→</button>
+            </form>
+          </aside>
+        </div>
+        <div class="dashboard-section-label"><h2>Outils et suivi opérationnel</h2><span>Vos options existantes restent disponibles</span></div>
         <div class="dash-grid">
           <div class="card chart-wrap">
             <div class="card-title" data-i18n="stat_revenue">Revenue</div>
@@ -3787,6 +3885,8 @@ window.profactureTrack = function(name, params) {
               <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:1rem;">
                 <div><label class="field-label" data-i18n="fld_company_name">Issuer company</label><select class="field" id="inv-new-company"></select></div>
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="inv-new-client"></select></div>
+                <div><label class="field-label">Chantier</label><select class="field" id="inv-new-project"></select></div>
+                <div><label class="field-label">Type de facture</label><select class="field" id="inv-new-type"><option value="standard">Facture standard</option><option value="deposit">Facture d’acompte</option><option value="progress">Facture de situation</option><option value="intermediate">Facture intermédiaire</option><option value="final">Facture finale</option><option value="credit_note">Avoir</option></select></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="inv-new-issue" /></div>
                 <div><label class="field-label"><span data-i18n="fld_due_date">Due date</span> <span style="color:hsl(var(--muted-fg));font-weight:600;">(<span data-i18n="lbl_optional">optional</span>)</span></label><input class="field" type="date" id="inv-new-due" /></div>
                 <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="inv-new-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>
@@ -3850,6 +3950,8 @@ window.profactureTrack = function(name, params) {
               <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:1rem;">
                 <div><label class="field-label" data-i18n="fld_company_name">Issuer company</label><select class="field" id="q-new-company"></select></div>
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="q-new-client"></select></div>
+                <div><label class="field-label">Chantier</label><select class="field" id="q-new-project"></select></div>
+                <div><label class="field-label">Type</label><select class="field" id="q-new-type"><option value="initial">Devis initial</option><option value="amendment">Avenant / devis complémentaire</option></select></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="q-new-issue" /></div>
                 <div><label class="field-label" data-i18n="fld_valid_until">Valid until</label><input class="field" type="date" id="q-new-valid" /></div>
                 <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="q-new-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>
@@ -4190,23 +4292,49 @@ window.profactureTrack = function(name, params) {
   <div class="card glass-panel cw-panel" id="ph-panel" style="max-width:37rem;"></div>
 </div>
 
-<!-- ============ PAY NOW MODAL ============ -->
+<!-- ============ RECORD PAYMENT MODAL ============ -->
 <div class="cw-overlay" id="pay-overlay">
   <div class="ob-backdrop" id="pay-backdrop"></div>
   <div class="card glass-panel cw-panel" id="pay-panel">
-    <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;" data-i18n="modal_pay_now">Pay now</h3><button class="ob-skip" id="pay-close" data-i18n="btn_cancel">Cancel</button></div>
+    <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;">Enregistrer un paiement</h3><button class="ob-skip" id="pay-close" data-i18n="btn_cancel">Cancel</button></div>
     <div class="cw-body">
       <div class="ob-fields">
         <div><label class="field-label" data-i18n="fld_amount">Amount</label><input class="field" type="number" min="0" step="0.01" id="pay-amount" /></div>
         <div><label class="field-label" data-i18n="fld_payment_method">Payment method</label><select class="field" id="pay-method">
-          <option value="card" data-i18n="opt_card">Card</option>
-          <option value="paypal" data-i18n="opt_paypal">PayPal</option>
-          <option value="bank" data-i18n="opt_bank_transfer">Bank transfer</option>
+          <option value="Virement">Virement</option>
+          <option value="Carte">Carte</option>
+          <option value="Espèces">Espèces</option>
+          <option value="Chèque">Chèque</option>
+          <option value="Autre">Autre</option>
         </select></div>
-        <p style="font-size:0.72rem;color:hsl(var(--muted-fg));" data-i18n="txt_payment_simulated_note">Simulated payment for this prototype — no real charge is made.</p>
+        <div><label class="field-label">Date de réception</label><input class="field" type="date" id="pay-date" /></div>
+        <div><label class="field-label">Référence bancaire (facultatif)</label><input class="field" id="pay-reference" maxlength="120" /></div>
+        <div style="grid-column:1/-1"><label class="field-label">Notes (facultatif)</label><textarea class="field" id="pay-notes" rows="2"></textarea></div>
+        <p style="font-size:0.72rem;color:hsl(var(--muted-fg));grid-column:1/-1">Ce formulaire enregistre un règlement reçu. Il ne débite aucune carte et n’effectue aucun paiement.</p>
       </div>
     </div>
     <div class="cw-foot"><span></span><button class="btn btn-primary btn-sm" id="pay-submit" data-i18n="btn_confirm_payment">Confirm payment</button></div>
+  </div>
+</div>
+
+<!-- ============ LABOUR ENTRY MODAL ============ -->
+<div class="cw-overlay" id="labour-overlay">
+  <div class="ob-backdrop" id="labour-backdrop"></div>
+  <div class="card glass-panel cw-panel" id="labour-panel">
+    <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;">Ajouter des heures</h3><button class="ob-skip" id="labour-close" data-i18n="btn_cancel">Cancel</button></div>
+    <div class="cw-body">
+      <div class="ob-fields">
+        <div><label class="field-label">Employé / intervenant</label><input class="field" id="labour-employee" maxlength="120" placeholder="Nom de l'intervenant" /></div>
+        <div class="labour-entry-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0.7rem;">
+          <div><label class="field-label">Date</label><input class="field" type="date" id="labour-date" /></div>
+          <div><label class="field-label">Heures</label><input class="field" type="number" min="0.01" step="0.25" id="labour-hours" value="1" /></div>
+          <div><label class="field-label">Coût interne / heure</label><input class="field" type="number" min="0" step="0.01" id="labour-rate" value="0" /></div>
+        </div>
+        <div><label class="field-label">Notes (facultatif)</label><textarea class="field" id="labour-notes" rows="3" maxlength="1000"></textarea></div>
+        <p style="font-size:0.72rem;color:hsl(var(--muted-fg));">Le coût historique est figé avec cette saisie. Il ne change pas si le taux interne est modifié plus tard.</p>
+      </div>
+    </div>
+    <div class="cw-foot"><span id="labour-total-preview" class="tnum"></span><button class="btn btn-primary btn-sm" id="labour-submit">Enregistrer les heures</button></div>
   </div>
 </div>
 
@@ -4222,10 +4350,13 @@ window.profactureTrack = function(name, params) {
           <div><label class="field-label" data-i18n="th_category">Category</label><select class="field" id="ae-category"></select></div>
           <div><label class="field-label" data-i18n="th_date">Date</label><input class="field" type="date" id="ae-date" /></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
-          <div><label class="field-label" data-i18n="th_vendor">Vendor</label><input class="field" id="ae-vendor" placeholder="Optional" /></div>
-          <div><label class="field-label" data-i18n="fld_amount">Amount</label><input class="field" type="number" min="0" step="0.01" id="ae-amount" value="0" /></div>
+        <div><label class="field-label" data-i18n="th_vendor">Vendor</label><input class="field" id="ae-vendor" placeholder="Optional" /></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.7rem;">
+          <div><label class="field-label">Montant HT</label><input class="field" type="number" min="0" step="0.01" id="ae-amount-ht" value="0" /></div>
+          <div><label class="field-label">TVA</label><input class="field" type="number" min="0" step="0.01" id="ae-tax" value="0" /></div>
+          <div><label class="field-label">Montant TTC</label><input class="field" type="number" min="0" step="0.01" id="ae-amount" value="0" /></div>
         </div>
+        <div><label class="field-label" data-i18n="fld_project">Project</label><select class="field" id="ae-project"></select></div>
         <div style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="ae-recurring" style="width:1.05rem;height:1.05rem;" /><label for="ae-recurring" style="font-size:0.85rem;font-weight:600;" data-i18n="lbl_recurring_expense">Recurring expense</label></div>
         <div>
           <label class="field-label" data-i18n="fld_receipt">Receipt</label> <span class="badge badge-primary" style="margin-left:0.3rem;">Secure AI scan</span>
@@ -4666,6 +4797,8 @@ window.profactureTrack = function(name, params) {
           <div style="display:flex;gap:0.5rem;align-items:center;">
             <button class="btn btn-primary btn-sm" id="pd-ai-scan-btn">📷 Scanner une dépense</button>
             <button class="btn btn-outline btn-sm" id="pd-ai-ask-btn">✨ Assistant AI</button>
+            <button class="btn btn-outline btn-sm" id="pd-edit-btn">✏️ Modifier</button>
+            <button class="btn btn-outline btn-sm" id="pd-close-project-btn">✓ Terminer le chantier</button>
             <button class="btn btn-outline btn-sm" id="pd-delete-btn" style="color:hsl(var(--danger));">🗑️ Supprimer</button>
           </div>
         </div>
@@ -4708,6 +4841,15 @@ window.profactureTrack = function(name, params) {
                <div class="card card-pad" style="margin-top:1.1rem;">
                  <div class="card-title">Dernières Actions</div>
                  <div id="pd-recent-actions"></div>
+               </div>
+               <div class="card card-pad" style="margin-top:1.1rem;">
+                 <div class="card-title">Rapport financier chantier</div>
+                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:end;">
+                   <div><label class="field-label" for="pd-report-month">Mois</label><input class="field" id="pd-report-month" type="month" /></div>
+                   <button class="btn btn-outline btn-sm" id="pd-report-monthly">Rapport mensuel</button>
+                   <button class="btn btn-outline btn-sm" id="pd-report-final">Rapport depuis le début</button>
+                 </div>
+                 <div id="pd-report-result" role="status" style="margin-top:0.8rem;"></div>
                </div>
             </div>
           </div>
@@ -4781,13 +4923,19 @@ window.profactureTrack = function(name, params) {
     <div class="cw-head"><h3 style="font-size:1rem;font-weight:800;" data-i18n="btn_add_project">Add project</h3><button class="ob-skip" id="project-close" data-i18n="btn_cancel">Cancel</button></div>
     <div class="cw-body">
       <div class="ob-fields">
-        <div><label class="field-label" data-i18n="fld_project_name">Project name</label><input class="field" id="project-name" placeholder="Website redesign" /></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:0.7rem;">
+          <div><label class="field-label" data-i18n="fld_project_name">Project name</label><input class="field" id="project-name" placeholder="Rénovation appartement" /></div>
+          <div><label class="field-label">Référence</label><input class="field" id="project-reference" maxlength="80" placeholder="CH-2026-001" /></div>
+        </div>
         <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="project-client"></select></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
           <div><label class="field-label" data-i18n="fld_budget">Budget</label><input class="field" type="number" min="0" step="0.01" id="project-budget" value="0" /></div>
           <div><label class="field-label" data-i18n="fld_status">Status</label><select class="field" id="project-status">
+            <option value="prospect">Prospect</option>
+            <option value="quote">Devis</option>
+            <option value="accepted">Accepté</option>
             <option value="planning" data-i18n="proj_status_planning">Planning</option>
-            <option value="active" selected data-i18n="proj_status_active">Active</option>
+            <option value="active" selected>En cours</option>
             <option value="onhold" data-i18n="proj_status_onhold">On hold</option>
             <option value="completed" data-i18n="stat_completed_projects">Completed</option>
             <option value="cancelled" data-i18n="proj_status_cancelled">Cancelled</option>
@@ -4797,7 +4945,14 @@ window.profactureTrack = function(name, params) {
           <div><label class="field-label" data-i18n="fld_start_date">Start date</label><input class="field" type="date" id="project-start" /></div>
           <div><label class="field-label" data-i18n="fld_deadline">Deadline</label><input class="field" type="date" id="project-deadline" /></div>
         </div>
+        <div><label class="field-label">Adresse complète du chantier</label><textarea class="field" id="project-address" rows="2" placeholder="Rue, code postal, ville, pays"></textarea></div>
+        <div class="project-contact-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0.7rem;">
+          <div><label class="field-label">Contact chantier</label><input class="field" id="project-contact" maxlength="120" /></div>
+          <div><label class="field-label">Téléphone</label><input class="field" id="project-phone" maxlength="40" /></div>
+          <div><label class="field-label">E-mail</label><input class="field" type="email" id="project-email" maxlength="160" /></div>
+        </div>
         <div><label class="field-label" data-i18n="fld_description">Description</label><textarea class="field" id="project-description" rows="3"></textarea></div>
+        <div><label class="field-label">Notes internes</label><textarea class="field" id="project-internal-notes" rows="2"></textarea></div>
       </div>
     </div>
     <div class="cw-foot"><span></span><button class="btn btn-primary btn-sm" id="project-submit" data-i18n="btn_add_project">Add project</button></div>
@@ -4902,7 +5057,7 @@ window.profactureTrack = function(name, params) {
       <div class="app-content">
         <div class="page-head">
           <div><h1 data-i18n="page_files_title">Files</h1><p data-i18n="page_files_sub">Store and organize invoices, quotes, contracts, receipts and documents.</p></div>
-          <div><input type="file" id="file-upload-input" multiple style="display:none;" /><button class="btn btn-primary" id="file-upload-btn">⬆ <span data-i18n="btn_upload_file">Upload file</span></button></div>
+          <div><input type="file" id="file-upload-input" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.csv,.txt" multiple style="display:none;" /><button class="btn btn-primary" id="file-upload-btn">⬆ <span data-i18n="btn_upload_file">Upload file</span></button></div>
         </div>
         <div class="toolbar"><div class="search-wrap"><span class="ic">🔍</span><input class="field" id="file-search" placeholder="Search files…" data-i18n-placeholder="ph_search_files" /></div></div>
         <div class="chip-row" id="file-folders" style="margin:0 0 1rem;"></div>
@@ -5887,6 +6042,7 @@ window.profactureTrack = function(name, params) {
       window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
       if (id === "dashboard") {
         renderDashboardStats();
+        renderDashboardCommandCenter();
         renderDashboardWidgets();
         runCounters(target);
       }
@@ -5991,26 +6147,16 @@ window.profactureTrack = function(name, params) {
       }).join("");
     }
     function calculateDocumentTotals(items) {
-      var result = { subtotal: 0, taxTotal: 0, total: 0, breakdown: [] };
-      var grouped = {};
-      (Array.isArray(items) ? items : []).forEach(function (item) {
-        var qty = Number(item.qty) || 0;
-        var price = Number(item.price) || 0;
-        var base = qty * price;
-        var code = TAX_RATES[item.tax] != null ? item.tax : "none";
-        var rate = TAX_RATES[code] || 0;
-        var tax = base * rate / 100;
-        result.subtotal += base;
-        result.taxTotal += tax;
-        if (rate > 0) {
-          grouped[code] = grouped[code] || { code: code, rate: rate, base: 0, amount: 0 };
-          grouped[code].base += base;
-          grouped[code].amount += tax;
-        }
-      });
-      result.total = result.subtotal + result.taxTotal;
-      result.breakdown = Object.keys(grouped).map(function (code) { return grouped[code]; }).sort(function (a, b) { return b.rate - a.rate; });
-      return result;
+      var exact = window.ProFactureFinancial.documentTotals(Array.isArray(items) ? items : [], TAX_RATES);
+      return {
+        subtotal: window.ProFactureFinancial.fromMinor(exact.subtotalMinor),
+        taxTotal: window.ProFactureFinancial.fromMinor(exact.taxMinor),
+        total: window.ProFactureFinancial.fromMinor(exact.totalMinor),
+        subtotalMinor: exact.subtotalMinor,
+        taxMinor: exact.taxMinor,
+        totalMinor: exact.totalMinor,
+        breakdown: exact.breakdown.map(function (entry) { return { code: entry.code, rate: entry.rateBasisPoints / 100, base: window.ProFactureFinancial.fromMinor(entry.baseMinor), amount: window.ProFactureFinancial.fromMinor(entry.amountMinor) }; }).sort(function (a, b) { return b.rate - a.rate; })
+      };
     }
     function readCurrencyAmount(id) {
       var el = document.getElementById(id);
@@ -7213,6 +7359,8 @@ window.profactureTrack = function(name, params) {
     ];
     window.COMPANIES = COMPANIES;
     var wsActiveId = localStorage.getItem("profacture_active_company_id") || "c1";
+    window.profactureGetActiveCompanyId = function () { return wsActiveId; };
+    window.profactureGetCurrentCurrency = function () { return currentCurrency; };
     function rememberActiveCompany() { localStorage.setItem("profacture_active_company_id", wsActiveId); }
     function managedCompanyWorkspaces() {
       var list = Array.isArray(COMPANIES) ? COMPANIES : [];
@@ -8386,12 +8534,13 @@ window.profactureTrack = function(name, params) {
     var PROJECTS = [];
     window.PROJECTS = PROJECTS;
     var projectSeq = 0;
+    var editingProjectId = "";
     var projectFilter = { q: "", status: "all" };
     function projStatusBadgeClass(s) {
-      return s === "active" ? "badge-success" : s === "completed" ? "badge-primary" : s === "onhold" ? "badge-warning" : s === "cancelled" ? "badge-danger" : "badge-default";
+      return s === "active" || s === "accepted" ? "badge-success" : s === "completed" ? "badge-primary" : s === "onhold" || s === "quote" ? "badge-warning" : s === "cancelled" ? "badge-danger" : "badge-default";
     }
-    var PROJ_STATUS_KEYS = { planning: "proj_status_planning", active: "proj_status_active", onhold: "proj_status_onhold", completed: "stat_completed_projects", cancelled: "proj_status_cancelled" };
-    function projStatusLabel(s) { return t(PROJ_STATUS_KEYS[s] || s); }
+    var PROJ_STATUS_KEYS = { planning: "proj_status_planning", onhold: "proj_status_onhold", completed: "stat_completed_projects", cancelled: "proj_status_cancelled" };
+    function projStatusLabel(s) { return ({ prospect: "Prospect", quote: "Devis", accepted: "Accepté", active: "En cours" })[s] || t(PROJ_STATUS_KEYS[s] || s); }
     function projectClientName(clientId) {
       var c = CLIENTS.filter(function (x) { return x.id === clientId; })[0];
       return c ? c.company : "—";
@@ -8408,10 +8557,12 @@ window.profactureTrack = function(name, params) {
     function renderProjectStats() {
       var grid = document.getElementById("project-stat-grid");
       if (!grid) return;
-      var active = PROJECTS.filter(function (p) { return p.status === "active"; }).length;
-      var completed = PROJECTS.filter(function (p) { return p.status === "completed"; }).length;
-      var totalBudget = PROJECTS.reduce(function (s, p) { return s + (p.budget || 0); }, 0);
-      var tasksDone = TASKS.filter(function (x) { return x.project && x.status === "done"; }).length;
+      var companyProjects = activeCompanyItems(PROJECTS);
+      var projectIds = new Set(companyProjects.map(function (project) { return project.id; }));
+      var active = companyProjects.filter(function (p) { return p.status === "active"; }).length;
+      var completed = companyProjects.filter(function (p) { return p.status === "completed"; }).length;
+      var totalBudget = companyProjects.reduce(function (s, p) { return s + (p.budget || 0); }, 0);
+      var tasksDone = TASKS.filter(function (x) { return projectIds.has(x.project) && x.status === "done"; }).length;
       grid.innerHTML =
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_active_projects") + '</div><div class="val tnum">' + active + '</div></div><div class="ic">📁</div></div>' +
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_completed_projects") + '</div><div class="val tnum" style="color:hsl(var(--success));">' + completed + '</div></div><div class="ic">✅</div></div>' +
@@ -8422,7 +8573,7 @@ window.profactureTrack = function(name, params) {
       var tbody = document.querySelector("#projects-table tbody");
       if (!tbody) return;
       var q = projectFilter.q.toLowerCase();
-      var rows = PROJECTS.filter(function (p) {
+      var rows = activeCompanyItems(PROJECTS).filter(function (p) {
         var matchesQ = !q || p.name.toLowerCase().indexOf(q) !== -1;
         var matchesStatus = projectFilter.status === "all" || p.status === projectFilter.status;
         return matchesQ && matchesStatus;
@@ -8457,26 +8608,38 @@ window.profactureTrack = function(name, params) {
     function populateProjectClientSelect() {
       var sel = document.getElementById("project-client");
       if (!sel) return;
-      sel.innerHTML = CLIENTS.length
-        ? CLIENTS.map(function (c) { return '<option value="' + c.id + '">' + c.company + " — " + c.name + "</option>"; }).join("")
+      var companyClients = activeCompanyItems(CLIENTS);
+      sel.innerHTML = companyClients.length
+        ? companyClients.map(function (c) { return '<option value="' + c.id + '">' + c.company + " — " + c.name + "</option>"; }).join("")
         : '<option value="">No clients yet — add one first</option>';
     }
     function populateTaskProjectSelect() {
       var sel = document.getElementById("at-project");
       if (!sel) return;
       var current = sel.value;
-      sel.innerHTML = '<option value="">' + t("opt_none") + "</option>" + PROJECTS.map(function (p) { return '<option value="' + p.id + '">' + p.name + "</option>"; }).join("");
-      if (PROJECTS.some(function (p) { return p.id === current; })) sel.value = current;
+      var companyProjects = activeCompanyItems(PROJECTS);
+      sel.innerHTML = '<option value="">' + t("opt_none") + "</option>" + companyProjects.map(function (p) { return '<option value="' + p.id + '">' + p.name + "</option>"; }).join("");
+      if (companyProjects.some(function (p) { return p.id === current; })) sel.value = current;
     }
 
-    function projectOpen() {
+    function projectOpen(projectId) {
       populateProjectClientSelect();
-      document.getElementById("project-name").value = "";
-      document.getElementById("project-budget").value = "0";
-      document.getElementById("project-status").value = "active";
-      document.getElementById("project-start").value = new Date().toISOString().slice(0, 10);
-      document.getElementById("project-deadline").value = "";
-      document.getElementById("project-description").value = "";
+      var project = projectId ? PROJECTS.filter(function (item) { return item.id === projectId && belongsToActiveCompany(item); })[0] : null;
+      editingProjectId = project ? project.id : "";
+      document.getElementById("project-name").value = project ? project.name || "" : "";
+      document.getElementById("project-reference").value = project ? project.reference || "" : "";
+      if (project) document.getElementById("project-client").value = project.clientId || "";
+      document.getElementById("project-budget").value = project ? project.budget || 0 : "0";
+      document.getElementById("project-status").value = project ? project.status || "active" : "active";
+      document.getElementById("project-start").value = project ? project.startDate || "" : new Date().toISOString().slice(0, 10);
+      document.getElementById("project-deadline").value = project ? project.deadline || "" : "";
+      document.getElementById("project-address").value = project ? project.address || "" : "";
+      document.getElementById("project-contact").value = project ? project.contact || "" : "";
+      document.getElementById("project-phone").value = project ? project.phone || "" : "";
+      document.getElementById("project-email").value = project ? project.email || "" : "";
+      document.getElementById("project-description").value = project ? project.description || "" : "";
+      document.getElementById("project-internal-notes").value = project ? project.internalNotes || "" : "";
+      document.getElementById("project-submit").textContent = project ? "Enregistrer les modifications" : t("btn_add_project");
       document.getElementById("project-overlay").classList.add("open");
       document.body.style.overflow = "hidden";
     }
@@ -8485,7 +8648,7 @@ window.profactureTrack = function(name, params) {
       document.body.style.overflow = "";
     }
     var projectAddBtnEl = document.getElementById("project-add-btn");
-    if (projectAddBtnEl) projectAddBtnEl.addEventListener("click", projectOpen);
+    if (projectAddBtnEl) projectAddBtnEl.addEventListener("click", function () { projectOpen(""); });
     var projectCloseBtn = document.getElementById("project-close");
     if (projectCloseBtn) projectCloseBtn.addEventListener("click", projectClose);
     var projectBackdropEl = document.getElementById("project-backdrop");
@@ -8495,32 +8658,49 @@ window.profactureTrack = function(name, params) {
       var nameEl = document.getElementById("project-name");
       var name = nameEl.value.trim();
       if (!name) { nameEl.focus(); return; }
-      projectSeq++;
-      PROJECTS.push({
-        id: "proj" + Date.now() + projectSeq,
+      var existingProject = editingProjectId ? PROJECTS.filter(function (item) { return item.id === editingProjectId && belongsToActiveCompany(item); })[0] : null;
+      var values = {
         name: name,
+        reference: document.getElementById("project-reference").value.trim(),
         clientId: document.getElementById("project-client").value,
         budget: parseFloat(document.getElementById("project-budget").value) || 0,
         status: document.getElementById("project-status").value,
         startDate: document.getElementById("project-start").value,
         deadline: document.getElementById("project-deadline").value,
+        address: document.getElementById("project-address").value.trim(),
+        contact: document.getElementById("project-contact").value.trim(),
+        phone: document.getElementById("project-phone").value.trim(),
+        email: document.getElementById("project-email").value.trim(),
         description: document.getElementById("project-description").value.trim(),
-        notes: [],
-      });
+        internalNotes: document.getElementById("project-internal-notes").value.trim(),
+        companyId: wsActiveId,
+        updatedAt: new Date().toISOString()
+      };
+      if (existingProject) {
+        Object.assign(existingProject, values);
+      } else {
+        projectSeq++;
+        PROJECTS.push(Object.assign({ id: "proj" + Date.now() + projectSeq, notes: [], createdAt: new Date().toISOString() }, values));
+      }
       renderProjectsAll();
       populateTaskProjectSelect();
       projectClose();
-      showToast(name + " added to Projects");
+      if (existingProject) renderProjectDetail(existingProject.id);
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+      showToast(existingProject ? name + " mis à jour" : name + " added to Projects");
       playSound("success");
     });
 
     var pdActiveProjectId = null;
+    window.profactureGetActiveProjectId = function () { return pdActiveProjectId; };
     function renderProjectDetail(id) {
-      var p = PROJECTS.filter(function (x) { return x.id === id; })[0];
+      var p = PROJECTS.filter(function (x) { return x.id === id && belongsToActiveCompany(x); })[0];
       if (!p) return;
+      if (!Array.isArray(p.notes)) p.notes = [];
       pdActiveProjectId = id;
       document.getElementById("pd-name").textContent = p.name;
-      document.getElementById("pd-meta").innerHTML = projectClientName(p.clientId) + ' · <span class="badge ' + projStatusBadgeClass(p.status) + '">' + projStatusLabel(p.status) + "</span>";
+      document.getElementById("pd-meta").innerHTML = (p.reference ? escapeHtml(p.reference) + " · " : "") + escapeHtml(projectClientName(p.clientId)) + ' · <span class="badge ' + projStatusBadgeClass(p.status) + '">' + projStatusLabel(p.status) + "</span>" + (p.address ? " · " + escapeHtml(p.address) : "");
       var tasks = projectTasks(p.id);
       var doneTasks = tasks.filter(function (x) { return x.status === "done"; }).length;
       var daysLeft = p.deadline ? Math.ceil((new Date(p.deadline) - new Date(new Date().toDateString())) / 86400000) : null;
@@ -8529,7 +8709,16 @@ window.profactureTrack = function(name, params) {
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_tasks_done") + '</div><div class="val tnum">' + doneTasks + "/" + tasks.length + '</div></div><div class="ic">✅</div></div>' +
         '<div class="card stat-card"><div><div class="lbl">' + t("th_progress") + '</div><div class="val tnum">' + projectProgress(p) + '%</div></div><div class="ic">📈</div></div>' +
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_days_left") + '</div><div class="val tnum" style="' + (daysLeft !== null && daysLeft < 0 ? "color:hsl(var(--danger));" : "") + '">' + (daysLeft === null ? "—" : daysLeft) + "</div></div><div class=\"ic\">📅</div></div>";
-      document.getElementById("pd-description").textContent = p.description || "—";
+      document.getElementById("pd-description").textContent = [
+        p.description,
+        p.contact ? "Contact : " + p.contact : "",
+        p.phone || "",
+        p.email || "",
+        p.internalNotes ? "Notes internes : " + p.internalNotes : ""
+      ].filter(Boolean).join("\n") || "—";
+      document.getElementById("pd-description").style.whiteSpace = "pre-line";
+      var closeProjectButton = document.getElementById("pd-close-project-btn");
+      if (closeProjectButton) closeProjectButton.style.display = p.status === "completed" || p.status === "cancelled" ? "none" : "";
       document.getElementById("pd-notes").innerHTML = p.notes.length
         ? p.notes.map(function (n) { return '<div class="activity-row"><div><div class="num" style="font-weight:600;">' + n.text + '</div><div class="meta">' + n.date + "</div></div></div>"; }).join("")
         : '<p class="widget-empty">No notes yet.</p>';
@@ -8540,6 +8729,11 @@ window.profactureTrack = function(name, params) {
           }).join("")
         : '<p class="widget-empty">No tasks linked to this project yet.</p>';
     }
+    window.profactureRenderProjectDetail = renderProjectDetail;
+    var pdEditBtn = document.getElementById("pd-edit-btn");
+    if (pdEditBtn) pdEditBtn.addEventListener("click", function () {
+      if (pdActiveProjectId) projectOpen(pdActiveProjectId);
+    });
     function openProjectForEdit(id) {
       renderProjectDetail(id);
       showView("project-detail"); setTimeout(() => { const active = document.querySelector("#view-project-detail .tab-link.active"); if(active) active.click(); }, 10);
@@ -8547,7 +8741,7 @@ window.profactureTrack = function(name, params) {
     var pdDeleteBtn = document.getElementById("pd-delete-btn");
     if (pdDeleteBtn) pdDeleteBtn.addEventListener("click", function () {
       if (!pdActiveProjectId) return;
-      var p = PROJECTS.filter(function (x) { return x.id === pdActiveProjectId; })[0];
+      var p = PROJECTS.filter(function (x) { return x.id === pdActiveProjectId && belongsToActiveCompany(x); })[0];
       if (!p) return;
       if (confirm("Delete project \"" + p.name + "\"? This cannot be undone.")) {
         if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("projects", p);
@@ -8557,6 +8751,8 @@ window.profactureTrack = function(name, params) {
         renderProjectsAll();
         populateTaskProjectSelect();
         showView("projects");
+        if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+        if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
         showToast(p.name + " deleted");
         playSound("success");
       }
@@ -8566,11 +8762,15 @@ window.profactureTrack = function(name, params) {
       var input = document.getElementById("pd-note-input");
       var text = input.value.trim();
       if (!text || !pdActiveProjectId) return;
-      var p = PROJECTS.filter(function (x) { return x.id === pdActiveProjectId; })[0];
+      var p = PROJECTS.filter(function (x) { return x.id === pdActiveProjectId && belongsToActiveCompany(x); })[0];
       if (!p) return;
+      if (!Array.isArray(p.notes)) p.notes = [];
       p.notes.unshift({ text: text, date: new Date().toISOString().slice(0, 10) });
+      p.updatedAt = new Date().toISOString();
       input.value = "";
       renderProjectDetail(pdActiveProjectId);
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
     });
     document.body.addEventListener("click", function (e) {
       var projOpenBtn = e.target.closest("[data-project-open]");
@@ -8578,13 +8778,15 @@ window.profactureTrack = function(name, params) {
       var projDeleteBtn = e.target.closest("[data-project-delete]");
       if (projDeleteBtn) {
         var projDelId = projDeleteBtn.getAttribute("data-project-delete");
-        var proj = PROJECTS.filter(function (x) { return x.id === projDelId; })[0];
+        var proj = PROJECTS.filter(function (x) { return x.id === projDelId && belongsToActiveCompany(x); })[0];
         if (proj && confirm("Delete project \"" + proj.name + "\"? This cannot be undone.")) {
           if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("projects", proj);
           var projDelIdx = PROJECTS.findIndex(function (x) { return x.id === projDelId; });
           if (projDelIdx !== -1) PROJECTS.splice(projDelIdx, 1);
           renderProjectsAll();
           populateTaskProjectSelect();
+          if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+          if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
           showToast(proj.name + " deleted");
           playSound("success");
         }
@@ -8695,7 +8897,17 @@ window.profactureTrack = function(name, params) {
       if (qApproveBtn) {
         var qidA = qApproveBtn.getAttribute("data-cp-quote-approve");
         var qA = QUOTES.filter(function (x) { return x.id === qidA; })[0];
-        if (qA) { qA.status = "Accepted"; renderClientPortal(); if (typeof renderQuotesTable === "function") renderQuotesTable(); showToast(qidA + " approved"); playSound("success"); }
+        if (qA && qA.status === "Sent" && window.profactureAcceptQuote) {
+          qApproveBtn.disabled = true;
+          window.profactureAcceptQuote({ companyId: qA.companyId || wsActiveId, quoteId: qA.id }).then(function (acceptance) {
+            Object.assign(qA, acceptance || {}, { status: "Accepted" });
+            renderClientPortal();
+            if (typeof renderQuotesTable === "function") renderQuotesTable();
+            if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+            showToast(qidA + " approved and locked");
+            playSound("success");
+          }).catch(function (error) { qApproveBtn.disabled = false; showToast((error && error.message) || "Quote acceptance failed"); });
+        }
         return;
       }
       var qRejectBtn = e.target.closest("[data-cp-quote-reject]");
@@ -9501,6 +9713,30 @@ window.profactureTrack = function(name, params) {
         select.value = wsActiveId;
       });
     }
+    function populateDocumentProjectSelects() {
+      var projects = activeCompanyItems(PROJECTS);
+      [["inv-new-project", dashboardProjectId], ["q-new-project", dashboardProjectId]].forEach(function (entry) {
+        var select = document.getElementById(entry[0]);
+        if (!select) return;
+        var current = select.value || entry[1] || "";
+        select.innerHTML = '<option value="">Aucun chantier</option>' + projects.map(function (project) { return '<option value="' + escapeHtml(project.id) + '">' + escapeHtml(dashboardProjectName(project)) + '</option>'; }).join("");
+        if (projects.some(function (project) { return project.id === current; })) select.value = current;
+      });
+    }
+    window.profactureStartProjectDocument = function (type, projectId) {
+      dashboardProjectId = projectId || dashboardProjectId || "";
+      editingInvoiceId = null;
+      editingQuoteId = null;
+      showView(type === "invoice" ? "invoice-new" : "quote-new");
+      setTimeout(function () {
+        populateDocumentProjectSelects();
+        var select = document.getElementById(type === "invoice" ? "inv-new-project" : "q-new-project");
+        if (select && Array.from(select.options).some(function (option) { return option.value === dashboardProjectId; })) {
+          select.value = dashboardProjectId;
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }, 0);
+    };
     function selectIssuerWorkspace(id) {
       var company = COMPANIES.filter(function (c) { return c.id === id; })[0];
       if (!company) return;
@@ -9513,6 +9749,7 @@ window.profactureTrack = function(name, params) {
       if (quoteCurrency && Array.from(quoteCurrency.options).some(function (option) { return option.value === currentCurrency; })) quoteCurrency.value = currentCurrency;
       wsRenderAll();
       populateDocumentCompanySelects();
+      populateDocumentProjectSelects();
       renderCompanyProfileForm();
       renderLogoPreview();
       renderStampPreview();
@@ -9562,6 +9799,8 @@ window.profactureTrack = function(name, params) {
     function invoiceDraftData() {
       return {
         clientId: document.getElementById("inv-new-client").value,
+        projectId: document.getElementById("inv-new-project").value,
+        invoiceType: document.getElementById("inv-new-type").value,
         issue: document.getElementById("inv-new-issue").value,
         due: document.getElementById("inv-new-due").value,
         clientAddress: document.getElementById("inv-new-client-address").value,
@@ -9584,6 +9823,8 @@ window.profactureTrack = function(name, params) {
       try { draft = JSON.parse(localStorage.getItem("profacture_invoice_builder_draft_" + wsActiveId) || "null"); } catch (e) { draft = null; }
       if (!draft || !draft.updatedAt) return false;
       document.getElementById("inv-new-client").value = draft.clientId || "";
+      document.getElementById("inv-new-project").value = draft.projectId || "";
+      document.getElementById("inv-new-type").value = draft.invoiceType || "standard";
       document.getElementById("inv-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
       document.getElementById("inv-new-due").value = draft.due || "";
       document.getElementById("inv-new-client-address").value = draft.clientAddress || "";
@@ -9600,6 +9841,7 @@ window.profactureTrack = function(name, params) {
     function initInvoiceNewForm() {
       populateDocumentCompanySelects();
       populateInvoiceNewClientSelect();
+      populateDocumentProjectSelects();
       var editing = editingInvoiceId ? INVOICES.filter(function (inv) { return inv.id === editingInvoiceId; })[0] : null;
       var titleEl = document.querySelector("#view-invoice-new h1");
       var subEl = document.querySelector("#view-invoice-new .page-head p");
@@ -9614,6 +9856,8 @@ window.profactureTrack = function(name, params) {
       if (editing) {
         var clientMatch = CLIENTS.filter(function (c) { return c.company === editing.client; })[0];
         document.getElementById("inv-new-client").value = editing.clientId || (clientMatch ? clientMatch.id : "");
+        document.getElementById("inv-new-project").value = editing.projectId || editing.project || "";
+        document.getElementById("inv-new-type").value = editing.invoiceType || "standard";
         document.getElementById("inv-new-issue").value = editing.issue;
         document.getElementById("inv-new-due").value = editing.due || "";
         document.getElementById("inv-new-client-address").value = editing.clientAddress || "";
@@ -9635,6 +9879,7 @@ window.profactureTrack = function(name, params) {
         var siretEl = document.getElementById("inv-new-siret");
         if (siretEl) siretEl.value = ccGet("FR", "siret") || "";
         document.getElementById("inv-new-currency").value = currentCurrency || "USD";
+        document.getElementById("inv-new-type").value = "standard";
         if (!restoreInvoiceBuilderDraft()) addRow("", 1, 0, "none");
       }
       renderInvoicePreview();
@@ -9687,8 +9932,9 @@ window.profactureTrack = function(name, params) {
       if (!client) { showToast("Add a client before saving an invoice"); return; }
       var issue = document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10);
       var due = document.getElementById("inv-new-due").value || "";
-      var total = readCurrencyAmount("t-total");
       var items = getLineItemsData();
+      var exactTotals = calculateDocumentTotals(items);
+      var total = exactTotals.total;
       var clientAddress = document.getElementById("inv-new-client-address").value.trim();
       var siteAddress = document.getElementById("inv-new-site-address").value.trim();
       var siret = document.getElementById("inv-new-siret").value.trim();
@@ -9706,6 +9952,8 @@ window.profactureTrack = function(name, params) {
           existing.clientEmail = client.email || "";
           existing.clientPhone = client.phone || "";
           existing.clientId = client.id;
+          existing.projectId = document.getElementById("inv-new-project").value;
+          existing.invoiceType = document.getElementById("inv-new-type").value;
           existing.companyId = wsActiveId;
           existing.companyProfile = Object.assign({}, currentCompanyProfile());
           existing.logo = getCompanyLogo();
@@ -9714,6 +9962,11 @@ window.profactureTrack = function(name, params) {
           existing.issue = issue;
           existing.due = due;
           existing.total = total;
+          existing.subtotal = exactTotals.subtotal;
+          existing.taxTotal = exactTotals.taxTotal;
+          existing.htMinor = exactTotals.subtotalMinor;
+          existing.taxMinor = exactTotals.taxMinor;
+          existing.payableMinor = exactTotals.totalMinor;
           existing.items = items;
           existing.currency = currencyCode;
           existing.country = document.getElementById("inv-compliance-country").value || currentDefaultCountry;
@@ -9735,6 +9988,8 @@ window.profactureTrack = function(name, params) {
           clientEmail: client.email || "",
           clientPhone: client.phone || "",
           clientId: client.id,
+          projectId: document.getElementById("inv-new-project").value,
+          invoiceType: document.getElementById("inv-new-type").value,
           companyId: wsActiveId,
           companyProfile: Object.assign({}, currentCompanyProfile()),
           logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(),
@@ -9742,6 +9997,11 @@ window.profactureTrack = function(name, params) {
           due: due,
           status: status,
           total: total,
+          subtotal: exactTotals.subtotal,
+          taxTotal: exactTotals.taxTotal,
+          htMinor: exactTotals.subtotalMinor,
+          taxMinor: exactTotals.taxMinor,
+          payableMinor: exactTotals.totalMinor,
           items: items,
           currency: currencyCode,
           country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
@@ -9772,15 +10032,32 @@ window.profactureTrack = function(name, params) {
     function invoicePayments(inv) {
       if (!inv) return [];
       if (!Array.isArray(inv.payments)) inv.payments = [];
-      return inv.payments;
+      var allocated = (window.PAYMENTS || []).reduce(function (matches, payment) {
+        if (!payment || payment.voided || payment.status === "Cancelled") return matches;
+        (payment.allocations || []).forEach(function (allocation) {
+          if (allocation.invoiceId !== inv.id) return;
+          matches.push({
+            id: payment.id,
+            amount: window.ProFactureFinancial.fromMinor(Number.isSafeInteger(allocation.amountMinor) ? allocation.amountMinor : window.ProFactureFinancial.toMinor(allocation.amount)),
+            amountMinor: Number.isSafeInteger(allocation.amountMinor) ? allocation.amountMinor : window.ProFactureFinancial.toMinor(allocation.amount),
+            method: payment.method || "Autre", date: payment.date || "", reference: payment.reference || "", source: "allocation"
+          });
+        });
+        return matches;
+      }, []);
+      return inv.payments.concat(allocated);
     }
     function invoicePaidTotal(inv) {
-      return invoicePayments(inv).reduce(function (s, p) { return s + (parseFloat(p.amount) || 0); }, 0);
+      var paidMinor = invoicePayments(inv).reduce(function (sum, payment) {
+        return sum + (Number.isSafeInteger(payment.amountMinor) ? payment.amountMinor : window.ProFactureFinancial.toMinor(payment.amount));
+      }, 0);
+      return window.ProFactureFinancial.fromMinor(paidMinor);
     }
     function invoiceBalance(inv) {
-      var paid = invoicePaidTotal(inv);
-      return Math.max(0, inv.total - paid);
+      var payableMinor = Number.isSafeInteger(inv.payableMinor) ? inv.payableMinor : window.ProFactureFinancial.toMinor(inv.total);
+      return window.ProFactureFinancial.fromMinor(payableMinor - window.ProFactureFinancial.toMinor(invoicePaidTotal(inv)));
     }
+    window.profactureInvoiceBalance = invoiceBalance;
     function refreshAutomaticInvoiceStatuses() {
       var today = new Date().toISOString().slice(0, 10);
       INVOICES.forEach(function (inv) {
@@ -10016,10 +10293,14 @@ window.profactureTrack = function(name, params) {
       if (!inv) return;
       payActiveInvoiceId = id;
       document.getElementById("pay-amount").value = invoiceBalance(inv).toFixed(2);
-      document.getElementById("pay-method").value = "card";
+      document.getElementById("pay-method").value = "Virement";
+      document.getElementById("pay-date").value = new Date().toISOString().slice(0, 10);
+      document.getElementById("pay-reference").value = "";
+      document.getElementById("pay-notes").value = "";
       document.getElementById("pay-overlay").classList.add("open");
       document.body.style.overflow = "hidden";
     }
+    window.profactureOpenPaymentModal = payOpen;
     function payClose() {
       document.getElementById("pay-overlay").classList.remove("open");
       document.body.style.overflow = "";
@@ -10032,10 +10313,21 @@ window.profactureTrack = function(name, params) {
     if (paySubmitBtn) paySubmitBtn.addEventListener("click", function () {
       var inv = INVOICES.filter(function (x) { return x.id === payActiveInvoiceId; })[0];
       if (!inv) return;
-      var amount = parseFloat(document.getElementById("pay-amount").value) || 0;
-      var balance = invoiceBalance(inv);
-      if (amount <= 0 || amount > balance + 0.001) { document.getElementById("pay-amount").focus(); return; }
-      invoicePayments(inv).push({ amount: amount, method: document.getElementById("pay-method").value, date: new Date().toISOString().slice(0, 10) });
+      var amountMinor = window.ProFactureFinancial.toMinor(document.getElementById("pay-amount").value);
+      var balanceMinor = window.ProFactureFinancial.toMinor(invoiceBalance(inv));
+      if (amountMinor <= 0 || amountMinor > balanceMinor) { document.getElementById("pay-amount").focus(); return; }
+      var amount = window.ProFactureFinancial.fromMinor(amountMinor);
+      var paymentDate = document.getElementById("pay-date").value || new Date().toISOString().slice(0, 10);
+      var paymentRecord = {
+        id: "PAY-" + Date.now(), companyId: inv.companyId || wsActiveId, projectId: inv.projectId || "",
+        amount: amount, amountMinor: amountMinor, currency: inv.currency || currentCurrency,
+        date: paymentDate, method: document.getElementById("pay-method").value,
+        reference: document.getElementById("pay-reference").value.trim(), notes: document.getElementById("pay-notes").value.trim(),
+        allocations: [{ invoiceId: inv.id, amount: amount, amountMinor: amountMinor }],
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      };
+      window.PAYMENTS = window.PAYMENTS || [];
+      window.PAYMENTS.push(paymentRecord);
       var newBalance = invoiceBalance(inv);
       inv.status = newBalance <= 0.001 ? "Paid" : "Partially paid";
       var client = findClientByCompany(inv.client);
@@ -10045,6 +10337,8 @@ window.profactureTrack = function(name, params) {
       var phOverlayEl2 = document.getElementById("ph-overlay");
       if (phOverlayEl2 && phOverlayEl2.classList.contains("open")) phOpen(inv.id);
       if (typeof cpActiveClientId !== "undefined" && cpActiveClientId && document.getElementById("view-client-portal") && document.getElementById("view-client-portal").classList.contains("active")) renderClientPortal();
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
       showToast(formatCurrency(amount, inv.currency) + " payment recorded for " + inv.id);
       playSound("success");
     });
@@ -10070,9 +10364,10 @@ window.profactureTrack = function(name, params) {
           '<td><span class="badge ' + quoteStatusBadgeClass(q.status) + '">' + q.status + "</span></td>" +
           '<td class="tnum" style="text-align:right;font-weight:700;">' + formatCurrency(q.total, q.currency) + "</td>" +
           '<td style="display:flex;gap:0.3rem;flex-wrap:wrap;">' +
-          '<button class="btn btn-ghost btn-sm" data-quote-edit="' + q.id + '">✏️ Edit</button>' +
+          (q.status === "Accepted" || q.status === "Converted" ? '<span class="badge badge-success" title="Accepted version is locked">🔒 Locked</span>' : '<button class="btn btn-ghost btn-sm" data-quote-edit="' + q.id + '">✏️ Edit</button>') +
           '<button class="btn btn-ghost btn-sm" data-quote-duplicate="' + q.id + '">⧉ Duplicate</button>' +
-          (q.status !== "Converted" ? '<button class="btn btn-ghost btn-sm" data-quote-convert="' + q.id + '">→ Invoice</button>' : "") +
+          (q.status === "Sent" ? '<button class="btn btn-ghost btn-sm" data-quote-accept="' + q.id + '">✓ Accept</button>' : "") +
+          (q.status === "Accepted" ? '<button class="btn btn-ghost btn-sm" data-quote-convert="' + q.id + '">→ Invoice</button>' : "") +
           '<button class="btn btn-ghost btn-sm" data-quote-pdf="' + q.id + '">⬇ PDF</button>' +
           '<button class="btn btn-ghost btn-sm" data-quote-email="' + q.id + '">✉ Email</button>' +
           '<button class="btn btn-ghost btn-sm" data-quote-whatsapp="' + q.id + '">WhatsApp</button>' +
@@ -10211,6 +10506,8 @@ window.profactureTrack = function(name, params) {
     function quoteDraftData() {
       return {
         clientId: document.getElementById("q-new-client").value,
+        projectId: document.getElementById("q-new-project").value,
+        quoteType: document.getElementById("q-new-type").value,
         issue: document.getElementById("q-new-issue").value,
         validUntil: document.getElementById("q-new-valid").value,
         clientAddress: document.getElementById("q-new-client-address").value,
@@ -10232,6 +10529,8 @@ window.profactureTrack = function(name, params) {
       try { draft = JSON.parse(localStorage.getItem("profacture_quote_builder_draft_" + wsActiveId) || "null"); } catch (e) { draft = null; }
       if (!draft || !draft.updatedAt) return false;
       document.getElementById("q-new-client").value = draft.clientId || "";
+      document.getElementById("q-new-project").value = draft.projectId || "";
+      document.getElementById("q-new-type").value = draft.quoteType || "initial";
       document.getElementById("q-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
       document.getElementById("q-new-valid").value = draft.validUntil || "";
       document.getElementById("q-new-client-address").value = draft.clientAddress || "";
@@ -10246,6 +10545,7 @@ window.profactureTrack = function(name, params) {
     function initQuoteNewForm() {
       populateDocumentCompanySelects();
       populateQuoteNewClientSelect();
+      populateDocumentProjectSelects();
       var editing = editingQuoteId ? QUOTES.filter(function (q) { return q.id === editingQuoteId; })[0] : null;
       var titleEl = document.getElementById("quote-new-title");
       var subEl = document.getElementById("quote-new-sub");
@@ -10260,6 +10560,8 @@ window.profactureTrack = function(name, params) {
       if (editing) {
         var clientMatch = CLIENTS.filter(function (c) { return c.company === editing.client; })[0];
         document.getElementById("q-new-client").value = editing.clientId || (clientMatch ? clientMatch.id : "");
+        document.getElementById("q-new-project").value = editing.projectId || editing.project || "";
+        document.getElementById("q-new-type").value = editing.quoteType || "initial";
         document.getElementById("q-new-issue").value = editing.issue;
         document.getElementById("q-new-valid").value = editing.validUntil;
         document.getElementById("q-new-client-address").value = editing.clientAddress || "";
@@ -10276,6 +10578,7 @@ window.profactureTrack = function(name, params) {
         document.getElementById("q-new-site-address").value = "";
         document.getElementById("q-new-siret").value = ccGet("FR", "siret") || "";
         document.getElementById("q-new-currency").value = currentCurrency || "USD";
+        document.getElementById("q-new-type").value = "initial";
         if (!restoreQuoteBuilderDraft()) qAddRow("", 1, 0, "none");
       }
       renderQuotePreview();
@@ -10289,8 +10592,9 @@ window.profactureTrack = function(name, params) {
       var siret = document.getElementById("q-new-siret").value.trim();
       var issue = document.getElementById("q-new-issue").value || new Date().toISOString().slice(0, 10);
       var validUntil = document.getElementById("q-new-valid").value || new Date().toISOString().slice(0, 10);
-      var total = readCurrencyAmount("q-t-total");
       var items = getQuoteLineItemsData();
+      var exactTotals = calculateDocumentTotals(items);
+      var total = exactTotals.total;
       var currencyCode = document.getElementById("q-new-currency").value;
 
       if (editingQuoteId) {
@@ -10305,6 +10609,8 @@ window.profactureTrack = function(name, params) {
           existing.clientEmail = client.email || "";
           existing.clientPhone = client.phone || "";
           existing.clientId = client.id;
+          existing.projectId = document.getElementById("q-new-project").value;
+          existing.quoteType = document.getElementById("q-new-type").value;
           existing.companyId = wsActiveId;
           existing.companyProfile = Object.assign({}, currentCompanyProfile());
           existing.logo = getCompanyLogo();
@@ -10313,6 +10619,11 @@ window.profactureTrack = function(name, params) {
           existing.issue = issue;
           existing.validUntil = validUntil;
           existing.total = total;
+          existing.subtotal = exactTotals.subtotal;
+          existing.taxTotal = exactTotals.taxTotal;
+          existing.htMinor = exactTotals.subtotalMinor;
+          existing.taxMinor = exactTotals.taxMinor;
+          existing.totalMinor = exactTotals.totalMinor;
           existing.items = items;
           existing.currency = currencyCode;
           existing.updatedAt = new Date().toISOString();
@@ -10325,7 +10636,8 @@ window.profactureTrack = function(name, params) {
         QUOTES.push({
           id: newId, client: clientDisplayName(client), clientAddress: clientAddress, siteAddress: siteAddress,
           siret: siret, clientContact: client.name, clientVat: client.vat || "", clientEmail: client.email || "", clientPhone: client.phone || "", clientId: client.id,
-          companyId: wsActiveId, companyProfile: Object.assign({}, currentCompanyProfile()), logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(), issue: issue, validUntil: validUntil, status: status, total: total, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
+          projectId: document.getElementById("q-new-project").value, quoteType: document.getElementById("q-new-type").value,
+          companyId: wsActiveId, companyProfile: Object.assign({}, currentCompanyProfile()), logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(), issue: issue, validUntil: validUntil, status: status, total: total, subtotal: exactTotals.subtotal, taxTotal: exactTotals.taxTotal, htMinor: exactTotals.subtotalMinor, taxMinor: exactTotals.taxMinor, totalMinor: exactTotals.totalMinor, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
         });
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "sent"));
       }
@@ -10338,6 +10650,11 @@ window.profactureTrack = function(name, params) {
       showView("quotes");
     }
     function openQuoteForEdit(id) {
+      var lockedQuote = QUOTES.filter(function (quote) { return quote.id === id; })[0];
+      if (lockedQuote && (lockedQuote.status === "Accepted" || lockedQuote.status === "Converted")) {
+        showToast("Accepted quotes are locked. Duplicate it to create a revision.");
+        return;
+      }
       editingQuoteId = id;
       showView("quote-new");
     }
@@ -10366,13 +10683,42 @@ window.profactureTrack = function(name, params) {
     document.body.addEventListener("click", function (e) {
       var qEditBtn = e.target.closest("[data-quote-edit]");
       if (qEditBtn) { openQuoteForEdit(qEditBtn.getAttribute("data-quote-edit")); return; }
+      var qAcceptBtn = e.target.closest("[data-quote-accept]");
+      if (qAcceptBtn) {
+        var quoteToAccept = QUOTES.filter(function (quote) { return quote.id === qAcceptBtn.getAttribute("data-quote-accept"); })[0];
+        if (!quoteToAccept || quoteToAccept.status !== "Sent") return;
+        if (!confirm("Accept and lock " + quoteToAccept.id + "? Its amount and line items can no longer be edited.")) return;
+        var acceptedTotals = calculateDocumentTotals(quoteToAccept.items || []);
+        var acceptance = {
+          acceptedAt: new Date().toISOString(),
+          acceptedHtMinor: acceptedTotals.subtotalMinor,
+          acceptedTaxMinor: acceptedTotals.taxMinor,
+          acceptedTotalMinor: acceptedTotals.totalMinor,
+          acceptedVersionId: quoteToAccept.id + "-" + Date.now()
+        };
+        var applyAcceptedState = function () {
+          Object.assign(quoteToAccept, acceptance, { status: "Accepted", updatedAt: acceptance.acceptedAt });
+          renderQuotesTable();
+          if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+          if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+          showToast(quoteToAccept.id + " accepted and locked");
+        };
+        if (window.profactureAcceptQuote) {
+          qAcceptBtn.disabled = true;
+          window.profactureAcceptQuote({ companyId: quoteToAccept.companyId || wsActiveId, quoteId: quoteToAccept.id })
+            .then(function (result) { acceptance = Object.assign(acceptance, result || {}); applyAcceptedState(); })
+            .catch(function (error) { qAcceptBtn.disabled = false; showToast((error && error.message) || "Quote acceptance failed"); });
+        } else applyAcceptedState();
+        return;
+      }
       var qDuplicateBtn = e.target.closest("[data-quote-duplicate]");
       if (qDuplicateBtn) {
         var sourceQuote = QUOTES.filter(function (x) { return x.id === qDuplicateBtn.getAttribute("data-quote-duplicate"); })[0];
         if (!sourceQuote) return;
         var duplicatedQuote = Object.assign({}, sourceQuote, {
           id: nextDocumentId("QUO-", QUOTES), status: "Draft", issue: new Date().toISOString().slice(0, 10),
-          items: (sourceQuote.items || []).map(function (item) { return Object.assign({}, item); }), updatedAt: new Date().toISOString()
+          items: (sourceQuote.items || []).map(function (item) { return Object.assign({}, item); }), updatedAt: new Date().toISOString(),
+          acceptedAt: null, acceptedHtMinor: null, acceptedTaxMinor: null, acceptedTotalMinor: null, acceptedVersionId: null
         });
         QUOTES.push(duplicatedQuote);
         renderQuotesTable();
@@ -10386,14 +10732,17 @@ window.profactureTrack = function(name, params) {
       if (qConvertBtn) {
         var quoteToConvert = QUOTES.filter(function (x) { return x.id === qConvertBtn.getAttribute("data-quote-convert"); })[0];
         if (!quoteToConvert) return;
+        if (quoteToConvert.status !== "Accepted") { showToast("Accept the quote before converting it to an invoice."); return; }
         var convertedInvoice = {
           id: nextDocumentId("INV-", INVOICES), client: quoteToConvert.client, clientAddress: quoteToConvert.clientAddress || "",
           siteAddress: quoteToConvert.siteAddress || "", siret: quoteToConvert.siret || "", issue: new Date().toISOString().slice(0, 10), due: "",
           status: "Draft", total: quoteToConvert.total || 0, items: (quoteToConvert.items || []).map(function (item) { return Object.assign({}, item); }),
-          currency: quoteToConvert.currency || currentCurrency || "USD", companyId: quoteToConvert.companyId || wsActiveId, companyProfile: quoteToConvert.companyProfile, logo: quoteToConvert.logo, stamp: quoteToConvert.stamp, signature: quoteToConvert.signature, payments: [], sourceQuoteId: quoteToConvert.id, updatedAt: new Date().toISOString()
+          currency: quoteToConvert.currency || currentCurrency || "USD", companyId: quoteToConvert.companyId || wsActiveId, projectId: quoteToConvert.projectId || "", invoiceType: "standard", companyProfile: quoteToConvert.companyProfile, logo: quoteToConvert.logo, stamp: quoteToConvert.stamp, signature: quoteToConvert.signature, payments: [], sourceQuoteId: quoteToConvert.id, subtotal: quoteToConvert.subtotal, taxTotal: quoteToConvert.taxTotal, htMinor: quoteToConvert.htMinor, taxMinor: quoteToConvert.taxMinor, payableMinor: quoteToConvert.totalMinor, updatedAt: new Date().toISOString()
         };
         INVOICES.push(convertedInvoice);
         quoteToConvert.status = "Converted";
+        quoteToConvert.convertedAt = new Date().toISOString();
+        quoteToConvert.convertedInvoiceId = convertedInvoice.id;
         quoteToConvert.updatedAt = new Date().toISOString();
         renderQuotesTable();
         renderInvoicesAll();
@@ -10437,7 +10786,7 @@ window.profactureTrack = function(name, params) {
     });
 
     // ---- Expense Management ----
-    var EXPENSE_CATEGORIES = ["Travel", "Fuel", "Office", "Equipment", "Marketing", "Software", "Salary", "Utilities", "Maintenance", "Tax", "Other"];
+    var EXPENSE_CATEGORIES = ["Matériaux", "Carburant", "Main-d’œuvre", "Salaires", "Outils", "Location matériel", "Sous-traitance", "Péage", "Parking", "Transport", "Livraison", "Fournitures", "Pièces automobile", "Restaurant / Repas", "Hébergement", "Assurance", "Évacuation des déchets", "Autres dépenses"];
     var EXPENSES = [];
     window.EXPENSES = EXPENSES;
     function expApprovalBadgeClass(s) { return s === "Approved" ? "badge-success" : s === "Rejected" ? "badge-danger" : "badge-warning"; }
@@ -10549,21 +10898,39 @@ window.profactureTrack = function(name, params) {
 
     // add-expense modal
     var aeReceiptDataUrl = null;
+    var aeReceiptName = "";
+    var aeReceiptFingerprint = "";
+    var aeExtraction = null;
     function aeOpen() {
       document.getElementById("ae-title").value = "";
       populateExpenseCategorySelect();
       document.getElementById("ae-date").value = new Date().toISOString().slice(0, 10);
       document.getElementById("ae-vendor").value = "";
       document.getElementById("ae-amount").value = "0";
+      document.getElementById("ae-amount-ht").value = "0";
+      document.getElementById("ae-tax").value = "0";
       document.getElementById("ae-recurring").checked = false;
+      var projectSelect = document.getElementById("ae-project");
+      if (projectSelect) {
+        var projects = activeCompanyItems(PROJECTS);
+        projectSelect.innerHTML = '<option value="">' + t("opt_none") + '</option>' + projects.map(function (project) { return '<option value="' + escapeHtml(project.id) + '">' + escapeHtml(dashboardProjectName(project)) + '</option>'; }).join("");
+        if (dashboardProjectId && projects.some(function (project) { return project.id === dashboardProjectId; })) projectSelect.value = dashboardProjectId;
+      }
       document.getElementById("ae-receipt").value = "";
       document.getElementById("ae-receipt-preview").innerHTML = "";
       document.getElementById("ae-ocr-review").innerHTML = "";
       document.getElementById("ae-scan-receipt").disabled = true;
       aeReceiptDataUrl = null;
+      aeReceiptName = "";
+      aeReceiptFingerprint = "";
+      aeExtraction = null;
       document.getElementById("ae-overlay").classList.add("open");
       document.body.style.overflow = "hidden";
     }
+    window.profactureOpenExpenseModal = function (preselectedProjectId) {
+      dashboardProjectId = preselectedProjectId || dashboardProjectId;
+      aeOpen();
+    };
     function aeClose() {
       document.getElementById("ae-overlay").classList.remove("open");
       document.body.style.overflow = "";
@@ -10580,6 +10947,8 @@ window.profactureTrack = function(name, params) {
       var reader = new FileReader();
       reader.onload = function () {
         aeReceiptDataUrl = reader.result;
+        aeReceiptName = file.name || "receipt";
+        file.arrayBuffer().then(function (buffer) { return crypto.subtle.digest("SHA-256", buffer); }).then(function (hash) { aeReceiptFingerprint = Array.from(new Uint8Array(hash)).map(function (byte) { return byte.toString(16).padStart(2, "0"); }).join(""); }).catch(function () { aeReceiptFingerprint = ""; });
         document.getElementById("ae-receipt-preview").innerHTML = file.type === "application/pdf" ? '<span class="badge badge-default">PDF · ' + escapeHtml(file.name) + '</span>' : '<img src="' + aeReceiptDataUrl + '" alt="Receipt preview" style="width:4rem;height:4rem;border-radius:var(--radius-sm);object-fit:cover;" />';
         document.getElementById("ae-scan-receipt").disabled = false;
       };
@@ -10593,42 +10962,142 @@ window.profactureTrack = function(name, params) {
       try {
         var response = await window.profactureScanDocument({ dataUrl: aeReceiptDataUrl, companyId: wsActiveId });
         var value = response.extraction || {};
+        aeExtraction = value;
         if (value.title) document.getElementById("ae-title").value = value.title;
         if (value.vendor) document.getElementById("ae-vendor").value = value.vendor;
         if (value.date) document.getElementById("ae-date").value = value.date;
-        if (Number(value.amount) > 0) document.getElementById("ae-amount").value = Number(value.amount).toFixed(2);
+        if (Number(value.amountHT) >= 0) document.getElementById("ae-amount-ht").value = Number(value.amountHT || 0).toFixed(2);
+        if (Number(value.taxAmount) >= 0) document.getElementById("ae-tax").value = Number(value.taxAmount || 0).toFixed(2);
+        if (Number(value.amountTTC) > 0) document.getElementById("ae-amount").value = Number(value.amountTTC).toFixed(2);
         if (EXPENSE_CATEGORIES.indexOf(value.category) !== -1) document.getElementById("ae-category").value = value.category;
-        review.innerHTML = '<div class="ai-action-card"><strong>Review extracted fields</strong><p>Confidence ' + Math.round(Number(value.confidence || 0) * 100) + '% · Tax ' + aiMoney(value.taxAmount || 0, value.currency || currentCurrency) + (value.reference ? ' · Ref ' + escapeHtml(value.reference) : '') + '</p><p>No expense has been saved yet.</p></div>';
+        var htMinor = window.ProFactureFinancial.toMinor(value.amountHT);
+        var taxMinor = window.ProFactureFinancial.toMinor(value.taxAmount);
+        var ttcMinor = window.ProFactureFinancial.toMinor(value.amountTTC);
+        var discrepancy = ttcMinor - htMinor - taxMinor;
+        var missing = [!value.vendor ? "fournisseur" : "", !value.date ? "date" : "", !value.amountTTC ? "TTC" : ""].filter(Boolean);
+        review.innerHTML = '<div class="ai-action-card"><strong>Vérifier les champs extraits</strong><p>Confiance estimée par l’analyse : ' + Math.round(Number(value.confidence || 0) * 100) + '%' + (value.reference ? ' · Réf. ' + escapeHtml(value.reference) : '') + '</p>' + (missing.length ? '<p style="color:hsl(var(--warning))">Informations manquantes : ' + escapeHtml(missing.join(", ")) + '.</p>' : '') + (discrepancy ? '<p style="color:hsl(var(--danger))">Écart HT + TVA / TTC : ' + aiMoney(window.ProFactureFinancial.fromMinor(discrepancy), value.currency || currentCurrency) + '. Corrigez avant confirmation.</p>' : '<p>HT + TVA correspond au TTC.</p>') + '<p>Aucune dépense n’a encore été enregistrée.</p></div>';
         showToast("Receipt fields extracted. Please verify before adding.");
       } catch (error) {
         review.innerHTML = '<p style="color:hsl(var(--danger));">Scan unavailable or daily OCR limit reached. Enter fields manually.</p>';
       } finally { aeScanReceiptBtn.disabled = false; aeScanReceiptBtn.textContent = "Scan again"; }
     });
     var aeSubmitBtn = document.getElementById("ae-submit");
-    if (aeSubmitBtn) aeSubmitBtn.addEventListener("click", function () {
+    if (aeSubmitBtn) aeSubmitBtn.addEventListener("click", async function () {
       var titleEl = document.getElementById("ae-title");
       var title = titleEl.value.trim();
       if (!title) { titleEl.focus(); return; }
+      var expenseId = "e" + Date.now();
+      var htMinor = window.ProFactureFinancial.toMinor(document.getElementById("ae-amount-ht").value);
+      var taxMinor = window.ProFactureFinancial.toMinor(document.getElementById("ae-tax").value);
+      var ttcMinor = window.ProFactureFinancial.toMinor(document.getElementById("ae-amount").value);
+      if (htMinor + taxMinor !== ttcMinor && !confirm("HT + TVA ne correspond pas au TTC. Enregistrer malgré cet écart ?")) return;
+      var duplicate = aeReceiptFingerprint && EXPENSES.some(function (expense) { return expense.receiptFingerprint === aeReceiptFingerprint; });
+      if (duplicate && !confirm("Ce justificatif ressemble à un fichier déjà enregistré. Continuer quand même ?")) return;
+      var receiptUpload = null;
+      if (aeReceiptDataUrl && window.profactureStorageManager) {
+        aeSubmitBtn.disabled = true;
+        aeSubmitBtn.textContent = "Envoi du justificatif…";
+        try {
+          receiptUpload = await window.profactureStorageManager({ operation: "upload", path: "receipts/" + wsActiveId + "/" + expenseId + "-" + (aeReceiptName || "receipt"), dataUrl: aeReceiptDataUrl });
+        } catch (error) {
+          showToast("Le justificatif original n’a pas pu être conservé. Réessayez avant d’enregistrer.");
+          aeSubmitBtn.disabled = false;
+          aeSubmitBtn.textContent = t("btn_add_expense");
+          return;
+        }
+      }
       EXPENSES.push({
-        id: "e" + Date.now(),
+        id: expenseId,
         title: title,
         category: document.getElementById("ae-category").value,
         date: document.getElementById("ae-date").value || new Date().toISOString().slice(0, 10),
         vendor: document.getElementById("ae-vendor").value.trim(),
-        amount: parseFloat(document.getElementById("ae-amount").value) || 0,
+        amount: window.ProFactureFinancial.fromMinor(ttcMinor),
+        amountHT: window.ProFactureFinancial.fromMinor(htMinor),
+        taxAmount: window.ProFactureFinancial.fromMinor(taxMinor),
+        amountTTC: window.ProFactureFinancial.fromMinor(ttcMinor),
+        htMinor: htMinor, taxMinor: taxMinor, amountMinor: ttcMinor,
         approval: "Pending",
         recurring: document.getElementById("ae-recurring").checked,
-        receipt: aeReceiptDataUrl,
+        receipt: receiptUpload ? receiptUpload.url : "",
+        receiptPath: receiptUpload ? receiptUpload.path : "",
+        receiptFingerprint: aeReceiptFingerprint,
+        extraction: aeExtraction ? { reference: aeExtraction.reference || "", paymentMethod: aeExtraction.paymentMethod || "", confidence: aeExtraction.confidence, items: aeExtraction.items || [] } : null,
+        project: document.getElementById("ae-project") ? document.getElementById("ae-project").value : "",
+        projectId: document.getElementById("ae-project") ? document.getElementById("ae-project").value : "",
         companyId: wsActiveId,
         updatedAt: new Date().toISOString(),
       });
       renderExpensesAll();
+      aeSubmitBtn.disabled = false;
+      aeSubmitBtn.textContent = t("btn_add_expense");
       aeClose();
       showToast(title + " added — pending approval");
       playSound("success");
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
     });
     var expenseAddBtnEl = document.getElementById("expense-add-btn");
     if (expenseAddBtnEl) expenseAddBtnEl.addEventListener("click", aeOpen);
+
+    // ---- Project labour entries ----
+    var labourProjectId = "";
+    function labourPreviewTotal() {
+      var hours = Number(document.getElementById("labour-hours").value) || 0;
+      var rateMinor = window.ProFactureFinancial.toMinor(document.getElementById("labour-rate").value);
+      var totalMinor = Math.round(hours * rateMinor);
+      document.getElementById("labour-total-preview").textContent = "Coût interne : " + formatCurrency(window.ProFactureFinancial.fromMinor(totalMinor), currentCurrency);
+      return { hours: hours, rateMinor: rateMinor, totalMinor: totalMinor };
+    }
+    function labourOpen(preselectedProjectId) {
+      labourProjectId = preselectedProjectId || pdActiveProjectId || dashboardProjectId || "";
+      document.getElementById("labour-employee").value = "";
+      document.getElementById("labour-date").value = new Date().toISOString().slice(0, 10);
+      document.getElementById("labour-hours").value = "1";
+      document.getElementById("labour-rate").value = "0";
+      document.getElementById("labour-notes").value = "";
+      labourPreviewTotal();
+      document.getElementById("labour-overlay").classList.add("open");
+      document.body.style.overflow = "hidden";
+      setTimeout(function () { document.getElementById("labour-employee").focus(); }, 50);
+    }
+    function labourClose() {
+      document.getElementById("labour-overlay").classList.remove("open");
+      document.body.style.overflow = "";
+    }
+    window.profactureOpenLabourModal = labourOpen;
+    ["labour-hours", "labour-rate"].forEach(function (id) {
+      var field = document.getElementById(id);
+      if (field) field.addEventListener("input", labourPreviewTotal);
+    });
+    var labourCloseBtn = document.getElementById("labour-close");
+    if (labourCloseBtn) labourCloseBtn.addEventListener("click", labourClose);
+    var labourBackdrop = document.getElementById("labour-backdrop");
+    if (labourBackdrop) labourBackdrop.addEventListener("click", labourClose);
+    var labourSubmit = document.getElementById("labour-submit");
+    if (labourSubmit) labourSubmit.addEventListener("click", function () {
+      var employee = document.getElementById("labour-employee").value.trim();
+      var calculated = labourPreviewTotal();
+      if (!employee) { document.getElementById("labour-employee").focus(); return; }
+      if (!labourProjectId) { showToast("Sélectionnez d'abord un chantier."); return; }
+      if (calculated.hours <= 0 || calculated.rateMinor < 0) { showToast("Vérifiez les heures et le coût horaire."); return; }
+      window.LABOR_ENTRIES = window.LABOR_ENTRIES || [];
+      window.LABOR_ENTRIES.push({
+        id: "LAB-" + Date.now(), companyId: wsActiveId, projectId: labourProjectId, project: labourProjectId,
+        employee: employee, date: document.getElementById("labour-date").value || new Date().toISOString().slice(0, 10),
+        hours: calculated.hours, hourlyCostMinor: calculated.rateMinor,
+        hourlyCost: window.ProFactureFinancial.fromMinor(calculated.rateMinor),
+        totalCostMinor: calculated.totalMinor, totalCost: window.ProFactureFinancial.fromMinor(calculated.totalMinor),
+        notes: document.getElementById("labour-notes").value.trim(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      });
+      labourClose();
+      if (window.renderChantierTabContent) window.renderChantierTabContent("main-doeuvre", labourProjectId);
+      if (window.profactureRenderProjectDetail) window.profactureRenderProjectDetail(labourProjectId);
+      if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+      if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+      showToast("Heures enregistrées pour ce chantier");
+      playSound("success");
+    });
 
     // ---- AI Business Insights (shared: Dashboard widget + Reports panel) ----
     function computeAIInsights() {
@@ -10668,6 +11137,225 @@ window.profactureTrack = function(name, params) {
       wrap.innerHTML = items.length ? items.map(function (i) { return '<div class="widget-row"><span>' + i.ic + " " + i.text + "</span></div>"; }).join("") : '<p class="widget-empty">Add invoices, expenses and clients to see AI insights here.</p>';
     }
     renderAIInsights("dash-ai-insights-list", 3);
+
+    var dashboardProjectId = "";
+    var dashboardProjectTab = "overview";
+    var dashboardPeriodMode = "since_start";
+    function isoLocal(date) {
+      return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    }
+    function dashboardPeriodRange(project) {
+      var now = new Date();
+      var end = isoLocal(now);
+      var start = "";
+      if (dashboardPeriodMode === "day") start = end;
+      if (dashboardPeriodMode === "week") { var monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7)); start = isoLocal(monday); }
+      if (dashboardPeriodMode === "month") start = isoLocal(new Date(now.getFullYear(), now.getMonth(), 1));
+      if (dashboardPeriodMode === "quarter") start = isoLocal(new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1));
+      if (dashboardPeriodMode === "year") start = isoLocal(new Date(now.getFullYear(), 0, 1));
+      if (dashboardPeriodMode === "custom") {
+        start = (document.getElementById("dash-period-start") || {}).value || "";
+        end = (document.getElementById("dash-period-end") || {}).value || end;
+      }
+      if (dashboardPeriodMode === "since_start") return { mode: "since_start", start: project && (project.startDate || project.start) || "", end: end };
+      return { mode: dashboardPeriodMode, start: start, end: end };
+    }
+    function dashboardPeriodLabel(range) {
+      if (range.mode === "since_start") return "Depuis le début";
+      if (range.start === range.end) return fmtDate(range.start);
+      return (range.start ? fmtDate(range.start) : "Début") + " → " + (range.end ? fmtDate(range.end) : "Aujourd'hui");
+    }
+    function dashboardProjectName(project) {
+      return String(project && (project.name || project.title || project.projectName) || "Chantier sans nom");
+    }
+    function dashboardProjectClient(project) {
+      return String(project && (project.clientName || project.client) || projectClientName(project && project.clientId) || "Client non renseigné");
+    }
+    function dashboardProjectItems(list, project) {
+      return activeCompanyItems(list).filter(function (item) {
+        return item && (item.projectId === project.id || item.project === project.id);
+      });
+    }
+    function dashboardIntelTable(rows, emptyText) {
+      if (!rows.length) return '<div class="project-intel-empty">' + escapeHtml(emptyText) + '</div>';
+      return '<div style="overflow-x:auto;"><table class="project-intel-table"><thead><tr><th>Référence / description</th><th>Date</th><th>Statut / détail</th><th>Montant</th></tr></thead><tbody>' + rows.map(function (row) {
+        return '<tr><td><strong>' + escapeHtml(row[0]) + '</strong></td><td>' + escapeHtml(row[1] || "—") + '</td><td>' + escapeHtml(row[2] || "—") + '</td><td class="tnum">' + escapeHtml(row[3] || "—") + '</td></tr>';
+      }).join("") + '</tbody></table></div>';
+    }
+    function dashboardProjectIntel(project, data) {
+      var tab = dashboardProjectTab;
+      var code = data.code;
+      var titleMap = { overview: "Performance financière", quotes: "Devis & avenants", invoices: "Factures", payments: "Paiements", expenses: "Dépenses", labour: "Main-d’œuvre", documents: "Documents", history: "Historique", profitability: "Rentabilité" };
+      var action = tab === "expenses" ? '<button class="btn btn-primary btn-sm" type="button" data-dashboard-scan>⌁ Scanner une dépense</button>' : tab === "invoices" ? '<a href="#" class="btn btn-primary btn-sm" data-goto="invoice-new">+ Facture</a>' : tab === "quotes" ? '<a href="#" class="btn btn-primary btn-sm" data-goto="quote-new">+ Devis / avenant</a>' : '';
+      var body = "";
+      if (tab === "overview") {
+        var categoryTotals = {};
+        data.expenses.forEach(function (item) { var key = item.category || "Autres"; categoryTotals[key] = (categoryTotals[key] || 0) + (Number(item.amount) || 0); });
+        var categories = Object.keys(categoryTotals).sort(function (a, b) { return categoryTotals[b] - categoryTotals[a]; });
+        var maxCost = categories.length ? categoryTotals[categories[0]] : 1;
+        body = '<div class="card" style="padding:0.85rem;margin-bottom:0.8rem"><div class="card-title">Activité de la période · ' + escapeHtml(data.period.label) + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:0.55rem"><div class="widget-row"><span>Facturé HT</span><strong>' + formatCurrency(data.period.invoiced, code) + '</strong></div><div class="widget-row"><span>Encaissé TTC</span><strong>' + formatCurrency(data.period.received, code) + '</strong></div><div class="widget-row"><span>Coûts directs HT</span><strong>' + formatCurrency(data.period.costs, code) + '</strong></div><div class="widget-row"><span>Marge brute HT</span><strong>' + formatCurrency(data.period.margin, code) + '</strong></div></div><p class="meta" style="margin-top:0.55rem">Activité datée de la période, distincte des soldes cumulés affichés au-dessus.</p></div><div class="project-cost-grid"><div class="project-cost-total"><div><span>Coûts directs cumulés</span><strong>' + formatCurrency(data.costs, code) + '</strong><small>' + data.expenses.length + ' dépense(s)</small></div></div><div class="project-cost-bars">' + (categories.length ? categories.map(function (name) {
+          return '<div class="project-cost-row"><span>' + escapeHtml(name) + '</span><div class="project-mini-bar"><span style="width:' + Math.round(categoryTotals[name] / maxCost * 100) + '%"></span></div><strong>' + formatCurrency(categoryTotals[name], code) + '</strong></div>';
+        }).join("") : '<div class="project-intel-empty">Aucune dépense liée. Scannez un reçu ou ajoutez une dépense.</div>') + '</div></div>';
+      } else if (tab === "quotes") {
+        body = dashboardIntelTable(data.quotes.map(function (item) { return [item.id || "Devis", fmtDate(item.issue), item.status, formatCurrency(item.total || 0, item.currency || code)]; }), "Aucun devis ou avenant lié à ce chantier.");
+      } else if (tab === "invoices") {
+        body = dashboardIntelTable(data.invoices.map(function (item) { return [item.id || "Facture", fmtDate(item.issue), item.status, formatCurrency(item.total || 0, item.currency || code)]; }), "Aucune facture liée à ce chantier.");
+      } else if (tab === "payments") {
+        var payments = [];
+        data.invoices.forEach(function (invoice) { invoicePayments(invoice).forEach(function (payment) { payments.push([invoice.id, fmtDate(payment.date), payment.method || "Paiement", formatCurrency(payment.amount || 0, invoice.currency || code)]); }); });
+        body = dashboardIntelTable(payments, "Aucun paiement rapproché pour ce chantier.");
+      } else if (tab === "expenses") {
+        body = dashboardIntelTable(data.expenses.map(function (item) { return [item.title || item.vendor || "Dépense", fmtDate(item.date), (item.category || "Autres") + " · " + (item.approval || "Pending"), formatCurrency(item.amount || 0, item.currency || code)]; }), "Aucune dépense liée à ce chantier.");
+      } else if (tab === "labour") {
+        var labour = data.expenses.filter(function (item) { return item.category === "Salary" || /main|labour|labor|salaire|heure/i.test((item.title || "") + " " + (item.category || "")); });
+        body = dashboardIntelTable(labour.map(function (item) { return [item.title || "Main-d’œuvre", fmtDate(item.date), item.vendor || item.category, formatCurrency(item.amount || 0, item.currency || code)]; }), "Aucun coût de main-d’œuvre lié. Ajoutez une dépense de catégorie Salary ou Main-d’œuvre.");
+      } else if (tab === "documents") {
+        body = dashboardIntelTable(data.files.map(function (item) { return [item.name || "Document", item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "—", item.folder || item.type || "Document", item.size || "—"]; }), "Aucun document lié à ce chantier.");
+      } else if (tab === "history") {
+        var history = [];
+        data.quotes.forEach(function (item) { history.push([item.id || "Devis", item.issue || "", "Devis · " + (item.status || ""), formatCurrency(item.total || 0, item.currency || code)]); });
+        data.invoices.forEach(function (item) { history.push([item.id || "Facture", item.issue || "", "Facture · " + (item.status || ""), formatCurrency(item.total || 0, item.currency || code)]); });
+        data.expenses.forEach(function (item) { history.push([item.title || "Dépense", item.date || "", "Dépense · " + (item.approval || ""), formatCurrency(item.amount || 0, item.currency || code)]); });
+        history.sort(function (a, b) { return String(b[1]).localeCompare(String(a[1])); });
+        body = dashboardIntelTable(history.map(function (row) { row[1] = fmtDate(row[1]); return row; }), "Aucune activité liée à ce chantier.");
+      } else {
+        var marginPct = data.billed > 0 ? data.margin / data.billed * 100 : 0;
+        body = '<div class="project-cost-grid"><div class="project-cost-total"><div><span>Marge brute HT</span><strong>' + formatCurrency(data.margin, code) + '</strong><small>' + marginPct.toFixed(1) + '% du facturé</small></div></div><div><div class="widget-row"><span>Facturé</span><strong>' + formatCurrency(data.billed, code) + '</strong></div><div class="widget-row"><span>Coûts directs</span><strong>− ' + formatCurrency(data.costs, code) + '</strong></div><div class="widget-row"><span>Reste à encaisser</span><strong>' + formatCurrency(data.outstanding, code) + '</strong></div><p class="project-health-copy">Marge calculée uniquement sur les factures et dépenses explicitement liées. Les frais généraux et impôts ne sont pas inclus.</p></div></div>';
+      }
+      return '<div class="project-intel-tabs">' + [["overview","Aperçu"],["quotes","Devis & avenants"],["invoices","Factures"],["payments","Paiements"],["expenses","Dépenses"],["labour","Main-d’œuvre"],["documents","Documents"],["history","Historique"],["profitability","Rentabilité"]].map(function (item) {
+        return '<button type="button" class="' + (tab === item[0] ? "on" : "") + '" data-project-intel-tab="' + item[0] + '">' + item[1] + '</button>';
+      }).join("") + '</div><div class="project-intel-panel"><div class="project-intel-toolbar"><h3>' + titleMap[tab] + '</h3>' + action + '</div>' + body + '</div>';
+    }
+    function dashboardAiPrompt(prompt) {
+      showView("ai");
+      var input = document.getElementById("ai-input");
+      if (!input) return;
+      input.value = prompt;
+      input.focus();
+    }
+    function renderDashboardCommandCenter() {
+      var select = document.getElementById("dash-project-select");
+      var wrap = document.getElementById("dash-project-command");
+      var scope = document.getElementById("dash-ai-scope");
+      var insightsWrap = document.getElementById("dash-ai-copilot-insights");
+      var briefing = document.getElementById("dash-ai-briefing");
+      if (!select || !wrap || !insightsWrap) return;
+      var projects = activeCompanyItems(PROJECTS).filter(function (p) { return p.status !== "cancelled"; });
+      if (!projects.some(function (p) { return p.id === dashboardProjectId; })) dashboardProjectId = projects.length ? projects[0].id : "";
+      select.innerHTML = projects.length ? projects.map(function (p) {
+        return '<option value="' + escapeHtml(p.id) + '"' + (p.id === dashboardProjectId ? " selected" : "") + ">" + escapeHtml(dashboardProjectName(p)) + " · " + escapeHtml(dashboardProjectClient(p)) + "</option>";
+      }).join("") : '<option value="">Aucun chantier enregistré</option>';
+
+      var companyInvoices = activeCompanyItems(INVOICES);
+      var currencyInvoices = companyInvoices.filter(function (inv) { return (inv.currency || currentCurrency) === currentCurrency; });
+      var overdue = currencyInvoices.filter(function (inv) { return inv.status === "Overdue" && invoiceBalance(inv) > 0; });
+      var openTasks = activeCompanyItems(TASKS).filter(function (task) { return task.status !== "done"; });
+      if (briefing) {
+        briefing.textContent = projects.length || companyInvoices.length || openTasks.length
+          ? projects.filter(function (p) { return p.status !== "completed" && p.status !== "cancelled"; }).length + " chantier(s) actif(s), " + overdue.length + " facture(s) en retard et " + openTasks.length + " tâche(s) ouverte(s). Données calculées depuis votre espace."
+          : "Ajoutez une facture, un devis ou un chantier pour recevoir un briefing fondé sur vos données réelles.";
+      }
+
+      if (!dashboardProjectId) {
+        wrap.innerHTML = '<div class="project-empty"><div><strong>Aucun chantier à analyser</strong><p style="margin-top:0.35rem;">Créez un projet pour suivre son budget, sa marge, ses factures et ses dépenses.</p><a href="#" class="btn btn-primary btn-sm" data-goto="projects" style="margin-top:0.8rem;">Créer un chantier</a></div></div>';
+        if (scope) scope.textContent = "Contexte : toute l'entreprise";
+        insightsWrap.innerHTML = '<button class="ai-copilot-insight" data-dashboard-ai-question="Analyse mon activité et indique les données manquantes avant de proposer des actions."><b>Préparer mon espace</b><span>Identifier les informations nécessaires pour obtenir des analyses utiles.</span></button>';
+        return;
+      }
+
+      var project = projects.filter(function (p) { return p.id === dashboardProjectId; })[0];
+      var projectName = dashboardProjectName(project);
+      var invoices = dashboardProjectItems(INVOICES, project);
+      var quotes = dashboardProjectItems(QUOTES, project);
+      var expenses = dashboardProjectItems(EXPENSES, project);
+      var files = dashboardProjectItems(FILES, project);
+      var amendments = dashboardProjectItems(window.AVENANTS || [], project);
+      var labourEntries = dashboardProjectItems(window.LABOR_ENTRIES || [], project);
+      var separatePayments = dashboardProjectItems(window.PAYMENTS || [], project);
+      var code = project.currency || currentCurrency;
+      invoices = invoices.filter(function (item) { return (item.currency || code) === code; });
+      quotes = quotes.filter(function (item) { return (item.currency || code) === code; });
+      expenses = expenses.filter(function (item) { return (item.currency || code) === code; });
+      var budget = Number(project.budget) || 0;
+      var finance = window.ProFactureFinancial ? window.ProFactureFinancial.chantierSummary({ quotes: quotes, amendments: amendments, invoices: invoices, payments: separatePayments, expenses: expenses, labourEntries: labourEntries }) : null;
+      var range = dashboardPeriodRange(project);
+      var periodFinance = window.ProFactureFinancial.periodActivity({ invoices: invoices, payments: separatePayments, expenses: expenses, labourEntries: labourEntries, range: range });
+      var contract = finance ? window.ProFactureFinancial.fromMinor(finance.contractMinor) : 0;
+      var billed = finance ? window.ProFactureFinancial.fromMinor(finance.invoicedHtMinor) : 0;
+      var paid = finance ? window.ProFactureFinancial.fromMinor(finance.receivedMinor) : 0;
+      var costs = finance ? window.ProFactureFinancial.fromMinor(finance.directCostsMinor) : 0;
+      var margin = finance ? window.ProFactureFinancial.fromMinor(finance.grossMarginMinor) : 0;
+      var remainingToInvoice = finance ? window.ProFactureFinancial.fromMinor(finance.remainingToInvoiceMinor) : 0;
+      var outstanding = finance ? window.ProFactureFinancial.fromMinor(finance.outstandingMinor) : 0;
+      var progress = projectProgress(project);
+      var linkedCount = invoices.length + quotes.length + expenses.length + files.length;
+      var health = !linkedCount ? "À compléter" : costs > budget && budget > 0 ? "Budget à surveiller" : outstanding > 0 ? "Encaissement à suivre" : "Sous contrôle";
+      var healthClass = costs > budget && budget > 0 ? "warn" : "good";
+      wrap.innerHTML =
+        '<div class="project-overview">' +
+        '<div class="project-metric"><span>Valeur acceptée HT</span><strong>' + formatCurrency(contract, code) + '</strong></div>' +
+        '<div class="project-metric"><span>Facturé HT</span><strong>' + formatCurrency(billed, code) + '</strong></div>' +
+        '<div class="project-metric"><span>Encaissé TTC</span><strong>' + formatCurrency(paid, code) + '</strong></div>' +
+        '<div class="project-metric"><span>Reste à facturer HT</span><strong>' + formatCurrency(remainingToInvoice, code) + '</strong></div>' +
+        '<div class="project-metric"><span>Reste à encaisser TTC</span><strong>' + formatCurrency(outstanding, code) + '</strong></div>' +
+        '<div class="project-metric"><span>Dépenses directes HT</span><strong>' + formatCurrency(costs, code) + '</strong></div>' +
+        '<div class="project-metric ' + healthClass + '"><span>Marge brute actuelle HT</span><strong>' + formatCurrency(margin, code) + '</strong></div>' +
+        '<div class="project-metric"><span>Avancement</span><strong>' + progress + '%</strong></div></div>' +
+        '<div class="project-health"><div class="project-health-panel"><div class="project-health-title"><span>Avancement opérationnel</span><strong>' + progress + '%</strong></div><div class="project-progress"><span style="width:' + Math.max(0, Math.min(100, progress)) + '%"></span></div><p class="project-health-copy">' + escapeHtml(project.description || "Aucune description ajoutée.") + '</p></div>' +
+        '<div class="project-health-panel"><div class="project-health-title"><span>Santé financière</span><span class="badge ' + (healthClass === "warn" ? "badge-warning" : "badge-success") + '">' + health + '</span></div>' +
+        '<div class="widget-row"><span>Encaissé</span><strong>' + formatCurrency(paid, code) + '</strong></div><div class="widget-row"><span>À encaisser</span><strong>' + formatCurrency(outstanding, code) + '</strong></div><div class="widget-row"><span>Éléments liés</span><strong>' + linkedCount + '</strong></div></div></div>' +
+        (!linkedCount ? '<p class="project-health-copy">Les montants restent à zéro tant qu’aucune facture, devis ou dépense n’est explicitement lié à ce chantier.</p>' : "") +
+        dashboardProjectIntel(project, { code: code, invoices: invoices, quotes: quotes.concat(amendments), expenses: expenses, files: files, billed: billed, paid: paid, costs: costs, margin: margin, outstanding: outstanding, period: { label: dashboardPeriodLabel(range), invoiced: window.ProFactureFinancial.fromMinor(periodFinance.invoicedHtMinor), received: window.ProFactureFinancial.fromMinor(periodFinance.receivedMinor), costs: window.ProFactureFinancial.fromMinor(periodFinance.directCostsMinor), margin: window.ProFactureFinancial.fromMinor(periodFinance.grossMarginMinor) } });
+      if (scope) scope.textContent = "Contexte : " + projectName;
+      var prompts = [
+        { title: "Analyser la marge", copy: linkedCount ? "Expliquer la marge et les postes à surveiller." : "Vérifier les données manquantes avant le calcul.", prompt: "Analyse le chantier " + projectName + ". Utilise uniquement les données liées et explique la marge, les coûts et les informations manquantes." },
+        { title: "Prioriser les encaissements", copy: outstanding > 0 ? formatCurrency(outstanding, code) + " reste à encaisser." : "Aucun solde lié détecté.", prompt: "Analyse les encaissements du chantier " + projectName + " et propose les prochaines actions sans envoyer de message." },
+        { title: "Préparer la prochaine action", copy: openTasks.length ? openTasks.length + " tâche(s) ouverte(s) dans l'espace." : "Aucune tâche ouverte.", prompt: "À partir du chantier " + projectName + " et des tâches existantes, recommande trois prochaines actions concrètes." }
+      ];
+      insightsWrap.innerHTML = prompts.map(function (item) {
+        return '<button class="ai-copilot-insight" data-dashboard-ai-question="' + escapeHtml(item.prompt) + '"><b>' + escapeHtml(item.title) + '</b><span>' + escapeHtml(item.copy) + '</span></button>';
+      }).join("");
+    }
+    var dashboardProjectSelect = document.getElementById("dash-project-select");
+    if (dashboardProjectSelect) dashboardProjectSelect.addEventListener("change", function (event) {
+      dashboardProjectId = event.target.value;
+      renderDashboardCommandCenter();
+    });
+    var dashboardPeriodSelect = document.getElementById("dash-project-period");
+    var dashboardPeriodStart = document.getElementById("dash-period-start");
+    var dashboardPeriodEnd = document.getElementById("dash-period-end");
+    function updateDashboardPeriod() {
+      dashboardPeriodMode = dashboardPeriodSelect ? dashboardPeriodSelect.value : "since_start";
+      var custom = dashboardPeriodMode === "custom";
+      if (dashboardPeriodStart) dashboardPeriodStart.style.display = custom ? "" : "none";
+      if (dashboardPeriodEnd) dashboardPeriodEnd.style.display = custom ? "" : "none";
+      renderDashboardCommandCenter();
+    }
+    if (dashboardPeriodSelect) dashboardPeriodSelect.addEventListener("change", updateDashboardPeriod);
+    if (dashboardPeriodStart) dashboardPeriodStart.addEventListener("change", updateDashboardPeriod);
+    if (dashboardPeriodEnd) dashboardPeriodEnd.addEventListener("change", updateDashboardPeriod);
+    document.body.addEventListener("click", function (event) {
+      var intelTab = event.target.closest("[data-project-intel-tab]");
+      if (intelTab) {
+        dashboardProjectTab = intelTab.getAttribute("data-project-intel-tab") || "overview";
+        renderDashboardCommandCenter();
+        return;
+      }
+      if (event.target.closest("[data-dashboard-scan]")) {
+        aeOpen();
+        return;
+      }
+      var promptButton = event.target.closest("[data-dashboard-ai-question]");
+      if (!promptButton) return;
+      dashboardAiPrompt(promptButton.getAttribute("data-dashboard-ai-question"));
+    });
+    var dashboardAiForm = document.getElementById("dash-ai-copilot-form");
+    if (dashboardAiForm) dashboardAiForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var question = document.getElementById("dash-ai-question");
+      if (!question || !question.value.trim()) return;
+      dashboardAiPrompt(question.value.trim());
+    });
 
     function renderDashboardStats() {
       var grid = document.getElementById("dash-stat-grid");
@@ -11376,6 +12064,11 @@ window.profactureTrack = function(name, params) {
       var removeBtn = e.target.closest("[data-remove-file]");
       if (removeBtn) {
         var fileToRemove = FILES.filter(function (f) { return f.id === removeBtn.getAttribute("data-remove-file"); })[0];
+        if (fileToRemove && fileToRemove.storagePath && window.profactureStorageManager) {
+          window.profactureStorageManager({ operation: "delete", path: fileToRemove.storagePath.replace(/^users\/[^/]+\//, "") }).catch(function () {
+            showToast("Le fichier a été retiré de la liste, mais sa suppression cloud sera réessayée.");
+          });
+        }
         if (fileToRemove && window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("files", fileToRemove);
         var nextFiles = FILES.filter(function (f) { return f.id !== removeBtn.getAttribute("data-remove-file"); });
         FILES.splice(0, FILES.length, ...nextFiles);
@@ -11387,29 +12080,76 @@ window.profactureTrack = function(name, params) {
     if (fileSearchEl) fileSearchEl.addEventListener("input", function (e) { renderFileGrid(e.target.value); });
     var fileUploadBtnEl = document.getElementById("file-upload-btn");
     var fileUploadInputEl = document.getElementById("file-upload-input");
+    var pendingFileProjectId = "";
+    window.profactureOpenProjectFileUpload = function (projectId) {
+      pendingFileProjectId = projectId || "";
+      if (fileUploadInputEl) fileUploadInputEl.click();
+    };
     if (fileUploadBtnEl && fileUploadInputEl) {
-      fileUploadBtnEl.addEventListener("click", function () { fileUploadInputEl.click(); });
-      fileUploadInputEl.addEventListener("change", function (e) {
+      fileUploadBtnEl.addEventListener("click", function () { pendingFileProjectId = ""; fileUploadInputEl.click(); });
+      fileUploadInputEl.addEventListener("change", async function (e) {
         var files = Array.prototype.slice.call(e.target.files);
-        files.forEach(function (file, i) {
+        if (files.some(function (file) { return file.size > 10 * 1024 * 1024; })) {
+          showToast("Chaque fichier doit faire 10 Mo maximum.");
+          e.target.value = "";
+          pendingFileProjectId = "";
+          return;
+        }
+        fileUploadBtnEl.disabled = true;
+        var uploadedCount = 0;
+        for (var i = 0; i < files.length; i += 1) {
+          var file = files[i];
           var isImg = file.type.indexOf("image/") === 0;
           var ext = file.name.split(".").pop().toLowerCase();
           var type = isImg ? "img" : ["doc", "docx"].indexOf(ext) !== -1 ? "doc" : ["xls", "xlsx", "csv"].indexOf(ext) !== -1 ? "xls" : ext === "pdf" ? "pdf" : "other";
+          var dataUrl = await new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function () { resolve(reader.result); };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          }).catch(function () { return ""; });
+          if (!dataUrl || !window.profactureStorageManager) {
+            showToast("Impossible de préparer " + file.name + " pour le stockage cloud.");
+            continue;
+          }
+          var upload = null;
+          try {
+            upload = await window.profactureStorageManager({
+              operation: "upload",
+              path: "documents/" + wsActiveId + "/" + (pendingFileProjectId || "company") + "/" + Date.now() + "-" + file.name,
+              dataUrl: dataUrl
+            });
+          } catch (error) {
+            showToast("Échec du stockage cloud pour " + file.name + ".");
+            continue;
+          }
           var rec = {
             id: "fup" + Date.now() + i,
+            companyId: wsActiveId,
+            projectId: pendingFileProjectId,
+            project: pendingFileProjectId,
             name: file.name,
             folder: FILE_ACTIVE_FOLDER === "All" ? "Documents" : FILE_ACTIVE_FOLDER,
             size: file.size > 1024 * 1024 ? (file.size / (1024 * 1024)).toFixed(1) + " MB" : Math.round(file.size / 1024) + " KB",
             type: type,
-            url: null,
+            url: upload.url || null,
+            storagePath: upload.path || "",
+            sizeBytes: upload.size || file.size,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           };
-          if (isImg) rec.url = URL.createObjectURL(file);
           FILES.unshift(rec);
-        });
+          uploadedCount += 1;
+        }
         renderFilesAll();
-        showToast(files.length + " file(s) uploaded");
-        playSound("success");
+        if (pendingFileProjectId && window.renderChantierTabContent) window.renderChantierTabContent("documents", pendingFileProjectId);
+        if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
+        if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
+        showToast(uploadedCount + " fichier(s) conservé(s) dans le cloud");
+        if (uploadedCount) playSound("success");
+        fileUploadBtnEl.disabled = false;
         e.target.value = "";
+        pendingFileProjectId = "";
       });
     }
 
@@ -11739,6 +12479,8 @@ window.profactureTrack = function(name, params) {
 	const submitPublicReviewCallable = httpsCallable(functions, "submitPublicReview", { limitedUseAppCheckTokens: true });
 	const listPublicReviewsCallable = httpsCallable(functions, "listPublicReviews", { limitedUseAppCheckTokens: true });
 	const workspaceBackupCallable = httpsCallable(functions, "workspaceBackup", { limitedUseAppCheckTokens: true });
+	const acceptQuoteCallable = httpsCallable(functions, "acceptQuote", { limitedUseAppCheckTokens: true });
+	const chantierFinancialSummaryCallable = httpsCallable(functions, "chantierFinancialSummary", { limitedUseAppCheckTokens: true });
 	window.profactureAskAi = async payload => {
 	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
 	  const result = await askAiCallable(Object.assign({}, payload, { requestId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) }));
@@ -11765,7 +12507,17 @@ window.profactureTrack = function(name, params) {
 	  return result.data || {};
 	};
 	  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "profile", "reports", "ai"]);
-  let currentUser = null;
+	let currentUser = null;
+	window.profactureAcceptQuote = async payload => {
+	  if (!currentUser) throw new Error("Sign in before accepting a quote.");
+	  const result = await acceptQuoteCallable(payload || {});
+	  return result.data || {};
+	};
+	window.profactureChantierFinancialSummary = async payload => {
+	  if (!currentUser) throw new Error("Sign in before generating a chantier report.");
+	  const result = await chantierFinancialSummaryCallable(payload || {});
+	  return result.data || {};
+	};
   let publicReviewRating = 0;
   function reviewInitials(name) {
     return String(name || "U").split(/\s+/).filter(Boolean).map(part => part[0]).slice(0, 2).join("").toUpperCase() || "U";

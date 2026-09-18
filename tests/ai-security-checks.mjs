@@ -26,6 +26,7 @@ const sandbox = {
   require(name) {
     if (name === "crypto") return crypto;
     if (name === "zlib") return zlib;
+    if (name === "./lib/financial-engine") return { summary: () => ({}) };
     if (name === "firebase-functions/v2/https") return { onCall: (_options, handler) => handler, HttpsError: MockHttpsError };
     if (name === "firebase-functions/params") return { defineSecret: () => ({ value: () => "test" }) };
     if (name === "firebase-admin") return { initializeApp() {}, firestore };
