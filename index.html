@@ -783,11 +783,10 @@ window.profactureTrack = function(name, params) {
   }
   @media print {
     @page { size: A4 portrait; margin: 0; }
-    html, body { width: 210mm; min-height: 297mm; margin: 0 !important; padding: 0 !important; background: #fff !important; }
-    body * { visibility: hidden; }
-    #print-area, #print-area * { visibility: visible; }
-    #print-area { display: block; position: absolute; inset: 0; width: 210mm; min-height: 297mm; margin: 0; padding: 0; color: #111; background: #fff; }
-    #print-area .print-doc { width: 210mm; min-height: 297mm; margin: 0; padding: 10mm; border-radius: 0; box-shadow: none; overflow: hidden; }
+    html, body { width: 210mm; height: auto; min-height: 0; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+    body > :not(#print-area) { display: none !important; }
+    #print-area { display: block; position: static; width: 210mm; margin: 0; padding: 0; color: #111; background: #fff; }
+    #print-area .print-doc { width: 210mm; min-height: 296mm; margin: 0; padding: 10mm; border-radius: 0; box-shadow: none; overflow: hidden; }
   }
   .app-content { padding: 1.5rem 1.75rem 3rem; max-width: 1280px; }
   .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; flex-wrap: wrap; }

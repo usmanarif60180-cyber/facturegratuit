@@ -141,7 +141,8 @@ assert(index.includes('class="print-doc"'), "Printable invoice markup is missing
 assert(index.includes("width: 794px"), "A4 preview width contract changed");
 assert(index.includes("min-height: 1123px"), "A4 preview height contract changed");
 assert(index.includes("@page { size: A4 portrait; margin: 0; }"), "Exact A4 print page contract changed");
-assert(index.includes("#print-area .print-doc { width: 210mm; min-height: 297mm;"), "Printable document no longer fills an A4 page");
+assert(index.includes("#print-area .print-doc { width: 210mm; min-height: 296mm;"), "Printable document no longer fills an A4 page safely");
+assert(index.includes("body > :not(#print-area) { display: none !important; }"), "Other page content must not create blank print pages");
 assert(index.includes(".print-doc-sig {") && index.includes("margin-top: auto;"), "Stamp/signature is no longer anchored to the A4 footer");
 assert(index.includes('class="print-doc-party"'), "Modern document information panels are missing");
 assert(index.includes(".print-doc-total { align-self: flex-end;"), "Modern A4 total summary is missing");

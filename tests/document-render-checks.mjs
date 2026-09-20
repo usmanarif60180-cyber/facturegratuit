@@ -44,6 +44,14 @@ for (const type of ['invoice', 'quote']) {
   }
 }
 assert.equal(prints, 4);
+const stampedInvoice = context.buildDocPrintHtml({
+  documentType: 'invoice', title: 'Facture', number: 'STAMP-1', client: 'Test Client',
+  items: [{ desc: 'Service', qty: 1, price: 100, tax: 'vat20' }],
+  stamp: 'data:image/png;base64,AAAA', signature: 'data:image/png;base64,BBBB'
+});
+assert.ok(stampedInvoice.includes('print-doc-sig'));
+assert.equal((stampedInvoice.match(/data:image\/png;base64,/g) || []).length, 2);
+assert.ok(stampedInvoice.indexOf('print-doc-sig') > stampedInvoice.indexOf('print-doc-table'));
 const description = 'Preparation du chantier\n' + 'Details des travaux '.repeat(100) + '\n</textarea><script>test</script>';
 const multiline = context.buildDocPrintHtml({ documentType: 'quote', items: [{ desc: description, qty: 1, price: 10, tax: 'none' }] });
 assert.ok(multiline.includes('Preparation du chantier\n'));
