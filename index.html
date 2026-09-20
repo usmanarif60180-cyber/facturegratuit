@@ -1003,7 +1003,7 @@ window.profactureTrack = function(name, params) {
   .article-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
   @media (max-width: 900px) { .article-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 600px) { .article-grid { grid-template-columns: 1fr; } }
-  .article-card { padding: 1.35rem; display: flex; flex-direction: column; gap: 0.5rem; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
+  .article-card { padding: 1.35rem; display: flex; flex-direction: column; gap: 0.5rem; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; color: inherit; text-decoration: none; }
   .article-card:hover { box-shadow: 0 14px 32px -14px rgb(0 0 0 / 0.22); transform: translateY(-1px); }
   .article-card .emoji { width: 2.5rem; height: 2.5rem; border-radius: var(--radius-md); background: hsl(var(--primary) / 0.1); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; }
   .article-card h3 { font-size: 0.97rem; font-weight: 700; line-height: 1.35; }
@@ -1149,6 +1149,10 @@ window.profactureTrack = function(name, params) {
   .ds-tpl-bar { position: absolute; left: 0.5rem; top: 0.4rem; height: 0.4rem; width: 1.6rem; border-radius: 2px; }
   .ds-tpl-line { position: absolute; left: 0.5rem; height: 0.28rem; border-radius: 2px; opacity: 0.55; }
   .ds-tpl-table { position: absolute; left: 0.5rem; right: 0.5rem; bottom: 0.4rem; height: 1rem; border-radius: 2px; }
+  .ds-tpl-thumb[data-layout="split"] .ds-tpl-band { inset: 0 auto 0 0; width: 35%; height: 100%; }
+  .ds-tpl-thumb[data-layout="split"] .ds-tpl-bar { left: 40%; }
+  .ds-tpl-thumb[data-layout="editorial"] .ds-tpl-band { height: 2.6rem; }
+  .ds-tpl-thumb[data-layout="minimal"] .ds-tpl-band { height: 0.25rem; }
   .ds-tpl-meta { padding: 0.55rem 0.65rem 0.7rem; }
   .ds-tpl-meta .n { font-size: 0.78rem; font-weight: 700; }
   .ds-tpl-meta .c { font-size: 0.68rem; color: hsl(var(--muted-fg)); text-transform: uppercase; letter-spacing: 0.03em; }
@@ -1182,6 +1186,16 @@ window.profactureTrack = function(name, params) {
   .ds-doc-totals { margin-left: auto; width: 60%; display: flex; flex-direction: column; gap: 0.25rem; }
   .ds-doc-totals .row { display: flex; justify-content: space-between; opacity: 0.7; }
   .ds-doc-totals .row.total { border-top: 1px solid hsl(var(--border)); padding-top: 0.3rem; font-weight: 800; opacity: 1; font-size: 0.92rem; }
+  .ds-doc[data-layout="split"] .ds-doc-head { flex-direction: row-reverse; }
+  .ds-doc[data-layout="split"] .ds-doc-grid { grid-template-columns: 1.3fr 0.7fr; }
+  .ds-doc[data-layout="editorial"] .ds-doc-head { flex-direction: column; }
+  .ds-doc[data-layout="editorial"] .ds-doc-grid { grid-template-columns: 1fr; }
+  .ds-doc[data-layout="minimal"] .ds-doc-head { border-bottom: 2px solid currentColor; }
+  .print-doc[data-layout="split"] .print-doc-head { flex-direction: row-reverse; }
+  .print-doc[data-layout="split"] .print-doc-grid { grid-template-columns: 1.3fr 0.7fr; }
+  .print-doc[data-layout="editorial"] .print-doc-head { flex-direction: column; align-items: flex-start; }
+  .print-doc[data-layout="editorial"] .print-doc-grid { grid-template-columns: 1fr 1fr; }
+  .print-doc[data-layout="minimal"] .print-doc-head { border-left: 0; border-right: 0; border-top: 0; border-radius: 0; }
 
   /* ---- workspace switcher (NEW) ---- */
   .ws-wrap { position: relative; margin-right: auto; }
@@ -4017,6 +4031,7 @@ window.profactureTrack = function(name, params) {
             </div>
 
             <div class="ds-panel on" id="ds-panel-templates">
+              <input class="field" id="ds-template-search" type="search" placeholder="Search models..." aria-label="Search invoice and quote models" style="margin-bottom:0.75rem;" />
               <div class="ds-tpl-grid" id="ds-tpl-grid"></div>
             </div>
 
@@ -5728,15 +5743,12 @@ window.profactureTrack = function(name, params) {
 
     // ---- blog index: search + category filter ----
     var BLOG_POSTS = [
-      { title: "How to Write an Invoice That Gets Paid Faster", cat: "Invoices", emoji: "📄", desc: "The details that make clients pay on time.", author: "ProFacture AI Team", read: "4 min read" },
-      { title: "VAT vs Sales Tax vs GST: What's the Difference?", cat: "Taxes", emoji: "🧾", desc: "A plain-English breakdown of three consumption taxes.", author: "ProFacture AI Team", read: "3 min read" },
-      { title: "Quote vs Invoice: When to Use Each", cat: "Quotes", emoji: "🧮", desc: "How to use each one correctly in your sales process.", author: "ProFacture AI Team", read: "3 min read" },
-      { title: "5 Ways Freelancers Can Use AI", cat: "AI", emoji: "✨", desc: "Clearing out admin without losing the personal touch.", author: "ProFacture AI Product", read: "4 min read" },
-      { title: "A Simple Bookkeeping System", cat: "Accounting", emoji: "📚", desc: "Three habits that scale as your business grows.", author: "ProFacture AI Team", read: "3 min read" },
-      { title: "Avoiding Late Payments in Construction", cat: "Construction", emoji: "🏗️", desc: "Practices that shorten long payment cycles.", author: "ProFacture AI Team", read: "3 min read" },
-      { title: "Cash Flow 101", cat: "Finance", emoji: "💧", desc: "Why profitable businesses still run out of cash.", author: "ProFacture AI Team", read: "3 min read" },
-      { title: "10 Productivity Habits for Solo Founders", cat: "Productivity", emoji: "⏱️", desc: "Protecting the hours that move the business forward.", author: "ProFacture AI Team", read: "4 min read" },
-      { title: "The Complete Guide to Invoice Numbering", cat: "Guides", emoji: "🔢", desc: "A consistent system prevents duplicates and gaps.", author: "ProFacture AI Team", read: "3 min read" },
+      { title: "Créer une facture professionnelle", cat: "Factures", emoji: "📄", desc: "Préparer les informations du client, les lignes et un PDF lisible.", author: "ProFacture AI", read: "Guide", url: "/blog-creer-facture-professionnelle.html" },
+      { title: "Devis ou facture : quelle différence ?", cat: "Devis", emoji: "🧮", desc: "Comprendre le rôle de chaque document dans le parcours client.", author: "ProFacture AI", read: "Guide", url: "/blog-devis-ou-facture.html" },
+      { title: "TVA sur facture", cat: "TVA", emoji: "🧾", desc: "Taux, calcul et présentation des montants sur une facture.", author: "ProFacture AI", read: "Guide", url: "/blog-tva-facture-guide.html" },
+      { title: "Facture auto-entrepreneur", cat: "Indépendants", emoji: "📚", desc: "Organiser les informations essentielles d'une micro-entreprise.", author: "ProFacture AI", read: "Guide", url: "/blog-facture-auto-entrepreneur.html" },
+      { title: "Relancer une facture impayée", cat: "Paiements", emoji: "✉", desc: "Un suivi simple et professionnel, avec exemple de message.", author: "ProFacture AI", read: "Guide", url: "/blog-relance-facture-impayee.html" },
+      { title: "Marketplace seller invoice workflow", cat: "Marketplace", emoji: "🛒", desc: "Keep order references, customer details and platform fees clear.", author: "ProFacture AI", read: "Guide", url: "/blog-marketplace-seller-invoice.html" },
     ];
     var blogCategory = "all";
     var blogQuery = "";
@@ -5758,10 +5770,10 @@ window.profactureTrack = function(name, params) {
       if (!grid) return;
       grid.innerHTML = filtered.length ? filtered.map(function (p) {
         return (
-          '<div class="card article-card" data-goto="blog-post"><div class="emoji">' + p.emoji + "</div>" +
+          '<a class="card article-card" href="' + p.url + '"><div class="emoji">' + p.emoji + "</div>" +
           '<span class="badge badge-primary" style="width:fit-content;">' + p.cat + "</span>" +
           "<h3>" + p.title + "</h3><p>" + p.desc + "</p>" +
-          '<div class="article-meta"><span>' + p.author + "</span><span>" + p.read + "</span></div></div>"
+          '<div class="article-meta"><span>' + p.author + "</span><span>" + p.read + "</span></div></a>"
         );
       }).join("") : '<p style="color:hsl(var(--muted-fg));font-size:0.9rem;">No articles match your search.</p>';
     }
@@ -7130,6 +7142,29 @@ window.profactureTrack = function(name, params) {
         });
       });
     });
+    var DS_MODEL_LAYOUTS = [
+      { id: "band", name: "Band", dark: true, accent: "top" },
+      { id: "split", name: "Split", dark: false, accent: "left" },
+      { id: "editorial", name: "Editorial", dark: false, accent: "none" },
+      { id: "minimal", name: "Minimal", dark: false, accent: "none" }
+    ];
+    DS_THEME_FAMILIES.slice(0, 21).forEach(function (family, familyIndex) {
+      var hue = Math.round(familyIndex * 360 / DS_THEME_FAMILIES.length);
+      var palette = DS_THEMES[12 + familyIndex * DS_THEME_VARIANTS.length];
+      DS_MODEL_LAYOUTS.forEach(function (layout) {
+        DS_TEMPLATES.push({
+          id: "model-" + family.toLowerCase() + "-" + layout.id,
+          name: family + " " + layout.name,
+          cat: layout.name,
+          primary: palette.primary,
+          secondary: palette.secondary,
+          tableBg: dsHslHex(hue, 32, 95),
+          dark: layout.dark,
+          accent: layout.accent,
+          layout: layout.id
+        });
+      });
+    });
     var DS_FONTS = [
       { id: "system", name: "System Pro", family: "-apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif" },
       { id: "segoe", name: "Segoe UI", family: "Segoe UI, Arial, sans-serif" },
@@ -7193,8 +7228,18 @@ window.profactureTrack = function(name, params) {
       { id: "terms", label: "Terms & conditions", visible: true },
       { id: "signature", label: "Signature", visible: false },
     ];
-    var dsState = { primary: "#2563EB", secondary: "#1E3A8A", tableBg: "#EEF2FF", dark: true, accent: "top", selectedTemplate: "modern-blue", selectedTheme: null, selectedFont: "system", fontFamily: DS_FONTS[0].family };
+    var dsState = { primary: "#2563EB", secondary: "#1E3A8A", tableBg: "#EEF2FF", dark: true, accent: "top", layout: "classic", selectedTemplate: "modern-blue", selectedTheme: null, selectedFont: "system", fontFamily: DS_FONTS[0].family };
     try {
+      var savedDesignTemplate = DS_TEMPLATES.filter(function (model) { return model.id === localStorage.getItem("profacture_document_template"); })[0];
+      if (savedDesignTemplate) {
+        dsState.selectedTemplate = savedDesignTemplate.id;
+        dsState.primary = savedDesignTemplate.primary;
+        dsState.secondary = savedDesignTemplate.secondary;
+        dsState.tableBg = savedDesignTemplate.tableBg;
+        dsState.dark = savedDesignTemplate.dark;
+        dsState.accent = savedDesignTemplate.accent;
+        dsState.layout = savedDesignTemplate.layout || "classic";
+      }
       var savedDesignTheme = DS_THEMES.filter(function (theme) { return theme.id === localStorage.getItem("profacture_document_theme"); })[0];
       if (savedDesignTheme) {
         dsState.selectedTheme = savedDesignTheme.id;
@@ -7210,6 +7255,7 @@ window.profactureTrack = function(name, params) {
       var thead = document.getElementById("ds-doc-thead");
       var totalRow = document.getElementById("ds-doc-total");
       if (!doc) return;
+      doc.dataset.layout = dsState.layout || "classic";
 
       accentEl.style.background = dsState.accent === "top" ? "linear-gradient(90deg," + dsState.primary + "," + dsState.secondary + ")" : "transparent";
       head.style.background = dsState.dark ? dsState.primary : "transparent";
@@ -7260,11 +7306,13 @@ window.profactureTrack = function(name, params) {
     function dsRenderTemplates() {
       var grid = document.getElementById("ds-tpl-grid");
       if (!grid) return;
-      grid.innerHTML = DS_TEMPLATES.map(function (t) {
+      var search = document.getElementById("ds-template-search");
+      var query = search ? search.value.trim().toLowerCase() : "";
+      grid.innerHTML = DS_TEMPLATES.filter(function (model) { return !query || (model.name + " " + model.cat).toLowerCase().indexOf(query) !== -1; }).map(function (t) {
         return (
           '<button class="ds-tpl-card' + (dsState.selectedTemplate === t.id ? " on" : "") + '" data-tpl="' + t.id + '">' +
-          '<div class="ds-tpl-thumb" style="background:' + t.tableBg + ';">' +
-          '<div class="ds-tpl-band" style="background:' + (t.dark ? t.primary : "#fff") + ';"></div>' +
+          '<div class="ds-tpl-thumb" data-layout="' + (t.layout || "classic") + '" style="background:' + t.tableBg + ';">' +
+          '<div class="ds-tpl-band" style="background:' + (t.dark || t.layout === "split" ? t.primary : "#fff") + ';"></div>' +
           '<div class="ds-tpl-bar" style="background:' + t.primary + ';top:0.55rem;"></div>' +
           '<div class="ds-tpl-line" style="background:' + (t.dark ? "#fff" : "#111") + ';top:1.9rem;width:2.4rem;"></div>' +
           '<div class="ds-tpl-line" style="background:#999;top:2.35rem;width:1.8rem;"></div>' +
@@ -7336,6 +7384,7 @@ window.profactureTrack = function(name, params) {
       });
 
       document.getElementById("ds-theme-search").addEventListener("input", dsRenderThemes);
+      document.getElementById("ds-template-search").addEventListener("input", dsRenderTemplates);
 
       document.getElementById("ds-tpl-grid").addEventListener("click", function (e) {
         var btn = e.target.closest("[data-tpl]");
@@ -7345,12 +7394,16 @@ window.profactureTrack = function(name, params) {
         if (!t) return;
         dsState.selectedTemplate = id;
         dsState.selectedTheme = null;
-        try { localStorage.removeItem("profacture_document_theme"); } catch (error) { /* storage may be disabled */ }
+        try {
+          localStorage.removeItem("profacture_document_theme");
+          localStorage.setItem("profacture_document_template", id);
+        } catch (error) { /* storage may be disabled */ }
         dsState.primary = t.primary;
         dsState.secondary = t.secondary;
         dsState.tableBg = t.tableBg;
         dsState.dark = t.dark;
         dsState.accent = t.accent;
+        dsState.layout = t.layout || "classic";
         dsRenderTemplates();
         dsRenderThemes();
         dsApplyPreview();
@@ -9443,6 +9496,7 @@ window.profactureTrack = function(name, params) {
       var tableBg = (dsState && dsState.tableBg) || "#EEF2FF";
       var accentPos = (dsState && dsState.accent) || "top";
       var docFont = (dsState && dsState.fontFamily) || "-apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif";
+      var docLayout = (dsState && dsState.layout) || "classic";
       var docStyle = accentPos === "left" ? "border-left:6px solid " + primary + ";" : "";
       var headBg = dark ? primary : "transparent";
       var headColor = dark ? "#fff" : "#111";
@@ -9486,7 +9540,7 @@ window.profactureTrack = function(name, params) {
       ].filter(Boolean) : [];
       var legalBlock = professionalDetails.length ? '<div class="print-doc-legal">' + professionalDetails.map(escapeHtml).join("<br>") + "</div>" : "";
       return (
-        '<div class="print-doc" style="' + docStyle + "font-family:" + docFont + ';">' +
+        '<div class="print-doc" data-layout="' + docLayout + '" style="' + docStyle + "font-family:" + docFont + ';">' +
         '<div class="print-doc-head" style="background:' + headBg + ';color:' + headColor + ';border-bottom-color:' + headBorder + ';">' +
         (logo ? '<img src="' + logo + '" alt="" style="height:2.4rem;object-fit:contain;" />' : "") +
         '<div><div style="font-weight:800;font-size:1.1rem;">' + escapeHtml(company.name) + "</div>" +

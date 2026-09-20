@@ -25,13 +25,20 @@ const context = vm.createContext({
   htmlLines: value => String(value ?? '')
 });
 vm.runInContext(section('    function calculateDocumentTotals(', '    function readCurrencyAmount('), context);
+vm.runInContext(section('    var DS_TEMPLATES = [', '    var DS_THEMES = ['), context);
 vm.runInContext(section('    var DS_THEMES = [', '    var DS_FONTS = ['), context);
 vm.runInContext(section('    function documentCopy(', '    function fitDocPreview('), context);
+assert.equal(context.DS_TEMPLATES.length, 100);
+assert.equal(new Set(context.DS_TEMPLATES.map(model => model.id)).size, 100);
+assert.equal(new Set(context.DS_TEMPLATES.slice(16).map(model => model.layout)).size, 4);
 assert.equal(context.DS_THEMES.length, 100);
 assert.equal(new Set(context.DS_THEMES.map(theme => theme.id)).size, 100);
 assert.equal(new Set(context.DS_THEMES.map(theme => [theme.primary, theme.secondary, theme.accent].join('/'))).size, 100);
 assert.ok(context.DS_THEMES.every(theme => /^#[0-9A-F]{6}$/.test(theme.primary) && /^#[0-9A-F]{6}$/.test(theme.secondary)));
 assert.ok(context.DS_THEMES.slice(12).every(theme => context.dsWhiteContrast(theme.primary) >= 4.5));
+context.dsState.layout = 'split';
+assert.ok(context.buildDocPrintHtml({ documentType: 'invoice' }).includes('data-layout="split"'));
+context.dsState.layout = 'classic';
 assert.equal((source.match(/window\.renderClientFinancials\(c\)/g) || []).length, 1);
 for (const type of ['invoice', 'quote']) {
   for (const items of [[], [{ desc: 'Service', qty: 2, price: 100, tax: 'vat20' }]]) {

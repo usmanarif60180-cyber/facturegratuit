@@ -6,6 +6,14 @@ const root = import.meta.dirname;
 const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const functionsSource = fs.readFileSync(path.join(root, "functions", "index.js"), "utf8");
 const firestoreRules = fs.readFileSync(path.join(root, "firestore.rules"), "utf8");
+for (const article of ["blog-relance-facture-impayee.html", "blog-marketplace-seller-invoice.html"]) {
+  const html = fs.readFileSync(path.join(root, article), "utf8");
+  assert(html.includes(`<link rel="canonical" href="https://facturergratuit.com/${article}">`));
+  assert(html.includes('"@type":"Article"'));
+  assert(fs.readFileSync(path.join(root, "blog.html"), "utf8").includes(`href="/${article}"`));
+  assert(fs.readFileSync(path.join(root, "sitemap.xml"), "utf8").includes(`https://facturergratuit.com/${article}`));
+  assert(index.includes(`url: "/${article}"`));
+}
 
 const requiredProductionMarkers = [
   'content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso"',
