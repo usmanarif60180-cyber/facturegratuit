@@ -68,8 +68,13 @@ function documentTotals(items, taxRates) {
 
 function allocatedPaymentsMinor(invoices, payments) {
   const ids = new Set((invoices || []).map((invoice) => invoice.id).filter(Boolean));
-  let total = (payments || []).reduce((sum, payment) => sum + (payment.voided ? 0 : (payment.allocations || []).reduce((allocated, item) => allocated + (ids.has(item.invoiceId) ? recordMinor(item, 'amountMinor', 'amount') : 0), 0)), 0);
-  (invoices || []).forEach((invoice) => (invoice.payments || []).forEach((payment) => { if (!payment.voided) total += recordMinor(payment, 'amountMinor', 'amount'); }));
+  const allocationKeys = new Set();
+  let total = (payments || []).reduce((sum, payment) => sum + (payment.voided || status(payment.status) === 'cancelled' ? 0 : (payment.allocations || []).reduce((allocated, item) => {
+    if (!ids.has(item.invoiceId)) return allocated;
+    if (payment.id) allocationKeys.add(String(item.invoiceId) + '\0' + String(payment.id));
+    return allocated + recordMinor(item, 'amountMinor', 'amount');
+  }, 0)), 0);
+  (invoices || []).forEach((invoice) => (invoice.payments || []).forEach((payment) => { if (!payment.voided && status(payment.status) !== 'cancelled' && (!payment.id || !allocationKeys.has(String(invoice.id) + '\0' + String(payment.id)))) total += recordMinor(payment, 'amountMinor', 'amount'); }));
   return total;
 }
 
@@ -114,8 +119,13 @@ function periodActivity(input = {}) {
   const periodExpenses = filterByRange(input.expenses, range, ['date']);
   const periodLabour = filterByRange(input.labourEntries, range, ['date']);
   const ids = new Set(invoices.map((invoice) => invoice.id).filter(Boolean));
-  let receivedMinor = periodPayments.reduce((sum, payment) => sum + (payment.voided || status(payment.status) === 'cancelled' ? 0 : (payment.allocations || []).reduce((allocated, item) => allocated + (ids.has(item.invoiceId) ? recordMinor(item, 'amountMinor', 'amount') : 0), 0)), 0);
-  invoices.forEach((invoice) => filterByRange(invoice.payments, range, ['date']).forEach((payment) => { if (!payment.voided) receivedMinor += recordMinor(payment, 'amountMinor', 'amount'); }));
+  const allocationKeys = new Set();
+  let receivedMinor = periodPayments.reduce((sum, payment) => sum + (payment.voided || status(payment.status) === 'cancelled' ? 0 : (payment.allocations || []).reduce((allocated, item) => {
+    if (!ids.has(item.invoiceId)) return allocated;
+    if (payment.id) allocationKeys.add(String(item.invoiceId) + '\0' + String(payment.id));
+    return allocated + recordMinor(item, 'amountMinor', 'amount');
+  }, 0)), 0);
+  invoices.forEach((invoice) => filterByRange(invoice.payments, range, ['date']).forEach((payment) => { if (!payment.voided && status(payment.status) !== 'cancelled' && (!payment.id || !allocationKeys.has(String(invoice.id) + '\0' + String(payment.id)))) receivedMinor += recordMinor(payment, 'amountMinor', 'amount'); }));
   const invoicedHtMinor = periodInvoices.reduce((sum, invoice) => sum + signedInvoice(invoice, 'ht'), 0);
   const expenseMinor = periodExpenses.reduce((sum, record) => {
     if (record.voided || status(record.approval) === 'rejected') return sum;

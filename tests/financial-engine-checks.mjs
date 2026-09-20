@@ -55,6 +55,20 @@ const paymentBalance = engine.chantierSummary({
 assert.equal(paymentBalance.receivedMinor, 1000000);
 assert.equal(paymentBalance.outstandingMinor, 1000000);
 
+const sharedPayment = {
+  id: "payment-shared", date: "2026-09-10",
+  allocations: [{ invoiceId: "i-shared", amountMinor: 20000 }]
+};
+const sharedInvoice = {
+  id: "i-shared", issue: "2026-09-01", status: "Sent", htMinor: 50000, payableMinor: 60000,
+  payments: [{ id: "payment-shared", date: "2026-09-10", amountMinor: 20000 }]
+};
+const sharedInput = { invoices: [sharedInvoice], payments: [sharedPayment] };
+assert.equal(engine.chantierSummary(sharedInput).receivedMinor, 20000);
+assert.equal(serverEngine.summary(sharedInput).receivedMinor, 20000);
+assert.equal(engine.periodActivity({ ...sharedInput, range: { start: "2026-09-01", end: "2026-09-30" } }).receivedMinor, 20000);
+assert.equal(serverEngine.periodActivity({ ...sharedInput, range: { start: "2026-09-01", end: "2026-09-30" } }).receivedMinor, 20000);
+
 const creditAndPartial = engine.chantierSummary({
   invoices: [
     { id: "i3", status: "Sent", htMinor: 100000, payableMinor: 120000 },

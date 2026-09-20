@@ -6334,13 +6334,13 @@ window.profactureTrack = function(name, params) {
     function aiMonthStats() {
       var now = new Date();
       var revenue = 0, expensesTotal = 0;
-      INVOICES.forEach(function (inv) {
+      activeCompanyItems(INVOICES).forEach(function (inv) {
         invoicePayments(inv).forEach(function (p) {
           var d = new Date(p.date);
           if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) revenue += p.amount;
         });
       });
-      EXPENSES.forEach(function (e) {
+      activeCompanyItems(EXPENSES).forEach(function (e) {
         var d = new Date(e.date);
         if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) expensesTotal += e.amount;
       });
@@ -8022,6 +8022,8 @@ window.profactureTrack = function(name, params) {
       renderQuotesTable();
       populateInvoiceNewClientSelect();
       populateQuoteNewClientSelect();
+      renderExpensesAll();
+      renderAIInsights("dash-ai-insights-list", 3);
     }
     function renderClientsTable(filterText) {
       var tbody = document.querySelector("#clients-table tbody");
@@ -10793,15 +10795,15 @@ window.profactureTrack = function(name, params) {
     function renderExpensesTable() {
       var tbody = document.querySelector("#expenses-table tbody");
       if (!tbody) return;
-      var sorted = EXPENSES.slice().sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+      var sorted = activeCompanyItems(EXPENSES).sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
       tbody.innerHTML = sorted.length ? sorted.map(function (e) {
         return (
-          '<tr><td style="font-weight:700;">' + e.title + (e.recurring ? ' <span title="Recurring expense">🔁</span>' : "") + '</td><td><span class="badge">' + e.category + "</span></td><td>" +
-          new Date(e.date + "T00:00:00").toLocaleDateString("en", { month: "short", day: "2-digit", year: "numeric" }) + "</td><td>" + (e.vendor || "—") + "</td>" +
+          '<tr><td style="font-weight:700;">' + escapeHtml(e.title || "") + (e.recurring ? ' <span title="Recurring expense">🔁</span>' : "") + '</td><td><span class="badge">' + escapeHtml(e.category || "") + "</span></td><td>" +
+          new Date(e.date + "T00:00:00").toLocaleDateString("en", { month: "short", day: "2-digit", year: "numeric" }) + "</td><td>" + escapeHtml(e.vendor || "—") + "</td>" +
           '<td class="tnum" style="text-align:right;font-weight:700;">' + currency(e.amount) + "</td>" +
-          '<td><span class="badge ' + expApprovalBadgeClass(e.approval) + '">' + e.approval + "</span></td>" +
-          "<td>" + (e.approval === "Pending" ? '<button class="btn btn-ghost btn-sm" data-exp-approve="' + e.id + '">✓ Approve</button> <button class="btn btn-ghost btn-sm" data-exp-reject="' + e.id + '">✕ Reject</button> ' : "") +
-          '<button class="btn btn-ghost btn-sm" data-exp-delete="' + e.id + '" title="Delete expense">🗑️</button></td></tr>'
+          '<td><span class="badge ' + expApprovalBadgeClass(e.approval) + '">' + escapeHtml(e.approval || "") + "</span></td>" +
+          "<td>" + (e.approval === "Pending" ? '<button class="btn btn-ghost btn-sm" data-exp-approve="' + escapeHtml(e.id || "") + '">✓ Approve</button> <button class="btn btn-ghost btn-sm" data-exp-reject="' + escapeHtml(e.id || "") + '">✕ Reject</button> ' : "") +
+          '<button class="btn btn-ghost btn-sm" data-exp-delete="' + escapeHtml(e.id || "") + '" title="Delete expense">🗑️</button></td></tr>'
         );
       }).join("") : '<tr><td colspan="7" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No expenses yet.</td></tr>';
     }
@@ -10809,22 +10811,23 @@ window.profactureTrack = function(name, params) {
       var wrap = document.getElementById("exp-category-bars");
       if (!wrap) return;
       var totals = {};
-      EXPENSES.forEach(function (e) { totals[e.category] = (totals[e.category] || 0) + e.amount; });
+      activeCompanyItems(EXPENSES).forEach(function (e) { totals[e.category] = (totals[e.category] || 0) + e.amount; });
       var cats = Object.keys(totals).sort(function (a, b) { return totals[b] - totals[a]; });
       var max = cats.length ? totals[cats[0]] : 1;
       wrap.innerHTML = cats.length ? cats.map(function (c) {
         var pct = Math.round((totals[c] / max) * 100);
-        return '<div class="pipeline-row"><span class="stage-lbl" style="width:6.5rem;">' + c + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;"></div></div><span class="stage-val">' + currency(totals[c]) + "</span></div>";
+        return '<div class="pipeline-row"><span class="stage-lbl" style="width:6.5rem;">' + escapeHtml(c) + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;"></div></div><span class="stage-val">' + currency(totals[c]) + "</span></div>";
       }).join("") : '<p class="widget-empty">No expenses recorded yet.</p>';
     }
     function renderExpenseStats() {
       var grid = document.getElementById("exp-stat-grid");
       if (!grid) return;
       var now = new Date();
-      var monthTotal = EXPENSES.filter(function (e) { var d = new Date(e.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); }).reduce(function (s, e) { return s + e.amount; }, 0);
-      var yearTotal = EXPENSES.filter(function (e) { return new Date(e.date).getFullYear() === now.getFullYear(); }).reduce(function (s, e) { return s + e.amount; }, 0);
-      var pending = EXPENSES.filter(function (e) { return e.approval === "Pending"; }).length;
-      var recurring = EXPENSES.filter(function (e) { return e.recurring; }).length;
+      var companyExpenses = activeCompanyItems(EXPENSES);
+      var monthTotal = companyExpenses.filter(function (e) { var d = new Date(e.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); }).reduce(function (s, e) { return s + e.amount; }, 0);
+      var yearTotal = companyExpenses.filter(function (e) { return new Date(e.date).getFullYear() === now.getFullYear(); }).reduce(function (s, e) { return s + e.amount; }, 0);
+      var pending = companyExpenses.filter(function (e) { return e.approval === "Pending"; }).length;
+      var recurring = companyExpenses.filter(function (e) { return e.recurring; }).length;
       grid.innerHTML =
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_this_month") + '</div><div class="val tnum">' + currency(monthTotal) + '</div></div><div class="ic">💳</div></div>' +
         '<div class="card stat-card"><div><div class="lbl">' + t("th_year_to_date") + '</div><div class="val tnum">' + currency(yearTotal) + '</div></div><div class="ic">📆</div></div>' +
@@ -10836,10 +10839,10 @@ window.profactureTrack = function(name, params) {
       if (!tbody) return;
       var now = new Date();
       var totals = {};
-      EXPENSES.forEach(function (e) { if (new Date(e.date).getFullYear() === now.getFullYear()) totals[e.category] = (totals[e.category] || 0) + e.amount; });
+      activeCompanyItems(EXPENSES).forEach(function (e) { if (new Date(e.date).getFullYear() === now.getFullYear()) totals[e.category] = (totals[e.category] || 0) + e.amount; });
       var cats = Object.keys(totals).sort(function (a, b) { return totals[b] - totals[a]; });
       tbody.innerHTML = cats.length ? cats.map(function (c) {
-        return '<tr><td style="font-weight:700;">' + c + '</td><td class="tnum" style="text-align:right;font-weight:700;">' + currency(totals[c]) + "</td></tr>";
+        return '<tr><td style="font-weight:700;">' + escapeHtml(c) + '</td><td class="tnum" style="text-align:right;font-weight:700;">' + currency(totals[c]) + "</td></tr>";
       }).join("") : '<tr><td colspan="2" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No expenses this year.</td></tr>';
     }
     function renderExpensesAll() {
@@ -10872,20 +10875,20 @@ window.profactureTrack = function(name, params) {
       var approveBtn = e.target.closest("[data-exp-approve]");
       if (approveBtn) {
         var ea = EXPENSES.filter(function (x) { return x.id === approveBtn.getAttribute("data-exp-approve"); })[0];
-        if (ea) { ea.approval = "Approved"; renderExpensesAll(); showToast(ea.title + " approved"); }
+        if (ea && belongsToActiveCompany(ea)) { ea.approval = "Approved"; ea.updatedAt = new Date().toISOString(); if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal(); if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250); renderExpensesAll(); showToast(ea.title + " approved"); }
         return;
       }
       var rejectBtn = e.target.closest("[data-exp-reject]");
       if (rejectBtn) {
         var er = EXPENSES.filter(function (x) { return x.id === rejectBtn.getAttribute("data-exp-reject"); })[0];
-        if (er) { er.approval = "Rejected"; renderExpensesAll(); showToast(er.title + " rejected"); }
+        if (er && belongsToActiveCompany(er)) { er.approval = "Rejected"; er.updatedAt = new Date().toISOString(); if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal(); if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250); renderExpensesAll(); showToast(er.title + " rejected"); }
         return;
       }
       var expDeleteBtn = e.target.closest("[data-exp-delete]");
       if (expDeleteBtn) {
         var expDelId = expDeleteBtn.getAttribute("data-exp-delete");
         var expToDelete = EXPENSES.filter(function (x) { return x.id === expDelId; })[0];
-        if (expToDelete && confirm("Delete expense \"" + expToDelete.title + "\"? This cannot be undone.")) {
+        if (expToDelete && belongsToActiveCompany(expToDelete) && confirm("Delete expense \"" + expToDelete.title + "\"? This cannot be undone.")) {
           if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("expenses", expToDelete);
           var expDelIdx = EXPENSES.findIndex(function (x) { return x.id === expDelId; });
           if (expDelIdx !== -1) EXPENSES.splice(expDelIdx, 1);
@@ -11103,29 +11106,31 @@ window.profactureTrack = function(name, params) {
     function computeAIInsights() {
       var insights = [];
       var ms = aiMonthStats();
-      var overdueInvoices = INVOICES.filter(function (inv) { return inv.status === "Overdue"; });
+      var companyInvoices = activeCompanyItems(INVOICES);
+      var companyQuotes = activeCompanyItems(QUOTES);
+      var overdueInvoices = companyInvoices.filter(function (inv) { return inv.status === "Overdue"; });
       if (overdueInvoices.length) {
         var overdueTotal = overdueInvoices.reduce(function (s, inv) { return s + invoiceBalance(inv); }, 0);
         insights.push({ ic: "⏰", text: overdueInvoices.length + " invoice" + (overdueInvoices.length > 1 ? "s" : "") + " overdue, totaling " + currency(overdueTotal) + " — " + overdueInvoices[0].client + (overdueInvoices.length > 1 ? " and others" : "") + "." });
       }
-      var outstanding = INVOICES.reduce(function (s, inv) { return s + invoiceBalance(inv); }, 0);
+      var outstanding = companyInvoices.reduce(function (s, inv) { return s + invoiceBalance(inv); }, 0);
       if (outstanding > 0 && outstanding > ms.expenses) {
         insights.push({ ic: "💧", text: "Cash flow watch: outstanding balance (" + currency(outstanding) + ") exceeds this month's expenses (" + currency(ms.expenses) + ")." });
       }
-      var topCustomer = CLIENTS.slice().map(function (c) { return { c: c, ltv: clientLifetimeValue(c) }; }).sort(function (a, b) { return b.ltv - a.ltv; })[0];
+      var topCustomer = activeCompanyItems(CLIENTS).map(function (c) { return { c: c, ltv: clientLifetimeValue(c) }; }).sort(function (a, b) { return b.ltv - a.ltv; })[0];
       if (topCustomer && topCustomer.ltv > 0) {
         insights.push({ ic: "🏆", text: "Top customer: " + topCustomer.c.company + ", with " + currency(topCustomer.ltv) + " in lifetime value." });
       }
-      var soonQuote = QUOTES.filter(function (q) { return q.status === "Sent"; })[0];
+      var soonQuote = companyQuotes.filter(function (q) { return q.status === "Sent"; })[0];
       if (soonQuote) {
         insights.push({ ic: "📝", text: "Suggested follow-up: reach out to " + soonQuote.client + " about " + soonQuote.id + " (valid until " + fmtDate(soonQuote.valid) + ")." });
       }
-      var lowStock = PRODUCTS.filter(function (p) { return p.stock <= p.minStock; });
+      var lowStock = activeCompanyItems(PRODUCTS).filter(function (p) { return p.stock <= p.minStock; });
       if (lowStock.length) {
         insights.push({ ic: "📦", text: lowStock.length + " product" + (lowStock.length > 1 ? "s" : "") + " low on stock — check Inventory for reorder suggestions." });
       }
-      if (ms.revenue > 0 || INVOICES.length || QUOTES.length) {
-        insights.push({ ic: "🗒️", text: "This month: " + currency(ms.revenue) + " revenue, " + currency(ms.profit) + " profit, " + INVOICES.length + " invoices, " + QUOTES.length + " quotes." });
+      if (ms.revenue > 0 || companyInvoices.length || companyQuotes.length) {
+        insights.push({ ic: "🗒️", text: "This month: " + currency(ms.revenue) + " revenue, " + currency(ms.profit) + " profit, " + companyInvoices.length + " invoices, " + companyQuotes.length + " quotes." });
       }
       return insights;
     }
@@ -11134,7 +11139,7 @@ window.profactureTrack = function(name, params) {
       if (!wrap) return;
       var items = computeAIInsights();
       if (limit) items = items.slice(0, limit);
-      wrap.innerHTML = items.length ? items.map(function (i) { return '<div class="widget-row"><span>' + i.ic + " " + i.text + "</span></div>"; }).join("") : '<p class="widget-empty">Add invoices, expenses and clients to see AI insights here.</p>';
+      wrap.innerHTML = items.length ? items.map(function (i) { return '<div class="widget-row"><span>' + escapeHtml(i.ic) + " " + escapeHtml(i.text) + "</span></div>"; }).join("") : '<p class="widget-empty">Add invoices, expenses and clients to see AI insights here.</p>';
     }
     renderAIInsights("dash-ai-insights-list", 3);
 
@@ -11208,7 +11213,12 @@ window.profactureTrack = function(name, params) {
         body = dashboardIntelTable(data.expenses.map(function (item) { return [item.title || item.vendor || "Dépense", fmtDate(item.date), (item.category || "Autres") + " · " + (item.approval || "Pending"), formatCurrency(item.amount || 0, item.currency || code)]; }), "Aucune dépense liée à ce chantier.");
       } else if (tab === "labour") {
         var labour = data.expenses.filter(function (item) { return item.category === "Salary" || /main|labour|labor|salaire|heure/i.test((item.title || "") + " " + (item.category || "")); });
-        body = dashboardIntelTable(labour.map(function (item) { return [item.title || "Main-d’œuvre", fmtDate(item.date), item.vendor || item.category, formatCurrency(item.amount || 0, item.currency || code)]; }), "Aucun coût de main-d’œuvre lié. Ajoutez une dépense de catégorie Salary ou Main-d’œuvre.");
+        var labourRows = (data.labourEntries || []).filter(function (entry) { return !entry.voided && !entry.expenseId; }).map(function (entry) {
+          var cost = window.ProFactureFinancial.fromMinor(window.ProFactureFinancial.labourCostMinor([entry]));
+          return [entry.employee || entry.title || entry.workerName || entry.name || "Main-d’œuvre", fmtDate(entry.date), (entry.hours || 0) + " h", formatCurrency(cost, entry.currency || code)];
+        });
+        labour.forEach(function (item) { labourRows.push([item.title || "Main-d’œuvre", fmtDate(item.date), item.vendor || item.category, formatCurrency(item.amount || 0, item.currency || code)]); });
+        body = dashboardIntelTable(labourRows, "Aucun coût de main-d’œuvre lié. Ajoutez une entrée de main-d’œuvre ou une dépense liée.");
       } else if (tab === "documents") {
         body = dashboardIntelTable(data.files.map(function (item) { return [item.name || "Document", item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "—", item.folder || item.type || "Document", item.size || "—"]; }), "Aucun document lié à ce chantier.");
       } else if (tab === "history") {
@@ -11305,7 +11315,7 @@ window.profactureTrack = function(name, params) {
         '<div class="project-health-panel"><div class="project-health-title"><span>Santé financière</span><span class="badge ' + (healthClass === "warn" ? "badge-warning" : "badge-success") + '">' + health + '</span></div>' +
         '<div class="widget-row"><span>Encaissé</span><strong>' + formatCurrency(paid, code) + '</strong></div><div class="widget-row"><span>À encaisser</span><strong>' + formatCurrency(outstanding, code) + '</strong></div><div class="widget-row"><span>Éléments liés</span><strong>' + linkedCount + '</strong></div></div></div>' +
         (!linkedCount ? '<p class="project-health-copy">Les montants restent à zéro tant qu’aucune facture, devis ou dépense n’est explicitement lié à ce chantier.</p>' : "") +
-        dashboardProjectIntel(project, { code: code, invoices: invoices, quotes: quotes.concat(amendments), expenses: expenses, files: files, billed: billed, paid: paid, costs: costs, margin: margin, outstanding: outstanding, period: { label: dashboardPeriodLabel(range), invoiced: window.ProFactureFinancial.fromMinor(periodFinance.invoicedHtMinor), received: window.ProFactureFinancial.fromMinor(periodFinance.receivedMinor), costs: window.ProFactureFinancial.fromMinor(periodFinance.directCostsMinor), margin: window.ProFactureFinancial.fromMinor(periodFinance.grossMarginMinor) } });
+        dashboardProjectIntel(project, { code: code, invoices: invoices, quotes: quotes.concat(amendments), expenses: expenses, labourEntries: labourEntries, files: files, billed: billed, paid: paid, costs: costs, margin: margin, outstanding: outstanding, period: { label: dashboardPeriodLabel(range), invoiced: window.ProFactureFinancial.fromMinor(periodFinance.invoicedHtMinor), received: window.ProFactureFinancial.fromMinor(periodFinance.receivedMinor), costs: window.ProFactureFinancial.fromMinor(periodFinance.directCostsMinor), margin: window.ProFactureFinancial.fromMinor(periodFinance.grossMarginMinor) } });
       if (scope) scope.textContent = "Contexte : " + projectName;
       var prompts = [
         { title: "Analyser la marge", copy: linkedCount ? "Expliquer la marge et les postes à surveiller." : "Vérifier les données manquantes avant le calcul.", prompt: "Analyse le chantier " + projectName + ". Utilise uniquement les données liées et explique la marge, les coûts et les informations manquantes." },

@@ -102,18 +102,20 @@
 
   function allocatedPaymentsMinor(invoices, payments) {
     var invoiceIds = Object.create(null);
+    var allocationKeys = new Set();
     (invoices || []).forEach(function (invoice) { if (invoice.id) invoiceIds[invoice.id] = true; });
     var total = (payments || []).reduce(function (sum, payment) {
       if (payment.voided || normalizeStatus(payment.status) === "cancelled") return sum;
       var allocations = Array.isArray(payment.allocations) ? payment.allocations : [];
       return sum + allocations.reduce(function (allocationSum, allocation) {
         if (!invoiceIds[allocation.invoiceId]) return allocationSum;
+        if (payment.id) allocationKeys.add(String(allocation.invoiceId) + "\0" + String(payment.id));
         return allocationSum + recordMinor(allocation, "amountMinor", "amount");
       }, 0);
     }, 0);
     (invoices || []).forEach(function (invoice) {
       (Array.isArray(invoice.payments) ? invoice.payments : []).forEach(function (payment) {
-        if (!payment.voided) total += recordMinor(payment, "amountMinor", "amount");
+        if (!payment.voided && normalizeStatus(payment.status) !== "cancelled" && (!payment.id || !allocationKeys.has(String(invoice.id) + "\0" + String(payment.id)))) total += recordMinor(payment, "amountMinor", "amount");
       });
     });
     return total;
@@ -178,14 +180,19 @@
     var periodExpenses = filterByRange(input.expenses || [], range, ["date"]);
     var periodLabour = filterByRange(input.labourEntries || [], range, ["date"]);
     var ids = Object.create(null);
+    var allocationKeys = new Set();
     allInvoices.forEach(function (invoice) { if (invoice.id) ids[invoice.id] = true; });
     var receivedMinor = periodPayments.reduce(function (sum, payment) {
       if (payment.voided || normalizeStatus(payment.status) === "cancelled") return sum;
-      return sum + (payment.allocations || []).reduce(function (allocated, item) { return allocated + (ids[item.invoiceId] ? recordMinor(item, "amountMinor", "amount") : 0); }, 0);
+      return sum + (payment.allocations || []).reduce(function (allocated, item) {
+        if (!ids[item.invoiceId]) return allocated;
+        if (payment.id) allocationKeys.add(String(item.invoiceId) + "\0" + String(payment.id));
+        return allocated + recordMinor(item, "amountMinor", "amount");
+      }, 0);
     }, 0);
     allInvoices.forEach(function (invoice) {
       filterByRange(invoice.payments || [], range, ["date"]).forEach(function (payment) {
-        if (!payment.voided) receivedMinor += recordMinor(payment, "amountMinor", "amount");
+        if (!payment.voided && normalizeStatus(payment.status) !== "cancelled" && (!payment.id || !allocationKeys.has(String(invoice.id) + "\0" + String(payment.id)))) receivedMinor += recordMinor(payment, "amountMinor", "amount");
       });
     });
     var invoicedHtMinor = periodInvoices.reduce(function (sum, invoice) { return sum + signedInvoiceHt(invoice); }, 0);
