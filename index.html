@@ -729,6 +729,7 @@ window.profactureTrack = function(name, params) {
   .print-doc { box-sizing: border-box; display: flex; flex-direction: column; background: #fff; color: #111; }
   .print-doc-head { display: flex; align-items: center; gap: 1rem; min-height: 5.4rem; border: 1px solid #e5e7eb; border-bottom: 3px solid #111; border-radius: 6px; padding: 1rem 1.15rem; margin-bottom: 1.5rem; }
   .print-doc-head img { flex-shrink: 0; }
+  .print-doc-payment-badge { display: inline-block; margin-top: 0.4rem; padding: 0.18rem 0.42rem; border: 1px solid; border-radius: 3px; background: #fff; font-size: 0.7rem; font-weight: 800; letter-spacing: 0; }
   .print-doc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.15rem; margin-bottom: 1.55rem; font-size: 0.85rem; color: #111; }
   .print-doc-party { min-height: 7.25rem; padding: 1.05rem 1.1rem; border: 1px solid #e5e7eb; border-radius: 6px; background: #f8fafc; line-height: 1.5; }
   .print-doc-party strong:first-child { display: inline-block; margin-bottom: 0.28rem; font-size: 0.72rem; text-transform: uppercase; color: #64748b; }
@@ -3890,6 +3891,7 @@ window.profactureTrack = function(name, params) {
                 <div><label class="field-label"><span data-i18n="fld_due_date">Due date</span> <span style="color:hsl(var(--muted-fg));font-weight:600;">(<span data-i18n="lbl_optional">optional</span>)</span></label><input class="field" type="date" id="inv-new-due" /></div>
                 <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="inv-new-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>
                 <div><label class="field-label" data-i18n="fld_compliance_country">Compliance country</label><select class="field" id="inv-compliance-country"></select></div>
+                <div><label class="field-label">Payment label (optional)</label><select class="field" id="inv-new-payment-label"><option value="">No label</option><option value="paid">Paid</option><option value="unpaid">Unpaid</option><option value="overdue">Overdue</option></select><small style="color:hsl(var(--muted-fg));">Display only; record payments separately.</small></div>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem;">
                 <div><label class="field-label" data-i18n="fld_client_address">Client address</label><textarea class="field" id="inv-new-client-address" rows="2" placeholder="Street, city, postal code, country"></textarea></div>
@@ -4019,6 +4021,7 @@ window.profactureTrack = function(name, params) {
             </div>
 
             <div class="ds-panel" id="ds-panel-theme">
+              <input class="field" id="ds-theme-search" type="search" placeholder="Search themes..." aria-label="Search invoice and quote themes" style="margin-bottom:0.75rem;" />
               <div class="ds-theme-grid" id="ds-theme-grid"></div>
             </div>
 
@@ -7091,6 +7094,42 @@ window.profactureTrack = function(name, params) {
       { id: "white-minimal", name: "White Minimal", primary: "#18181B", secondary: "#52525B", accent: "#D4D4D8" },
       { id: "professional-dark", name: "Professional Dark", primary: "#818CF8", secondary: "#A5B4FC", accent: "#6366F1" },
     ];
+    function dsHslHex(hue, saturation, lightness) {
+      var a = saturation * Math.min(lightness, 100 - lightness) / 10000;
+      return "#" + [0, 8, 4].map(function (offset) {
+        var k = (offset + hue / 30) % 12;
+        var channel = lightness / 100 - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+        return Math.round(255 * channel).toString(16).padStart(2, "0");
+      }).join("").toUpperCase();
+    }
+    function dsWhiteContrast(hex) {
+      var channels = [1, 3, 5].map(function (start) {
+        var value = parseInt(hex.slice(start, start + 2), 16) / 255;
+        return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+      });
+      return 1.05 / (0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2] + 0.05);
+    }
+    var DS_THEME_FAMILIES = ["Garnet", "Coral", "Vermilion", "Amber", "Saffron", "Lime", "Moss", "Fern", "Jade", "Seafoam", "Turquoise", "Lagoon", "Cerulean", "Cobalt", "Sapphire", "Iris", "Amethyst", "Orchid", "Magenta", "Raspberry", "Blush", "Wine"];
+    var DS_THEME_VARIANTS = [
+      { id: "classic", name: "Classic", saturation: 65, lightness: 35 },
+      { id: "deep", name: "Deep", saturation: 58, lightness: 27 },
+      { id: "bright", name: "Bright", saturation: 72, lightness: 43 },
+      { id: "muted", name: "Muted", saturation: 38, lightness: 36 },
+    ];
+    DS_THEME_FAMILIES.forEach(function (family, familyIndex) {
+      var hue = Math.round(familyIndex * 360 / DS_THEME_FAMILIES.length);
+      DS_THEME_VARIANTS.forEach(function (variant) {
+        var lightness = variant.lightness;
+        while (lightness > 18 && dsWhiteContrast(dsHslHex(hue, variant.saturation, lightness)) < 4.5) lightness--;
+        DS_THEMES.push({
+          id: family.toLowerCase() + "-" + variant.id,
+          name: family + " " + variant.name,
+          primary: dsHslHex(hue, variant.saturation, lightness),
+          secondary: dsHslHex(hue, variant.saturation, Math.max(18, lightness - 13)),
+          accent: dsHslHex(hue, variant.saturation, Math.min(78, lightness + 28))
+        });
+      });
+    });
     var DS_FONTS = [
       { id: "system", name: "System Pro", family: "-apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif" },
       { id: "segoe", name: "Segoe UI", family: "Segoe UI, Arial, sans-serif" },
@@ -7155,6 +7194,14 @@ window.profactureTrack = function(name, params) {
       { id: "signature", label: "Signature", visible: false },
     ];
     var dsState = { primary: "#2563EB", secondary: "#1E3A8A", tableBg: "#EEF2FF", dark: true, accent: "top", selectedTemplate: "modern-blue", selectedTheme: null, selectedFont: "system", fontFamily: DS_FONTS[0].family };
+    try {
+      var savedDesignTheme = DS_THEMES.filter(function (theme) { return theme.id === localStorage.getItem("profacture_document_theme"); })[0];
+      if (savedDesignTheme) {
+        dsState.selectedTheme = savedDesignTheme.id;
+        dsState.primary = savedDesignTheme.primary;
+        dsState.secondary = savedDesignTheme.secondary;
+      }
+    } catch (e) { /* storage may be disabled */ }
 
     function dsApplyPreview() {
       var doc = document.getElementById("ds-doc");
@@ -7232,7 +7279,9 @@ window.profactureTrack = function(name, params) {
     function dsRenderThemes() {
       var grid = document.getElementById("ds-theme-grid");
       if (!grid) return;
-      grid.innerHTML = DS_THEMES.map(function (th) {
+      var search = document.getElementById("ds-theme-search");
+      var query = search ? search.value.trim().toLowerCase() : "";
+      grid.innerHTML = DS_THEMES.filter(function (theme) { return !query || theme.name.toLowerCase().indexOf(query) !== -1; }).map(function (th) {
         return (
           '<button class="ds-theme-swatch' + (dsState.selectedTheme === th.id ? " on" : "") + '" data-theme="' + th.id + '">' +
           '<span class="ds-theme-strip"><span style="background:' + th.primary + ';"></span><span style="background:' + th.secondary + ';"></span><span style="background:' + th.accent + ';"></span></span>' +
@@ -7286,6 +7335,8 @@ window.profactureTrack = function(name, params) {
         });
       });
 
+      document.getElementById("ds-theme-search").addEventListener("input", dsRenderThemes);
+
       document.getElementById("ds-tpl-grid").addEventListener("click", function (e) {
         var btn = e.target.closest("[data-tpl]");
         if (!btn) return;
@@ -7294,6 +7345,7 @@ window.profactureTrack = function(name, params) {
         if (!t) return;
         dsState.selectedTemplate = id;
         dsState.selectedTheme = null;
+        try { localStorage.removeItem("profacture_document_theme"); } catch (error) { /* storage may be disabled */ }
         dsState.primary = t.primary;
         dsState.secondary = t.secondary;
         dsState.tableBg = t.tableBg;
@@ -7314,6 +7366,7 @@ window.profactureTrack = function(name, params) {
         dsState.selectedTheme = id;
         dsState.primary = th.primary;
         dsState.secondary = th.secondary;
+        try { localStorage.setItem("profacture_document_theme", id); } catch (error) { /* storage may be disabled */ }
         dsRenderThemes();
         dsApplyPreview();
         playSound("click");
@@ -7708,6 +7761,7 @@ window.profactureTrack = function(name, params) {
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
         documentType: "invoice", country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
+        paymentDisplay: document.getElementById("inv-new-payment-label").value,
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
       }));
     });
@@ -9368,6 +9422,15 @@ window.profactureTrack = function(name, params) {
       if (!rate) return copy.tax + " 0 %";
       return copy.tax + " " + String(rate).replace(".", ",") + " %";
     }
+    function documentPaymentBadge(value, country) {
+      var labels = country === "FR"
+        ? { paid: "PAYÉE", unpaid: "NON PAYÉE", overdue: "EN RETARD" }
+        : { paid: "PAID", unpaid: "UNPAID", overdue: "OVERDUE" };
+      var colors = { paid: "#166534", unpaid: "#475569", overdue: "#B91C1C" };
+      return Object.prototype.hasOwnProperty.call(labels, value)
+        ? '<div class="print-doc-payment-badge" style="color:' + colors[value] + ';border-color:' + colors[value] + ';">' + labels[value] + "</div>"
+        : "";
+    }
     function buildDocPrintHtml(opts) {
       var logo = opts.logo != null ? opts.logo : getCompanyLogo();
       var stamp = opts.stamp != null ? opts.stamp : getCompanyStamp();
@@ -9434,6 +9497,7 @@ window.profactureTrack = function(name, params) {
         '<div style="font-weight:800;font-size:1.3rem;color:' + (dark ? headColor : primary) + ';">' + escapeHtml(opts.title) + "</div>" +
         '<div style="font-size:0.78rem;opacity:0.82;">' + escapeHtml(opts.number) + "</div>" +
         '<div style="margin-top:0.2rem;font-weight:700;">' + escapeHtml(opts.issueDate) + "</div>" + dueBlock +
+        (isInvoice ? documentPaymentBadge(opts.paymentDisplay, opts.country || currentDefaultCountry) : "") +
         "</div></div>" +
         '<div class="print-doc-grid">' +
         '<div class="print-doc-party"><strong>' + escapeHtml(t("fld_company_name")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(company.name) + "</strong>" + (company.siret ? "<br>SIRET: " + escapeHtml(company.siret) : "") + (company.vat ? "<br>" + escapeHtml(copy.taxNumber) + ": " + escapeHtml(company.vat) : "") + (company.address ? "<br>" + htmlLines(company.address) : "") + (company.email ? "<br>" + escapeHtml(company.email) : "") + (company.phone ? " · " + escapeHtml(company.phone) : "") + "</div>" +
@@ -9457,7 +9521,7 @@ window.profactureTrack = function(name, params) {
         title: t("doc_invoice"), number: inv.id, client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress,
         siret: inv.siret, clientContact: inv.clientContact, clientVat: inv.clientVat, clientEmail: inv.clientEmail, clientPhone: inv.clientPhone, companyProfile: inv.companyProfile, logo: inv.logo, stamp: inv.stamp, signature: inv.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(inv.issue), dueLabel: t("fld_due_date"), dueDate: fmtDate(inv.due),
-        documentType: "invoice", country: inv.country || currentDefaultCountry, items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency,
+        documentType: "invoice", country: inv.country || currentDefaultCountry, paymentDisplay: inv.paymentDisplay || "", items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency,
       }));
     }
     function downloadQuotePdf(q) {
@@ -9804,6 +9868,7 @@ window.profactureTrack = function(name, params) {
         invoiceType: document.getElementById("inv-new-type").value,
         issue: document.getElementById("inv-new-issue").value,
         due: document.getElementById("inv-new-due").value,
+        paymentDisplay: document.getElementById("inv-new-payment-label").value,
         clientAddress: document.getElementById("inv-new-client-address").value,
         siteAddress: document.getElementById("inv-new-site-address").value,
         siret: document.getElementById("inv-new-siret").value,
@@ -9828,6 +9893,7 @@ window.profactureTrack = function(name, params) {
       document.getElementById("inv-new-type").value = draft.invoiceType || "standard";
       document.getElementById("inv-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
       document.getElementById("inv-new-due").value = draft.due || "";
+      document.getElementById("inv-new-payment-label").value = draft.paymentDisplay || "";
       document.getElementById("inv-new-client-address").value = draft.clientAddress || "";
       document.getElementById("inv-new-site-address").value = draft.siteAddress || "";
       document.getElementById("inv-new-siret").value = draft.siret || "";
@@ -9861,6 +9927,7 @@ window.profactureTrack = function(name, params) {
         document.getElementById("inv-new-type").value = editing.invoiceType || "standard";
         document.getElementById("inv-new-issue").value = editing.issue;
         document.getElementById("inv-new-due").value = editing.due || "";
+        document.getElementById("inv-new-payment-label").value = editing.paymentDisplay || "";
         document.getElementById("inv-new-client-address").value = editing.clientAddress || "";
         document.getElementById("inv-new-site-address").value = editing.siteAddress || "";
         document.getElementById("inv-new-siret").value = editing.siret || "";
@@ -9875,6 +9942,7 @@ window.profactureTrack = function(name, params) {
         var today = new Date();
         if (issueEl) issueEl.value = today.toISOString().slice(0, 10);
         if (dueEl) dueEl.value = "";
+        document.getElementById("inv-new-payment-label").value = "";
         var siteEl = document.getElementById("inv-new-site-address");
         if (siteEl) siteEl.value = "";
         var siretEl = document.getElementById("inv-new-siret");
@@ -9902,6 +9970,7 @@ window.profactureTrack = function(name, params) {
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
         documentType: "invoice", country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
+        paymentDisplay: document.getElementById("inv-new-payment-label").value,
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
       }));
     }
@@ -9962,6 +10031,7 @@ window.profactureTrack = function(name, params) {
           existing.signature = getCompanySignature();
           existing.issue = issue;
           existing.due = due;
+          existing.paymentDisplay = document.getElementById("inv-new-payment-label").value;
           existing.total = total;
           existing.subtotal = exactTotals.subtotal;
           existing.taxTotal = exactTotals.taxTotal;
@@ -9996,6 +10066,7 @@ window.profactureTrack = function(name, params) {
           logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(),
           issue: issue,
           due: due,
+          paymentDisplay: document.getElementById("inv-new-payment-label").value,
           status: status,
           total: total,
           subtotal: exactTotals.subtotal,
@@ -10224,7 +10295,7 @@ window.profactureTrack = function(name, params) {
         var sourceInvoice = INVOICES.filter(function (x) { return x.id === duplicateBtn.getAttribute("data-invoice-duplicate"); })[0];
         if (!sourceInvoice) return;
         var duplicatedInvoice = Object.assign({}, sourceInvoice, {
-          id: nextDocumentId("INV-", INVOICES), status: "Draft", issue: new Date().toISOString().slice(0, 10), due: "", payments: [],
+          id: nextDocumentId("INV-", INVOICES), status: "Draft", issue: new Date().toISOString().slice(0, 10), due: "", paymentDisplay: "", payments: [],
           items: (sourceInvoice.items || []).map(function (item) { return Object.assign({}, item); }), updatedAt: new Date().toISOString()
         });
         INVOICES.push(duplicatedInvoice);

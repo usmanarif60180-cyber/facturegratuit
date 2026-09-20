@@ -25,7 +25,13 @@ const context = vm.createContext({
   htmlLines: value => String(value ?? '')
 });
 vm.runInContext(section('    function calculateDocumentTotals(', '    function readCurrencyAmount('), context);
+vm.runInContext(section('    var DS_THEMES = [', '    var DS_FONTS = ['), context);
 vm.runInContext(section('    function documentCopy(', '    function fitDocPreview('), context);
+assert.equal(context.DS_THEMES.length, 100);
+assert.equal(new Set(context.DS_THEMES.map(theme => theme.id)).size, 100);
+assert.equal(new Set(context.DS_THEMES.map(theme => [theme.primary, theme.secondary, theme.accent].join('/'))).size, 100);
+assert.ok(context.DS_THEMES.every(theme => /^#[0-9A-F]{6}$/.test(theme.primary) && /^#[0-9A-F]{6}$/.test(theme.secondary)));
+assert.ok(context.DS_THEMES.slice(12).every(theme => context.dsWhiteContrast(theme.primary) >= 4.5));
 assert.equal((source.match(/window\.renderClientFinancials\(c\)/g) || []).length, 1);
 for (const type of ['invoice', 'quote']) {
   for (const items of [[], [{ desc: 'Service', qty: 2, price: 100, tax: 'vat20' }]]) {
@@ -52,6 +58,14 @@ const stampedInvoice = context.buildDocPrintHtml({
 assert.ok(stampedInvoice.includes('print-doc-sig'));
 assert.equal((stampedInvoice.match(/data:image\/png;base64,/g) || []).length, 2);
 assert.ok(stampedInvoice.indexOf('print-doc-sig') > stampedInvoice.indexOf('print-doc-table'));
+for (const [paymentDisplay, expected] of [['paid', 'PAYÉE'], ['unpaid', 'NON PAYÉE'], ['overdue', 'EN RETARD']]) {
+  const html = context.buildDocPrintHtml({ documentType: 'invoice', country: 'FR', paymentDisplay });
+  assert.ok(html.includes(`>${expected}</div>`));
+  assert.ok(!context.buildDocPrintHtml({ documentType: 'quote', country: 'FR', paymentDisplay }).includes('print-doc-payment-badge'));
+}
+assert.ok(!context.buildDocPrintHtml({ documentType: 'invoice', paymentDisplay: '<script>' }).includes('print-doc-payment-badge'));
+assert.ok(source.includes('paymentDisplay: document.getElementById("inv-new-payment-label").value'));
+assert.ok(source.includes('paymentDisplay: inv.paymentDisplay || ""'));
 const description = 'Preparation du chantier\n' + 'Details des travaux '.repeat(100) + '\n</textarea><script>test</script>';
 const multiline = context.buildDocPrintHtml({ documentType: 'quote', items: [{ desc: description, qty: 1, price: 10, tax: 'none' }] });
 assert.ok(multiline.includes('Preparation du chantier\n'));
