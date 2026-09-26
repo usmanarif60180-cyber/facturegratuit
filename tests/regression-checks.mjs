@@ -7,6 +7,12 @@ const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const functionsSource = fs.readFileSync(path.join(root, "functions", "index.js"), "utf8");
 const firestoreRules = fs.readFileSync(path.join(root, "firestore.rules"), "utf8");
 
+assert.equal((index.match(/<h1\b/gi) || []).length, 1, "Homepage must expose one clear primary H1");
+assert(index.includes("Facture Gratuite en Ligne &amp; Devis PDF") || index.includes("Facture Gratuite en Ligne & Devis PDF"), "Homepage title no longer targets the primary invoice intent");
+assert(index.includes('"@id": "https://facturergratuit.com/#organization"'), "Organization structured data is missing");
+assert(index.includes('contact@facturergratuit.com') && index.includes('"contactType": "customer support"'), "Organization contact metadata is incomplete");
+assert(index.includes('rel="sitemap" type="application/xml"'), "Sitemap discovery link is missing");
+
 const requiredProductionMarkers = [
   'content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso"',
   "ca-pub-4956341710070686",
