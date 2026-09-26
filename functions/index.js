@@ -53,6 +53,8 @@ const AI_TAX_CODES = new Set(['none', 'vat20', 'vat10', 'vat55', 'vat21', 'gst10
 const FINANCIAL_TAX_RATES = Object.freeze({ none: 0, vat20: 20, vat10: 10, vat55: 5.5, vat21: 2.1, gst10: 10, sales8: 8 });
 const USER_STORAGE_LIMIT_BYTES = 500 * 1024 * 1024;
 const USER_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
+const PHONE_OTP_DAILY_LIMIT = 5;
+const PHONE_OTP_IP_DAILY_LIMIT = 20;
 const OWNER_EMAILS = new Set(['usmanarif621@gmail.com']);
 const BACKUP_COLLECTIONS = ['clients', 'products', 'projects', 'history', 'quotes', 'expenses', 'leads', 'customerCompanies', 'tasks', 'files', 'workspaces', 'payments', 'labor', 'avenants', 'documents'];
 const AI_DATA_COLLECTIONS = [
@@ -63,6 +65,34 @@ const AI_DATA_COLLECTIONS = [
   { key: 'payments', collection: 'payments' }, { key: 'amendments', collection: 'avenants' },
   { key: 'labourEntries', collection: 'labor' }, { key: 'documents', collection: 'documents' }
 ];
+
+// Reserve an SMS attempt before the browser asks Firebase Auth to send it.
+// App Check rejects scripts outside the registered web app; Firestore transactions
+// keep the per-number and per-IP counters atomic across browsers and devices.
+exports.reservePhoneOtp = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
+  const phone = String(request.data?.phone || '').replace(/\s+/g, '');
+  if (!/^\+[1-9]\d{7,14}$/.test(phone)) throw new HttpsError('invalid-argument', 'Numéro international invalide.');
+  const day = new Date().toISOString().slice(0, 10);
+  const ip = String(request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+  const phoneHash = crypto.createHash('sha256').update(phone).digest('hex');
+  const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
+  const phoneRef = db.doc(`securityRateLimits/phoneOtp-${day}-${phoneHash}`);
+  const ipRef = db.doc(`securityRateLimits/phoneOtpIp-${day}-${ipHash}`);
+  let remaining = 0;
+  await db.runTransaction(async (transaction) => {
+    const [phoneSnap, ipSnap] = await Promise.all([transaction.get(phoneRef), transaction.get(ipRef)]);
+    const phoneCount = Number(phoneSnap.data()?.count || 0);
+    const ipCount = Number(ipSnap.data()?.count || 0);
+    if (phoneCount >= PHONE_OTP_DAILY_LIMIT || ipCount >= PHONE_OTP_IP_DAILY_LIMIT) {
+      throw new HttpsError('resource-exhausted', 'Limite SMS quotidienne atteinte.');
+    }
+    const now = admin.firestore.FieldValue.serverTimestamp();
+    remaining = Math.max(0, PHONE_OTP_DAILY_LIMIT - phoneCount - 1);
+    transaction.set(phoneRef, { count: phoneCount + 1, day, updatedAt: now }, { merge: true });
+    transaction.set(ipRef, { count: ipCount + 1, day, updatedAt: now }, { merge: true });
+  });
+  return { allowed: true, remaining };
+});
 
 async function authorizedCompanyScope(uid, companyId) {
   const membership = await getMembership(companyId, uid).catch(() => null);
@@ -135,7 +165,7 @@ async function loadAuthorizedAiContext(uid, companyId) {
   return context;
 }
 
-exports.acceptQuote = onCall(async (request) => {
+exports.acceptQuote = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const companyId = cleanAiText(request.data && request.data.companyId, 160);
   const quoteId = cleanAiText(request.data && request.data.quoteId, 160);
@@ -481,7 +511,7 @@ const OCR_RESPONSE_SCHEMA = {
 };
 
 // Authenticated business assistant. The provider key never reaches the browser.
-exports.aiAssistant = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory: '256MiB', consumeAppCheckToken: true }, async (request) => {
+exports.aiAssistant = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory: '256MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const message = cleanAiText(request.data?.message, AI_LIMITS.messageChars);
   if (!message) throw new HttpsError('invalid-argument', 'Message requis.');
@@ -544,7 +574,7 @@ exports.aiAssistant = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory
 
 // Receipt/supplier-invoice OCR. Extraction only: the browser displays an
 // editable review and the user explicitly applies it to a new expense.
-exports.aiDocumentScan = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory: '256MiB', consumeAppCheckToken: true }, async (request) => {
+exports.aiDocumentScan = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory: '256MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const companyId = cleanAiText(request.data?.companyId || 'default', 160);
   const upload = parseUploadDataUrl(request.data?.dataUrl);
@@ -606,7 +636,7 @@ exports.aiDocumentScan = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, mem
   throw new HttpsError('unavailable', "L'analyse du document a échoué.");
 });
 
-exports.chantierFinancialSummary = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheckToken: true }, async (request) => {
+exports.chantierFinancialSummary = onCall({ timeoutSeconds: 20, memory: '128MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const companyId = cleanAiText(request.data?.companyId, 160);
   const projectId = cleanAiText(request.data?.projectId, 160);
@@ -680,7 +710,7 @@ function cleanStoragePath(value) {
   return path;
 }
 
-exports.storageManager = onCall({ timeoutSeconds: 60, memory: '256MiB', consumeAppCheckToken: true }, async (request) => {
+exports.storageManager = onCall({ timeoutSeconds: 60, memory: '256MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const operation = ['status', 'upload', 'delete'].includes(request.data?.operation) ? request.data.operation : 'status';
   const usageRef = db.doc(`users/${auth.uid}/private/storageUsage`);
@@ -726,7 +756,7 @@ exports.storageManager = onCall({ timeoutSeconds: 60, memory: '256MiB', consumeA
 
 // Company-scoped AI history. It is only available to the signed-in owner and
 // never exposed through direct Firestore rules.
-exports.aiHistory = onCall({ timeoutSeconds: 15, memory: '128MiB', consumeAppCheckToken: true }, async (request) => {
+exports.aiHistory = onCall({ timeoutSeconds: 15, memory: '128MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const companyId = cleanAiText(request.data?.companyId || 'default', 160);
   const operation = request.data?.operation === 'clear' ? 'clear' : 'load';
@@ -746,7 +776,7 @@ exports.aiHistory = onCall({ timeoutSeconds: 15, memory: '128MiB', consumeAppChe
   })) };
 });
 
-exports.aiUsage = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheckToken: true }, async (request) => {
+exports.aiUsage = onCall({ timeoutSeconds: 20, memory: '128MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const companyId = cleanAiText(request.data?.companyId || 'default', 160);
   const userUsage = await db.doc(`users/${auth.uid}/private/aiUsage`).get();
@@ -783,7 +813,7 @@ exports.aiUsage = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheck
 // Each account has one active review, moderated before publication.
 // The browser never reads this collection directly, so pending feedback and
 // user identifiers cannot leak through Firestore rules.
-exports.submitPublicReview = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheckToken: true }, async (request) => {
+exports.submitPublicReview = onCall({ timeoutSeconds: 20, memory: '128MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const message = cleanAiText(request.data?.message, 600);
   const publicName = cleanAiText(request.data?.publicName || auth.token.name || 'ProFacture user', 60);
@@ -810,7 +840,7 @@ exports.submitPublicReview = onCall({ timeoutSeconds: 20, memory: '128MiB', cons
   return { status: 'pending' };
 });
 
-exports.listPublicReviews = onCall({ timeoutSeconds: 20, memory: '128MiB', consumeAppCheckToken: true }, async () => {
+exports.listPublicReviews = onCall({ timeoutSeconds: 20, memory: '128MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async () => {
   const snap = await db.collection('publicFeedback').where('status', '==', 'approved').limit(50).get();
   const reviews = snap.docs.map((doc) => doc.data()).sort((a, b) => {
     const aTime = a.approvedAt?.toMillis?.() || a.updatedAt?.toMillis?.() || 0;
@@ -835,7 +865,7 @@ async function readUserBackupData(uid) {
   return { account: accountSnap.exists ? accountSnap.data() : {}, collections };
 }
 
-exports.workspaceBackup = onCall({ timeoutSeconds: 60, memory: '256MiB', consumeAppCheckToken: true }, async (request) => {
+exports.workspaceBackup = onCall({ timeoutSeconds: 60, memory: '256MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const operation = ['create', 'list', 'load'].includes(request.data?.operation) ? request.data.operation : 'list';
   const backups = db.collection(`users/${auth.uid}/backups`);
@@ -913,7 +943,7 @@ async function clearIndexRole(uid, companyId) {
 // ═══════════════════════════════════════════════
 // createCompany
 // ═══════════════════════════════════════════════
-exports.createCompany = onCall(async (request) => {
+exports.createCompany = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const name = String(request.data?.name || '').trim();
   if (!name) throw new HttpsError('invalid-argument', 'Nom de société requis.');
@@ -941,7 +971,7 @@ exports.createCompany = onCall(async (request) => {
 // ═══════════════════════════════════════════════
 // sendInvitation
 // ═══════════════════════════════════════════════
-exports.sendInvitation = onCall(async (request) => {
+exports.sendInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const { companyId, email, role } = request.data || {};
   if (!companyId) throw new HttpsError('invalid-argument', 'companyId requis.');
@@ -991,7 +1021,7 @@ exports.sendInvitation = onCall(async (request) => {
 // ═══════════════════════════════════════════════
 // resendInvitation
 // ═══════════════════════════════════════════════
-exports.resendInvitation = onCall(async (request) => {
+exports.resendInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const { companyId, invitationId } = request.data || {};
   if (!companyId || !invitationId) throw new HttpsError('invalid-argument', 'Paramètres requis.');
@@ -1034,7 +1064,7 @@ async function sendInviteEmail({ companyId, inviteId, token, email, companyName,
 // ═══════════════════════════════════════════════
 // cancelInvitation
 // ═══════════════════════════════════════════════
-exports.cancelInvitation = onCall(async (request) => {
+exports.cancelInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const { companyId, invitationId } = request.data || {};
   if (!companyId || !invitationId) throw new HttpsError('invalid-argument', 'Paramètres requis.');
@@ -1052,7 +1082,7 @@ exports.cancelInvitation = onCall(async (request) => {
 // ═══════════════════════════════════════════════
 // acceptInvitation
 // ═══════════════════════════════════════════════
-exports.acceptInvitation = onCall(async (request) => {
+exports.acceptInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const { companyId, invitationId, token } = request.data || {};
   if (!companyId || !invitationId || !token) throw new HttpsError('invalid-argument', 'Paramètres requis.');
@@ -1096,7 +1126,7 @@ exports.acceptInvitation = onCall(async (request) => {
 // ═══════════════════════════════════════════════
 // declineInvitation
 // ═══════════════════════════════════════════════
-exports.declineInvitation = onCall(async (request) => {
+exports.declineInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   requireAuth(request);
   const { companyId, invitationId, token } = request.data || {};
   if (!companyId || !invitationId || !token) throw new HttpsError('invalid-argument', 'Paramètres requis.');
@@ -1115,7 +1145,7 @@ exports.declineInvitation = onCall(async (request) => {
 // ═══════════════════════════════════════════════
 // updateMemberRole
 // ═══════════════════════════════════════════════
-exports.updateMemberRole = onCall(async (request) => {
+exports.updateMemberRole = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const { companyId, memberUid, role } = request.data || {};
   if (!companyId || !memberUid || !isValidRole(role)) throw new HttpsError('invalid-argument', 'Paramètres invalides.');
@@ -1146,7 +1176,7 @@ exports.updateMemberRole = onCall(async (request) => {
 // ═══════════════════════════════════════════════
 // toggleMemberStatus
 // ═══════════════════════════════════════════════
-exports.toggleMemberStatus = onCall(async (request) => {
+exports.toggleMemberStatus = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const { companyId, memberUid, status } = request.data || {};
   if (!companyId || !memberUid || !['active', 'inactive'].includes(status)) {
@@ -1167,7 +1197,7 @@ exports.toggleMemberStatus = onCall(async (request) => {
 // ═══════════════════════════════════════════════
 // removeMember
 // ═══════════════════════════════════════════════
-exports.removeMember = onCall(async (request) => {
+exports.removeMember = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const { companyId, memberUid } = request.data || {};
   if (!companyId || !memberUid) throw new HttpsError('invalid-argument', 'Paramètres requis.');
@@ -1189,7 +1219,7 @@ exports.removeMember = onCall(async (request) => {
 // ═══════════════════════════════════════════════
 // leaveCompany (self-service)
 // ═══════════════════════════════════════════════
-exports.leaveCompany = onCall(async (request) => {
+exports.leaveCompany = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const { companyId } = request.data || {};
   if (!companyId) throw new HttpsError('invalid-argument', 'companyId requis.');

@@ -83,7 +83,7 @@ assert(index.includes('id="settings-panel-data"') && index.includes('id="backup-
 assert(index.includes('navigator.locks.request("profacture-cloud-sync-"'), "Cross-tab cloud sync lock is missing");
 assert(index.includes('function readAllCloudDocs(user, collectionName)'), "Cloud collection pagination is missing");
 assert(index.includes('integrity="sha384-'), "Pinned CDN integrity metadata is missing");
-assert(index.includes('id="ai-history-clear"') && index.includes('id="ai-usage"'), "AI history and usage controls are missing");
+assert(index.includes('id="ai-history-clear"') && index.includes('id="ai-popup-usage"') && index.includes('id="ai-page-usage"'), "AI history and usage controls are missing");
 assert(index.includes('Review & apply · '), "AI document actions must show a review step");
 assert(functionsSource.includes('exports.aiDocumentScan = onCall') && index.includes('id="ae-scan-receipt"'), "Secure receipt OCR review is missing");
 assert(index.includes('id="ai-cost-panel"') && index.includes('id="ai-memory-notes"'), "AI company memory and cost controls are missing");
@@ -167,6 +167,20 @@ htmlFiles.forEach(name => {
   assert(/<title>[^<]{10,}<\/title>/i.test(html), `${name}: missing useful title`);
   assert(/<meta\s+name="description"\s+content="[^"]{50,}"/i.test(html), `${name}: missing useful meta description`);
   assert(!html.includes('sandbox="allow-scripts allow-same-origin"'), `${name}: advertising iframe has unsafe sandbox permissions`);
+  assert(!/\ssrcdoc="[^"]*highperformanceformat\.com/i.test(html), `${name}: advertising iframe loads before consent`);
+  assert(!html.includes("pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"), `${name}: AdSense loads before consent`);
+  if (html.includes("highperformanceformat.com") || html.includes("google-adsense-account")) {
+    assert(html.includes('/consent-ads.js'), `${name}: shared consent loader is missing`);
+  }
+
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+  const duplicateIds = ids.filter((id, position) => ids.indexOf(id) !== position);
+  assert.equal(duplicateIds.length, 0, `${name}: duplicate IDs: ${[...new Set(duplicateIds)].join(", ")}`);
 });
+
+assert(index.includes("initializeAppCheck") && index.includes("ReCaptchaEnterpriseProvider"), "Firebase App Check is missing");
+assert(index.includes('reservePhoneOtpCallable') && functionsSource.includes('exports.reservePhoneOtp = onCall'), "Server-side phone OTP reservation is missing");
+assert(functionsSource.includes('PHONE_OTP_DAILY_LIMIT = 5') && functionsSource.includes('PHONE_OTP_IP_DAILY_LIMIT = 20'), "Server-side phone OTP limits changed");
+assert(functionsSource.includes('enforceAppCheck: true'), "Callable App Check enforcement is missing");
 
 console.log(`Regression checks passed: ${htmlFiles.length} HTML pages and ${localUrls.length} sitemap URLs.`);

@@ -2,11 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
-<!-- Google AdSense account script kept for publisher verification/account status. -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4956341710070686" crossorigin="anonymous"></script>
+<script defer src="/consent-ads.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
@@ -227,35 +225,6 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc" crossorigin="anonymous"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-JJCNL9THWD"></script>
-<script>
-window.dataLayer = window.dataLayer || [];
-function gtag(){ dataLayer.push(arguments); }
-gtag('consent', 'default', {
-  ad_storage: 'denied',
-  analytics_storage: 'denied',
-  ad_user_data: 'denied',
-  ad_personalization: 'denied',
-  wait_for_update: 500
-});
-gtag('js', new Date());
-gtag('config', 'G-JJCNL9THWD', { send_page_view: true });
-try {
-  if (localStorage.getItem('facturepro-cookie-consent') === 'accepted') {
-    gtag('consent', 'update', {
-      ad_storage: 'granted',
-      analytics_storage: 'granted',
-      ad_user_data: 'granted',
-      ad_personalization: 'granted'
-    });
-  }
-} catch {}
-window.profactureTrack = function(name, params) {
-  try {
-    if (typeof gtag === 'function') gtag('event', name, Object.assign({ app_version: '2026.08' }, params || {}));
-  } catch (error) { /* analytics must never block the app */ }
-};
-</script>
 <meta name="google-adsense-account" content="ca-pub-4956341710070686">
 <style>
   :root {
@@ -1442,7 +1411,7 @@ window.profactureTrack = function(name, params) {
 <div class="gfab-wrap" id="gfab-wrap">
   <div class="card ai-popup" id="ai-popup" role="dialog" aria-modal="true" aria-labelledby="ai-popup-title" aria-hidden="true" tabindex="-1">
     <div class="ai-popup-head"><div><strong id="ai-popup-title">✦ ProFacture AI</strong><div style="font-size:.7rem;color:hsl(var(--muted-fg));">Invoice, quote and business help</div></div><div class="ai-popup-tools"><button class="btn btn-ghost btn-icon" id="ai-history-clear" aria-label="Clear AI history" title="Clear AI history">↺</button><button class="btn btn-ghost btn-icon" id="ai-popup-close" aria-label="Close assistant">✕</button></div></div>
-    <div class="ai-usage" id="ai-usage" role="status">25 secure AI requests available per day</div>
+    <div class="ai-usage" id="ai-popup-usage" role="status">25 secure AI requests available per day</div>
     <div class="ai-popup-chat" id="ai-popup-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="msg bot">Bonjour. Je peux préparer une facture ou un devis, analyser votre activité et vous guider dans le workspace.</div></div>
     <div class="ai-popup-compose"><input class="field" id="ai-popup-input" placeholder="Ask ProFacture AI…" autocomplete="off" /><button class="btn btn-primary btn-icon" id="ai-popup-send" aria-label="Send message">➤</button></div>
   </div>
@@ -3504,7 +3473,7 @@ window.profactureTrack = function(name, params) {
   }
   var currentLang = (function () {
     try {
-      var savedLang = localStorage.getItem("profacture_lang") || "en-US";
+      var savedLang = localStorage.getItem("profacture_lang") || "fr";
       return savedLang === "en" ? "en-US" : savedLang;
     } catch (e) { return "en-US"; }
   })();
@@ -4646,7 +4615,7 @@ window.profactureTrack = function(name, params) {
     <div class="app-main">
       <div id="topbar-ai"></div>
       <div class="app-content">
-        <div class="page-head"><div><h1>AI Command Center</h1><p>Company-aware assistance with review-before-apply controls.</p></div><span class="badge badge-primary" id="ai-usage">Secure usage loading...</span></div>
+        <div class="page-head"><div><h1>AI Command Center</h1><p>Company-aware assistance with review-before-apply controls.</p></div><span class="badge badge-primary" id="ai-page-usage">Secure usage loading...</span></div>
         <div class="dash-grid" style="margin-bottom:1.1rem;grid-template-columns:1.15fr 0.85fr;">
           <div class="card card-pad">
             <div class="card-title">Company AI memory <span class="badge badge-default" id="ai-memory-company">Current company</span></div>
@@ -5448,7 +5417,16 @@ window.profactureTrack = function(name, params) {
     var ADSTERRA_728_KEY = "d1bc43d9c361497fe84f0149e51b36ae";
     var ADSTERRA_728_INVOKE = "https://www.highperformanceformat.com/" + ADSTERRA_728_KEY + "/invoke.js";
     var MOBILE_ADS_DISABLED = window.matchMedia("(max-width: 900px)").matches;
+    var PUBLIC_AD_VIEWS = ["landing", "pricing", "blog", "blog-post", "help", "resources", "tools", "tool", "country", "landing-example"];
     var adSlotCounter = 0;
+    function optionalAdsAllowed() {
+      try { return !MOBILE_ADS_DISABLED && localStorage.getItem("facturepro-cookie-consent") === "accepted"; }
+      catch (error) { return false; }
+    }
+    function isPublicAdSlot(slot) {
+      var view = slot && slot.closest(".view");
+      return !view || PUBLIC_AD_VIEWS.indexOf(String(view.id || "").replace(/^view-/, "")) !== -1;
+    }
     function renderAdSlotsHtml(sizes) {
       return sizes.map(function (s) {
         adSlotCounter++;
@@ -5460,11 +5438,12 @@ window.profactureTrack = function(name, params) {
     }
     function mountAdsterraSlot(slot) {
       if (!slot || slot.dataset.adsterraMounted === "1") return;
-      if (MOBILE_ADS_DISABLED) {
-        slot.dataset.adsterraMounted = "blocked-mobile";
+      if (!optionalAdsAllowed() || !isPublicAdSlot(slot)) {
+        slot.dataset.adsterraMounted = MOBILE_ADS_DISABLED ? "blocked-mobile" : "blocked-consent";
         slot.hidden = true;
         return;
       }
+      slot.hidden = false;
       slot.dataset.adsterraMounted = "1";
       var w = parseInt(slot.getAttribute("data-adsterra-width") || "728", 10);
       var h = parseInt(slot.getAttribute("data-adsterra-height") || "90", 10);
@@ -5522,8 +5501,9 @@ window.profactureTrack = function(name, params) {
       mountAllAdsterraSlots(document.querySelector(".view.active") || document);
     }
     function placeAdStrips() {
-      if (MOBILE_ADS_DISABLED) return;
+      if (!optionalAdsAllowed()) return;
       document.querySelectorAll(".view").forEach(function (view) {
+        if (PUBLIC_AD_VIEWS.indexOf(String(view.id || "").replace(/^view-/, "")) === -1) return;
         if (view.dataset.adsPlaced) return;
         view.dataset.adsPlaced = "1";
         var container = view.querySelector(".app-content") || view.querySelector(".auth-wrap") || view;
@@ -5556,6 +5536,11 @@ window.profactureTrack = function(name, params) {
       setTimeout(placeAdStrips, 400);
     }
     mountAllAdsterraSlots(document.querySelector(".view.active") || document);
+    document.addEventListener("profacture:adsconsented", function () {
+      document.querySelectorAll('[data-adsterra-mounted="blocked-consent"]').forEach(function (slot) { delete slot.dataset.adsterraMounted; slot.hidden = false; });
+      placeAdStrips();
+      mountAllAdsterraSlots(document.querySelector(".view.active") || document);
+    });
     if ("MutationObserver" in window) {
       var adObserver = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
@@ -6725,8 +6710,8 @@ window.profactureTrack = function(name, params) {
           throw new Error("AI_NOT_READY");
         }
         typing.textContent = response.reply || "Je peux vous aider avec votre workspace.";
-        var usageEl = document.getElementById("ai-usage");
-        if (usageEl && response.usage) usageEl.textContent = response.usage.dailyUsed + " of " + response.usage.dailyLimit + " secure AI requests used today";
+        var usageEls = [document.getElementById("ai-popup-usage"), document.getElementById("ai-page-usage")];
+        if (response.usage) usageEls.filter(Boolean).forEach(function (usageEl) { usageEl.textContent = response.usage.dailyUsed + " of " + response.usage.dailyLimit + " secure AI requests used today"; });
         aiConversation.push({ role: "user", text: text }, { role: "assistant", text: typing.textContent });
         aiConversation = aiConversation.slice(-12);
         if (response.action && response.action.type && response.action.type !== "none") response.action.workspaceCompanyId = wsActiveId;
@@ -6783,8 +6768,9 @@ window.profactureTrack = function(name, params) {
           '<div>This company this month <strong style="float:right;">' + usage.companyMonthlyRequests + ' requests · $' + Number(usage.companyEstimatedCostUsd || 0).toFixed(4) + '</strong></div>' +
           (usage.isOwner ? '<div>Service monthly guard <strong style="float:right;">$' + Number(usage.estimatedCostUsd || 0).toFixed(4) + ' / $' + Number(usage.monthlyCostLimitUsd || 0).toFixed(2) + '</strong></div>' : '') +
           '<p style="font-size:0.72rem;">Flash-Lite is preferred, duplicate requests are cached, and scanning costs 3 credits. Processing stops at the server budget cap.</p></div>';
-        var badge = document.getElementById("ai-usage");
-        if (badge) badge.textContent = (usage.dailyLimit - usage.dailyUsed) + " secure credits left today";
+        [document.getElementById("ai-popup-usage"), document.getElementById("ai-page-usage")].filter(Boolean).forEach(function (badge) {
+          badge.textContent = (usage.dailyLimit - usage.dailyUsed) + " secure credits left today";
+        });
       } catch (error) {
         panel.textContent = "Sign in to view protected AI usage.";
       }
@@ -12692,6 +12678,7 @@ window.profactureTrack = function(name, params) {
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, orderBy, documentId, startAfter, limit as firestoreLimit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
   import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
+  import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app-check.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0",
@@ -12703,6 +12690,10 @@ window.profactureTrack = function(name, params) {
     measurementId: "G-JJCNL9THWD"
   };
   const firebaseApp = initializeApp(firebaseConfig);
+  const appCheck = initializeAppCheck(firebaseApp, {
+    provider: new ReCaptchaEnterpriseProvider("6LeTiNAtAAAAANECHsLH9lU0smjH3KLOX3yxf2b0"),
+    isTokenAutoRefreshEnabled: true
+  });
   const auth = getAuth(firebaseApp);
   const db = getFirestore(firebaseApp);
 	const functions = getFunctions(firebaseApp, "us-central1");
@@ -12716,6 +12707,7 @@ window.profactureTrack = function(name, params) {
 	const workspaceBackupCallable = httpsCallable(functions, "workspaceBackup", { limitedUseAppCheckTokens: true });
 	const acceptQuoteCallable = httpsCallable(functions, "acceptQuote", { limitedUseAppCheckTokens: true });
 	const chantierFinancialSummaryCallable = httpsCallable(functions, "chantierFinancialSummary", { limitedUseAppCheckTokens: true });
+	const reservePhoneOtpCallable = httpsCallable(functions, "reservePhoneOtp", { limitedUseAppCheckTokens: true });
 	window.profactureAskAi = async payload => {
 	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
 	  const result = await askAiCallable(Object.assign({}, payload, { requestId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) }));
@@ -13675,8 +13667,10 @@ window.profactureTrack = function(name, params) {
         });
         await recaptchaVerifier.render();
       }
+      const reservation = await reservePhoneOtpCallable({ phone });
       phoneConfirmation = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-      const remaining = recordPhoneOtpSent(availability);
+      const localRemaining = recordPhoneOtpSent(availability);
+      const remaining = Math.min(localRemaining, Number(reservation.data?.remaining ?? localRemaining));
       document.getElementById("verify-otp-form").hidden = false;
       showAuthStatus("recovery-phone-status", "Verification code sent by SMS. " + remaining + " request" + (remaining === 1 ? "" : "s") + " remaining today.", "success");
       document.getElementById("recovery-otp").focus();
