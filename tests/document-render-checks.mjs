@@ -22,11 +22,12 @@ const context = vm.createContext({
   t: key => key, fmtDate: date => date || '',
   formatCurrency: (n, code) => `${code} ${n.toFixed(2)}`,
   escapeHtml: value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
-  htmlLines: value => String(value ?? '')
+  htmlLines: value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('\n', '<br>')
 });
 vm.runInContext(section('    function calculateDocumentTotals(', '    function readCurrencyAmount('), context);
 vm.runInContext(section('    var DS_TEMPLATES = [', '    var DS_THEMES = ['), context);
 vm.runInContext(section('    var DS_THEMES = [', '    var DS_FONTS = ['), context);
+vm.runInContext(section('    var DS_FONTS = [', '    function dsApplyPreview()'), context);
 vm.runInContext(section('    function documentCopy(', '    function fitDocPreview('), context);
 assert.equal(context.DS_TEMPLATES.length, 100);
 assert.equal(new Set(context.DS_TEMPLATES.map(model => model.id)).size, 100);
@@ -39,6 +40,25 @@ assert.ok(context.DS_THEMES.slice(12).every(theme => context.dsWhiteContrast(the
 context.dsState.layout = 'split';
 assert.ok(context.buildDocPrintHtml({ documentType: 'invoice' }).includes('data-layout="split"'));
 context.dsState.layout = 'classic';
+const preserved = context.captureDocumentDesign();
+preserved.primary = '#14532D';
+preserved.layout = 'editorial';
+preserved.sections.signature = false;
+preserved.sections.bankInfo = true;
+preserved.extras.bankInfo = 'IBAN FR123';
+preserved.extras.notes = '<script>unsafe</script>';
+const savedHtml = context.buildDocPrintHtml({ documentType: 'invoice', design: preserved, stamp: 'data:image/png;base64,AAAA' });
+assert.ok(savedHtml.includes('data-layout="editorial"'));
+assert.ok(savedHtml.includes('IBAN FR123'));
+assert.ok(savedHtml.includes('&lt;script&gt;unsafe&lt;/script&gt;'));
+assert.ok(!savedHtml.includes('print-doc-sig'));
+context.dsState.primary = '#111111';
+assert.ok(context.buildDocPrintHtml({ documentType: 'invoice', design: preserved }).includes('color:#14532D'));
+assert.equal(context.safeDocumentDesign({ primary: 'red;position:absolute', fontId: 'bogus', sections: { companyBlock: false } }).sections.companyBlock, true);
+assert.ok(source.includes('design: captureDocumentDesign()'));
+assert.ok(source.includes('design: inv.design || LEGACY_DOCUMENT_DESIGN'));
+assert.ok(source.includes('design: q.design || LEGACY_DOCUMENT_DESIGN'));
+context.dsState.primary = '#2563EB';
 assert.equal((source.match(/window\.renderClientFinancials\(c\)/g) || []).length, 1);
 for (const type of ['invoice', 'quote']) {
   for (const items of [[], [{ desc: 'Service', qty: 2, price: 100, tax: 'vat20' }]]) {

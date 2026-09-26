@@ -746,6 +746,7 @@ window.profactureTrack = function(name, params) {
   .print-doc-total { align-self: flex-end; min-width: 15rem; padding: 0.78rem 0.85rem; text-align: right; font-size: 1.12rem; font-weight: 800; color: #111; }
   .print-doc-tax-note { align-self: flex-end; width: min(100%, 21rem); margin: -0.35rem 0 1rem; padding: 0.55rem 0.75rem; border-left: 3px solid #64748b; background: #f8fafc; color: #475569; font-size: 0.72rem; line-height: 1.4; break-inside: avoid; page-break-inside: avoid; }
   .print-doc-legal { margin-bottom: 1rem; padding-top: 0.7rem; border-top: 1px solid #e5e7eb; color: #64748b; font-size: 0.68rem; line-height: 1.45; break-inside: avoid; page-break-inside: avoid; }
+  .print-doc-optional { margin: 0 0 0.7rem; padding: 0.4rem 0; border-top: 1px solid #e5e7eb; color: #334155; font-size: 0.75rem; line-height: 1.45; overflow-wrap: anywhere; break-inside: avoid; page-break-inside: avoid; }
   .print-doc-sig { width: 100%; margin-top: auto; padding-top: 1rem; border-top: 1px solid #e5e7eb; text-align: right; break-inside: avoid; page-break-inside: avoid; }
   .print-doc-sig img { max-height: 4.6rem; }
   .doc-builder-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(30rem, 0.9fr); gap: 1.5rem; align-items: start; }
@@ -4046,6 +4047,16 @@ window.profactureTrack = function(name, params) {
 
             <div class="ds-panel" id="ds-panel-layout">
               <div id="ds-sections"></div>
+              <div class="ds-optional-fields">
+                <label class="field-label" for="ds-payment-details-text">Payment details</label>
+                <input class="field" id="ds-payment-details-text" maxlength="300" placeholder="Payment terms or instructions" />
+                <label class="field-label" for="ds-bank-info-text">Bank information</label>
+                <textarea class="field" id="ds-bank-info-text" rows="2" maxlength="500" placeholder="IBAN, BIC and account holder"></textarea>
+                <label class="field-label" for="ds-notes-text">Notes</label>
+                <textarea class="field" id="ds-notes-text" rows="2" maxlength="1000" placeholder="Message for the client"></textarea>
+                <label class="field-label" for="ds-terms-text">Terms &amp; conditions</label>
+                <textarea class="field" id="ds-terms-text" rows="2" maxlength="1000" placeholder="Additional terms"></textarea>
+              </div>
             </div>
           </div>
 
@@ -4080,6 +4091,7 @@ window.profactureTrack = function(name, params) {
                   <div class="row"><span data-i18n="fld_tax">Tax</span><span>$445.00</span></div>
                   <div class="row total" id="ds-doc-total"><span data-i18n="fld_total">Total</span><span>$4,895.00</span></div>
                 </div>
+                <div id="ds-doc-extras" style="margin-top:0.9rem;font-size:0.7rem;line-height:1.5;"></div>
                 <div id="ds-doc-signature" style="margin-top:1.2rem;padding-top:0.8rem;border-top:1px dashed hsl(var(--border));display:none;">
                   <div class="ds-doc-lbl" data-i18n="fld_signature">Signature</div>
                   <div id="ds-doc-signature-body" style="margin-top:0.4rem;"></div>
@@ -7218,17 +7230,67 @@ window.profactureTrack = function(name, params) {
       { id: "brush", name: "Signature Script", family: "Brush Script MT, Segoe Script, cursive" },
     ];
     var DS_SECTIONS = [
-      { id: "companyBlock", label: "Company block", visible: true },
-      { id: "clientBlock", label: "Client block", visible: true },
-      { id: "itemsTable", label: "Items table", visible: true },
-      { id: "summary", label: "Summary", visible: true },
-      { id: "paymentDetails", label: "Payment details", visible: false },
+      { id: "companyBlock", label: "Company block", visible: true, required: true },
+      { id: "clientBlock", label: "Client block", visible: true, required: true },
+      { id: "itemsTable", label: "Items table", visible: true, required: true },
+      { id: "summary", label: "Summary", visible: true, required: true },
+      { id: "paymentDetails", label: "Payment details", visible: true },
       { id: "bankInfo", label: "Bank information", visible: false },
       { id: "notes", label: "Notes", visible: true },
       { id: "terms", label: "Terms & conditions", visible: true },
-      { id: "signature", label: "Signature", visible: false },
+      { id: "signature", label: "Signature", visible: true },
     ];
     var dsState = { primary: "#2563EB", secondary: "#1E3A8A", tableBg: "#EEF2FF", dark: true, accent: "top", layout: "classic", selectedTemplate: "modern-blue", selectedTheme: null, selectedFont: "system", fontFamily: DS_FONTS[0].family };
+    var LEGACY_DOCUMENT_DESIGN = { primary: "#2563EB", secondary: "#1E3A8A", tableBg: "#EEF2FF", dark: true, accent: "top", layout: "classic", fontId: "system", sections: { paymentDetails: true, notes: true, terms: true, signature: true }, extras: {} };
+    var dsExtras = { paymentDetails: "", bankInfo: "", notes: "", terms: "" };
+    function captureDocumentDesign() {
+      var sections = {};
+      DS_SECTIONS.forEach(function (section) { sections[section.id] = section.required || section.visible; });
+      return { templateId: dsState.selectedTemplate, themeId: dsState.selectedTheme, fontId: dsState.selectedFont,
+        primary: dsState.primary, secondary: dsState.secondary, tableBg: dsState.tableBg, dark: dsState.dark,
+        accent: dsState.accent, layout: dsState.layout, sections: sections, extras: Object.assign({}, dsExtras) };
+    }
+    function safeDocumentDesign(snapshot) {
+      var source = snapshot && typeof snapshot === "object" ? snapshot : LEGACY_DOCUMENT_DESIGN;
+      var color = function (value, fallback) { return /^#[0-9a-f]{6}$/i.test(value || "") ? value : fallback; };
+      var font = DS_FONTS.filter(function (item) { return item.id === source.fontId; })[0] || DS_FONTS[0];
+      var sections = {};
+      DS_SECTIONS.forEach(function (section) {
+        sections[section.id] = section.required || !!(source.sections && source.sections[section.id] === true);
+      });
+      var extras = {};
+      Object.keys(dsExtras).forEach(function (key) {
+        extras[key] = typeof (source.extras || {})[key] === "string" ? source.extras[key].slice(0, 1000) : "";
+      });
+      return { templateId: source.templateId, themeId: source.themeId, fontId: font.id, fontFamily: font.family,
+        primary: color(source.primary, "#2563EB"), secondary: color(source.secondary, "#1E3A8A"),
+        tableBg: color(source.tableBg, "#EEF2FF"), dark: source.dark === true,
+        accent: ["top", "left", "none"].indexOf(source.accent) !== -1 ? source.accent : "top",
+        layout: ["classic", "band", "split", "editorial", "minimal"].indexOf(source.layout) !== -1 ? source.layout : "classic",
+        sections: sections, extras: extras };
+    }
+    function applyDocumentDesign(snapshot, deferRender) {
+      if (!snapshot) return;
+      var design = safeDocumentDesign(snapshot);
+      dsState.selectedTemplate = DS_TEMPLATES.some(function (item) { return item.id === design.templateId; }) ? design.templateId : "modern-blue";
+      dsState.selectedTheme = DS_THEMES.some(function (item) { return item.id === design.themeId; }) ? design.themeId : null;
+      dsState.selectedFont = design.fontId;
+      dsState.fontFamily = design.fontFamily;
+      ["primary", "secondary", "tableBg", "dark", "accent", "layout"].forEach(function (key) { dsState[key] = design[key]; });
+      DS_SECTIONS.forEach(function (section) { section.visible = design.sections[section.id]; });
+      dsExtras = design.extras;
+      if (deferRender) return;
+      Object.keys(dsExtras).forEach(function (key) {
+        var field = document.getElementById("ds-" + key.replace(/[A-Z]/g, function (letter) { return "-" + letter.toLowerCase(); }) + "-text");
+        if (field) field.value = dsExtras[key];
+      });
+      dsRenderTemplates(); dsRenderThemes(); dsRenderFonts(); dsRenderSections(); dsApplyPreview();
+    }
+    function persistDocumentDesign() {
+      try { localStorage.setItem("profacture_document_design", JSON.stringify(captureDocumentDesign())); } catch (error) { /* storage may be disabled */ }
+      if (document.getElementById("view-invoice-new").classList.contains("active")) renderInvoicePreview();
+      if (document.getElementById("view-quote-new").classList.contains("active")) renderQuotePreview();
+    }
     try {
       var savedDesignTemplate = DS_TEMPLATES.filter(function (model) { return model.id === localStorage.getItem("profacture_document_template"); })[0];
       if (savedDesignTemplate) {
@@ -7246,6 +7308,8 @@ window.profactureTrack = function(name, params) {
         dsState.primary = savedDesignTheme.primary;
         dsState.secondary = savedDesignTheme.secondary;
       }
+      var savedDesign = JSON.parse(localStorage.getItem("profacture_document_design") || "null");
+      if (savedDesign) applyDocumentDesign(savedDesign, true);
     } catch (e) { /* storage may be disabled */ }
 
     function dsApplyPreview() {
@@ -7285,6 +7349,10 @@ window.profactureTrack = function(name, params) {
           profile.address ? escapeHtml(profile.address).replace(/\n/g, "<br>") : "",
         ].filter(Boolean).join("<br>");
       }
+      var extrasPreview = document.getElementById("ds-doc-extras");
+      if (extrasPreview) extrasPreview.innerHTML = ["paymentDetails", "bankInfo", "notes", "terms"].filter(function (key) {
+        return DS_SECTIONS.some(function (section) { return section.id === key && section.visible; }) && dsExtras[key];
+      }).map(function (key) { return '<div style="margin-top:0.25rem;white-space:pre-wrap;overflow-wrap:anywhere;">' + escapeHtml(dsExtras[key]) + "</div>"; }).join("");
       var sigSection = DS_SECTIONS.filter(function (s) { return s.id === "signature"; })[0];
       var sigWrap = document.getElementById("ds-doc-signature");
       var sigBody = document.getElementById("ds-doc-signature-body");
@@ -7359,7 +7427,7 @@ window.profactureTrack = function(name, params) {
         return (
           '<div class="ds-section-row' + (s.visible ? "" : " off") + '" data-sec-index="' + i + '">' +
           '<span style="flex:1;">' + s.label + "</span>" +
-          '<button data-sec-toggle="' + i + '">' + (s.visible ? "👁" : "🚫") + "</button>" +
+          '<button data-sec-toggle="' + i + '" aria-label="' + (s.required ? "Required: " : "Toggle: ") + s.label + '" title="' + (s.required ? "Required on invoices and quotes" : s.label) + '"' + (s.required ? " disabled" : "") + '>' + (s.required ? "🔒" : (s.visible ? "👁" : "🚫")) + "</button>" +
           "</div>"
         );
       }).join("");
@@ -7371,6 +7439,10 @@ window.profactureTrack = function(name, params) {
       dsRenderThemes();
       dsRenderFonts();
       dsRenderSections();
+      Object.keys(dsExtras).forEach(function (key) {
+        var field = document.getElementById("ds-" + key.replace(/[A-Z]/g, function (letter) { return "-" + letter.toLowerCase(); }) + "-text");
+        if (field) field.value = dsExtras[key];
+      });
       dsApplyPreview();
 
       dsTabsEl.addEventListener("click", function (e) {
@@ -7407,6 +7479,7 @@ window.profactureTrack = function(name, params) {
         dsRenderTemplates();
         dsRenderThemes();
         dsApplyPreview();
+        persistDocumentDesign();
         playSound("click");
       });
 
@@ -7422,6 +7495,7 @@ window.profactureTrack = function(name, params) {
         try { localStorage.setItem("profacture_document_theme", id); } catch (error) { /* storage may be disabled */ }
         dsRenderThemes();
         dsApplyPreview();
+        persistDocumentDesign();
         playSound("click");
       });
 
@@ -7435,6 +7509,7 @@ window.profactureTrack = function(name, params) {
         dsState.fontFamily = font.family;
         dsRenderFonts();
         dsApplyPreview();
+        persistDocumentDesign();
         playSound("click");
       });
 
@@ -7442,9 +7517,20 @@ window.profactureTrack = function(name, params) {
         var btn = e.target.closest("[data-sec-toggle]");
         if (!btn) return;
         var i = Number(btn.getAttribute("data-sec-toggle"));
+        if (!DS_SECTIONS[i] || DS_SECTIONS[i].required) return;
         DS_SECTIONS[i].visible = !DS_SECTIONS[i].visible;
         dsRenderSections();
         dsApplyPreview();
+        persistDocumentDesign();
+      });
+      document.getElementById("ds-panel-layout").addEventListener("input", function (e) {
+        var key = Object.keys(dsExtras).filter(function (name) {
+          return e.target.id === "ds-" + name.replace(/[A-Z]/g, function (letter) { return "-" + letter.toLowerCase(); }) + "-text";
+        })[0];
+        if (!key) return;
+        dsExtras[key] = e.target.value;
+        dsApplyPreview();
+        persistDocumentDesign();
       });
     }
 
@@ -9491,12 +9577,13 @@ window.profactureTrack = function(name, params) {
       var company = opts.companyProfile || currentCompanyProfile();
       var code = opts.currencyCode || "USD";
       var fmt = function (n) { return formatCurrency(n, code); };
-      var primary = (dsState && dsState.primary) || "#2563EB";
-      var dark = !!(dsState && dsState.dark);
-      var tableBg = (dsState && dsState.tableBg) || "#EEF2FF";
-      var accentPos = (dsState && dsState.accent) || "top";
-      var docFont = (dsState && dsState.fontFamily) || "-apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif";
-      var docLayout = (dsState && dsState.layout) || "classic";
+      var design = safeDocumentDesign(opts.design || captureDocumentDesign());
+      var primary = design.primary;
+      var dark = design.dark;
+      var tableBg = design.tableBg;
+      var accentPos = design.accent;
+      var docFont = design.fontFamily;
+      var docLayout = design.layout;
       var docStyle = accentPos === "left" ? "border-left:6px solid " + primary + ";" : "";
       var headBg = dark ? primary : "transparent";
       var headColor = dark ? "#fff" : "#111";
@@ -9527,18 +9614,25 @@ window.profactureTrack = function(name, params) {
       var hasConfiguredTax = (opts.items || []).some(function (item) { return (TAX_RATES[item.tax] || 0) > 0; });
       var noTaxNote = isInvoice && !hasConfiguredTax && (opts.country || currentDefaultCountry) === "FR"
         ? '<div class="print-doc-tax-note">' + escapeHtml(copy.noTax) + "</div>" : "";
-      var paymentTerms = opts.paymentTerms || ((opts.country || currentDefaultCountry) === "FR" ? ccGet("FR", "paymentTerms") : "");
+      var paymentTerms = design.extras.paymentDetails || opts.paymentTerms || ((opts.country || currentDefaultCountry) === "FR" ? ccGet("FR", "paymentTerms") : "");
       var configuredFooter = opts.legalFooter || ((opts.country || currentDefaultCountry) === "FR" ? ccGet("FR", "legalFooter") : "");
       var professionalDetails = isInvoice ? [
         copy.number + " : " + opts.number,
         opts.dueDate ? opts.dueLabel + " : " + opts.dueDate : "",
         copy.currency + " : " + code,
-        paymentTerms ? copy.payment + " : " + paymentTerms : "",
+        design.sections.paymentDetails && paymentTerms ? copy.payment + " : " + paymentTerms : "",
         configuredFooter,
         (opts.country || currentDefaultCountry) === "FR" ? copy.earlyDiscount : "",
         (opts.country || currentDefaultCountry) === "FR" ? copy.lateFees : ""
       ].filter(Boolean) : [];
       var legalBlock = professionalDetails.length ? '<div class="print-doc-legal">' + professionalDetails.map(escapeHtml).join("<br>") + "</div>" : "";
+      var optionalBlock = [
+        design.sections.bankInfo && design.extras.bankInfo ? ["Bank", design.extras.bankInfo] : null,
+        design.sections.notes && design.extras.notes ? ["Notes", design.extras.notes] : null,
+        design.sections.terms && design.extras.terms ? ["Terms", design.extras.terms] : null
+      ].filter(Boolean).map(function (entry) {
+        return '<div class="print-doc-optional"><strong>' + escapeHtml(entry[0]) + '</strong><br>' + htmlLines(entry[1]) + '</div>';
+      }).join("");
       return (
         '<div class="print-doc" data-layout="' + docLayout + '" style="' + docStyle + "font-family:" + docFont + ';">' +
         '<div class="print-doc-head" style="background:' + headBg + ';color:' + headColor + ';border-bottom-color:' + headBorder + ';">' +
@@ -9558,8 +9652,8 @@ window.profactureTrack = function(name, params) {
         '<div class="print-doc-party"><strong>' + escapeHtml(t("lbl_billed_to")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(opts.client) + "</strong>" + (opts.clientContact && opts.clientContact !== opts.client ? "<br>Contact: " + escapeHtml(opts.clientContact) : "") + (opts.siret ? "<br>SIRET: " + escapeHtml(opts.siret) : "") + (opts.clientVat ? "<br>" + escapeHtml(copy.taxNumber) + ": " + escapeHtml(opts.clientVat) : "") + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + (opts.clientEmail ? "<br>" + escapeHtml(opts.clientEmail) : "") + (opts.clientPhone ? " · " + escapeHtml(opts.clientPhone) : "") + (opts.siteAddress ? '<div class="print-doc-site"><b>' + escapeHtml(t("lbl_jobsite")) + "</b>" + htmlLines(opts.siteAddress) + "</div>" : "") + "</div>" +
         "</div>" +
         '<table class="print-doc-table"><thead style="background:' + tableBg + ';"><tr><th>' + t("fld_description") + '</th><th style="text-align:right;">' + t("fld_qty") + '</th><th style="text-align:right;">' + t("fld_unit_price") + '</th><th style="text-align:right;">' + escapeHtml(copy.tax) + '</th><th style="text-align:right;">' + t("fld_amount") + " HT</th></tr></thead><tbody>" + itemsRows + "</tbody></table>" +
-        totalSummary + noTaxNote + legalBlock +
-        ((stamp || sig) ? '<div class="print-doc-sig"><div style="font-size:0.78rem;color:#555;">' + escapeHtml(t("fld_company_stamp")) + " / " + escapeHtml(t("fld_signature")) + '</div><div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:0.9rem;flex-wrap:wrap;">' + (stamp ? '<img src="' + stamp + '" alt="" style="max-height:4.6rem;max-width:8rem;object-fit:contain;" />' : "") + (sig ? '<img src="' + sig + '" alt="" />' : "") + "</div></div>" : "") +
+        totalSummary + noTaxNote + legalBlock + optionalBlock +
+        (design.sections.signature && (stamp || sig) ? '<div class="print-doc-sig"><div style="font-size:0.78rem;color:#555;">' + escapeHtml(t("fld_company_stamp")) + " / " + escapeHtml(t("fld_signature")) + '</div><div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:0.9rem;flex-wrap:wrap;">' + (stamp ? '<img src="' + stamp + '" alt="" style="max-height:4.6rem;max-width:8rem;object-fit:contain;" />' : "") + (sig ? '<img src="' + sig + '" alt="" />' : "") + "</div></div>" : "") +
         "</div>"
       );
     }
@@ -9575,7 +9669,7 @@ window.profactureTrack = function(name, params) {
         title: t("doc_invoice"), number: inv.id, client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress,
         siret: inv.siret, clientContact: inv.clientContact, clientVat: inv.clientVat, clientEmail: inv.clientEmail, clientPhone: inv.clientPhone, companyProfile: inv.companyProfile, logo: inv.logo, stamp: inv.stamp, signature: inv.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(inv.issue), dueLabel: t("fld_due_date"), dueDate: fmtDate(inv.due),
-        documentType: "invoice", country: inv.country || currentDefaultCountry, paymentDisplay: inv.paymentDisplay || "", items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency,
+        documentType: "invoice", country: inv.country || currentDefaultCountry, paymentDisplay: inv.paymentDisplay || "", items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency, design: inv.design || LEGACY_DOCUMENT_DESIGN,
       }));
     }
     function downloadQuotePdf(q) {
@@ -9584,7 +9678,7 @@ window.profactureTrack = function(name, params) {
         title: t("doc_quote"), number: q.id, client: q.client, clientAddress: q.clientAddress, siteAddress: q.siteAddress,
         siret: q.siret, clientContact: q.clientContact, clientVat: q.clientVat, clientEmail: q.clientEmail, clientPhone: q.clientPhone, companyProfile: q.companyProfile, logo: q.logo, stamp: q.stamp, signature: q.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(q.issue), dueLabel: t("fld_valid_until"), dueDate: fmtDate(q.validUntil),
-        items: q.items, total: q.total, status: q.status, currencyCode: q.currency,
+        items: q.items, total: q.total, status: q.status, currencyCode: q.currency, design: q.design || LEGACY_DOCUMENT_DESIGN,
       }));
     }
     function fitDocPreview(preview) {
@@ -9928,7 +10022,7 @@ window.profactureTrack = function(name, params) {
         siret: document.getElementById("inv-new-siret").value,
         currency: document.getElementById("inv-new-currency").value,
         country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
-        companyId: wsActiveId, items: getLineItemsData(), updatedAt: new Date().toISOString()
+        companyId: wsActiveId, items: getLineItemsData(), design: captureDocumentDesign(), updatedAt: new Date().toISOString()
       };
     }
     function scheduleInvoiceDraftSave() {
@@ -9942,6 +10036,7 @@ window.profactureTrack = function(name, params) {
       var draft = null;
       try { draft = JSON.parse(localStorage.getItem("profacture_invoice_builder_draft_" + wsActiveId) || "null"); } catch (e) { draft = null; }
       if (!draft || !draft.updatedAt) return false;
+      if (draft.design) applyDocumentDesign(draft.design);
       document.getElementById("inv-new-client").value = draft.clientId || "";
       document.getElementById("inv-new-project").value = draft.projectId || "";
       document.getElementById("inv-new-type").value = draft.invoiceType || "standard";
@@ -10083,6 +10178,7 @@ window.profactureTrack = function(name, params) {
           existing.logo = getCompanyLogo();
           existing.stamp = getCompanyStamp();
           existing.signature = getCompanySignature();
+          existing.design = captureDocumentDesign();
           existing.issue = issue;
           existing.due = due;
           existing.paymentDisplay = document.getElementById("inv-new-payment-label").value;
@@ -10117,7 +10213,7 @@ window.profactureTrack = function(name, params) {
           invoiceType: document.getElementById("inv-new-type").value,
           companyId: wsActiveId,
           companyProfile: Object.assign({}, currentCompanyProfile()),
-          logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(),
+          logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(), design: captureDocumentDesign(),
           issue: issue,
           due: due,
           paymentDisplay: document.getElementById("inv-new-payment-label").value,
@@ -10144,6 +10240,8 @@ window.profactureTrack = function(name, params) {
       showView("invoices");
     }
     function openInvoiceForEdit(id) {
+      var invoiceToEdit = INVOICES.filter(function (invoice) { return invoice.id === id; })[0];
+      if (invoiceToEdit) applyDocumentDesign(invoiceToEdit.design || LEGACY_DOCUMENT_DESIGN);
       editingInvoiceId = id;
       showView("invoice-new");
     }
@@ -10640,7 +10738,7 @@ window.profactureTrack = function(name, params) {
         siteAddress: document.getElementById("q-new-site-address").value,
         siret: document.getElementById("q-new-siret").value,
         currency: document.getElementById("q-new-currency").value,
-        companyId: wsActiveId, items: getQuoteLineItemsData(), updatedAt: new Date().toISOString()
+        companyId: wsActiveId, items: getQuoteLineItemsData(), design: captureDocumentDesign(), updatedAt: new Date().toISOString()
       };
     }
     function scheduleQuoteDraftSave() {
@@ -10654,6 +10752,7 @@ window.profactureTrack = function(name, params) {
       var draft = null;
       try { draft = JSON.parse(localStorage.getItem("profacture_quote_builder_draft_" + wsActiveId) || "null"); } catch (e) { draft = null; }
       if (!draft || !draft.updatedAt) return false;
+      if (draft.design) applyDocumentDesign(draft.design);
       document.getElementById("q-new-client").value = draft.clientId || "";
       document.getElementById("q-new-project").value = draft.projectId || "";
       document.getElementById("q-new-type").value = draft.quoteType || "initial";
@@ -10742,6 +10841,7 @@ window.profactureTrack = function(name, params) {
           existing.logo = getCompanyLogo();
           existing.stamp = getCompanyStamp();
           existing.signature = getCompanySignature();
+          existing.design = captureDocumentDesign();
           existing.issue = issue;
           existing.validUntil = validUntil;
           existing.total = total;
@@ -10763,7 +10863,7 @@ window.profactureTrack = function(name, params) {
           id: newId, client: clientDisplayName(client), clientAddress: clientAddress, siteAddress: siteAddress,
           siret: siret, clientContact: client.name, clientVat: client.vat || "", clientEmail: client.email || "", clientPhone: client.phone || "", clientId: client.id,
           projectId: document.getElementById("q-new-project").value, quoteType: document.getElementById("q-new-type").value,
-          companyId: wsActiveId, companyProfile: Object.assign({}, currentCompanyProfile()), logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(), issue: issue, validUntil: validUntil, status: status, total: total, subtotal: exactTotals.subtotal, taxTotal: exactTotals.taxTotal, htMinor: exactTotals.subtotalMinor, taxMinor: exactTotals.taxMinor, totalMinor: exactTotals.totalMinor, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
+          companyId: wsActiveId, companyProfile: Object.assign({}, currentCompanyProfile()), logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(), design: captureDocumentDesign(), issue: issue, validUntil: validUntil, status: status, total: total, subtotal: exactTotals.subtotal, taxTotal: exactTotals.taxTotal, htMinor: exactTotals.subtotalMinor, taxMinor: exactTotals.taxMinor, totalMinor: exactTotals.totalMinor, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
         });
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "sent"));
       }
@@ -10782,6 +10882,7 @@ window.profactureTrack = function(name, params) {
         return;
       }
       editingQuoteId = id;
+      if (lockedQuote) applyDocumentDesign(lockedQuote.design || LEGACY_DOCUMENT_DESIGN);
       showView("quote-new");
     }
     var quoteSaveDraftBtn = document.getElementById("quote-save-draft-btn");
