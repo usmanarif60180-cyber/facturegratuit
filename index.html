@@ -6498,6 +6498,18 @@
         total.style.whiteSpace = "pre-line";
         total.textContent = "HT : " + aiMoney(totals.ht, draft.currency) + "\n" + totals.breakdown.map(function (entry) { return "TVA " + entry.rate + " % : " + aiMoney(entry.amount, draft.currency); }).join("\n") + "\nTotal TTC : " + aiMoney(totals.total, draft.currency);
         card.appendChild(total);
+        var warnings = [];
+        if (!findAiDraftClient(draft)) warnings.push(currentLang === "fr" ? "Choisissez un client dans l’éditeur." : "Choose a client in the editor.");
+        if (!items.length) warnings.push(currentLang === "fr" ? "Ajoutez au moins une ligne." : "Add at least one line item.");
+        if (items.some(function (item) { return !item.desc.trim() || item.qty <= 0 || item.price <= 0; })) warnings.push(currentLang === "fr" ? "Vérifiez les descriptions, quantités et prix nuls." : "Review descriptions, quantities and zero prices.");
+        if (items.some(function (item) { return item.tax === "none"; })) warnings.push(currentLang === "fr" ? "Confirmez le traitement TVA des lignes sans taxe." : "Confirm the tax treatment of untaxed lines.");
+        if (warnings.length) {
+          var reviewWarnings = document.createElement("p");
+          reviewWarnings.setAttribute("role", "status");
+          reviewWarnings.style.whiteSpace = "pre-line";
+          reviewWarnings.textContent = warnings.join("\n");
+          card.appendChild(reviewWarnings);
+        }
       } else if (action.type === "create_task") {
         var taskDraft = action.draft || {};
         card.innerHTML = '<div class="ai-draft-head"><span>Task draft</span><span>' + escapeHtml(taskDraft.priority || "medium") + '</span></div><p><strong>' + escapeHtml(taskDraft.title || "Untitled task") + '</strong></p><p>' + escapeHtml(taskDraft.description || "") + (taskDraft.dueDate ? " · Due " + escapeHtml(taskDraft.dueDate) : "") + '</p>';
@@ -6516,6 +6528,10 @@
       button.type = "button";
       button.textContent = "Review & apply · " + label;
       button.addEventListener("click", function () {
+        if (action.workspaceCompanyId && action.workspaceCompanyId !== wsActiveId) {
+          showToast("This draft belongs to another company. Switch back before applying.");
+          return;
+        }
         applyAiAction(action);
         button.disabled = true;
         button.textContent = "Applied";
@@ -6555,13 +6571,15 @@
     }
     async function loadAiHistory(chat) {
       if (!window.profactureAiHistory || aiHistoryLoadedCompanyId === wsActiveId) return;
-      aiHistoryLoadedCompanyId = wsActiveId;
+      var historyCompanyId = wsActiveId;
+      aiHistoryLoadedCompanyId = historyCompanyId;
       try {
-        var data = await window.profactureAiHistory("load", wsActiveId);
+        var data = await window.profactureAiHistory("load", historyCompanyId);
+        if (historyCompanyId !== wsActiveId) return;
         aiConversation = Array.isArray(data.messages) ? data.messages.map(function (entry) { return { role: entry.role, text: entry.text, action: entry.action, at: entry.at }; }).slice(-12) : [];
         renderAiHistory(chat, Array.isArray(data.messages) ? data.messages : []);
       } catch (error) {
-        aiHistoryLoadedCompanyId = "";
+        if (historyCompanyId === wsActiveId) aiHistoryLoadedCompanyId = "";
       }
     }
     function findAiDraftClient(draft) {
@@ -6571,6 +6589,7 @@
         if (exact) return exact;
       }
       var wanted = String(draft.clientName || "").toLowerCase();
+      if (!wanted.trim()) return null;
       return clients.filter(function (c) { return clientDisplayName(c).toLowerCase() === wanted || String(c.company || "").toLowerCase() === wanted; })[0] || null;
     }
     function safeAiItems(draft) {
@@ -11283,10 +11302,17 @@
     var aeScanReceiptBtn = document.getElementById("ae-scan-receipt");
     if (aeScanReceiptBtn) aeScanReceiptBtn.addEventListener("click", async function () {
       if (!aeReceiptDataUrl || !window.profactureScanDocument) { showToast("Sign in and choose a receipt first."); return; }
+      if (aeScanReceiptBtn.disabled) return;
+      var scanCompanyId = wsActiveId;
+      var scanDataUrl = aeReceiptDataUrl;
       aeScanReceiptBtn.disabled = true; aeScanReceiptBtn.textContent = "Scanning securely...";
       var review = document.getElementById("ae-ocr-review"); review.innerHTML = '<span class="badge badge-default">Extracting fields for review</span>';
       try {
-        var response = await window.profactureScanDocument({ dataUrl: aeReceiptDataUrl, companyId: wsActiveId });
+        var response = await window.profactureScanDocument({ dataUrl: scanDataUrl, companyId: scanCompanyId });
+        if (scanCompanyId !== wsActiveId || scanDataUrl !== aeReceiptDataUrl) {
+          showToast("Le contexte a changé. Relancez le scan pour ce justificatif.");
+          return;
+        }
         var value = response.extraction || {};
         aeExtraction = value;
         if (value.title) document.getElementById("ae-title").value = value.title;
@@ -11304,7 +11330,7 @@
         review.innerHTML = '<div class="ai-action-card"><strong>Vérifier les champs extraits</strong><p>Confiance estimée par l’analyse : ' + Math.round(Number(value.confidence || 0) * 100) + '%' + (value.reference ? ' · Réf. ' + escapeHtml(value.reference) : '') + '</p>' + (missing.length ? '<p style="color:hsl(var(--warning))">Informations manquantes : ' + escapeHtml(missing.join(", ")) + '.</p>' : '') + (discrepancy ? '<p style="color:hsl(var(--danger))">Écart HT + TVA / TTC : ' + aiMoney(window.ProFactureFinancial.fromMinor(discrepancy), value.currency || currentCurrency) + '. Corrigez avant confirmation.</p>' : '<p>HT + TVA correspond au TTC.</p>') + '<p>Aucune dépense n’a encore été enregistrée.</p></div>';
         showToast("Receipt fields extracted. Please verify before adding.");
       } catch (error) {
-        review.innerHTML = '<p style="color:hsl(var(--danger));">Scan unavailable or daily OCR limit reached. Enter fields manually.</p>';
+        if (scanCompanyId === wsActiveId && scanDataUrl === aeReceiptDataUrl) review.innerHTML = '<p style="color:hsl(var(--danger));">Scan unavailable or daily OCR limit reached. Enter fields manually.</p>';
       } finally { aeScanReceiptBtn.disabled = false; aeScanReceiptBtn.textContent = "Scan again"; }
     });
     var aeSubmitBtn = document.getElementById("ae-submit");
