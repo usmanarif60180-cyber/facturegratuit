@@ -3913,6 +3913,7 @@
                 <a href="#" class="btn btn-outline btn-sm" data-goto="design-studio">🎨 <span data-i18n="btn_change_design">Change design</span></a>
               </div>
               <div id="inv-compliance-banner" style="margin-top:1rem;"></div>
+              <div id="inv-health-panel" style="margin-top:0.7rem;" aria-live="polite"></div>
             </div>
 
             <div class="card card-pad" style="margin-bottom:1.1rem;">
@@ -3976,6 +3977,7 @@
                 <label class="btn btn-outline btn-sm" style="cursor:pointer;">🖋 <span data-i18n="btn_add_signature">Add stamp/signature</span><input type="file" accept="image/*" id="q-new-sig-file" style="display:none;" /></label>
                 <a href="#" class="btn btn-outline btn-sm" data-goto="design-studio">🎨 <span data-i18n="btn_change_design">Change design</span></a>
               </div>
+              <div id="quote-health-panel" style="margin-top:0.7rem;" aria-live="polite"></div>
             </div>
 
             <div class="card card-pad" style="margin-bottom:1.1rem;">
@@ -4681,6 +4683,10 @@
           <div class="page-head" style="margin-bottom:0.75rem;"><div><div class="card-title">Smart automations</div><p style="font-size:0.78rem;color:hsl(var(--muted-fg));">Rules create recommendations only. You approve every resulting task.</p></div><button class="btn btn-outline btn-sm" id="ai-run-automations">Run rules now</button></div>
           <div id="ai-automation-rules" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.6rem;"></div>
           <div id="ai-automation-queue" style="margin-top:0.8rem;"></div>
+        </div>
+        <div class="card card-pad" style="margin-top:1.1rem;">
+          <div class="page-head" style="margin-bottom:0.75rem;"><div><div class="card-title">AI activity</div><p style="font-size:0.78rem;color:hsl(var(--muted-fg));">Recent assistant requests for the selected company. Financial drafts still require your approval.</p></div><button class="btn btn-outline btn-sm" id="ai-activity-clear">Clear history</button></div>
+          <div id="ai-activity-list" role="log" aria-live="polite"></div>
         </div>
       </div>
     </div>
@@ -6629,13 +6635,29 @@
           appendAiAction(chat, entry.action);
         }
       });
+      renderAiActivity(messages);
+    }
+    function renderAiActivity(messages) {
+      var list = document.getElementById("ai-activity-list");
+      if (!list) return;
+      var entries = (Array.isArray(messages) ? messages : aiConversation).slice(-10).reverse();
+      if (!entries.length) {
+        list.innerHTML = '<p class="widget-empty">No AI activity for this company yet.</p>';
+        return;
+      }
+      list.innerHTML = entries.map(function (entry) {
+        var role = entry.role === "assistant" ? "AI response" : "Your request";
+        var action = entry.action && entry.action.type && entry.action.type !== "none" ? " · " + String(entry.action.type).replace(/_/g, " ") : "";
+        var time = entry.at ? new Date(entry.at).toLocaleString() : "Recent";
+        return '<div class="widget-row"><div style="min-width:0;"><strong>' + escapeHtml(role + action) + '</strong><p style="margin-top:0.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60rem;">' + escapeHtml(entry.text || "") + '</p></div><span class="badge badge-default">' + escapeHtml(time) + '</span></div>';
+      }).join("");
     }
     async function loadAiHistory(chat) {
       if (!window.profactureAiHistory || aiHistoryLoadedCompanyId === wsActiveId) return;
       aiHistoryLoadedCompanyId = wsActiveId;
       try {
         var data = await window.profactureAiHistory("load", wsActiveId);
-        aiConversation = Array.isArray(data.messages) ? data.messages.map(function (entry) { return { role: entry.role, text: entry.text }; }).slice(-12) : [];
+        aiConversation = Array.isArray(data.messages) ? data.messages.map(function (entry) { return { role: entry.role, text: entry.text, action: entry.action, at: entry.at }; }).slice(-12) : [];
         renderAiHistory(chat, Array.isArray(data.messages) ? data.messages : []);
       } catch (error) {
         aiHistoryLoadedCompanyId = "";
@@ -6741,10 +6763,12 @@
         typing.textContent = response.reply || "Je peux vous aider avec votre workspace.";
         var usageEls = [document.getElementById("ai-popup-usage"), document.getElementById("ai-page-usage")];
         if (response.usage) usageEls.filter(Boolean).forEach(function (usageEl) { usageEl.textContent = response.usage.dailyUsed + " of " + response.usage.dailyLimit + " secure AI requests used today"; });
-        aiConversation.push({ role: "user", text: text }, { role: "assistant", text: typing.textContent });
+        var now = Date.now();
+        aiConversation.push({ role: "user", text: text, at: now }, { role: "assistant", text: typing.textContent, action: response.action, at: now + 1 });
         aiConversation = aiConversation.slice(-12);
         if (response.action && response.action.type && response.action.type !== "none") response.action.workspaceCompanyId = wsActiveId;
         appendAiAction(chat, response.action);
+        renderAiActivity(aiConversation);
       } catch (error) {
         var fallback = aiFindReply(text);
         var code = String(error && (error.code || error.message) || "");
@@ -6831,7 +6855,13 @@
       var suggestions = evaluateAutomationRules();
       queue.innerHTML = suggestions.length ? suggestions.map(function (item) { return '<div class="ai-action-card" style="margin-top:0.55rem;"><div><strong>' + escapeHtml(item.title) + '</strong><p>' + escapeHtml(item.reason) + '</p></div><button class="btn btn-primary btn-sm" data-ai-automation-apply="' + item.id + '">Review task</button></div>'; }).join("") : '<p class="widget-empty">No recommendation from the enabled rules and current data.</p>';
     }
-    function renderAiCommandCenter() { renderAiMemory(); renderAutomationCenter(); loadAiUsagePanel(); }
+    function renderAiCommandCenter() {
+      renderAiMemory();
+      renderAutomationCenter();
+      loadAiUsagePanel();
+      renderAiActivity(aiConversation);
+      loadAiHistory(document.getElementById("ai-chat"));
+    }
     var aiMemorySave = document.getElementById("ai-memory-save");
     if (aiMemorySave) aiMemorySave.addEventListener("click", function () {
       var workspace = aiActiveWorkspace();
@@ -6897,6 +6927,20 @@
       });
     });
     initAiAssistant(false);
+    var aiActivityClear = document.getElementById("ai-activity-clear");
+    if (aiActivityClear) aiActivityClear.addEventListener("click", async function () {
+      if (!confirm("Clear the AI conversation for this company?")) return;
+      aiActivityClear.disabled = true;
+      try {
+        if (window.profactureAiHistory) await window.profactureAiHistory("clear", wsActiveId);
+        aiConversation = [];
+        aiHistoryLoadedCompanyId = "";
+        renderAiHistory(document.getElementById("ai-chat"), []);
+        renderAiActivity([]);
+        showToast("AI history cleared for this company.");
+      } catch (error) { showToast("AI history could not be cleared."); }
+      finally { aiActivityClear.disabled = false; }
+    });
     window.profactureShowView = showView;
     window.ivoxaShowView = showView;
 
@@ -9920,6 +9964,37 @@
       v.warnings.forEach(function (w) { parts.push(w); });
       box.innerHTML = '<div class="callout" style="border-color:hsl(var(--warning)/0.4);background:hsl(var(--warning)/0.08);"><span>⚠️</span><span>' + parts.join(" · ") + ' — review in <a href="#" class="link-strong" data-goto="settings">Settings → Compliance Center</a>.</span></div>';
     }
+    function renderDocumentHealth(kind) {
+      var invoice = kind === "invoice";
+      var panel = document.getElementById(invoice ? "inv-health-panel" : "quote-health-panel");
+      if (!panel) return;
+      var prefix = invoice ? "inv-new-" : "q-new-";
+      var clientEl = document.getElementById(prefix + "client");
+      var issueEl = document.getElementById(prefix + "issue");
+      var endEl = document.getElementById(invoice ? "inv-new-due" : "q-new-valid");
+      var addressEl = document.getElementById(prefix + "client-address");
+      var items = invoice ? getLineItemsData() : getQuoteLineItemsData();
+      var total = readCurrencyAmount(invoice ? "t-total" : "q-t-total");
+      var company = currentCompanyProfile() || {};
+      var issues = [];
+      if (!clientEl || !clientEl.value) issues.push("Select a client");
+      if (!addressEl || !addressEl.value.trim()) issues.push("Add the client address");
+      if (!issueEl || !issueEl.value) issues.push("Add an issue date");
+      if (!invoice && (!endEl || !endEl.value)) issues.push("Add a validity date");
+      if (issueEl && endEl && issueEl.value && endEl.value && endEl.value < issueEl.value) issues.push(invoice ? "Due date is before issue date" : "Validity date is before issue date");
+      if (!company.name) issues.push("Complete issuer company name");
+      if (!company.address) issues.push("Complete issuer address");
+      if (!items.length) issues.push("Add at least one line item");
+      if (items.some(function (item) { return !String(item.desc || "").trim(); })) issues.push("Complete every line description");
+      if (items.some(function (item) { return Number(item.qty) <= 0; })) issues.push("Quantity must be greater than zero");
+      if (items.some(function (item) { return Number(item.price) < 0; })) issues.push("Negative unit price detected");
+      if (!Number.isFinite(total) || total < 0) issues.push("Invalid document total");
+      if (total > 1000000) issues.push("Unusually high total — verify before saving");
+      var score = Math.max(0, 100 - issues.length * 12);
+      var color = score === 100 ? "success" : score >= 70 ? "warning" : "danger";
+      var title = score === 100 ? "Document health: ready for review" : "Document health: " + score + "/100";
+      panel.innerHTML = '<div class="callout" style="border-color:hsl(var(--' + color + ')/0.4);background:hsl(var(--' + color + ')/0.08);"><span>' + (score === 100 ? "✅" : "🔎") + '</span><span><strong>' + title + '</strong>' + (issues.length ? '<br><span style="font-size:0.78rem;">' + issues.map(escapeHtml).join(" · ") + '</span>' : '<br><span style="font-size:0.78rem;">Core client, issuer, date, line and total checks passed. Review tax and legal requirements before sending.</span>') + '</span></div>';
+    }
     function populateInvoiceComplianceCountrySelect() {
       var sel = document.getElementById("inv-compliance-country");
       if (!sel) return;
@@ -10144,6 +10219,7 @@
         paymentDisplay: document.getElementById("inv-new-payment-label").value,
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
       }));
+      renderDocumentHealth("invoice");
     }
     var invNewLogoFileEl = document.getElementById("inv-new-logo-file");
     if (invNewLogoFileEl) invNewLogoFileEl.addEventListener("change", function (e) {
@@ -10724,6 +10800,7 @@
         dueLabel: t("fld_valid_until"), dueDate: fmtDate(document.getElementById("q-new-valid").value || new Date().toISOString().slice(0, 10)),
         items: getQuoteLineItemsData(), total: total, currencyCode: document.getElementById("q-new-currency").value,
       }));
+      renderDocumentHealth("quote");
     }
     var qNewLogoFileEl = document.getElementById("q-new-logo-file");
     if (qNewLogoFileEl) qNewLogoFileEl.addEventListener("change", function (e) {
@@ -12713,7 +12790,9 @@
 	        try {
 	          if (window.profactureAiHistory) await window.profactureAiHistory("clear", wsActiveId);
 	          aiConversation = [];
+	          aiHistoryLoadedCompanyId = "";
 	          renderAiHistory(aiPopupChat, []);
+	          renderAiActivity([]);
 	        } catch (error) { showToast("AI history could not be cleared."); }
 	        finally { aiHistoryClear.disabled = false; }
 	      });

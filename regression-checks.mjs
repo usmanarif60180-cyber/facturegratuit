@@ -101,6 +101,8 @@ assert(index.includes('id="crm-intelligence-list"') && index.includes('function 
 assert(index.includes('function reportInvoices() { return activeCompanyItems(INVOICES); }'), "Reports must remain isolated to the active company");
 assert(index.includes('var companyTasks = activeCompanyItems(TASKS);'), "Task statistics must remain isolated to the active company");
 assert(index.includes('Secure AI receipt scanning') && !index.includes('OCR scanning — Coming soon'), "Receipt scanner status copy is stale");
+assert(index.includes('id="inv-health-panel"') && index.includes('id="quote-health-panel"') && index.includes('function renderDocumentHealth(kind)'), "Invoice and quote health checks are missing");
+assert(index.includes('id="ai-activity-list"') && index.includes('function renderAiActivity(messages)'), "Visible company AI activity is missing");
 assert(index.includes('aria-modal="true"') && index.includes('role="log"'), "AI dialog accessibility contract changed");
 assert(functionsSource.includes('Never save, send, email, delete, or charge anything'), "AI backend must forbid destructive autonomous actions");
 
