@@ -3722,7 +3722,7 @@
     if (!value) return value;
     var lang = getI18nLang(currentLang);
     var entry = STATIC_COPY_TRANSLATIONS[value];
-    return lang === "en" ? value : entry && entry[lang] ? entry[lang] : value;
+    return entry && entry[lang] ? entry[lang] : value;
   }
   function hasAncestorI18n(el) {
     while (el && el.nodeType === 1) {
@@ -5602,6 +5602,7 @@
         if (activeView.id === "view-quote-new" && typeof initQuoteNewForm === "function") initQuoteNewForm();
       }
       reRenderActiveViewData();
+      if (typeof refreshAiLanguage === 'function' && document.getElementById('ai-document-composer')) refreshAiLanguage();
       if (typeof populateAdStrips === "function") populateAdStrips();
     }
     window.profactureApplyLanguage = applyLanguage;
@@ -5610,6 +5611,7 @@
       if (e.target.classList && e.target.classList.contains("lang-select")) {
         applyLanguage(e.target.value);
         if (typeof applyCurrencyDefault === "function") applyCurrencyDefault(resolveCurrencyForLocale(e.target.value, null));
+        if (typeof renderAiDocumentComposer === 'function') renderAiDocumentComposer();
       }
     });
 
@@ -6730,13 +6732,13 @@
       }
       host.replaceChildren();
       var briefingCompanyId = wsActiveId;
-      var heading = document.createElement('h3'); heading.textContent = 'À suivre aujourd’hui'; host.append(heading);
+      var heading = document.createElement('h3'); heading.textContent = currentLang === 'fr' ? 'À suivre aujourd’hui' : 'Today’s follow-ups'; host.append(heading);
       var today = new Date().toISOString().slice(0,10);
       var invoices = activeCompanyItems(INVOICES).filter(function (doc) { return ['Sent','Viewed','Partially paid','Overdue'].includes(doc.status) && invoiceBalance(doc) > 0; });
       var quotes = activeCompanyItems(QUOTES).filter(function (doc) { return doc.status === 'Sent'; });
       var tasks = activeCompanyItems(TASKS).filter(function (task) { return task.status !== 'done' && task.due && task.due <= today; });
       var summary = document.createElement('p');
-      summary.textContent = invoices.filter(function (doc) { return doc.due && doc.due < today; }).length + ' facture(s) en retard · ' + quotes.length + ' devis en attente · ' + tasks.length + ' tâche(s) à échéance';
+      summary.textContent = invoices.filter(function (doc) { return doc.due && doc.due < today; }).length + (currentLang === 'fr' ? ' facture(s) en retard · ' : ' overdue invoices · ') + quotes.length + (currentLang === 'fr' ? ' devis en attente · ' : ' pending quotes · ') + tasks.length + (currentLang === 'fr' ? ' tâche(s) à échéance' : ' due tasks');
       host.append(summary);
       invoices.slice(0,5).forEach(function (doc) {
         var row = document.createElement('div'); row.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center';
@@ -6832,6 +6834,7 @@
       var notes = document.getElementById("ai-memory-notes");
       if (tax) tax.value = memory.defaultTax || "none";
       if (tax) tax.options[0].text = currentLang === "fr" ? "Sans TVA" : "No tax";
+      if (tax) Array.from(tax.options).forEach(function(option) { option.text = option.text.replace(/TVA|VAT/g, currentLang === 'fr' ? 'TVA' : 'VAT'); });
       if (payment) payment.value = memory.paymentTerms || "";
       if (notes) notes.value = memory.notes || "";
     }
@@ -6921,6 +6924,33 @@
       loadAiHistory(document.getElementById("ai-chat"));
       applyStaticCopyTranslations();
     }
+    function refreshAiLanguage() {
+      STATIC_COPY_TRANSLATIONS['Invoice, quote and business help'] = {fr:'Aide aux factures, devis et à votre activité'};
+      STATIC_COPY_TRANSLATIONS['Ask ProFacture AI…'] = {fr:'Demandez à ProFacture AI…'};
+      var pairs = {
+        'Document source (facultatif)': 'Source document (optional)',
+        'Bilan d\'entreprise': 'Business briefing',
+        'Prévisions d’encaissement': 'Expected receipts',
+        "Prévisions d'encaissement": 'Expected receipts',
+        'Suivi commercial': 'Sales follow-up',
+        'Relances de paiement': 'Payment reminders',
+        'Contrôle des documents': 'Document checks',
+        'Voir les devis': 'View quotes', 'Voir les tâches': 'View tasks',
+        'Prévisions de trésorerie': 'Cash flow forecast',
+        'Voir la facture': 'View invoice', 'Préparer une relance': 'Draft reminder',
+        'Vue d’ensemble': 'Overview', 'Facturation': 'Billing', 'Gestion': 'Management', 'Ressources': 'Resources'
+      };
+      Object.keys(pairs).forEach(function(fr) { STATIC_COPY_TRANSLATIONS[fr] = {fr:fr,en:pairs[fr]}; });
+      renderAiBusinessLinks();
+      renderAiDocumentComposer();
+      document.querySelector('label[for="ai-compose-tax"]').textContent = currentLang === 'fr' ? 'TVA' : 'Tax';
+      var tax = document.getElementById('ai-memory-tax');
+      if (tax) Array.from(tax.options).forEach(function(option) {
+        option.text = option.value === 'none' ? (currentLang === 'fr' ? 'Sans TVA' : 'No tax') : option.text.replace(/TVA|VAT/g, currentLang === 'fr' ? 'TVA' : 'VAT');
+      });
+      loadAiUsagePanel();
+      applyStaticCopyTranslations();
+    }
     function renderAiDocumentComposer() {
       var form = document.getElementById("ai-document-composer");
       if (!form) return;
@@ -6931,13 +6961,14 @@
       form.dataset.company = wsActiveId;
       var sourceSelect = document.getElementById("ai-source-document");
       var previousSource = sourceSelect.value;
-      sourceSelect.innerHTML = '<option value="">Nouveau document</option>' + ['invoice', 'quote'].map(function (kind) {
+      sourceSelect.innerHTML = '<option value="">' + (currentLang === 'fr' ? 'Nouveau document' : 'New document') + '</option>' + ['invoice', 'quote'].map(function (kind) {
         return activeCompanyItems(kind === 'invoice' ? INVOICES : QUOTES).filter(function (doc) { return doc.status === 'Draft'; }).map(function (doc) { return '<option value="' + escapeHtml(kind + ':' + doc.id) + '">' + escapeHtml(doc.id + ' · ' + (doc.client || '') + ' · Brouillon') + '</option>'; }).join('');
       }).join('');
       if (Array.from(sourceSelect.options).some(function (option) { return option.value === previousSource; })) sourceSelect.value = previousSource;
       select.innerHTML = '<option value="">' + (currentLang === "fr" ? "Choisir / préciser dans le message" : "Choose / specify in your message") + '</option>' + clients.map(function (client) { return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(clientDisplayName(client)) + '</option>'; }).join("");
       if (clients.some(function (client) { return String(client.id) === previous; })) select.value = previous;
       var tax = document.getElementById("ai-compose-tax");
+      document.querySelector('label[for="ai-compose-tax"]').textContent = currentLang === 'fr' ? 'TVA' : 'Tax';
       var selectedTax = tax.value;
       tax.innerHTML = '<option value="">' + (currentLang === "fr" ? "À préciser" : "To confirm") + '</option>' + taxOptionsHtml(selectedTax);
       tax.value = selectedTax;

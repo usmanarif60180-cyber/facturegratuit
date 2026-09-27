@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const css = fs.readFileSync(new URL('../workspace-ui.css', import.meta.url), 'utf8');
+const context = {currentLang:'en-US',getI18nLang:lang=>lang.startsWith('en')?'en':lang,STATIC_COPY_TRANSLATIONS:{'Document source (facultatif)':{en:'Source document (optional)',fr:'Document source (facultatif)'}}};
+vm.createContext(context);
+vm.runInContext(html.slice(html.indexOf('  function translateStaticValue('),html.indexOf('  function hasAncestorI18n(')),context);
+assert.equal(context.translateStaticValue('Document source (facultatif)'), 'Source document (optional)');
+context.currentLang='fr';
+assert.equal(context.translateStaticValue('Document source (facultatif)'), 'Document source (facultatif)');
+assert(css.includes('.gfab-wrap:has(.ai-popup.open)>.ai-fab-btn'));
+assert(css.includes('bottom:calc(5rem + env(safe-area-inset-bottom))'));
+assert(css.includes('#ai-send,#ai-popup-send{min-width:44px;flex-shrink:0}'));
+assert(html.includes("if (typeof refreshAiLanguage === 'function'"));
+console.log('AI UI checks passed: reversible labels, language refresh, floating control clearance.');
