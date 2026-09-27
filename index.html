@@ -3601,6 +3601,46 @@
 	    I18N[lang] = Object.assign(I18N[lang] || {}, ACCOUNT_I18N_PATCHES[lang]);
 	  });
   var STATIC_COPY_TRANSLATIONS = {
+    "Prepare a document with AI": { fr: "Préparer un document avec l’IA" },
+    "Work, products or services": { fr: "Travaux, produits ou services" },
+    "Prepare draft": { fr: "Préparer le brouillon" },
+    "Price basis": { fr: "Base du prix" },
+    "E.g. Paint 40 m² at EUR 25 before tax/m², preparation included.": { fr: "Ex. Peinture de 40 m² à 25 € HT/m², préparation incluse." },
+    "AI Command Center": { fr: "Centre de commande IA" },
+    "Overdue invoice follow-up": { fr: "Suivi des factures en retard" },
+    "Sent quote follow-up": { fr: "Suivi des devis envoyés" },
+    "Low stock alert": { fr: "Alerte de stock bas" },
+    "Recurring expense review": { fr: "Vérification des dépenses récurrentes" },
+    "Company-aware assistance with review-before-apply controls.": { fr: "Un assistant lié à votre entreprise, avec validation avant application." },
+    "Company AI memory": { fr: "Préférences IA de l’entreprise" },
+    "Current company": { fr: "Entreprise actuelle" },
+    "Default tax": { fr: "TVA par défaut" },
+    "Payment terms": { fr: "Conditions de paiement" },
+    "Tone and business preferences": { fr: "Ton et préférences de l’entreprise" },
+    "Save for this company": { fr: "Enregistrer pour cette entreprise" },
+    "AI cost guard": { fr: "Suivi de consommation IA" },
+    "Daily credits": { fr: "Crédits quotidiens" },
+    "Receipt scans today": { fr: "Scans de justificatifs aujourd’hui" },
+    "This company this month": { fr: "Cette entreprise ce mois-ci" },
+    "Service monthly guard": { fr: "Seuil mensuel du service" },
+    "Prepare an invoice draft": { fr: "Préparer une facture" },
+    "Prepare a quote draft": { fr: "Préparer un devis" },
+    "Show overdue invoices": { fr: "Voir les factures en retard" },
+    "Find unpaid customers": { fr: "Voir les clients avec impayés" },
+    "Show monthly profit": { fr: "Voir le bénéfice mensuel" },
+    "Show stock alerts": { fr: "Voir les alertes de stock" },
+    "Summarize business performance": { fr: "Résumer les performances" },
+    "Suggest next actions": { fr: "Suggérer les prochaines actions" },
+    "Smart automations": { fr: "Automatisations intelligentes" },
+    "Run rules now": { fr: "Analyser maintenant" },
+    "Rules create recommendations only. You approve every resulting task.": { fr: "Les règles proposent des recommandations. Vous validez chaque tâche." },
+    "AI activity": { fr: "Activité IA" },
+    "Clear history": { fr: "Effacer l’historique" },
+    "No AI activity for this company yet.": { fr: "Aucune activité IA pour cette entreprise." },
+    "No recommendation from the enabled rules and current data.": { fr: "Aucune recommandation avec les règles et données actuelles." },
+    "Recent assistant requests for the selected company. Financial drafts still require your approval.": { fr: "Demandes récentes pour l’entreprise sélectionnée. Les brouillons financiers nécessitent votre validation." },
+    "Example: 30 days": { fr: "Exemple : 30 jours" },
+    "Formal tone, preferred services, document instructions...": { fr: "Ton formel, services habituels, consignes pour les documents…" },
     "The AI Business Platform": { fr: "La plateforme business IA", it: "La piattaforma business IA", es: "La plataforma empresarial IA", de: "Die KI-Business-Plattform", nl: "Het AI-businessplatform", pt: "A plataforma empresarial IA", pl: "Platforma biznesowa AI" },
     "Demo preview": { fr: "Aperçu de démonstration", it: "Anteprima demo", es: "Vista de demostración", de: "Demo-Vorschau", nl: "Demovoorbeeld", pt: "Pré-visualização demo", pl: "Podgląd demonstracyjny" },
     "Explore pricing": { fr: "Voir les tarifs", it: "Vedi i prezzi", es: "Ver precios", de: "Preise ansehen", nl: "Prijzen bekijken", pt: "Ver preços", pl: "Zobacz ceny" },
@@ -4669,16 +4709,16 @@
           </div>
           <div class="card">
             <form id="ai-document-composer" class="card-pad" style="border-bottom:1px solid hsl(var(--border));">
-              <h3>Préparer un document avec l’IA</h3>
+              <h3>Prepare a document with AI</h3>
               <div style="display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;">
-                <label>Document<select class="field" id="ai-compose-type"><option value="create_invoice">Facture</option><option value="create_quote">Devis</option></select></label>
+                <label>Document<select class="field" id="ai-compose-type"><option value="create_invoice" data-i18n="nav_invoices">Invoice</option><option value="create_quote" data-i18n="nav_quotes">Quote</option></select></label>
                 <label>Client<select class="field" id="ai-compose-client"></select></label>
                 <label>TVA<select class="field" id="ai-compose-tax"><option value="">À préciser</option></select></label>
-                <label>Prix<select class="field" id="ai-compose-basis"><option value="HT">HT</option><option value="TTC">TTC</option></select></label>
+                <label>Price basis<select class="field" id="ai-compose-basis"><option value="HT">HT</option><option value="TTC">TTC</option></select></label>
               </div>
-              <label for="ai-compose-description">Travaux, produits ou services</label>
-              <textarea class="field" id="ai-compose-description" required maxlength="1800" rows="4" placeholder="Ex. Peinture de 40 m² à 25 € HT/m², préparation incluse. Livraison vendredi." style="width:100%;resize:vertical;margin:8px 0;min-height:100px;"></textarea>
-              <button class="btn btn-primary" type="submit" id="ai-compose-submit">Préparer le brouillon</button>
+              <label for="ai-compose-description">Work, products or services</label>
+              <textarea class="field" id="ai-compose-description" required maxlength="1800" rows="4" placeholder="E.g. Paint 40 m² at EUR 25 before tax/m², preparation included." style="width:100%;resize:vertical;margin:8px 0;min-height:100px;"></textarea>
+              <button class="btn btn-primary" type="submit" id="ai-compose-submit">Prepare draft</button>
               <span id="ai-compose-context" style="display:block;margin-top:8px;font-size:12px;"></span>
             </form>
             <div class="ai-chat" id="ai-chat" aria-live="polite">
@@ -6673,25 +6713,46 @@
       var payment = document.getElementById("ai-memory-payment");
       var notes = document.getElementById("ai-memory-notes");
       if (tax) tax.value = memory.defaultTax || "none";
+      if (tax) tax.options[0].text = currentLang === "fr" ? "Sans TVA" : "No tax";
       if (payment) payment.value = memory.paymentTerms || "";
       if (notes) notes.value = memory.notes || "";
     }
+    var aiUsageRequest = 0;
     async function loadAiUsagePanel() {
       var panel = document.getElementById("ai-cost-panel");
-      if (!panel || !window.profactureAiUsage) return;
+      if (!panel) return;
+      var request = ++aiUsageRequest;
+      var company = wsActiveId;
+      var timer;
+      function status(fr, en) {
+        var text = currentLang === "fr" ? fr : en;
+        panel.textContent = text;
+        [document.getElementById("ai-popup-usage"), document.getElementById("ai-page-usage")].filter(Boolean).forEach(function (badge) { badge.textContent = text; });
+      }
+      if (!window.profactureAiUsage) {
+        status("Consommation IA indisponible hors connexion.", "AI usage unavailable offline.");
+        return;
+      }
+      status("Chargement de la consommation IA…", "Loading AI usage…");
       try {
-        var usage = await window.profactureAiUsage(wsActiveId);
+        var usage = await Promise.race([window.profactureAiUsage(company), new Promise(function (_, reject) { timer = setTimeout(function () { reject(new Error("usage-timeout")); }, 12000); })]);
+        if (request !== aiUsageRequest || company !== wsActiveId) return;
         var dailyPct = Math.min(100, Math.round((usage.dailyUsed / Math.max(1, usage.dailyLimit)) * 100));
         panel.innerHTML = '<div style="display:grid;gap:0.55rem;"><div><strong>Daily credits</strong><span style="float:right;">' + usage.dailyUsed + '/' + usage.dailyLimit + '</span><div class="bar-track"><div class="bar-fill" style="width:' + dailyPct + '%;"></div></div></div>' +
           '<div>Receipt scans today <strong style="float:right;">' + usage.ocrDailyUsed + '/' + usage.ocrDailyLimit + '</strong></div>' +
           '<div>This company this month <strong style="float:right;">' + usage.companyMonthlyRequests + ' requests · $' + Number(usage.companyEstimatedCostUsd || 0).toFixed(4) + '</strong></div>' +
           (usage.isOwner ? '<div>Service monthly guard <strong style="float:right;">$' + Number(usage.estimatedCostUsd || 0).toFixed(4) + ' / $' + Number(usage.monthlyCostLimitUsd || 0).toFixed(2) + '</strong></div>' : '') +
-          '<p style="font-size:0.72rem;">Flash-Lite is preferred, duplicate requests are cached, and scanning costs 3 credits. Processing stops at the server budget cap.</p></div>';
+          '<p style="font-size:0.72rem;">' + (currentLang === "fr" ? "Les demandes identiques sont réutilisées. Un scan coûte 3 crédits. Le seuil repose sur un coût estimé, pas sur une limite de facturation garantie." : "Duplicate requests are reused. A scan costs 3 credits. The threshold uses estimated cost, not a guaranteed billing cap.") + '</p></div>';
         [document.getElementById("ai-popup-usage"), document.getElementById("ai-page-usage")].filter(Boolean).forEach(function (badge) {
-          badge.textContent = (usage.dailyLimit - usage.dailyUsed) + " secure credits left today";
+          badge.textContent = Math.max(0, usage.dailyLimit - usage.dailyUsed) + (currentLang === "fr" ? " crédits disponibles aujourd’hui" : " credits left today");
         });
+        applyStaticCopyTranslations();
       } catch (error) {
-        panel.textContent = "Sign in to view protected AI usage.";
+        if (request !== aiUsageRequest || company !== wsActiveId) return;
+        if (/unauthenticated|SIGN_IN_REQUIRED/.test(String(error.code || error.message))) status("Connectez-vous pour consulter votre consommation IA.", "Sign in to view AI usage.");
+        else status("Consommation IA indisponible. Réessayez en rouvrant l’assistant.", "AI usage unavailable. Reopen the assistant to retry.");
+      } finally {
+        clearTimeout(timer);
       }
     }
     function automationRules() {
@@ -6728,6 +6789,7 @@
       loadAiUsagePanel();
       renderAiActivity(aiConversation);
       loadAiHistory(document.getElementById("ai-chat"));
+      applyStaticCopyTranslations();
     }
     function renderAiDocumentComposer() {
       var form = document.getElementById("ai-document-composer");
@@ -6737,11 +6799,15 @@
       var previous = form.dataset.company === wsActiveId ? select.value : "";
       if (form.dataset.company !== wsActiveId) form.reset();
       form.dataset.company = wsActiveId;
-      select.innerHTML = '<option value="">Choisir / préciser dans le message</option>' + clients.map(function (client) { return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(clientDisplayName(client)) + '</option>'; }).join("");
+      select.innerHTML = '<option value="">' + (currentLang === "fr" ? "Choisir / préciser dans le message" : "Choose / specify in your message") + '</option>' + clients.map(function (client) { return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(clientDisplayName(client)) + '</option>'; }).join("");
       if (clients.some(function (client) { return String(client.id) === previous; })) select.value = previous;
       var tax = document.getElementById("ai-compose-tax");
-      if (tax.options.length === 1) tax.insertAdjacentHTML("beforeend", taxOptionsHtml(""));
-      document.getElementById("ai-compose-context").textContent = (activeCompanyWorkspace() || {}).name + " · " + currentCurrency + " · Brouillon à vérifier avant enregistrement";
+      var selectedTax = tax.value;
+      tax.innerHTML = '<option value="">' + (currentLang === "fr" ? "À préciser" : "To confirm") + '</option>' + taxOptionsHtml(selectedTax);
+      tax.value = selectedTax;
+      document.getElementById("ai-compose-basis").options[0].text = currentLang === "fr" ? "HT" : "Before tax";
+      document.getElementById("ai-compose-basis").options[1].text = currentLang === "fr" ? "TTC" : "Including tax";
+      document.getElementById("ai-compose-context").textContent = (activeCompanyWorkspace() || {}).name + " · " + currentCurrency + (currentLang === "fr" ? " · Brouillon à vérifier avant enregistrement" : " · Review draft before saving");
     }
     document.getElementById("ai-open-document-composer").addEventListener("click", function () {
       renderAiDocumentComposer();

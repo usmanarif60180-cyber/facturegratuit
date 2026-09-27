@@ -22,6 +22,8 @@
 .doc-builder-layout{grid-template-columns:minmax(0,1.1fr) minmax(360px,1fr);gap:24px}.doc-preview-panel{position:sticky;top:12px}.line-description{min-height:96px!important;resize:vertical;font-size:14px!important}.doc-builder-layout .data-table th:first-child{width:40%}.doc-builder-layout .card{box-shadow:none}.field{min-height:42px;font-size:14px}.doc-builder-layout textarea{line-height:1.6}
 #view-invoice-new .page-head,#view-quote-new .page-head{position:sticky;top:0;z-index:30;background:hsl(var(--bg));padding:12px 0;border-bottom:1px solid hsl(var(--border))}
 .workspace-menu{display:none}
+@media(max-width:600px){.app-topbar>span[title]:has(.sound-switch){display:none!important}}
+.doc-builder-layout .li-table th:first-child{width:40%}
 @media(max-width:600px){.app-topbar .replay-onboarding,.app-topbar>span[title],.app-topbar>.theme-toggle{display:none}.app-topbar{gap:8px}.app-topbar .ws-wrap{flex:1}.app-topbar .workspace-menu{margin-right:0}.app-topbar .app-lang-select{max-width:126px}.app-topbar .sync-chip{margin-right:auto}.app-topbar .account-trigger{min-height:36px}.app-topbar .btn-icon{min-height:36px}}
 @media(min-width:901px){.view.active .app-sidebar{height:100vh;position:sticky;top:0}.view.active .app-shell>[id^=sidebar]{width:236px;flex-shrink:0}}
 @media(max-width:1100px){.doc-builder-layout{grid-template-columns:1fr}.doc-preview-panel{position:static}.ai-command-hero{grid-template-columns:1fr}.ai-command-actions{justify-content:flex-start}}
