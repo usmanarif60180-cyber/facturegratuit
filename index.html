@@ -3932,6 +3932,7 @@
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="inv-new-client"></select></div>
                 <div><label class="field-label">Chantier</label><select class="field" id="inv-new-project"></select></div>
                 <div><label class="field-label">Type de facture</label><select class="field" id="inv-new-type"><option value="standard">Facture standard</option><option value="deposit">Facture d’acompte</option><option value="progress">Facture de situation</option><option value="intermediate">Facture intermédiaire</option><option value="final">Facture finale</option><option value="credit_note">Avoir</option></select></div>
+                <div><label class="field-label" for="inv-new-number">Numéro de facture / Invoice number</label><input class="field" id="inv-new-number" maxlength="64" /></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="inv-new-issue" /></div>
                 <div><label class="field-label"><span data-i18n="fld_due_date">Due date</span> <span style="color:hsl(var(--muted-fg));font-weight:600;">(<span data-i18n="lbl_optional">optional</span>)</span></label><input class="field" type="date" id="inv-new-due" /></div>
                 <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="inv-new-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>
@@ -3999,6 +4000,7 @@
                 <div><label class="field-label" data-i18n="fld_client">Client</label><select class="field" id="q-new-client"></select></div>
                 <div><label class="field-label">Chantier</label><select class="field" id="q-new-project"></select></div>
                 <div><label class="field-label">Type</label><select class="field" id="q-new-type"><option value="initial">Devis initial</option><option value="amendment">Avenant / devis complémentaire</option></select></div>
+                <div><label class="field-label" for="q-new-number">Numéro de devis / Quote number</label><input class="field" id="q-new-number" maxlength="64" /></div>
                 <div><label class="field-label" data-i18n="fld_issue_date">Issue date</label><input class="field" type="date" id="q-new-issue" /></div>
                 <div><label class="field-label" data-i18n="fld_valid_until">Valid until</label><input class="field" type="date" id="q-new-valid" /></div>
                 <div><label class="field-label" data-i18n="fld_currency">Currency</label><select class="field" id="q-new-currency"><option value="USD">USD ($) — US Dollar</option><option value="EUR">EUR (€) — Euro</option><option value="GBP">GBP (£) — British Pound</option></select></div>
@@ -6943,7 +6945,7 @@
       Object.keys(pairs).forEach(function(fr) { STATIC_COPY_TRANSLATIONS[fr] = {fr:fr,en:pairs[fr]}; });
       renderAiBusinessLinks();
       renderAiDocumentComposer();
-      document.querySelector('label[for="ai-compose-tax"]').textContent = currentLang === 'fr' ? 'TVA' : 'Tax';
+      document.getElementById('ai-compose-tax').parentElement.firstChild.nodeValue = currentLang === 'fr' ? 'TVA' : 'Tax';
       var tax = document.getElementById('ai-memory-tax');
       if (tax) Array.from(tax.options).forEach(function(option) {
         option.text = option.value === 'none' ? (currentLang === 'fr' ? 'Sans TVA' : 'No tax') : option.text.replace(/TVA|VAT/g, currentLang === 'fr' ? 'TVA' : 'VAT');
@@ -6968,7 +6970,7 @@
       select.innerHTML = '<option value="">' + (currentLang === "fr" ? "Choisir / préciser dans le message" : "Choose / specify in your message") + '</option>' + clients.map(function (client) { return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(clientDisplayName(client)) + '</option>'; }).join("");
       if (clients.some(function (client) { return String(client.id) === previous; })) select.value = previous;
       var tax = document.getElementById("ai-compose-tax");
-      document.querySelector('label[for="ai-compose-tax"]').textContent = currentLang === 'fr' ? 'TVA' : 'Tax';
+      document.getElementById('ai-compose-tax').parentElement.firstChild.nodeValue = currentLang === 'fr' ? 'TVA' : 'Tax';
       var selectedTax = tax.value;
       tax.innerHTML = '<option value="">' + (currentLang === "fr" ? "À préciser" : "To confirm") + '</option>' + taxOptionsHtml(selectedTax);
       tax.value = selectedTax;
@@ -8095,7 +8097,7 @@
       var total = readCurrencyAmount("t-total");
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_invoice"),
-        number: editingInvoiceId || nextDocumentId("INV-", INVOICES),
+        number: builderNumber("invoice"),
         client: clientDisplayName(client),
         clientAddress: document.getElementById("inv-new-client-address").value.trim(),
         siteAddress: document.getElementById("inv-new-site-address").value.trim(),
@@ -9890,10 +9892,28 @@
       area.innerHTML = html;
       window.print();
     }
+    // Keep payment links and cloud record IDs stable when the displayed number changes.
+    function documentNumber(doc) { return String(doc.documentNumber || doc.id || ''); }
+    function builderNumber(kind) {
+      return document.getElementById(kind === 'invoice' ? 'inv-new-number' : 'q-new-number').value.trim();
+    }
+    function validateBuilderNumber(kind) {
+      var value = builderNumber(kind);
+      var records = kind === 'invoice' ? INVOICES : QUOTES;
+      var editingId = kind === 'invoice' ? editingInvoiceId : editingQuoteId;
+      var field = document.getElementById(kind === 'invoice' ? 'inv-new-number' : 'q-new-number');
+      if (!value || value.length > 64 || /[\x00-\x1f\x7f]/.test(value)) {
+        showToast(currentLang === 'fr' ? 'Saisissez un numéro valide (64 caractères maximum).' : 'Enter a valid number (maximum 64 characters).'); field.focus(); return '';
+      }
+      if (activeCompanyItems(records).some(function(doc) { return doc.id !== editingId && documentNumber(doc).toLocaleLowerCase() === value.toLocaleLowerCase(); })) {
+        showToast(currentLang === 'fr' ? 'Ce numéro existe déjà dans cette entreprise.' : 'This number already exists in this company.'); field.focus(); return '';
+      }
+      return value;
+    }
     function downloadInvoicePdf(inv) {
       if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "invoice", document_id: inv.id || "draft", currency: inv.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
-        title: t("doc_invoice"), number: inv.id, client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress,
+        title: t("doc_invoice"), number: documentNumber(inv), client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress,
         siret: inv.siret, clientContact: inv.clientContact, clientVat: inv.clientVat, clientEmail: inv.clientEmail, clientPhone: inv.clientPhone, companyProfile: inv.companyProfile, logo: inv.logo, stamp: inv.stamp, signature: inv.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(inv.issue), dueLabel: t("fld_due_date"), dueDate: fmtDate(inv.due),
         documentType: "invoice", country: inv.country || currentDefaultCountry, paymentDisplay: inv.paymentDisplay || "", items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency, design: inv.design || LEGACY_DOCUMENT_DESIGN,
@@ -9902,7 +9922,7 @@
     function downloadQuotePdf(q) {
       if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "quote", document_id: q.id || "draft", currency: q.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
-        title: t("doc_quote"), number: q.id, client: q.client, clientAddress: q.clientAddress, siteAddress: q.siteAddress,
+        title: t("doc_quote"), number: documentNumber(q), client: q.client, clientAddress: q.clientAddress, siteAddress: q.siteAddress,
         siret: q.siret, clientContact: q.clientContact, clientVat: q.clientVat, clientEmail: q.clientEmail, clientPhone: q.clientPhone, companyProfile: q.companyProfile, logo: q.logo, stamp: q.stamp, signature: q.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(q.issue), dueLabel: t("fld_valid_until"), dueDate: fmtDate(q.validUntil),
         items: q.items, total: q.total, status: q.status, currencyCode: q.currency, design: q.design || LEGACY_DOCUMENT_DESIGN,
@@ -10265,11 +10285,15 @@
         var match = String((row && row.id) || "").match(/(\d+)$/);
         return Math.max(value, match ? parseInt(match[1], 10) || 0 : 0);
       }, 0);
-      return prefix + String(max + 1).padStart(4, "0");
+      var taken = new Set((Array.isArray(rows) ? rows : []).map(function(row) { return documentNumber(row).toLowerCase(); }));
+      var candidate;
+      do { candidate = prefix + String(++max).padStart(4, '0'); } while (taken.has(candidate.toLowerCase()));
+      return candidate;
     }
     function invoiceDraftData() {
       return {
         clientId: document.getElementById("inv-new-client").value,
+        documentNumber: document.getElementById("inv-new-number").value,
         projectId: document.getElementById("inv-new-project").value,
         invoiceType: document.getElementById("inv-new-type").value,
         issue: document.getElementById("inv-new-issue").value,
@@ -10296,6 +10320,7 @@
       if (!draft || !draft.updatedAt) return false;
       if (draft.design) applyDocumentDesign(draft.design);
       document.getElementById("inv-new-client").value = draft.clientId || "";
+      if (draft.documentNumber) document.getElementById("inv-new-number").value = draft.documentNumber;
       document.getElementById("inv-new-project").value = draft.projectId || "";
       document.getElementById("inv-new-type").value = draft.invoiceType || "standard";
       document.getElementById("inv-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
@@ -10317,6 +10342,7 @@
       populateInvoiceNewClientSelect();
       populateDocumentProjectSelects();
       var editing = editingInvoiceId ? findActiveInvoiceById(editingInvoiceId) : null;
+      document.getElementById('inv-new-number').value = editing ? documentNumber(editing) : nextDocumentId('INV-', INVOICES);
       var titleEl = document.querySelector("#view-invoice-new h2");
       var subEl = document.querySelector("#view-invoice-new .page-head p");
       var draftBtn = document.getElementById("invoice-save-draft-btn");
@@ -10368,7 +10394,7 @@
       var total = readCurrencyAmount("t-total");
       renderDocPreview(preview, buildDocPrintHtml({
         title: t("doc_invoice"),
-        number: editingInvoiceId || nextDocumentId("INV-", INVOICES),
+        number: builderNumber("invoice"),
         client: clientDisplayName(client),
         clientAddress: document.getElementById("inv-new-client-address").value.trim(),
         siteAddress: document.getElementById("inv-new-site-address").value.trim(),
@@ -10405,6 +10431,8 @@
     });
     var invoiceSeq = 0;
     function saveNewInvoice(status) {
+      var number = validateBuilderNumber('invoice');
+      if (!number) return;
       var clientSel = document.getElementById("inv-new-client");
       var client = CLIENTS.filter(function (c) { return c.id === clientSel.value && belongsToActiveCompany(c); })[0];
       if (!client) { showToast("Add a client before saving an invoice"); return; }
@@ -10421,6 +10449,7 @@
       if (editingInvoiceId) {
         var existing = findActiveInvoiceById(editingInvoiceId);
         if (existing) {
+          existing.documentNumber = number;
           existing.client = clientDisplayName(client);
           existing.clientAddress = clientAddress;
           existing.siteAddress = siteAddress;
@@ -10459,6 +10488,7 @@
         var newId = nextDocumentId("INV-", INVOICES);
         INVOICES.push({
           id: newId,
+          documentNumber: number,
           client: clientDisplayName(client),
           clientAddress: clientAddress,
           siteAddress: siteAddress,
@@ -10564,7 +10594,7 @@
       var q = invoiceFilter.q.toLowerCase();
       var rows = INVOICES.filter(function (inv) {
         if (!belongsToActiveCompany(inv)) return false;
-        var matchesQ = !q || inv.id.toLowerCase().indexOf(q) !== -1 || inv.client.toLowerCase().indexOf(q) !== -1;
+        var matchesQ = !q || documentNumber(inv).toLowerCase().indexOf(q) !== -1 || inv.id.toLowerCase().indexOf(q) !== -1 || inv.client.toLowerCase().indexOf(q) !== -1;
         var matchesStatus = invoiceFilter.status === "all" || inv.status === invoiceFilter.status;
         return matchesQ && matchesStatus;
       });
@@ -10572,7 +10602,7 @@
         var balance = invoiceBalance(inv);
         var canRemind = balance > 0 && ["Sent", "Viewed", "Partially paid", "Overdue"].indexOf(inv.status) !== -1;
         return (
-          '<tr><td class="link-strong" data-invoice-open="' + inv.id + '" style="cursor:pointer;">' + inv.id + '</td><td style="font-weight:700;">' + inv.client + "</td><td>" +
+          '<tr><td class="link-strong" data-invoice-open="' + inv.id + '" style="cursor:pointer;">' + escapeHtml(documentNumber(inv)) + '</td><td style="font-weight:700;">' + inv.client + "</td><td>" +
           new Date(inv.issue + "T00:00:00").toLocaleDateString("en", { month: "short", day: "2-digit", year: "numeric" }) + "</td><td>" +
           (fmtDate(inv.due) || "—") + '</td><td><span class="badge ' + invoiceStatusBadgeClass(inv.status) + '">' + inv.status + "</span></td>" +
           '<td class="tnum" style="text-align:right;font-weight:700;">' + formatCurrency(inv.total, inv.currency) + "</td>" +
@@ -10710,6 +10740,7 @@
         var sourceInvoice = findActiveInvoiceById(duplicateBtn.getAttribute("data-invoice-duplicate"));
         if (!sourceInvoice) return;
         var duplicatedInvoice = Object.assign({}, sourceInvoice, {
+          documentNumber: '',
           id: nextDocumentId("INV-", INVOICES), status: "Draft", issue: new Date().toISOString().slice(0, 10), due: "", paymentDisplay: "", payments: [],
           items: (sourceInvoice.items || []).map(function (item) { return Object.assign({}, item); }), updatedAt: new Date().toISOString()
         });
@@ -10851,7 +10882,7 @@
       var sorted = activeCompanyItems(QUOTES).slice().sort(function (a, b) { return new Date(b.issue) - new Date(a.issue); });
       tbody.innerHTML = sorted.length ? sorted.map(function (q) {
         return (
-          '<tr><td class="link-strong">' + q.id + "</td><td>" + q.client + "</td><td>" + fmtDate(q.issue) + "</td><td>" + fmtDate(q.validUntil) + "</td>" +
+          '<tr><td class="link-strong">' + escapeHtml(documentNumber(q)) + "</td><td>" + q.client + "</td><td>" + fmtDate(q.issue) + "</td><td>" + fmtDate(q.validUntil) + "</td>" +
           '<td><span class="badge ' + quoteStatusBadgeClass(q.status) + '">' + q.status + "</span></td>" +
           '<td class="tnum" style="text-align:right;font-weight:700;">' + formatCurrency(q.total, q.currency) + "</td>" +
           '<td style="display:flex;gap:0.3rem;flex-wrap:wrap;">' +
@@ -10959,7 +10990,7 @@
       var total = readCurrencyAmount("q-t-total");
       renderDocPreview(preview, buildDocPrintHtml({
         title: t("doc_quote"),
-        number: editingQuoteId || nextDocumentId("QUO-", QUOTES),
+        number: builderNumber("quote"),
         client: clientDisplayName(client),
         clientAddress: document.getElementById("q-new-client-address").value.trim(),
         siteAddress: document.getElementById("q-new-site-address").value.trim(),
@@ -10998,6 +11029,7 @@
     function quoteDraftData() {
       return {
         clientId: document.getElementById("q-new-client").value,
+        documentNumber: document.getElementById("q-new-number").value,
         projectId: document.getElementById("q-new-project").value,
         quoteType: document.getElementById("q-new-type").value,
         issue: document.getElementById("q-new-issue").value,
@@ -11022,6 +11054,7 @@
       if (!draft || !draft.updatedAt) return false;
       if (draft.design) applyDocumentDesign(draft.design);
       document.getElementById("q-new-client").value = draft.clientId || "";
+      if (draft.documentNumber) document.getElementById("q-new-number").value = draft.documentNumber;
       document.getElementById("q-new-project").value = draft.projectId || "";
       document.getElementById("q-new-type").value = draft.quoteType || "initial";
       document.getElementById("q-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
@@ -11040,6 +11073,7 @@
       populateQuoteNewClientSelect();
       populateDocumentProjectSelects();
       var editing = editingQuoteId ? findActiveQuoteById(editingQuoteId) : null;
+      document.getElementById('q-new-number').value = editing ? documentNumber(editing) : nextDocumentId('QUO-', QUOTES);
       var titleEl = document.getElementById("quote-new-title");
       var subEl = document.getElementById("quote-new-sub");
       var draftBtn = document.getElementById("quote-save-draft-btn");
@@ -11077,6 +11111,8 @@
       renderQuotePreview();
     }
     function saveNewQuote(status) {
+      var number = validateBuilderNumber('quote');
+      if (!number) return;
       var clientSel = document.getElementById("q-new-client");
       var client = CLIENTS.filter(function (c) { return c.id === clientSel.value && belongsToActiveCompany(c); })[0];
       if (!client) { showToast("Add a client before saving a quote"); return; }
@@ -11093,6 +11129,7 @@
       if (editingQuoteId) {
         var existing = findActiveQuoteById(editingQuoteId);
         if (existing) {
+          existing.documentNumber = number;
           existing.client = clientDisplayName(client);
           existing.clientAddress = clientAddress;
           existing.siteAddress = siteAddress;
@@ -11128,7 +11165,7 @@
         quoteSeq++;
         var newId = nextDocumentId("QUO-", QUOTES);
         QUOTES.push({
-          id: newId, client: clientDisplayName(client), clientAddress: clientAddress, siteAddress: siteAddress,
+          id: newId, documentNumber: number, client: clientDisplayName(client), clientAddress: clientAddress, siteAddress: siteAddress,
           siret: siret, clientContact: client.name, clientVat: client.vat || "", clientEmail: client.email || "", clientPhone: client.phone || "", clientId: client.id,
           projectId: document.getElementById("q-new-project").value, quoteType: document.getElementById("q-new-type").value,
           companyId: wsActiveId, companyProfile: Object.assign({}, currentCompanyProfile()), logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(), design: captureDocumentDesign(), issue: issue, validUntil: validUntil, status: status, total: total, subtotal: exactTotals.subtotal, taxTotal: exactTotals.taxTotal, htMinor: exactTotals.subtotalMinor, taxMinor: exactTotals.taxMinor, totalMinor: exactTotals.totalMinor, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
@@ -11165,7 +11202,7 @@
       var total = readCurrencyAmount("q-t-total");
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_quote"),
-        number: editingQuoteId || nextDocumentId("QUO-", QUOTES),
+        number: builderNumber("quote"),
         client: clientDisplayName(client),
         clientAddress: document.getElementById("q-new-client-address").value.trim(),
         siteAddress: document.getElementById("q-new-site-address").value.trim(),
@@ -11212,6 +11249,7 @@
         var sourceQuote = findActiveQuoteById(qDuplicateBtn.getAttribute("data-quote-duplicate"));
         if (!sourceQuote) return;
         var duplicatedQuote = Object.assign({}, sourceQuote, {
+          documentNumber: '',
           id: nextDocumentId("QUO-", QUOTES), status: "Draft", issue: new Date().toISOString().slice(0, 10),
           items: (sourceQuote.items || []).map(function (item) { return Object.assign({}, item); }), updatedAt: new Date().toISOString(),
           acceptedAt: null, acceptedHtMinor: null, acceptedTaxMinor: null, acceptedTotalMinor: null, acceptedVersionId: null

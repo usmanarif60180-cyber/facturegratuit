@@ -63,8 +63,8 @@ assert(index.includes("PHONE_OTP_COOLDOWN_MS = 60 * 1000"), "Phone OTP resend co
   'profacture_invoice_builder_draft_" + wsActiveId',
   'profacture_quote_builder_draft_" + wsActiveId'
 ].forEach(marker => assert(index.includes(marker), `Missing multi-company isolation marker: ${marker}`));
-assert(index.includes('number: editingInvoiceId || nextDocumentId("INV-", INVOICES)'), "Invoice preview must show its next number instead of Draft");
-assert(index.includes('number: editingQuoteId || nextDocumentId("QUO-", QUOTES)'), "Quote preview must show its next number instead of Draft");
+assert(index.includes('number: builderNumber("invoice")'), "Invoice preview must use the editable number");
+assert(index.includes('number: builderNumber("quote")'), "Quote preview must use the editable number");
 assert(index.includes('id="pd-tasks"'), "Project detail linked-tasks panel is missing");
 assert(index.includes('x.id === id && belongsToActiveCompany(x)'), "Client detail must remain scoped to the active company");
 assert(index.includes('var dashboardInvoices = activeCompanyItems(INVOICES);'), "Dashboard invoice totals must remain company scoped");
