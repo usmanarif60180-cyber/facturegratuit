@@ -105,6 +105,12 @@ assert(index.includes('id="inv-health-panel"') && index.includes('id="quote-heal
 assert(index.includes('id="ai-activity-list"') && index.includes('function renderAiActivity(messages)'), "Visible company AI activity is missing");
 assert(index.includes('aria-modal="true"') && index.includes('role="log"'), "AI dialog accessibility contract changed");
 assert(functionsSource.includes('Never save, send, email, delete, or charge anything'), "AI backend must forbid destructive autonomous actions");
+assert(index.includes('var aiInvoices = activeCompanyItems(INVOICES);') && index.includes('var aiProducts = activeCompanyItems(PRODUCTS);'), "AI fallback data must remain company scoped");
+assert(index.includes('function inventoryProducts() { return activeCompanyItems(PRODUCTS); }'), "Inventory must remain company scoped");
+assert(index.includes('activeCompanyItems(FILES).filter'), "Files must remain company scoped");
+assert(index.includes('function portalClient()') && index.includes('function documentBelongsToPortalClient(doc, client)'), "Client portal isolation guard is missing");
+assert(index.includes('function findActiveInvoiceById(id)') && index.includes('function findActiveQuoteById(id)'), "Document action isolation guards are missing");
+assert(index.includes('escapeHtml(file.name)') && index.includes('escapeHtml(p.name)'), "Stored inventory/file labels must be HTML escaped");
 
 [
   'id="home-ai-tools"',

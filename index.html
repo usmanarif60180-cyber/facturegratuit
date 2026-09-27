@@ -6395,24 +6395,28 @@
     function aiFindReply(text) {
       var lower = text.toLowerCase();
       function has(words) { return words.some(function (w) { return lower.indexOf(w) !== -1; }); }
-      var outstandingBalance = INVOICES.reduce(function (s, inv) { return s + invoiceBalance(inv); }, 0);
+      var aiInvoices = activeCompanyItems(INVOICES);
+      var aiQuotes = activeCompanyItems(QUOTES);
+      var aiProducts = activeCompanyItems(PRODUCTS);
+      var aiTasks = activeCompanyItems(TASKS);
+      var outstandingBalance = aiInvoices.reduce(function (s, inv) { return s + invoiceBalance(inv); }, 0);
 
       if (has(["overdue"])) {
-        var overdue = INVOICES.filter(function (inv) { return inv.status === "Overdue"; });
+        var overdue = aiInvoices.filter(function (inv) { return inv.status === "Overdue"; });
         if (!overdue.length) return "You have no overdue invoices right now.";
         var overdueTotal = overdue.reduce(function (s, inv) { return s + invoiceBalance(inv); }, 0);
         return overdue.length + " overdue invoice" + (overdue.length > 1 ? "s" : "") + " totaling " + currency(overdueTotal) + ":<br>" +
           overdue.map(function (inv) { return "• " + inv.id + " — " + inv.client + " — " + currency(invoiceBalance(inv)); }).join("<br>");
       }
       if (has(["unpaid customer", "unpaid customers", "hasn't paid", "unpaid"])) {
-        var unpaid = INVOICES.filter(function (inv) { return invoiceBalance(inv) > 0; });
+        var unpaid = aiInvoices.filter(function (inv) { return invoiceBalance(inv) > 0; });
         if (!unpaid.length) return "All your customers are paid up — no unpaid balances.";
         return "Customers with unpaid balances:<br>" + unpaid.map(function (inv) {
           return "• " + inv.client + " — " + currency(invoiceBalance(inv)) + (inv.status === "Overdue" ? " overdue" : " (" + inv.status.toLowerCase() + ")");
         }).join("<br>");
       }
       if (has(["follow-up task", "follow up task", "create follow-up", "create task"])) {
-        var targets = INVOICES.filter(function (inv) { return invoiceBalance(inv) > 0; });
+        var targets = aiInvoices.filter(function (inv) { return invoiceBalance(inv) > 0; });
         if (!targets.length) return "No unpaid invoices need a follow-up task right now.";
         return "Suggested follow-up tasks:<br>" + targets.map(function (inv) {
           return "• Follow up with " + inv.client + " — " + inv.status.toLowerCase() + " invoice";
@@ -6423,45 +6427,45 @@
         return "This month: " + currency(ms.revenue) + " revenue − " + currency(ms.expenses) + " expenses = " + currency(ms.profit) + " profit.";
       }
       if (has(["stock alert", "low stock", "stock alerts"])) {
-        var low = PRODUCTS.filter(function (p) { return p.stock <= p.minStock; });
+        var low = aiProducts.filter(function (p) { return p.stock <= p.minStock; });
         if (!low.length) return "No stock alerts — all products are above their minimum stock level.";
         return low.length + " stock alert" + (low.length > 1 ? "s" : "") + ":<br>" + low.map(function (p) {
           return "• " + p.name + " — " + (p.stock <= 0 ? "out of stock" : p.stock + " " + p.unit + " left (min " + p.minStock + ")");
         }).join("<br>");
       }
       if (has(["inventory report", "generate inventory"])) {
-        var lowCount = PRODUCTS.filter(function (p) { return p.stock > 0 && p.stock <= p.minStock; }).length;
-        var outCount = PRODUCTS.filter(function (p) { return p.stock <= 0; }).length;
-        return "Inventory snapshot: " + PRODUCTS.length + " stocked products, " + lowCount + " low stock, " + outCount + " out of stock. Full breakdown is in Inventory → Dashboard.";
+        var lowCount = aiProducts.filter(function (p) { return p.stock > 0 && p.stock <= p.minStock; }).length;
+        var outCount = aiProducts.filter(function (p) { return p.stock <= 0; }).length;
+        return "Inventory snapshot: " + aiProducts.length + " stocked products, " + lowCount + " low stock, " + outCount + " out of stock. Full breakdown is in Inventory → Dashboard.";
       }
       if (has(["summarize", "business performance", "summary"])) {
         var ms2 = aiMonthStats();
-        var paidInvoices = INVOICES.filter(function (inv) { return inv.status === "Paid"; }).length;
-        var invoicesPaidPct = INVOICES.length ? Math.round((paidInvoices / INVOICES.length) * 100) : 0;
-        var acceptedQuotes = QUOTES.filter(function (q) { return q.status === "Accepted" || q.status === "Converted"; }).length;
-        var quotesAcceptedPct = QUOTES.length ? Math.round((acceptedQuotes / QUOTES.length) * 100) : 0;
-        var stockAlerts = PRODUCTS.filter(function (p) { return p.stock <= p.minStock; }).length;
-        var tasksDue = TASKS.filter(function (t) { return t.status !== "done"; }).length;
-        return "This month: " + currency(ms2.revenue) + " revenue, " + currency(ms2.profit) + " profit, " + INVOICES.length + " invoices (" + invoicesPaidPct + "% paid), " + QUOTES.length + " quotes (" + quotesAcceptedPct + "% accepted), " + stockAlerts + " stock alerts, " + tasksDue + " tasks due.";
+        var paidInvoices = aiInvoices.filter(function (inv) { return inv.status === "Paid"; }).length;
+        var invoicesPaidPct = aiInvoices.length ? Math.round((paidInvoices / aiInvoices.length) * 100) : 0;
+        var acceptedQuotes = aiQuotes.filter(function (q) { return q.status === "Accepted" || q.status === "Converted"; }).length;
+        var quotesAcceptedPct = aiQuotes.length ? Math.round((acceptedQuotes / aiQuotes.length) * 100) : 0;
+        var stockAlerts = aiProducts.filter(function (p) { return p.stock <= p.minStock; }).length;
+        var tasksDue = aiTasks.filter(function (t) { return t.status !== "done"; }).length;
+        return "This month: " + currency(ms2.revenue) + " revenue, " + currency(ms2.profit) + " profit, " + aiInvoices.length + " invoices (" + invoicesPaidPct + "% paid), " + aiQuotes.length + " quotes (" + quotesAcceptedPct + "% accepted), " + stockAlerts + " stock alerts, " + tasksDue + " tasks due.";
       }
       if (has(["next action", "suggest next", "what should i do"])) {
         var actions = [];
-        var firstOverdue = INVOICES.filter(function (inv) { return inv.status === "Overdue"; })[0];
+        var firstOverdue = aiInvoices.filter(function (inv) { return inv.status === "Overdue"; })[0];
         if (firstOverdue) actions.push("Follow up on the overdue " + firstOverdue.client + " invoice");
-        var firstLowStock = PRODUCTS.filter(function (p) { return p.stock <= p.minStock; })[0];
+        var firstLowStock = aiProducts.filter(function (p) { return p.stock <= p.minStock; })[0];
         if (firstLowStock) actions.push("Reorder " + firstLowStock.name + " (" + firstLowStock.stock + " left)");
-        var firstQuote = QUOTES.filter(function (q) { return q.status === "Sent"; })[0];
+        var firstQuote = aiQuotes.filter(function (q) { return q.status === "Sent"; })[0];
         if (firstQuote) actions.push("Follow up on " + firstQuote.id + " for " + firstQuote.client);
         if (!actions.length) return "No urgent actions right now — everything looks on track.";
         return "Suggested next actions:<br>" + actions.map(function (a, i) { return (i + 1) + ". " + a; }).join("<br>");
       }
       if (has(["recommend", "improvement"])) {
         var recs = [];
-        var overdueCount = INVOICES.filter(function (inv) { return inv.status === "Overdue"; }).length;
+        var overdueCount = aiInvoices.filter(function (inv) { return inv.status === "Overdue"; }).length;
         if (overdueCount) recs.push("Automate reminders for your " + overdueCount + " overdue invoice" + (overdueCount > 1 ? "s" : ""));
-        var lowStockCount = PRODUCTS.filter(function (p) { return p.stock <= p.minStock; }).length;
+        var lowStockCount = aiProducts.filter(function (p) { return p.stock <= p.minStock; }).length;
         if (lowStockCount) recs.push("Set reorder points for your " + lowStockCount + " low-stock item" + (lowStockCount > 1 ? "s" : ""));
-        var sentQuote = QUOTES.filter(function (q) { return q.status === "Sent"; })[0];
+        var sentQuote = aiQuotes.filter(function (q) { return q.status === "Sent"; })[0];
         if (sentQuote) recs.push("Follow up on " + sentQuote.id + " before it expires");
         if (!recs.length) return "No recommendations right now — add invoices, expenses and inventory to get tailored suggestions.";
         return "Recommendations:<br>" + recs.map(function (r) { return "• " + r; }).join("<br>");
@@ -7951,7 +7955,7 @@
     var invoicePrintBtn = document.getElementById("invoice-print-btn");
     if (invoicePrintBtn) invoicePrintBtn.addEventListener("click", function () {
       var clientSel = document.getElementById("inv-new-client");
-      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
+      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value && belongsToActiveCompany(c); })[0];
       var total = readCurrencyAmount("t-total");
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_invoice"),
@@ -7974,8 +7978,10 @@
     var PRODUCTS = [];
     window.PRODUCTS = PRODUCTS;
     var INV_HISTORY = [];
+    function inventoryProducts() { return activeCompanyItems(PRODUCTS); }
+    function inventorySuppliers() { return activeCompanyItems(SUPPLIERS); }
     function supplierName(id) {
-      var s = SUPPLIERS.filter(function (x) { return x.id === id; })[0];
+      var s = inventorySuppliers().filter(function (x) { return x.id === id; })[0];
       return s ? s.name : "—";
     }
     function invBarcodeHtml(code) {
@@ -7996,64 +8002,65 @@
       var tbody = document.querySelector("#inv-products-table tbody");
       if (!tbody) return;
       var q = (filterText || "").toLowerCase();
-      var rows = PRODUCTS.filter(function (p) { return p.type === "product"; }).filter(function (p) {
-        return !q || p.name.toLowerCase().indexOf(q) !== -1 || p.sku.toLowerCase().indexOf(q) !== -1 || p.category.toLowerCase().indexOf(q) !== -1;
+      var rows = inventoryProducts().filter(function (p) { return p.type === "product"; }).filter(function (p) {
+        return !q || String(p.name || "").toLowerCase().indexOf(q) !== -1 || String(p.sku || "").toLowerCase().indexOf(q) !== -1 || String(p.category || "").toLowerCase().indexOf(q) !== -1;
       });
       tbody.innerHTML = rows.length ? rows.map(function (p) {
         return (
-          '<tr><td style="font-weight:700;">' + p.name + "</td><td>" + p.sku + "</td><td>" + invBarcodeHtml(p.barcode) + "</td><td>" + p.category + "</td><td>" + p.unit + "</td>" +
+          '<tr><td style="font-weight:700;">' + escapeHtml(p.name) + "</td><td>" + escapeHtml(p.sku) + "</td><td>" + invBarcodeHtml(String(p.barcode || "").replace(/[^a-zA-Z0-9-]/g, "")) + "</td><td>" + escapeHtml(p.category) + "</td><td>" + escapeHtml(p.unit) + "</td>" +
           '<td style="text-align:right;">' + invStockBadge(p) + "</td>" +
           '<td class="tnum" style="text-align:right;">' + currency(p.purchase) + "</td>" +
           '<td class="tnum" style="text-align:right;font-weight:700;">' + currency(p.selling) + "</td>" +
-          "<td>" + supplierName(p.supplierId) + "</td></tr>"
+          "<td>" + escapeHtml(supplierName(p.supplierId)) + "</td></tr>"
         );
       }).join("") : '<tr><td colspan="9" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No products match your search.</td></tr>';
     }
     function invRenderServices() {
       var tbody = document.querySelector("#inv-services-table tbody");
       if (!tbody) return;
-      var rows = PRODUCTS.filter(function (p) { return p.type === "service"; });
+      var rows = inventoryProducts().filter(function (p) { return p.type === "service"; });
       tbody.innerHTML = rows.length ? rows.map(function (p) {
-        return '<tr><td style="font-weight:700;">' + p.name + "</td><td>" + p.sku + "</td><td>" + p.category + "</td><td>" + p.unit + '</td><td class="tnum" style="text-align:right;font-weight:700;">' + currency(p.selling) + "</td></tr>";
+        return '<tr><td style="font-weight:700;">' + escapeHtml(p.name) + "</td><td>" + escapeHtml(p.sku) + "</td><td>" + escapeHtml(p.category) + "</td><td>" + escapeHtml(p.unit) + '</td><td class="tnum" style="text-align:right;font-weight:700;">' + currency(p.selling) + "</td></tr>";
       }).join("") : '<tr><td colspan="5" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No services yet.</td></tr>';
     }
     function invRenderCategories() {
       var tbody = document.querySelector("#inv-categories-table tbody");
       if (!tbody) return;
       var cats = {};
-      PRODUCTS.forEach(function (p) {
+      inventoryProducts().forEach(function (p) {
         cats[p.category] = cats[p.category] || { count: 0, value: 0 };
         cats[p.category].count++;
         cats[p.category].value += (p.stock || 0) * p.purchase;
       });
       var keys = Object.keys(cats);
       tbody.innerHTML = keys.length ? keys.map(function (c) {
-        return '<tr><td style="font-weight:700;">' + c + '</td><td style="text-align:right;">' + cats[c].count + '</td><td class="tnum" style="text-align:right;">' + currency(cats[c].value) + "</td></tr>";
+        return '<tr><td style="font-weight:700;">' + escapeHtml(c) + '</td><td style="text-align:right;">' + cats[c].count + '</td><td class="tnum" style="text-align:right;">' + currency(cats[c].value) + "</td></tr>";
       }).join("") : '<tr><td colspan="3" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No categories yet.</td></tr>';
     }
     function invRenderSuppliers() {
       var tbody = document.querySelector("#inv-suppliers-table tbody");
       if (!tbody) return;
-      tbody.innerHTML = SUPPLIERS.length ? SUPPLIERS.map(function (s) {
-        var count = PRODUCTS.filter(function (p) { return p.supplierId === s.id; }).length;
-        return '<tr><td style="font-weight:700;">' + s.name + "</td><td>" + s.contact + "</td><td>" + s.email + "</td><td>" + s.phone + '</td><td style="text-align:right;">' + count + "</td></tr>";
+      var suppliers = inventorySuppliers();
+      tbody.innerHTML = suppliers.length ? suppliers.map(function (s) {
+        var count = inventoryProducts().filter(function (p) { return p.supplierId === s.id; }).length;
+        return '<tr><td style="font-weight:700;">' + escapeHtml(s.name) + "</td><td>" + escapeHtml(s.contact) + "</td><td>" + escapeHtml(s.email) + "</td><td>" + escapeHtml(s.phone) + '</td><td style="text-align:right;">' + count + "</td></tr>";
       }).join("") : '<tr><td colspan="5" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No suppliers yet.</td></tr>';
     }
     function invRenderAlerts() {
       var wrap = document.getElementById("inv-alerts-list");
       if (!wrap) return;
-      var alerts = PRODUCTS.filter(function (p) { return p.stock !== null && p.stock <= p.minStock; });
+      var alerts = inventoryProducts().filter(function (p) { return p.stock !== null && p.stock <= p.minStock; });
       wrap.innerHTML = alerts.length ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>Item</th><th>SKU</th><th style="text-align:right;">Stock</th><th style="text-align:right;">Min stock</th><th>Status</th></tr></thead><tbody>' +
         alerts.map(function (p) {
           var out = p.stock <= 0;
-          return '<tr><td style="font-weight:700;">' + p.name + "</td><td>" + p.sku + '</td><td class="tnum" style="text-align:right;">' + p.stock + " " + p.unit + '</td><td class="tnum" style="text-align:right;">' + p.minStock + " " + p.unit + '</td><td><span class="badge ' + (out ? "badge-danger" : "badge-warning") + '">' + (out ? "Out of stock" : "Low stock") + "</span></td></tr>";
+          return '<tr><td style="font-weight:700;">' + escapeHtml(p.name) + "</td><td>" + escapeHtml(p.sku) + '</td><td class="tnum" style="text-align:right;">' + p.stock + " " + escapeHtml(p.unit) + '</td><td class="tnum" style="text-align:right;">' + p.minStock + " " + escapeHtml(p.unit) + '</td><td><span class="badge ' + (out ? "badge-danger" : "badge-warning") + '">' + (out ? "Out of stock" : "Low stock") + "</span></td></tr>";
         }).join("") + "</tbody></table></div>"
         : '<div class="empty-state"><div class="ic">✅</div><h3>All stock levels look healthy</h3><p>No products are below their minimum stock threshold right now.</p></div>';
     }
     function invRenderDashboard() {
       var grid = document.getElementById("inv-stat-grid");
       if (!grid) return;
-      var products = PRODUCTS.filter(function (p) { return p.type === "product"; });
+      var products = inventoryProducts().filter(function (p) { return p.type === "product"; });
       var lowStock = products.filter(function (p) { return p.stock > 0 && p.stock <= p.minStock; }).length;
       var outOfStock = products.filter(function (p) { return p.stock <= 0; }).length;
       var stockValue = products.reduce(function (sum, p) { return sum + p.stock * p.purchase; }, 0);
@@ -8066,7 +8073,7 @@
       if (dashAlerts) {
         var alertItems = products.filter(function (p) { return p.stock <= p.minStock; });
         dashAlerts.innerHTML = alertItems.length ? alertItems.map(function (p) {
-          return '<div class="widget-row"><span>' + p.name + '</span><span class="' + (p.stock <= 0 ? "stock-badge-out" : "stock-badge-low") + '">' + (p.stock <= 0 ? "Out of stock" : p.stock + " " + p.unit + " left") + "</span></div>";
+          return '<div class="widget-row"><span>' + escapeHtml(p.name) + '</span><span class="' + (p.stock <= 0 ? "stock-badge-out" : "stock-badge-low") + '">' + (p.stock <= 0 ? "Out of stock" : p.stock + " " + escapeHtml(p.unit) + " left") + "</span></div>";
         }).join("") : '<div class="widget-empty">All stock levels look healthy.</div>';
       }
       var dashHistory = document.getElementById("inv-dash-history");
@@ -8079,7 +8086,7 @@
     function invPopulateSupplierSelect() {
       var sel = document.getElementById("ap-supplier");
       if (!sel) return;
-      sel.innerHTML = '<option value="">No supplier</option>' + SUPPLIERS.map(function (s) { return '<option value="' + s.id + '">' + s.name + "</option>"; }).join("");
+      sel.innerHTML = '<option value="">No supplier</option>' + inventorySuppliers().map(function (s) { return '<option value="' + escapeHtml(s.id) + '">' + escapeHtml(s.name) + "</option>"; }).join("");
     }
     function invRenderAll() {
       invRenderDashboard();
@@ -8173,6 +8180,8 @@
         selling: parseFloat(document.getElementById("ap-selling").value) || 0,
         supplierId: document.getElementById("ap-supplier").value || null,
         image: apImageDataUrl,
+        companyId: wsActiveId,
+        updatedAt: new Date().toISOString(),
       });
       invRenderAll();
       apClose();
@@ -8186,7 +8195,7 @@
     var invExportBtn = document.getElementById("inv-export-btn");
     if (invExportBtn) invExportBtn.addEventListener("click", function () {
       var rows = [["Name", "Type", "Category", "SKU", "Barcode", "Stock", "Min Stock", "Unit", "Purchase Price", "Selling Price", "Supplier"]];
-      PRODUCTS.forEach(function (p) {
+      inventoryProducts().forEach(function (p) {
         rows.push([p.name, p.type, p.category, p.sku, p.barcode, p.stock === null ? "" : p.stock, p.minStock === null ? "" : p.minStock, p.unit, p.purchase, p.selling, supplierName(p.supplierId)]);
       });
       downloadCSVRows(rows, "inventory.csv");
@@ -8195,8 +8204,8 @@
     var invExportSuppliersBtn = document.getElementById("inv-export-suppliers-btn");
     if (invExportSuppliersBtn) invExportSuppliersBtn.addEventListener("click", function () {
       var rows = [["Supplier", "Contact", "Email", "Phone", "Products supplied"]];
-      SUPPLIERS.forEach(function (s) {
-        rows.push([s.name, s.contact, s.email, s.phone, PRODUCTS.filter(function (p) { return p.supplierId === s.id; }).length]);
+      inventorySuppliers().forEach(function (s) {
+        rows.push([s.name, s.contact, s.email, s.phone, inventoryProducts().filter(function (p) { return p.supplierId === s.id; }).length]);
       });
       downloadCSVRows(rows, "suppliers.csv");
       showToast("Exported suppliers.csv");
@@ -8230,6 +8239,8 @@
               selling: parseFloat(cols[9]) || 0,
               supplierId: null,
               image: null,
+              companyId: wsActiveId,
+              updatedAt: new Date().toISOString(),
             });
             added++;
           });
@@ -8260,7 +8271,7 @@
       return c.timeline;
     }
     function clientStatusBadgeClass(s) { return s === "Active" ? "badge-success" : s === "Lead" ? "badge-info" : s === "At risk" ? "badge-warning" : "badge-danger"; }
-    function findClientByCompany(company) { return CLIENTS.filter(function (c) { return c.company === company; })[0]; }
+    function findClientByCompany(company) { return CLIENTS.filter(function (c) { return c.company === company && belongsToActiveCompany(c); })[0]; }
     function clientDisplayName(client) { return client && client.company && client.company !== "—" ? client.company : (client ? client.name : "—"); }
     function belongsToActiveCompany(item) {
       if (!item) return false;
@@ -8282,6 +8293,10 @@
       renderAIInsights("dash-ai-insights-list", 3);
       renderDashboardStats();
       renderDashboardWidgets();
+      if (typeof invRenderAll === "function") invRenderAll();
+      if (typeof renderFilesAll === "function") renderFilesAll();
+      if (typeof renderTasksAll === "function") renderTasksAll();
+      if (typeof renderReportsInit === "function") renderReportsInit();
     }
     function renderClientsTable(filterText) {
       var tbody = document.querySelector("#clients-table tbody");
@@ -8373,7 +8388,7 @@
     var editingClientId = null;
     function acOpen(clientId) {
       editingClientId = clientId || null;
-      var client = editingClientId ? CLIENTS.filter(function (c) { return c.id === editingClientId; })[0] : null;
+      var client = editingClientId ? CLIENTS.filter(function (c) { return c.id === editingClientId && belongsToActiveCompany(c); })[0] : null;
       var values = {
         "ac-name": client ? client.name : "", "ac-company": client ? client.company : "", "ac-siret": client ? (client.siret || "") : "",
         "ac-vat": client ? (client.vat || "") : "", "ac-address": client ? (client.address || "") : "", "ac-site-address": client ? (client.siteAddress || "") : "",
@@ -8400,7 +8415,7 @@
       var name = nameEl.value.trim();
       if (!name) { nameEl.focus(); return; }
       var tagsRaw = document.getElementById("ac-tags").value.trim();
-      var clientRecord = editingClientId ? CLIENTS.filter(function (c) { return c.id === editingClientId; })[0] : null;
+      var clientRecord = editingClientId ? CLIENTS.filter(function (c) { return c.id === editingClientId && belongsToActiveCompany(c); })[0] : null;
       var clientData = {
         id: clientRecord ? clientRecord.id : "cl" + Date.now(),
         name: name,
@@ -8802,7 +8817,7 @@
     var PROJ_STATUS_KEYS = { planning: "proj_status_planning", onhold: "proj_status_onhold", completed: "stat_completed_projects", cancelled: "proj_status_cancelled" };
     function projStatusLabel(s) { return ({ prospect: "Prospect", quote: "Devis", accepted: "Accepté", active: "En cours" })[s] || t(PROJ_STATUS_KEYS[s] || s); }
     function projectClientName(clientId) {
-      var c = CLIENTS.filter(function (x) { return x.id === clientId; })[0];
+      var c = CLIENTS.filter(function (x) { return x.id === clientId && belongsToActiveCompany(x); })[0];
       return c ? c.company : "—";
     }
     function projectTasks(projectId) {
@@ -9073,7 +9088,7 @@
       var textEl = document.getElementById("la-text");
       var text = textEl.value.trim();
       if (!text || !cdActiveClientId) { textEl.focus(); return; }
-      var c = CLIENTS.filter(function (x) { return x.id === cdActiveClientId; })[0];
+      var c = CLIENTS.filter(function (x) { return x.id === cdActiveClientId && belongsToActiveCompany(x); })[0];
       if (!c) return;
       clientTimeline(c).push({ type: document.getElementById("la-type").value, text: text, date: new Date().toISOString().slice(0, 10) });
       renderClientDetail(cdActiveClientId);
@@ -9086,11 +9101,11 @@
     var cdDeleteBtn = document.getElementById("cd-delete-btn");
     if (cdDeleteBtn) cdDeleteBtn.addEventListener("click", function () {
       if (!cdActiveClientId) return;
-      var c = CLIENTS.filter(function (x) { return x.id === cdActiveClientId; })[0];
+      var c = CLIENTS.filter(function (x) { return x.id === cdActiveClientId && belongsToActiveCompany(x); })[0];
       if (!c) return;
       if (confirm("Delete client " + c.name + " (" + c.company + ")? This cannot be undone.")) {
         if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("clients", c);
-        var idx = CLIENTS.findIndex(function (x) { return x.id === cdActiveClientId; });
+        var idx = CLIENTS.indexOf(c);
         if (idx !== -1) CLIENTS.splice(idx, 1);
         cdActiveClientId = null;
         renderClientsTable(document.getElementById("clients-search") ? document.getElementById("clients-search").value : "");
@@ -9102,13 +9117,20 @@
 
     // ---- Client Portal (preview of what the client would see) ----
     var cpActiveClientId = null;
+    function portalClient() {
+      return CLIENTS.filter(function (client) { return client.id === cpActiveClientId && belongsToActiveCompany(client); })[0] || null;
+    }
+    function documentBelongsToPortalClient(doc, client) {
+      if (!doc || !client || !belongsToActiveCompany(doc)) return false;
+      return doc.clientId ? doc.clientId === client.id : doc.client === clientDisplayName(client);
+    }
     function renderClientPortal() {
-      var client = CLIENTS.filter(function (c) { return c.id === cpActiveClientId; })[0];
+      var client = portalClient();
       if (!client) return;
       var nameEl = document.getElementById("cp-client-name");
       if (nameEl) nameEl.textContent = client.company;
-      var quotes = QUOTES.filter(function (q) { return q.client === client.company; });
-      var invoices = INVOICES.filter(function (inv) { return inv.client === client.company; });
+      var quotes = QUOTES.filter(function (q) { return documentBelongsToPortalClient(q, client); });
+      var invoices = INVOICES.filter(function (inv) { return documentBelongsToPortalClient(inv, client); });
       var quotesListEl = document.getElementById("cp-quotes-list");
       if (quotesListEl) {
         quotesListEl.innerHTML = quotes.length ? quotes.map(function (q) {
@@ -9139,7 +9161,7 @@
       }
     }
     function cpOpen(clientId) {
-      var client = CLIENTS.filter(function (c) { return c.id === clientId; })[0];
+      var client = CLIENTS.filter(function (c) { return c.id === clientId && belongsToActiveCompany(c); })[0];
       if (!client) return;
       cpActiveClientId = clientId;
       renderClientPortal();
@@ -9156,7 +9178,7 @@
       var qApproveBtn = e.target.closest("[data-cp-quote-approve]");
       if (qApproveBtn) {
         var qidA = qApproveBtn.getAttribute("data-cp-quote-approve");
-        var qA = QUOTES.filter(function (x) { return x.id === qidA; })[0];
+        var qA = QUOTES.filter(function (x) { return x.id === qidA && documentBelongsToPortalClient(x, portalClient()); })[0];
         if (qA && qA.status === "Sent" && window.profactureAcceptQuote) {
           qApproveBtn.disabled = true;
           window.profactureAcceptQuote({ companyId: qA.companyId || wsActiveId, quoteId: qA.id }).then(function (acceptance) {
@@ -9173,24 +9195,27 @@
       var qRejectBtn = e.target.closest("[data-cp-quote-reject]");
       if (qRejectBtn) {
         var qidR = qRejectBtn.getAttribute("data-cp-quote-reject");
-        var qR = QUOTES.filter(function (x) { return x.id === qidR; })[0];
+        var qR = QUOTES.filter(function (x) { return x.id === qidR && documentBelongsToPortalClient(x, portalClient()); })[0];
         if (qR) { qR.status = "Rejected"; renderClientPortal(); if (typeof renderQuotesTable === "function") renderQuotesTable(); showToast(qidR + " rejected"); playSound("success"); }
         return;
       }
       var cpQuotePdfBtn = e.target.closest("[data-cp-quote-pdf]");
       if (cpQuotePdfBtn) {
-        var qp = QUOTES.filter(function (x) { return x.id === cpQuotePdfBtn.getAttribute("data-cp-quote-pdf"); })[0];
+        var qp = QUOTES.filter(function (x) { return x.id === cpQuotePdfBtn.getAttribute("data-cp-quote-pdf") && documentBelongsToPortalClient(x, portalClient()); })[0];
         if (qp) downloadQuotePdf(qp);
         return;
       }
       var cpInvoicePdfBtn = e.target.closest("[data-cp-invoice-pdf]");
       if (cpInvoicePdfBtn) {
-        var ip = INVOICES.filter(function (x) { return x.id === cpInvoicePdfBtn.getAttribute("data-cp-invoice-pdf"); })[0];
+        var ip = INVOICES.filter(function (x) { return x.id === cpInvoicePdfBtn.getAttribute("data-cp-invoice-pdf") && documentBelongsToPortalClient(x, portalClient()); })[0];
         if (ip) downloadInvoicePdf(ip);
         return;
       }
       var cpInvoicePayBtn = e.target.closest("[data-cp-invoice-pay]");
-      if (cpInvoicePayBtn) payOpen(cpInvoicePayBtn.getAttribute("data-cp-invoice-pay"));
+      if (cpInvoicePayBtn) {
+        var portalInvoice = INVOICES.filter(function (x) { return x.id === cpInvoicePayBtn.getAttribute("data-cp-invoice-pay") && documentBelongsToPortalClient(x, portalClient()); })[0];
+        if (portalInvoice) payOpen(portalInvoice.id);
+      }
     });
 
     // ---- Global Compliance Center: plugin architecture ----
@@ -10077,7 +10102,7 @@
       var sel = document.getElementById("inv-new-client");
       var addressEl = document.getElementById("inv-new-client-address");
       if (!sel || !addressEl) return;
-      var client = CLIENTS.filter(function (c) { return c.id === sel.value; })[0];
+      var client = CLIENTS.filter(function (c) { return c.id === sel.value && belongsToActiveCompany(c); })[0];
       addressEl.value = client ? (client.address || "") : "";
       var siteEl = document.getElementById("inv-new-site-address");
       var siretEl = document.getElementById("inv-new-siret");
@@ -10155,7 +10180,7 @@
       populateDocumentCompanySelects();
       populateInvoiceNewClientSelect();
       populateDocumentProjectSelects();
-      var editing = editingInvoiceId ? INVOICES.filter(function (inv) { return inv.id === editingInvoiceId; })[0] : null;
+      var editing = editingInvoiceId ? findActiveInvoiceById(editingInvoiceId) : null;
       var titleEl = document.querySelector("#view-invoice-new h2");
       var subEl = document.querySelector("#view-invoice-new .page-head p");
       var draftBtn = document.getElementById("invoice-save-draft-btn");
@@ -10203,7 +10228,7 @@
       var preview = document.getElementById("inv-new-preview");
       if (!preview) return;
       var clientSel = document.getElementById("inv-new-client");
-      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
+      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value && belongsToActiveCompany(c); })[0];
       var total = readCurrencyAmount("t-total");
       renderDocPreview(preview, buildDocPrintHtml({
         title: t("doc_invoice"),
@@ -10245,7 +10270,7 @@
     var invoiceSeq = 0;
     function saveNewInvoice(status) {
       var clientSel = document.getElementById("inv-new-client");
-      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
+      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value && belongsToActiveCompany(c); })[0];
       if (!client) { showToast("Add a client before saving an invoice"); return; }
       var issue = document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10);
       var due = document.getElementById("inv-new-due").value || "";
@@ -10258,7 +10283,7 @@
       var currencyCode = document.getElementById("inv-new-currency").value;
 
       if (editingInvoiceId) {
-        var existing = INVOICES.filter(function (inv) { return inv.id === editingInvoiceId; })[0];
+        var existing = findActiveInvoiceById(editingInvoiceId);
         if (existing) {
           existing.client = clientDisplayName(client);
           existing.clientAddress = clientAddress;
@@ -10338,8 +10363,9 @@
       showView("invoices");
     }
     function openInvoiceForEdit(id) {
-      var invoiceToEdit = INVOICES.filter(function (invoice) { return invoice.id === id; })[0];
-      if (invoiceToEdit) applyDocumentDesign(invoiceToEdit.design || LEGACY_DOCUMENT_DESIGN);
+      var invoiceToEdit = findActiveInvoiceById(id);
+      if (!invoiceToEdit) return;
+      applyDocumentDesign(invoiceToEdit.design || LEGACY_DOCUMENT_DESIGN);
       editingInvoiceId = id;
       showView("invoice-new");
     }
@@ -10351,6 +10377,9 @@
     // ---- Payment Tracking (Invoices) ----
     var INVOICES = [];
     window.INVOICES = INVOICES;
+    function findActiveInvoiceById(id) {
+      return INVOICES.filter(function (invoice) { return invoice.id === id && belongsToActiveCompany(invoice); })[0] || null;
+    }
     function invoicePayments(inv) {
       if (!inv) return [];
       if (!Array.isArray(inv.payments)) inv.payments = [];
@@ -10516,7 +10545,7 @@
       window.open("https://wa.me/?text=" + encodeURIComponent(payload.whatsapp), "_blank", "noopener");
     }
     function phOpen(id) {
-      var inv = INVOICES.filter(function (x) { return x.id === id; })[0];
+      var inv = findActiveInvoiceById(id);
       if (!inv) return;
       document.getElementById("ph-panel").innerHTML = phRender(inv);
       document.getElementById("ph-overlay").classList.add("open");
@@ -10542,7 +10571,7 @@
       }
       var duplicateBtn = e.target.closest("[data-invoice-duplicate]");
       if (duplicateBtn) {
-        var sourceInvoice = INVOICES.filter(function (x) { return x.id === duplicateBtn.getAttribute("data-invoice-duplicate"); })[0];
+        var sourceInvoice = findActiveInvoiceById(duplicateBtn.getAttribute("data-invoice-duplicate"));
         if (!sourceInvoice) return;
         var duplicatedInvoice = Object.assign({}, sourceInvoice, {
           id: nextDocumentId("INV-", INVOICES), status: "Draft", issue: new Date().toISOString().slice(0, 10), due: "", paymentDisplay: "", payments: [],
@@ -10560,19 +10589,19 @@
       }
       var pdfBtn = e.target.closest("[data-invoice-pdf]");
       if (pdfBtn) {
-        var pdfInv = INVOICES.filter(function (x) { return x.id === pdfBtn.getAttribute("data-invoice-pdf"); })[0];
+        var pdfInv = findActiveInvoiceById(pdfBtn.getAttribute("data-invoice-pdf"));
         if (pdfInv) downloadInvoicePdf(pdfInv);
         return;
       }
       var invEmailBtn = e.target.closest("[data-invoice-email]");
       if (invEmailBtn) {
-        var emailInv = INVOICES.filter(function (x) { return x.id === invEmailBtn.getAttribute("data-invoice-email"); })[0];
+        var emailInv = findActiveInvoiceById(invEmailBtn.getAttribute("data-invoice-email"));
         if (emailInv) emailDocFromDashboard(emailInv, "invoice");
         return;
       }
       var invWhatsappBtn = e.target.closest("[data-invoice-whatsapp]");
       if (invWhatsappBtn) {
-        var waInv = INVOICES.filter(function (x) { return x.id === invWhatsappBtn.getAttribute("data-invoice-whatsapp"); })[0];
+        var waInv = findActiveInvoiceById(invWhatsappBtn.getAttribute("data-invoice-whatsapp"));
         if (waInv) whatsappDocFromDashboard(waInv, "invoice");
         return;
       }
@@ -10580,9 +10609,10 @@
       if (invDeleteBtn) {
         var delId = invDeleteBtn.getAttribute("data-invoice-delete");
         if (confirm("Delete invoice " + delId + "? This cannot be undone.")) {
-          var invoiceToDelete = INVOICES.filter(function (x) { return x.id === delId; })[0];
+          var invoiceToDelete = findActiveInvoiceById(delId);
+          if (!invoiceToDelete) return;
           if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("history", invoiceToDelete || { id: delId });
-          var delIdx = INVOICES.findIndex(function (x) { return x.id === delId; });
+          var delIdx = INVOICES.indexOf(invoiceToDelete);
           if (delIdx !== -1) INVOICES.splice(delIdx, 1);
           var phOverlayEl = document.getElementById("ph-overlay");
           if (phOverlayEl && phOverlayEl.classList.contains("open")) phClose();
@@ -10594,7 +10624,7 @@
       }
       var remindBtn = e.target.closest("[data-invoice-remind]");
       if (remindBtn) {
-        var inv = INVOICES.filter(function (x) { return x.id === remindBtn.getAttribute("data-invoice-remind"); })[0];
+        var inv = findActiveInvoiceById(remindBtn.getAttribute("data-invoice-remind"));
         if (!inv) return;
         var client = findClientByCompany(inv.client);
         if (client) clientTimeline(client).push({ type: "email", text: "Payment reminder sent for " + inv.id + " (" + currency(invoiceBalance(inv)) + " due)", date: new Date().toISOString().slice(0, 10) });
@@ -10611,7 +10641,7 @@
     // ---- Pay Now (simulated payment) ----
     var payActiveInvoiceId = null;
     function payOpen(id) {
-      var inv = INVOICES.filter(function (x) { return x.id === id; })[0];
+      var inv = findActiveInvoiceById(id);
       if (!inv) return;
       payActiveInvoiceId = id;
       document.getElementById("pay-amount").value = invoiceBalance(inv).toFixed(2);
@@ -10633,7 +10663,7 @@
     if (payBackdropEl) payBackdropEl.addEventListener("click", payClose);
     var paySubmitBtn = document.getElementById("pay-submit");
     if (paySubmitBtn) paySubmitBtn.addEventListener("click", function () {
-      var inv = INVOICES.filter(function (x) { return x.id === payActiveInvoiceId; })[0];
+      var inv = findActiveInvoiceById(payActiveInvoiceId);
       if (!inv) return;
       var amountMinor = window.ProFactureFinancial.toMinor(document.getElementById("pay-amount").value);
       var balanceMinor = window.ProFactureFinancial.toMinor(invoiceBalance(inv));
@@ -10668,6 +10698,9 @@
     // ---- Quotes (devis) ----
     var QUOTES = [];
     window.QUOTES = QUOTES;
+    function findActiveQuoteById(id) {
+      return QUOTES.filter(function (quote) { return quote.id === id && belongsToActiveCompany(quote); })[0] || null;
+    }
     var quoteSeq = 0;
     function fmtDate(d) {
       if (!d) return "";
@@ -10762,7 +10795,7 @@
       var sel = document.getElementById("q-new-client");
       var addressEl = document.getElementById("q-new-client-address");
       if (!sel || !addressEl) return;
-      var client = CLIENTS.filter(function (c) { return c.id === sel.value; })[0];
+      var client = CLIENTS.filter(function (c) { return c.id === sel.value && belongsToActiveCompany(c); })[0];
       addressEl.value = client ? (client.address || "") : "";
       var siteEl = document.getElementById("q-new-site-address");
       var siretEl = document.getElementById("q-new-siret");
@@ -10786,7 +10819,7 @@
       var preview = document.getElementById("q-new-preview");
       if (!preview) return;
       var clientSel = document.getElementById("q-new-client");
-      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
+      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value && belongsToActiveCompany(c); })[0];
       var total = readCurrencyAmount("q-t-total");
       renderDocPreview(preview, buildDocPrintHtml({
         title: t("doc_quote"),
@@ -10870,7 +10903,7 @@
       populateDocumentCompanySelects();
       populateQuoteNewClientSelect();
       populateDocumentProjectSelects();
-      var editing = editingQuoteId ? QUOTES.filter(function (q) { return q.id === editingQuoteId; })[0] : null;
+      var editing = editingQuoteId ? findActiveQuoteById(editingQuoteId) : null;
       var titleEl = document.getElementById("quote-new-title");
       var subEl = document.getElementById("quote-new-sub");
       var draftBtn = document.getElementById("quote-save-draft-btn");
@@ -10909,7 +10942,7 @@
     }
     function saveNewQuote(status) {
       var clientSel = document.getElementById("q-new-client");
-      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
+      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value && belongsToActiveCompany(c); })[0];
       if (!client) { showToast("Add a client before saving a quote"); return; }
       var clientAddress = document.getElementById("q-new-client-address").value.trim();
       var siteAddress = document.getElementById("q-new-site-address").value.trim();
@@ -10922,7 +10955,7 @@
       var currencyCode = document.getElementById("q-new-currency").value;
 
       if (editingQuoteId) {
-        var existing = QUOTES.filter(function (q) { return q.id === editingQuoteId; })[0];
+        var existing = findActiveQuoteById(editingQuoteId);
         if (existing) {
           existing.client = clientDisplayName(client);
           existing.clientAddress = clientAddress;
@@ -10975,7 +11008,8 @@
       showView("quotes");
     }
     function openQuoteForEdit(id) {
-      var lockedQuote = QUOTES.filter(function (quote) { return quote.id === id; })[0];
+      var lockedQuote = findActiveQuoteById(id);
+      if (!lockedQuote) return;
       if (lockedQuote && (lockedQuote.status === "Accepted" || lockedQuote.status === "Converted")) {
         showToast("Accepted quotes are locked. Duplicate it to create a revision.");
         return;
@@ -10991,7 +11025,7 @@
     var quotePrintBtn = document.getElementById("quote-print-btn");
     if (quotePrintBtn) quotePrintBtn.addEventListener("click", function () {
       var clientSel = document.getElementById("q-new-client");
-      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value; })[0];
+      var client = CLIENTS.filter(function (c) { return c.id === clientSel.value && belongsToActiveCompany(c); })[0];
       var total = readCurrencyAmount("q-t-total");
       downloadDocPdf(buildDocPrintHtml({
         title: t("doc_quote"),
@@ -11011,7 +11045,7 @@
       if (qEditBtn) { openQuoteForEdit(qEditBtn.getAttribute("data-quote-edit")); return; }
       var qAcceptBtn = e.target.closest("[data-quote-accept]");
       if (qAcceptBtn) {
-        var quoteToAccept = QUOTES.filter(function (quote) { return quote.id === qAcceptBtn.getAttribute("data-quote-accept"); })[0];
+        var quoteToAccept = findActiveQuoteById(qAcceptBtn.getAttribute("data-quote-accept"));
         if (!quoteToAccept || quoteToAccept.status !== "Sent") return;
         if (!confirm("Accept and lock " + quoteToAccept.id + "? Its amount and line items can no longer be edited.")) return;
         var acceptedTotals = calculateDocumentTotals(quoteToAccept.items || []);
@@ -11039,7 +11073,7 @@
       }
       var qDuplicateBtn = e.target.closest("[data-quote-duplicate]");
       if (qDuplicateBtn) {
-        var sourceQuote = QUOTES.filter(function (x) { return x.id === qDuplicateBtn.getAttribute("data-quote-duplicate"); })[0];
+        var sourceQuote = findActiveQuoteById(qDuplicateBtn.getAttribute("data-quote-duplicate"));
         if (!sourceQuote) return;
         var duplicatedQuote = Object.assign({}, sourceQuote, {
           id: nextDocumentId("QUO-", QUOTES), status: "Draft", issue: new Date().toISOString().slice(0, 10),
@@ -11056,7 +11090,7 @@
       }
       var qConvertBtn = e.target.closest("[data-quote-convert]");
       if (qConvertBtn) {
-        var quoteToConvert = QUOTES.filter(function (x) { return x.id === qConvertBtn.getAttribute("data-quote-convert"); })[0];
+        var quoteToConvert = findActiveQuoteById(qConvertBtn.getAttribute("data-quote-convert"));
         if (!quoteToConvert) return;
         if (quoteToConvert.status !== "Accepted") { showToast("Accept the quote before converting it to an invoice."); return; }
         var convertedInvoice = {
@@ -11080,19 +11114,19 @@
       }
       var qPdfBtn = e.target.closest("[data-quote-pdf]");
       if (qPdfBtn) {
-        var q = QUOTES.filter(function (x) { return x.id === qPdfBtn.getAttribute("data-quote-pdf"); })[0];
+        var q = findActiveQuoteById(qPdfBtn.getAttribute("data-quote-pdf"));
         if (q) downloadQuotePdf(q);
         return;
       }
       var qEmailBtn = e.target.closest("[data-quote-email]");
       if (qEmailBtn) {
-        var qEmail = QUOTES.filter(function (x) { return x.id === qEmailBtn.getAttribute("data-quote-email"); })[0];
+        var qEmail = findActiveQuoteById(qEmailBtn.getAttribute("data-quote-email"));
         if (qEmail) emailDocFromDashboard(qEmail, "quote");
         return;
       }
       var qWhatsappBtn = e.target.closest("[data-quote-whatsapp]");
       if (qWhatsappBtn) {
-        var qWa = QUOTES.filter(function (x) { return x.id === qWhatsappBtn.getAttribute("data-quote-whatsapp"); })[0];
+        var qWa = findActiveQuoteById(qWhatsappBtn.getAttribute("data-quote-whatsapp"));
         if (qWa) whatsappDocFromDashboard(qWa, "quote");
         return;
       }
@@ -11100,9 +11134,10 @@
       if (qDeleteBtn) {
         var qDelId = qDeleteBtn.getAttribute("data-quote-delete");
         if (confirm("Delete quote " + qDelId + "? This cannot be undone.")) {
-          var quoteToDelete = QUOTES.filter(function (x) { return x.id === qDelId; })[0];
+          var quoteToDelete = findActiveQuoteById(qDelId);
+          if (!quoteToDelete) return;
           if (window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("quotes", quoteToDelete || { id: qDelId });
-          var qDelIdx = QUOTES.findIndex(function (x) { return x.id === qDelId; });
+          var qDelIdx = QUOTES.indexOf(quoteToDelete);
           if (qDelIdx !== -1) QUOTES.splice(qDelIdx, 1);
           renderQuotesTable();
           showToast(qDelId + " deleted");
@@ -12392,14 +12427,14 @@
     window.FILES = FILES;
     var FILE_ICONS = { pdf: "📄", doc: "📝", img: "🖼️", xls: "📊", other: "📁" };
     function fileIconFor(f) {
-      if (f.type === "img" && f.url) return '<img src="' + f.url + '" alt="" />';
+      if (f.type === "img" && f.url) return '<img src="' + escapeHtml(f.url) + '" alt="" />';
       return FILE_ICONS[f.type] || FILE_ICONS.other;
     }
     function renderFileFolders() {
       var wrap = document.getElementById("file-folders");
       if (!wrap) return;
       wrap.innerHTML = FILE_FOLDERS.map(function (f) {
-        var count = f !== "All" ? " (" + FILES.filter(function (x) { return x.folder === f; }).length + ")" : "";
+        var count = f !== "All" ? " (" + activeCompanyItems(FILES).filter(function (x) { return x.folder === f; }).length + ")" : "";
         return '<button class="chip' + (FILE_ACTIVE_FOLDER === f ? " on" : "") + '" data-file-folder="' + f + '">' + f + count + "</button>";
       }).join("");
     }
@@ -12407,18 +12442,18 @@
       var grid = document.getElementById("file-grid");
       if (!grid) return;
       var q = (query || "").toLowerCase();
-      var items = FILES.filter(function (f) {
+      var items = activeCompanyItems(FILES).filter(function (f) {
         var matchesFolder = FILE_ACTIVE_FOLDER === "All" || f.folder === FILE_ACTIVE_FOLDER;
         var matchesQ = !q || f.name.toLowerCase().indexOf(q) !== -1;
         return matchesFolder && matchesQ;
       });
       grid.innerHTML = items.length ? items.map(function (f) {
         return (
-          '<div class="card tool-card" data-file-id="' + f.id + '">' +
+          '<div class="card tool-card" data-file-id="' + escapeHtml(f.id) + '">' +
           '<div class="file-thumb">' + fileIconFor(f) + "</div>" +
-          '<h3 style="font-size:0.85rem;font-weight:700;word-break:break-word;">' + f.name + "</h3>" +
-          '<p style="font-size:0.75rem;color:hsl(var(--muted-fg));margin-top:0.2rem;">' + f.folder + " · " + f.size + "</p>" +
-          '<button class="btn btn-ghost btn-sm" style="margin-top:0.6rem;" data-remove-file="' + f.id + '">Remove</button>' +
+          '<h3 style="font-size:0.85rem;font-weight:700;word-break:break-word;">' + escapeHtml(f.name) + "</h3>" +
+          '<p style="font-size:0.75rem;color:hsl(var(--muted-fg));margin-top:0.2rem;">' + escapeHtml(f.folder) + " · " + escapeHtml(f.size) + "</p>" +
+          '<button class="btn btn-ghost btn-sm" style="margin-top:0.6rem;" data-remove-file="' + escapeHtml(f.id) + '">Remove</button>' +
           "</div>"
         );
       }).join("") : '<div class="empty-state" style="grid-column:1/-1;"><div class="ic">🗂️</div><h3>No files found</h3><p>Upload a file or adjust your search to see it here.</p></div>';
@@ -12439,14 +12474,15 @@
       if (folderBtn) { FILE_ACTIVE_FOLDER = folderBtn.getAttribute("data-file-folder"); renderFilesAll(); return; }
       var removeBtn = e.target.closest("[data-remove-file]");
       if (removeBtn) {
-        var fileToRemove = FILES.filter(function (f) { return f.id === removeBtn.getAttribute("data-remove-file"); })[0];
+        var fileToRemove = FILES.filter(function (f) { return f.id === removeBtn.getAttribute("data-remove-file") && belongsToActiveCompany(f); })[0];
+        if (!fileToRemove) { showToast("File not found in the selected company."); return; }
         if (fileToRemove && fileToRemove.storagePath && window.profactureStorageManager) {
           window.profactureStorageManager({ operation: "delete", path: fileToRemove.storagePath.replace(/^users\/[^/]+\//, "") }).catch(function () {
             showToast("Le fichier a été retiré de la liste, mais sa suppression cloud sera réessayée.");
           });
         }
         if (fileToRemove && window.profactureMarkCloudDeleted) window.profactureMarkCloudDeleted("files", fileToRemove);
-        var nextFiles = FILES.filter(function (f) { return f.id !== removeBtn.getAttribute("data-remove-file"); });
+        var nextFiles = FILES.filter(function (f) { return f !== fileToRemove; });
         FILES.splice(0, FILES.length, ...nextFiles);
         renderFilesAll();
         showToast("File removed");
