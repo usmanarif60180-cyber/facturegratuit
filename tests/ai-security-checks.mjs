@@ -50,7 +50,7 @@ const hostile = normalizeAiAction({
       description: index === 0 ? "<script>steal()</script>" : `Line ${index}`,
       quantity: -5,
       unitPrice: 9999999999,
-      tax: "vat999"
+      tax: "none"
     }))
   }
 }, context);
@@ -62,6 +62,11 @@ assert.equal(hostile.draft.items.length, 20, "AI drafts must be capped at 20 ite
 assert.equal(hostile.draft.items[0].quantity, 0, "Negative quantities must be clamped");
 assert.equal(hostile.draft.items[0].unitPrice, 100000000, "Extreme prices must be clamped");
 assert.equal(hostile.draft.items[0].tax, "none", "Unknown tax codes must be rejected");
+for (const tax of [undefined, '', 'vat999']) {
+  const result = normalizeAiAction({type: 'create_invoice', draft: {items: [{description: 'Service', quantity: 1, unitPrice: 100, tax}]}}, context);
+  assert.equal(result.type, 'none');
+  assert.equal(result.needsTaxConfirmation, true);
+}
 const blockedNavigation = normalizeAiAction({ type: "navigate", destination: "javascript:alert(1)" }, context);
 assert.equal(blockedNavigation.type, "none");
 assert.equal(blockedNavigation.label, "");

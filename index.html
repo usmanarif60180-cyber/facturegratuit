@@ -6544,7 +6544,12 @@
       button.className = "btn btn-primary btn-sm";
       button.type = "button";
       button.textContent = "Review & apply · " + label;
+      if (action.historyReadOnly) {
+        button.disabled = true;
+        button.textContent = currentLang === 'fr' ? 'Historique : sélectionnez le brouillon source et relancez la demande' : 'History: select the source draft and request a fresh review';
+      }
       button.addEventListener("click", function () {
+        if (action.historyReadOnly) return;
         if (action.workspaceCompanyId && action.workspaceCompanyId !== wsActiveId) {
           showToast("This draft belongs to another company. Switch back before applying.");
           return;
@@ -6565,6 +6570,7 @@
       messages.forEach(function (entry) {
         appendAiMessage(chat, entry.role, entry.text || "");
         if (entry.role === "assistant" && entry.action) {
+          if (entry.action.type === 'create_invoice' || entry.action.type === 'create_quote') entry.action.historyReadOnly = true;
           entry.action.workspaceCompanyId = wsActiveId;
           appendAiAction(chat, entry.action);
         }
@@ -6589,10 +6595,13 @@
     async function loadAiHistory(chat) {
       if (!window.profactureAiHistory || aiHistoryLoadedCompanyId === wsActiveId) return;
       var historyCompanyId = wsActiveId;
+      var historyConversationSnapshot = JSON.stringify(aiConversation);
+      var historyRequestRevision = aiChatRequestRevision;
       aiHistoryLoadedCompanyId = historyCompanyId;
       try {
         var data = await window.profactureAiHistory("load", historyCompanyId);
         if (historyCompanyId !== wsActiveId) return;
+        if (historyRequestRevision !== aiChatRequestRevision || JSON.stringify(aiConversation) !== historyConversationSnapshot) return;
         aiConversation = Array.isArray(data.messages) ? data.messages.map(function (entry) { return { role: entry.role, text: entry.text, action: entry.action, at: entry.at }; }).slice(-12) : [];
         renderAiHistory(chat, Array.isArray(data.messages) ? data.messages : []);
       } catch (error) {
@@ -6621,6 +6630,7 @@
       }).filter(function (item) { return item.desc || item.price; });
     }
     function applyAiAction(action) {
+      if (action.historyReadOnly) return false;
       if (action.workspaceCompanyId && action.workspaceCompanyId !== wsActiveId) {
         showToast("This draft belongs to another company. Ask the assistant again after switching.");
         return;
@@ -6744,9 +6754,11 @@
       [['quotes','Voir les devis'],['tasks','Voir les tâches'],['reports','Prévisions de trésorerie']].forEach(function(pair){var link=document.createElement('button');link.className='btn btn-outline btn-sm';link.style.margin='8px 8px 0 0';link.textContent=pair[1];link.onclick=function(){showView(pair[0]);};host.append(link);});
     }
     var aiPendingEditSource = null;
+    var aiChatRequestRevision = 0;
     async function sendAiMessage(input, chat, button, editSource) {
       var text = input.value.trim();
       if (!text || button.disabled) return;
+      aiChatRequestRevision++;
       if (arguments.length >= 4) aiPendingEditSource = editSource || null;
       if (aiPendingEditSource && aiPendingEditSource.companyId !== wsActiveId) aiPendingEditSource = null;
       editSource = editSource || aiPendingEditSource;
@@ -6881,14 +6893,14 @@
       var rules = automationRules();
       var suggestions = [];
       function enabled(id) { var rule = rules.filter(function (item) { return item.id === id; })[0]; return rule && rule.enabled; }
-      var overdue = activeCompanyItems(INVOICES).filter(function (invoice) { return invoice.status === "Overdue" || (invoice.due && invoice.due < new Date().toISOString().slice(0, 10) && invoiceBalance(invoice) > 0); });
-      if (enabled("overdue") && overdue[0]) suggestions.push({ id: "overdue-" + overdue[0].id, title: "Follow up overdue " + overdue[0].id, due: new Date().toISOString().slice(0, 10), priority: "high", reason: overdue[0].client + " · " + currency(invoiceBalance(overdue[0])) + " outstanding" });
+      var overdue = activeCompanyItems(INVOICES).filter(function (invoice) { return ['Sent', 'Viewed', 'Partially paid', 'Overdue'].includes(invoice.status) && invoiceBalance(invoice) > 0 && (invoice.status === 'Overdue' || (invoice.due && invoice.due < new Date().toISOString().slice(0, 10))); });
+      if (enabled("overdue") && overdue[0]) suggestions.push({ id: "overdue-" + overdue[0].id, title: "Follow up overdue " + overdue[0].id, due: new Date().toISOString().slice(0, 10), priority: "high", reason: overdue[0].client + " · " + aiMoney(invoiceBalance(overdue[0]), overdue[0].currency || 'UNKNOWN') + " outstanding" });
       var sentQuote = activeCompanyItems(QUOTES).filter(function (quote) { return quote.status === "Sent"; })[0];
       if (enabled("quote") && sentQuote) suggestions.push({ id: "quote-" + sentQuote.id, title: "Follow up quote " + sentQuote.id, due: sentQuote.valid || "", priority: "medium", reason: sentQuote.client || "Pending customer response" });
       var low = activeCompanyItems(PRODUCTS).filter(function (product) { return Number(product.stock || 0) <= Number(product.minStock || 0); })[0];
       if (enabled("stock") && low) suggestions.push({ id: "stock-" + low.id, title: "Review stock for " + low.name, due: "", priority: "high", reason: Number(low.stock || 0) + " remaining" });
       var recurring = activeCompanyItems(EXPENSES).filter(function (expense) { return expense.recurring; })[0];
-      if (enabled("recurring") && recurring) suggestions.push({ id: "expense-" + recurring.id, title: "Review recurring expense: " + recurring.title, due: "", priority: "medium", reason: currency(recurring.amount || 0) + " · " + (recurring.vendor || "No vendor") });
+      if (enabled("recurring") && recurring) suggestions.push({ id: "expense-" + recurring.id, title: "Review recurring expense: " + recurring.title, due: "", priority: "medium", reason: aiMoney(recurring.amount || 0, recurring.currency || 'UNKNOWN') + " · " + (recurring.vendor || "No vendor") });
       return suggestions;
     }
     function renderAutomationCenter() {

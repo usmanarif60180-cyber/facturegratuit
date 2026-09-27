@@ -275,6 +275,9 @@ function normalizeAiAction(value, context) {
     };
     return normalized;
   }
+  if ((Array.isArray(source.items) ? source.items : []).some(item => !AI_TAX_CODES.has(item && item.tax))) {
+    return { type: 'none', label: '', needsTaxConfirmation: true };
+  }
   const allowedClientIds = new Set(Array.isArray(context.clients) ? context.clients.map((client) => cleanAiText(client && client.id, 120)).filter(Boolean) : []);
   const clientId = cleanAiText(source.clientId, 120);
   const currency = cleanAiText(source.currency, 8).toUpperCase();
@@ -564,6 +567,7 @@ exports.aiAssistant = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory
         action: normalizeAiAction(parsed.action, context),
         usage: { dailyUsed: budget.dayCount, dailyLimit: AI_LIMITS.perDay }
       };
+      if (result.action.needsTaxConfirmation) result.reply = 'Please confirm the tax rate for each line, or explicitly confirm no tax. / Précisez la TVA de chaque ligne, ou confirmez explicitement sans TVA.';
       await finishAiRequest(auth.uid, companyId, budget.requestHash, message, result, payload.usageMetadata, model, 'assistant')
         .catch((error) => console.error('AI usage audit failed', error));
       await saveAiConversation(auth.uid, companyId, message, result).catch((error) => console.error('AI history save failed', error));
