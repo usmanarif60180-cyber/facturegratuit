@@ -4709,6 +4709,8 @@
           </div>
           <div class="card">
             <form id="ai-document-composer" class="card-pad" style="border-bottom:1px solid hsl(var(--border));">
+              <label for="ai-source-document">Document source (facultatif)</label>
+              <select class="field" id="ai-source-document" style="width:100%;margin-bottom:12px;"></select>
               <h3>Prepare a document with AI</h3>
               <div style="display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;">
                 <label>Document<select class="field" id="ai-compose-type"><option value="create_invoice" data-i18n="nav_invoices">Invoice</option><option value="create_quote" data-i18n="nav_quotes">Quote</option></select></label>
@@ -6479,6 +6481,21 @@
       var draft = action.draft || {};
       var items = safeAiItems(draft);
       if (action.type === "create_invoice" || action.type === "create_quote") {
+        if (action.editSource) {
+          var before = document.createElement('details'); before.open = true;
+          var beforeTitle = document.createElement('summary'); beforeTitle.textContent = 'Version enregistrée · comparaison avant application';
+          var beforeBody = document.createElement('pre'); beforeBody.style.cssText='white-space:pre-wrap;font:inherit';
+          try { var saved = JSON.parse(action.editSource.snapshot); beforeBody.textContent = (saved.items || []).map(function(item){return (item.desc || item.description || '') + ' · ' + (item.qty || item.quantity || 0) + ' × ' + aiMoney(item.price || item.unitPrice || 0, saved.currency);}).join('\n'); } catch (_) { beforeBody.textContent = 'Version source indisponible'; }
+          before.append(beforeTitle,beforeBody); card.append(before);
+        }
+        var previewButton = document.createElement('button'); previewButton.className='btn btn-outline btn-sm'; previewButton.type='button';previewButton.textContent='Aperçu du brouillon';
+        previewButton.onclick=function(){
+          if (action.workspaceCompanyId && action.workspaceCompanyId !== wsActiveId) { showToast('Switch back to the source company before previewing.'); return; }
+          var frame=document.createElement('iframe');frame.title='Aperçu IA du document';frame.setAttribute('sandbox','');frame.style.cssText='width:100%;height:520px;border:1px solid #ddd;background:white';
+          frame.srcdoc=buildDocPrintHtml({title:action.type==='create_quote'?t('doc_quote'):t('doc_invoice'),number:'Brouillon IA',client:draft.clientName||'',issueDate:draft.issueDate||'',items:items,total:aiDraftTotals(draft).total,currencyCode:draft.currency||currentCurrency,documentType:action.type==='create_quote'?'quote':'invoice'});
+          frame.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>' + Array.from(document.querySelectorAll('style')).map(function(style){return style.textContent;}).join('\n') + '</style><style>body{margin:0;padding:12px;background:white;color:#111}.print-doc{width:100%;min-height:0;box-sizing:border-box}</style></head><body>' + frame.srcdoc + '</body></html>';
+          card.classList.add('ai-expanded-preview');previewButton.replaceWith(frame);
+        };card.append(previewButton);
         var head = document.createElement("div");
         head.className = "ai-draft-head";
         head.innerHTML = "<span>" + (action.type === "create_quote" ? "Quote draft" : "Invoice draft") + "</span><span>" + escapeHtml(draft.currency || currentCurrency) + "</span>";
@@ -6532,7 +6549,7 @@
           showToast("This draft belongs to another company. Switch back before applying.");
           return;
         }
-        applyAiAction(action);
+        if (applyAiAction(action) === false) return;
         button.disabled = true;
         button.textContent = "Applied";
       });
@@ -6641,8 +6658,16 @@
       var client = findAiDraftClient(draft);
       var items = safeAiItems(draft);
       var isInvoice = action.type === "create_invoice";
-      editingInvoiceId = isInvoice ? null : editingInvoiceId;
-      editingQuoteId = isInvoice ? editingQuoteId : null;
+      var source = action.editSource;
+      if (source) {
+        var original = source.kind === 'invoice' ? findActiveInvoiceById(source.id) : findActiveQuoteById(source.id);
+        if (!original || source.companyId !== wsActiveId || original.status !== 'Draft' || JSON.stringify(original) !== source.snapshot) {
+          showToast('Le document a changé. Relancez la demande IA avant de modifier.');
+          return false;
+        }
+      }
+      editingInvoiceId = isInvoice ? (source ? source.id : null) : editingInvoiceId;
+      editingQuoteId = isInvoice ? editingQuoteId : (source ? source.id : null);
       showView(isInvoice ? "invoice-new" : "quote-new");
       var prefix = isInvoice ? "inv-new-" : "q-new-";
       var clientSelect = document.getElementById(prefix + "client");
@@ -6661,10 +6686,70 @@
         else { qLiBody.innerHTML = ""; items.forEach(function (item) { qAddRow(item.desc, item.qty, item.price, item.tax); }); qRecalc(); renderQuotePreview(); scheduleQuoteDraftSave(); }
       }
       showToast((isInvoice ? "Invoice" : "Quote") + " draft prepared. Review it before saving.");
+      if (source) {
+        var head = document.querySelector('#view-' + (isInvoice ? 'invoice-new' : 'quote-new') + ' .page-head');
+        if (!head) return;
+        head.querySelector('[data-ai-undo]')?.remove();
+        var undo = document.createElement('button');
+        undo.type = 'button'; undo.className = 'btn btn-outline'; undo.dataset.aiUndo = 'true';
+        undo.textContent = 'Annuler les changements IA';
+        undo.onclick = function () {
+          var saved = isInvoice ? findActiveInvoiceById(source.id) : findActiveQuoteById(source.id);
+          if ((isInvoice ? editingInvoiceId : editingQuoteId) !== source.id || source.companyId !== wsActiveId || !saved || JSON.stringify(saved) !== source.snapshot) { showToast('Le document enregistré a changé. Annulation indisponible.'); return; }
+          if (!confirm('Abandonner les modifications non enregistrées et restaurer le brouillon ?')) return;
+          if (isInvoice) openInvoiceForEdit(source.id); else openQuoteForEdit(source.id);
+          undo.remove();
+        };
+        head.append(undo);
+      }
     }
-    async function sendAiMessage(input, chat, button) {
+    function aiSelectedSource() {
+      var value = document.getElementById('ai-source-document').value;
+      var split = value.indexOf(':');
+      if (split < 0) return null;
+      var kind = value.slice(0, split), id = value.slice(split + 1);
+      var doc = kind === 'invoice' ? findActiveInvoiceById(id) : findActiveQuoteById(id);
+      return doc && doc.status === 'Draft' ? { kind: kind, doc: doc } : null;
+    }
+    function renderAiBusinessLinks() {
+      var host = document.getElementById('ai-business-links');
+      if (!host) {
+        host = document.createElement('section'); host.id = 'ai-business-links';
+        host.style.cssText = 'padding:16px 0;border-bottom:1px solid hsl(var(--border));margin-bottom:16px';
+        document.querySelector('#view-ai .page-head').after(host);
+      }
+      host.replaceChildren();
+      var briefingCompanyId = wsActiveId;
+      var heading = document.createElement('h3'); heading.textContent = 'À suivre aujourd’hui'; host.append(heading);
+      var today = new Date().toISOString().slice(0,10);
+      var invoices = activeCompanyItems(INVOICES).filter(function (doc) { return ['Sent','Viewed','Partially paid','Overdue'].includes(doc.status) && invoiceBalance(doc) > 0; });
+      var quotes = activeCompanyItems(QUOTES).filter(function (doc) { return doc.status === 'Sent'; });
+      var tasks = activeCompanyItems(TASKS).filter(function (task) { return task.status !== 'done' && task.due && task.due <= today; });
+      var summary = document.createElement('p');
+      summary.textContent = invoices.filter(function (doc) { return doc.due && doc.due < today; }).length + ' facture(s) en retard · ' + quotes.length + ' devis en attente · ' + tasks.length + ' tâche(s) à échéance';
+      host.append(summary);
+      invoices.slice(0,5).forEach(function (doc) {
+        var row = document.createElement('div'); row.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center';
+        var label = document.createElement('span'); label.textContent = doc.id + ' · ' + (doc.client || '') + ' · ' + aiMoney(invoiceBalance(doc), doc.currency);
+        var open = document.createElement('button'); open.className='btn btn-outline btn-sm'; open.textContent='Voir la facture';
+        open.onclick=function(){showView('invoices');var search=document.getElementById('invoices-search');search.value=doc.id;search.dispatchEvent(new Event('input',{bubbles:true}));};
+        var remind = document.createElement('button'); remind.className='btn btn-outline btn-sm'; remind.textContent='Préparer une relance';
+        remind.onclick=function(){
+          var current = findActiveInvoiceById(doc.id);
+          if (briefingCompanyId !== wsActiveId || !current || invoiceBalance(current) <= 0 || !['Sent','Viewed','Partially paid','Overdue'].includes(current.status)) { showToast('Actualisez le bilan avant de préparer cette relance.'); return; }
+          var input=document.getElementById('ai-input');input.value='Draft a polite payment reminder in '+currentLang+' for invoice '+doc.id+'. Use authorized invoice data, current balance and due date. Do not claim it was sent. Return text only, no action. Ask if data is missing.';sendAiMessage(input,document.getElementById('ai-chat'),document.getElementById('ai-send'),null);
+        };
+        row.append(label,open,remind);host.append(row);
+      });
+      [['quotes','Voir les devis'],['tasks','Voir les tâches'],['reports','Prévisions de trésorerie']].forEach(function(pair){var link=document.createElement('button');link.className='btn btn-outline btn-sm';link.style.margin='8px 8px 0 0';link.textContent=pair[1];link.onclick=function(){showView(pair[0]);};host.append(link);});
+    }
+    var aiPendingEditSource = null;
+    async function sendAiMessage(input, chat, button, editSource) {
       var text = input.value.trim();
       if (!text || button.disabled) return;
+      if (arguments.length >= 4) aiPendingEditSource = editSource || null;
+      if (aiPendingEditSource && aiPendingEditSource.companyId !== wsActiveId) aiPendingEditSource = null;
+      editSource = editSource || aiPendingEditSource;
       var requestCompanyId = wsActiveId;
       appendAiMessage(chat, "user", text);
       input.value = "";
@@ -6688,6 +6773,8 @@
         typing.textContent = response.reply || "Je peux vous aider avec votre workspace.";
         var usageEls = [document.getElementById("ai-popup-usage"), document.getElementById("ai-page-usage")];
         if (response.usage) usageEls.filter(Boolean).forEach(function (usageEl) { usageEl.textContent = response.usage.dailyUsed + " of " + response.usage.dailyLimit + " secure AI requests used today"; });
+        if (editSource && response.action && response.action.type === (editSource.kind === 'invoice' ? 'create_invoice' : 'create_quote')) response.action.editSource = editSource;
+        if (response.action && response.action.type !== 'none') aiPendingEditSource = null;
         var now = Date.now();
         aiConversation.push({ role: "user", text: text, at: now }, { role: "assistant", text: typing.textContent, action: response.action, at: now + 1 });
         aiConversation = aiConversation.slice(-12);
@@ -6766,6 +6853,17 @@
           badge.textContent = Math.max(0, usage.dailyLimit - usage.dailyUsed) + (currentLang === "fr" ? " crédits disponibles aujourd’hui" : " credits left today");
         });
         applyStaticCopyTranslations();
+        if (usage.isOwner && window.profactureConfigureAiBudget) {
+          var budgetForm = document.createElement('form');
+          var budgetLabel = document.createElement('label');budgetLabel.textContent='Budget mensuel IA (USD)';
+          var amount = document.createElement('input');amount.type='number';amount.min='0.5';amount.max='100';amount.step='0.5';amount.required=true;amount.value=usage.monthlyCostLimitUsd;amount.className='field';budgetLabel.append(amount);
+          var enableLabel=document.createElement('label');var enabled=document.createElement('input');enabled.type='checkbox';enabled.checked=usage.enabled!==false;enableLabel.append(enabled,document.createTextNode(' Autoriser les requêtes IA'));
+          var save=document.createElement('button');save.type='submit';save.className='btn btn-outline';save.textContent='Enregistrer le budget';
+          var notice=document.createElement('p');notice.textContent='Allocation de protection : $'+Number(usage.allocatedCostUsd||0).toFixed(2)+'. Ce seuil ne garantit pas le montant de la facture fournisseur.';
+          var result=document.createElement('p');result.setAttribute('role','status');
+          budgetForm.append(budgetLabel,enableLabel,notice,save,result);panel.append(budgetForm);
+          budgetForm.onsubmit=async function(event){event.preventDefault();if(save.disabled)return;if(!confirm('Appliquer ce budget global à toutes les requêtes IA ?'))return;save.disabled=true;try{await window.profactureConfigureAiBudget({monthlyCostUsd:Number(amount.value),enabled:enabled.checked});result.textContent='Budget enregistré.';}catch(error){result.textContent='Budget non enregistré. Vérifiez vos droits ou réessayez.';}finally{save.disabled=false;}};
+        }
       } catch (error) {
         if (request !== aiUsageRequest || company !== wsActiveId) return;
         if (/unauthenticated|SIGN_IN_REQUIRED/.test(String(error.code || error.message))) status("Connectez-vous pour consulter votre consommation IA.", "Sign in to view AI usage.");
@@ -6802,6 +6900,7 @@
       queue.innerHTML = suggestions.length ? suggestions.map(function (item) { return '<div class="ai-action-card" style="margin-top:0.55rem;"><div><strong>' + escapeHtml(item.title) + '</strong><p>' + escapeHtml(item.reason) + '</p></div><button class="btn btn-primary btn-sm" data-ai-automation-apply="' + item.id + '">Review task</button></div>'; }).join("") : '<p class="widget-empty">No recommendation from the enabled rules and current data.</p>';
     }
     function renderAiCommandCenter() {
+      renderAiBusinessLinks();
       renderAiDocumentComposer();
       renderAiMemory();
       renderAutomationCenter();
@@ -6818,6 +6917,12 @@
       var previous = form.dataset.company === wsActiveId ? select.value : "";
       if (form.dataset.company !== wsActiveId) form.reset();
       form.dataset.company = wsActiveId;
+      var sourceSelect = document.getElementById("ai-source-document");
+      var previousSource = sourceSelect.value;
+      sourceSelect.innerHTML = '<option value="">Nouveau document</option>' + ['invoice', 'quote'].map(function (kind) {
+        return activeCompanyItems(kind === 'invoice' ? INVOICES : QUOTES).filter(function (doc) { return doc.status === 'Draft'; }).map(function (doc) { return '<option value="' + escapeHtml(kind + ':' + doc.id) + '">' + escapeHtml(doc.id + ' · ' + (doc.client || '') + ' · Brouillon') + '</option>'; }).join('');
+      }).join('');
+      if (Array.from(sourceSelect.options).some(function (option) { return option.value === previousSource; })) sourceSelect.value = previousSource;
       select.innerHTML = '<option value="">' + (currentLang === "fr" ? "Choisir / préciser dans le message" : "Choose / specify in your message") + '</option>' + clients.map(function (client) { return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(clientDisplayName(client)) + '</option>'; }).join("");
       if (clients.some(function (client) { return String(client.id) === previous; })) select.value = previous;
       var tax = document.getElementById("ai-compose-tax");
@@ -6843,10 +6948,15 @@
       var client = activeCompanyItems(CLIENTS).find(function (item) { return String(item.id) === clientId; });
       var request = { action: document.getElementById("ai-compose-type").value, clientId: client ? client.id : "", clientName: client ? clientDisplayName(client) : "", currency: currentCurrency, tax: document.getElementById("ai-compose-tax").value, priceBasis: document.getElementById("ai-compose-basis").value, description: document.getElementById("ai-compose-description").value.trim() };
       if (!request.description) return;
+      var source = aiSelectedSource();
+      if (source) {
+        request.action = source.kind === 'invoice' ? 'create_invoice' : 'create_quote';
+        request.sourceDocumentId = source.doc.id;
+      }
       var input = document.getElementById("ai-input");
       input.value = "Prepare an editable document from this request: " + JSON.stringify(request) + ". Reply in the workspace language. If quantities, prices, client or tax are ambiguous, ask focused questions before returning a document action. Never invent prices or tax exemption. Do not assume zero tax when unspecified. Preserve the supplied detail. For TTC prices, convert to HT using the confirmed tax. Return unitPrice as HT. Do not save or send anything.";
       submit.disabled = true;
-      try { await sendAiMessage(input, document.getElementById("ai-chat"), send); }
+      try { await sendAiMessage(input, document.getElementById("ai-chat"), send, source ? { kind: source.kind, id: source.doc.id, companyId: wsActiveId, snapshot: JSON.stringify(source.doc) } : null); }
       finally { submit.disabled = false; }
     });
     var aiMemorySave = document.getElementById("ai-memory-save");
@@ -11327,6 +11437,12 @@
         var ttcMinor = window.ProFactureFinancial.toMinor(value.amountTTC);
         var discrepancy = ttcMinor - htMinor - taxMinor;
         var missing = [!value.vendor ? "fournisseur" : "", !value.date ? "date" : "", !value.amountTTC ? "TTC" : ""].filter(Boolean);
+        [['ae-vendor', !value.vendor], ['ae-date', !value.date], ['ae-amount-ht', !!discrepancy], ['ae-tax', !!discrepancy], ['ae-amount', !value.amountTTC || !!discrepancy]].forEach(function(entry) {
+          var field = document.getElementById(entry[0]);
+          field.classList.toggle('ai-review-needed', !!entry[1]);
+          field.title = entry[1] ? 'À vérifier : information manquante ou total incohérent' : '';
+          field.addEventListener('input', function clearReview() { field.classList.remove('ai-review-needed'); field.title = ''; }, { once: true });
+        });
         review.innerHTML = '<div class="ai-action-card"><strong>Vérifier les champs extraits</strong><p>Confiance estimée par l’analyse : ' + Math.round(Number(value.confidence || 0) * 100) + '%' + (value.reference ? ' · Réf. ' + escapeHtml(value.reference) : '') + '</p>' + (missing.length ? '<p style="color:hsl(var(--warning))">Informations manquantes : ' + escapeHtml(missing.join(", ")) + '.</p>' : '') + (discrepancy ? '<p style="color:hsl(var(--danger))">Écart HT + TVA / TTC : ' + aiMoney(window.ProFactureFinancial.fromMinor(discrepancy), value.currency || currentCurrency) + '. Corrigez avant confirmation.</p>' : '<p>HT + TVA correspond au TTC.</p>') + '<p>Aucune dépense n’a encore été enregistrée.</p></div>';
         showToast("Receipt fields extracted. Please verify before adding.");
       } catch (error) {
@@ -12885,6 +13001,12 @@
 	const aiHistoryCallable = httpsCallable(functions, "aiHistory", { limitedUseAppCheckTokens: true });
 	const storageManagerCallable = httpsCallable(functions, "storageManager", { limitedUseAppCheckTokens: true });
 	const aiUsageCallable = httpsCallable(functions, "aiUsage", { limitedUseAppCheckTokens: true });
+	const aiConfigureBudgetCallable = httpsCallable(functions, "aiConfigureBudget", { limitedUseAppCheckTokens: true });
+	window.profactureConfigureAiBudget = async settings => {
+	  if (!auth.currentUser) throw new Error('SIGN_IN_REQUIRED');
+	  const result = await aiConfigureBudgetCallable(settings);
+	  return result.data;
+	};
 	const submitPublicReviewCallable = httpsCallable(functions, "submitPublicReview", { limitedUseAppCheckTokens: true });
 	const listPublicReviewsCallable = httpsCallable(functions, "listPublicReviews", { limitedUseAppCheckTokens: true });
 	const workspaceBackupCallable = httpsCallable(functions, "workspaceBackup", { limitedUseAppCheckTokens: true });
