@@ -4660,7 +4660,7 @@
             <button class="ai-cap" data-ai-prompt="Review businessFacts.pendingQuotes and propose client follow-ups. Ask me which quote to use before drafting a personalized follow-up. Never send anything.">Suivi commercial</button>
             <button class="ai-cap" data-ai-prompt="Review businessFacts.unpaidInvoices and prioritize collections by due date and balance, per currency. Ask which invoice to use before drafting a payment reminder. Never send anything.">Relances de paiement</button>
             <button class="ai-cap" data-ai-prompt="Explain businessFacts.documentIssues and suggest specific corrections. Acknowledge the limited sample and basic checks. Never claim legal or tax compliance or alter a finalized invoice.">Contrôle des documents</button>
-            <button class="ai-cap" data-ai-prompt="Prepare a new invoice draft"><span data-i18n="ai_invoice_generator">AI Invoice Generator</span></button>
+            <button class="ai-cap" id="ai-open-document-composer"><span data-i18n="ai_invoice_generator">AI Invoice Generator</span></button>
             <button class="ai-cap" data-ai-prompt="Write a professional customer email"><span data-i18n="ai_email_writer">AI Email Writer</span></button>
             <button class="ai-cap" data-ai-prompt="Write a polite unpaid invoice reminder"><span data-i18n="ai_reminder_writer">AI Reminder Writer</span></button>
             <button class="ai-cap" data-ai-prompt="Help me review the tax information on my documents"><span data-i18n="ai_tax_assistant">AI Tax Assistant</span></button>
@@ -4668,6 +4668,19 @@
             <button class="ai-cap" data-ai-prompt="Analyze my inventory and suggest next actions"><span data-i18n="ai_inventory_analyst">AI Inventory Analyst</span></button>
           </div>
           <div class="card">
+            <form id="ai-document-composer" class="card-pad" style="border-bottom:1px solid hsl(var(--border));">
+              <h3>Préparer un document avec l’IA</h3>
+              <div style="display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;">
+                <label>Document<select class="field" id="ai-compose-type"><option value="create_invoice">Facture</option><option value="create_quote">Devis</option></select></label>
+                <label>Client<select class="field" id="ai-compose-client"></select></label>
+                <label>TVA<select class="field" id="ai-compose-tax"><option value="">À préciser</option></select></label>
+                <label>Prix<select class="field" id="ai-compose-basis"><option value="HT">HT</option><option value="TTC">TTC</option></select></label>
+              </div>
+              <label for="ai-compose-description">Travaux, produits ou services</label>
+              <textarea class="field" id="ai-compose-description" required maxlength="1800" rows="4" placeholder="Ex. Peinture de 40 m² à 25 € HT/m², préparation incluse. Livraison vendredi." style="width:100%;resize:vertical;margin:8px 0;min-height:100px;"></textarea>
+              <button class="btn btn-primary" type="submit" id="ai-compose-submit">Préparer le brouillon</button>
+              <span id="ai-compose-context" style="display:block;margin-top:8px;font-size:12px;"></span>
+            </form>
             <div class="ai-chat" id="ai-chat" aria-live="polite">
               <div class="msg bot" data-i18n="txt_ai_welcome">Hi — ask me about invoices, cash flow, inventory, tasks or performance, or try one of the suggestions below.</div>
             </div>
@@ -6411,13 +6424,8 @@
       return msg;
     }
     function aiDraftTotals(draft) {
-      var rates = { none: 0, vat20: .2, vat10: .1, vat55: .055, vat21: .021, gst10: .1, sales8: .08 };
-      return (Array.isArray(draft.items) ? draft.items : []).reduce(function (totals, item) {
-        var ht = Math.max(0, Number(item.quantity || 0)) * Math.max(0, Number(item.unitPrice || 0));
-        totals.ht += ht;
-        totals.tax += ht * (rates[item.tax] || 0);
-        return totals;
-      }, { ht: 0, tax: 0 });
+      var exact = calculateDocumentTotals(safeAiItems(draft));
+      return { ht: exact.subtotal, tax: exact.taxTotal, total: exact.total, breakdown: exact.breakdown };
     }
     function aiMoney(value, code) {
       try { return new Intl.NumberFormat(currentLang || "fr", { style: "currency", currency: code || currentCurrency || "EUR" }).format(Number(value || 0)); }
@@ -6447,7 +6455,8 @@
         var totals = aiDraftTotals(draft);
         var total = document.createElement("div");
         total.className = "ai-draft-total";
-        total.textContent = "Total: " + aiMoney(totals.ht + totals.tax, draft.currency) + " (tax " + aiMoney(totals.tax, draft.currency) + ")";
+        total.style.whiteSpace = "pre-line";
+        total.textContent = "HT : " + aiMoney(totals.ht, draft.currency) + "\n" + totals.breakdown.map(function (entry) { return "TVA " + entry.rate + " % : " + aiMoney(entry.amount, draft.currency); }).join("\n") + "\nTotal TTC : " + aiMoney(totals.total, draft.currency);
         card.appendChild(total);
       } else if (action.type === "create_task") {
         var taskDraft = action.draft || {};
@@ -6597,6 +6606,7 @@
     async function sendAiMessage(input, chat, button) {
       var text = input.value.trim();
       if (!text || button.disabled) return;
+      var requestCompanyId = wsActiveId;
       appendAiMessage(chat, "user", text);
       input.value = "";
       button.disabled = true;
@@ -6611,6 +6621,10 @@
           response = { reply: localReply.replace(/<br>/g, "\n").replace(/<[^>]+>/g, ""), action: { type: "none", label: "" } };
         } else {
           throw new Error("AI_NOT_READY");
+        }
+        if (requestCompanyId !== wsActiveId) {
+          typing.textContent = "Entreprise modifiée. Revenez à l’entreprise initiale pour reprendre cette demande.";
+          return;
         }
         typing.textContent = response.reply || "Je peux vous aider avec votre workspace.";
         var usageEls = [document.getElementById("ai-popup-usage"), document.getElementById("ai-page-usage")];
@@ -6708,12 +6722,48 @@
       queue.innerHTML = suggestions.length ? suggestions.map(function (item) { return '<div class="ai-action-card" style="margin-top:0.55rem;"><div><strong>' + escapeHtml(item.title) + '</strong><p>' + escapeHtml(item.reason) + '</p></div><button class="btn btn-primary btn-sm" data-ai-automation-apply="' + item.id + '">Review task</button></div>'; }).join("") : '<p class="widget-empty">No recommendation from the enabled rules and current data.</p>';
     }
     function renderAiCommandCenter() {
+      renderAiDocumentComposer();
       renderAiMemory();
       renderAutomationCenter();
       loadAiUsagePanel();
       renderAiActivity(aiConversation);
       loadAiHistory(document.getElementById("ai-chat"));
     }
+    function renderAiDocumentComposer() {
+      var form = document.getElementById("ai-document-composer");
+      if (!form) return;
+      var clients = activeCompanyItems(CLIENTS);
+      var select = document.getElementById("ai-compose-client");
+      var previous = form.dataset.company === wsActiveId ? select.value : "";
+      if (form.dataset.company !== wsActiveId) form.reset();
+      form.dataset.company = wsActiveId;
+      select.innerHTML = '<option value="">Choisir / préciser dans le message</option>' + clients.map(function (client) { return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(clientDisplayName(client)) + '</option>'; }).join("");
+      if (clients.some(function (client) { return String(client.id) === previous; })) select.value = previous;
+      var tax = document.getElementById("ai-compose-tax");
+      if (tax.options.length === 1) tax.insertAdjacentHTML("beforeend", taxOptionsHtml(""));
+      document.getElementById("ai-compose-context").textContent = (activeCompanyWorkspace() || {}).name + " · " + currentCurrency + " · Brouillon à vérifier avant enregistrement";
+    }
+    document.getElementById("ai-open-document-composer").addEventListener("click", function () {
+      renderAiDocumentComposer();
+      document.getElementById("ai-document-composer").scrollIntoView({ block: "center" });
+      document.getElementById("ai-compose-description").focus();
+    });
+    document.getElementById("ai-document-composer").addEventListener("submit", async function (event) {
+      event.preventDefault();
+      var submit = document.getElementById("ai-compose-submit");
+      var send = document.getElementById("ai-send");
+      if (submit.disabled || send.disabled) return;
+      if (this.dataset.company !== wsActiveId) { renderAiDocumentComposer(); return; }
+      var clientId = document.getElementById("ai-compose-client").value;
+      var client = activeCompanyItems(CLIENTS).find(function (item) { return String(item.id) === clientId; });
+      var request = { action: document.getElementById("ai-compose-type").value, clientId: client ? client.id : "", clientName: client ? clientDisplayName(client) : "", currency: currentCurrency, tax: document.getElementById("ai-compose-tax").value, priceBasis: document.getElementById("ai-compose-basis").value, description: document.getElementById("ai-compose-description").value.trim() };
+      if (!request.description) return;
+      var input = document.getElementById("ai-input");
+      input.value = "Prepare an editable document from this request: " + JSON.stringify(request) + ". Reply in the workspace language. If quantities, prices, client or tax are ambiguous, ask focused questions before returning a document action. Never invent prices or tax exemption. Do not assume zero tax when unspecified. Preserve the supplied detail. For TTC prices, convert to HT using the confirmed tax. Return unitPrice as HT. Do not save or send anything.";
+      submit.disabled = true;
+      try { await sendAiMessage(input, document.getElementById("ai-chat"), send); }
+      finally { submit.disabled = false; }
+    });
     var aiMemorySave = document.getElementById("ai-memory-save");
     if (aiMemorySave) aiMemorySave.addEventListener("click", function () {
       var workspace = aiActiveWorkspace();
