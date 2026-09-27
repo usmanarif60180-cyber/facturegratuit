@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ProFacture AI - Base44 Style Preview</title>
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+    :root {
+      --bg: #05070c;
+      --ink: #f8fafc;
+      --muted: #9aa6b8;
+      --line: rgba(255,255,255,.12);
+      --card: rgba(255,255,255,.07);
+      --card2: rgba(255,255,255,.11);
+      --green: #12c88b;
+      --cyan: #47d7ff;
+      --violet: #8a5cff;
+      --amber: #ffd166;
+      --danger: #ff6b6b;
+      --radius: 28px;
+      --shadow: 0 28px 90px rgba(0,0,0,.45);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(71,215,255,.22), transparent 30rem),
+        radial-gradient(circle at 88% 12%, rgba(138,92,255,.24), transparent 32rem),
+        linear-gradient(180deg, #05070c 0%, #0a1020 45%, #f7f8fb 45%, #fff 100%);
+      color: var(--ink);
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    .shell { width: min(1180px, calc(100vw - 36px)); margin: 0 auto; }
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(5,7,12,.72);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav { height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .brand { display: inline-flex; align-items: center; gap: .72rem; font-weight: 900; letter-spacing: -.03em; }
+    .mark {
+      width: 38px; height: 38px; border-radius: 14px;
+      display: grid; place-items: center;
+      color: #04100c; font-weight: 950;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      box-shadow: 0 15px 45px rgba(18,200,139,.28);
+    }
+    .nav-links { display: flex; align-items: center; gap: 1.4rem; color: #c9d2e2; font-size: .92rem; }
+    .actions { display: flex; align-items: center; gap: .65rem; }
+    .btn {
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: rgba(255,255,255,.06);
+      padding: .82rem 1.05rem;
+      border-radius: 999px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.28); }
+    .btn-primary {
+      border: 0;
+      color: #03100b;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      box-shadow: 0 18px 55px rgba(18,200,139,.24);
+    }
+    .beta {
+      display: inline-flex; align-items: center; gap: .45rem;
+      padding: .48rem .8rem;
+      border: 1px solid rgba(71,215,255,.28);
+      background: rgba(71,215,255,.1);
+      border-radius: 999px;
+      color: #bdf3ff;
+      font-size: .78rem;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .hero { position: relative; padding: 72px 0 64px; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, .95fr) minmax(420px, 1.05fr); gap: 3rem; align-items: center; }
+    h1 {
+      font-size: clamp(3.2rem, 7vw, 7.3rem);
+      line-height: .88;
+      margin: 1.25rem 0 1.15rem;
+      letter-spacing: -.075em;
+      max-width: 760px;
+    }
+    .grad { display: block; background: linear-gradient(135deg, #fff, #c8fff0 38%, #75d7ff 72%, #a78bfa); -webkit-background-clip: text; color: transparent; }
+    .lead { color: #b7c3d5; font-size: clamp(1.05rem, 2vw, 1.35rem); line-height: 1.7; max-width: 640px; }
+    .hero-cta { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: 2rem; }
+    .mini-proof { display: flex; align-items: center; gap: 1rem; margin-top: 2.2rem; color: #aab6c9; font-size: .92rem; }
+    .avatars { display: flex; }
+    .avatars span {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: grid; place-items: center;
+      margin-left: -8px;
+      border: 2px solid #05070c;
+      background: linear-gradient(135deg, var(--violet), var(--cyan));
+      font-size: .75rem; font-weight: 900;
+    }
+    .avatars span:first-child { margin-left: 0; }
+    .hero-card {
+      position: relative;
+      border: 1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
+      border-radius: 34px;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      overflow: hidden;
+      transform: perspective(1100px) rotateY(-8deg) rotateX(3deg);
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100% { transform: perspective(1100px) rotateY(-8deg) rotateX(3deg) translateY(0); } 50% { transform: perspective(1100px) rotateY(-5deg) rotateX(2deg) translateY(-12px); } }
+    .dash {
+      min-height: 520px;
+      border-radius: 26px;
+      background: #07101d;
+      border: 1px solid rgba(255,255,255,.12);
+      overflow: hidden;
+    }
+    .dash-top { height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .dots { display: flex; gap: .38rem; }
+    .dots i { width: 10px; height: 10px; border-radius: 50%; background: #334155; }
+    .dash-body { display: grid; grid-template-columns: 160px 1fr; min-height: 462px; }
+    .side { padding: 1rem; border-right: 1px solid rgba(255,255,255,.1); display: grid; gap: .55rem; align-content: start; }
+    .side span { height: 34px; border-radius: 12px; background: rgba(255,255,255,.07); }
+    .side span.on { background: linear-gradient(135deg, rgba(18,200,139,.35), rgba(71,215,255,.2)); }
+    .work { padding: 1rem; display: grid; gap: 1rem; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; }
+    .stat { border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.05); border-radius: 18px; padding: .9rem; }
+    .stat b { display: block; font-size: 1.2rem; margin-top: .35rem; }
+    .stat small { color: #8da0bb; }
+    .invoice-sheet {
+      background: #fff;
+      color: #0f172a;
+      border-radius: 18px;
+      padding: 1.2rem;
+      min-height: 272px;
+      box-shadow: 0 24px 55px rgba(0,0,0,.25);
+    }
+    .sheet-head { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    .sheet-title { color: #12a879; font-weight: 950; font-size: 1.2rem; }
+    .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: .32rem .55rem; background: rgba(18,200,139,.12); color: #0d8a66; font-size: .72rem; font-weight: 900; }
+    .sheet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; margin-bottom: 1rem; }
+    .sheet-box { border-radius: 14px; background: #f1f5f9; padding: .75rem; min-height: 70px; }
+    .line { height: 10px; border-radius: 999px; background: #dbe4ef; margin: .45rem 0; }
+    .line.short { width: 60%; }
+    .table { display: grid; gap: .45rem; }
+    .row { display: grid; grid-template-columns: 1.6fr .4fr .6fr; gap: .6rem; }
+    .row span { height: 11px; border-radius: 999px; background: #e5edf7; }
+    .row.head span { background: linear-gradient(135deg, var(--green), var(--cyan)); }
+    .total { margin-left: auto; margin-top: .9rem; width: 42%; height: 36px; border-radius: 12px; background: linear-gradient(135deg, var(--green), var(--cyan)); }
+    .logos { padding: 1rem 0 3rem; color: #7f8da3; text-align: center; }
+    .logo-row { margin-top: 1.1rem; display: grid; grid-template-columns: repeat(6, 1fr); gap: .75rem; }
+    .logo-chip { border: 1px solid var(--line); border-radius: 999px; padding: .8rem 1rem; background: rgba(255,255,255,.04); color: #d8e1ef; font-weight: 900; }
+    section.light { color: #0f172a; background: #fff; }
+    .section { padding: 86px 0; }
+    .center { text-align: center; max-width: 780px; margin: 0 auto 3rem; }
+    .kicker { color: #10a779; font-size: .78rem; font-weight: 950; letter-spacing: .12em; text-transform: uppercase; }
+    h2 { font-size: clamp(2.25rem, 5vw, 4.4rem); line-height: .96; letter-spacing: -.055em; margin: .55rem 0 .85rem; }
+    .muted { color: #64748b; line-height: 1.7; }
+    .problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .white-card {
+      background: #fff;
+      border: 1px solid #e5eaf2;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: 0 16px 55px rgba(15,23,42,.07);
+    }
+    .white-card h3 { margin: .9rem 0 .45rem; font-size: 1.15rem; }
+    .icon {
+      width: 46px; height: 46px; border-radius: 16px;
+      display: grid; place-items: center;
+      background: #ecfdf5;
+      color: #0d8a66;
+      font-weight: 950;
+    }
+    .split { display: grid; grid-template-columns: .9fr 1.1fr; gap: 2rem; align-items: center; }
+    .tabs { display: flex; gap: .55rem; flex-wrap: wrap; margin: 1.3rem 0; }
+    .tab { border: 1px solid #dbe4ef; background: #fff; color: #334155; border-radius: 999px; padding: .72rem 1rem; font-weight: 850; cursor: pointer; }
+    .tab.on { color: #032014; border-color: transparent; background: linear-gradient(135deg, var(--green), var(--cyan)); }
+    .feature-panel {
+      position: relative;
+      min-height: 340px;
+      border-radius: 34px;
+      padding: 1.4rem;
+      background: #06101f;
+      color: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .feature-panel:before {
+      content: "";
+      position: absolute; inset: -40% -20% auto auto;
+      width: 420px; height: 420px;
+      border-radius: 50%;
+      background: rgba(71,215,255,.18);
+      filter: blur(12px);
+    }
+    .feature-content { position: relative; display: grid; gap: 1rem; }
+    .ai-card { border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.07); border-radius: 22px; padding: 1rem; }
+    .suggestion { border-left: 3px solid var(--green); padding-left: .9rem; color: #dce8f7; }
+    .flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .step-num { font-size: 3.4rem; letter-spacing: -.08em; font-weight: 950; color: #e2e8f0; }
+    .pricing { background: #07101d; color: #fff; }
+    .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: stretch; }
+    .price-card { border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); border-radius: 30px; padding: 1.4rem; position: relative; }
+    .price-card.pop { background: linear-gradient(180deg, rgba(18,200,139,.22), rgba(255,255,255,.06)); border-color: rgba(18,200,139,.45); transform: translateY(-12px); }
+    .ribbon { position: absolute; top: 1rem; right: 1rem; color: #04100c; background: var(--amber); border-radius: 999px; padding: .35rem .6rem; font-size: .72rem; font-weight: 950; }
+    .price { font-size: 3rem; font-weight: 950; letter-spacing: -.06em; margin: 1rem 0; }
+    .price small { font-size: .9rem; color: #9fb0c9; font-weight: 700; }
+    ul { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: .7rem; color: #c9d6e7; }
+    li:before { content: "OK"; font-size: .65rem; font-weight: 950; color: var(--green); margin-right: .55rem; }
+    .testimonials { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .quote { min-height: 220px; }
+    .quote p:first-child { font-weight: 900; color: #0f172a; font-size: 1.05rem; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: #e9fff8; color: #0d8a66; display: grid; place-items: center; font-weight: 950; margin-top: 1rem; }
+    .cta {
+      margin: 0 auto;
+      width: min(1180px, calc(100vw - 36px));
+      border-radius: 42px;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(71,215,255,.25), transparent 22rem),
+        linear-gradient(135deg, #06101f, #0b1729);
+      color: #fff;
+      padding: 4rem 2rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    footer { background: #05070c; color: #9aa6b8; padding: 3rem 0; }
+    .foot { display: grid; grid-template-columns: 1.3fr repeat(3, 1fr); gap: 1rem; }
+    .foot h3 { color: #fff; margin: 0 0 .8rem; font-size: .86rem; text-transform: uppercase; letter-spacing: .08em; }
+    .foot a, .foot p { display: block; color: #9aa6b8; margin: .5rem 0; font-size: .9rem; line-height: 1.55; }
+    .preview-note {
+      position: fixed; left: 18px; bottom: 18px; z-index: 30;
+      border: 1px solid rgba(18,200,139,.38);
+      background: rgba(5,7,12,.82);
+      color: #dffdf4;
+      backdrop-filter: blur(18px);
+      border-radius: 999px;
+      padding: .72rem 1rem;
+      font-size: .8rem;
+      font-weight: 850;
+    }
+    @media (max-width: 980px) {
+      .hero-grid, .split { grid-template-columns: 1fr; }
+      .hero-card { transform: none; animation: none; }
+      .problem-grid, .flow, .price-grid, .testimonials, .logo-row { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .hero { padding-top: 44px; }
+      .actions .btn:first-child { display: none; }
+      .dash-body { grid-template-columns: 1fr; }
+      .side { display: none; }
+      .stats, .problem-grid, .flow, .price-grid, .testimonials, .logo-row, .foot { grid-template-columns: 1fr; }
+      .price-card.pop { transform: none; }
+      h1 { font-size: 3.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="shell nav">
+      <a class="brand" href="#"><span class="mark">PF</span><span>ProFacture AI</span></a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#how">How It Works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#testimonials">Testimonials</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="actions">
+        <a class="btn" href="#login">Log In</a>
+        <a class="btn btn-primary" href="#pricing">Get Started</a>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div>
+          <span class="beta">Now in preview - 100% free invoices</span>
+          <h1>Invoices, Quotes, <span class="grad">Powered by AI</span></h1>
+          <p class="lead">Create professional invoices and quotes for building, automobile, freelance and marketplace sellers. Manage clients, products, currencies, signatures and PDFs in one intelligent workspace.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#pricing">Start Free</a>
+            <a class="btn" href="#features">See Features</a>
+          </div>
+          <div class="mini-proof">
+            <div class="avatars"><span>FR</span><span>UK</span><span>US</span><span>AI</span></div>
+            <span>Built for France, UK, USA, Spain, Germany, Italy and worldwide sellers.</span>
+          </div>
+        </div>
+        <div class="hero-card" aria-label="ProFacture AI dashboard preview">
+          <div class="dash">
+            <div class="dash-top"><div class="dots"><i></i><i></i><i></i></div><strong>ProFacture AI Dashboard</strong><span class="pill">Live PDF</span></div>
+            <div class="dash-body">
+              <div class="side"><span class="on"></span><span></span><span></span><span></span><span></span><span></span></div>
+              <div class="work">
+                <div class="stats">
+                  <div class="stat"><small>Revenue</small><b>12,840 EUR</b></div>
+                  <div class="stat"><small>Invoices</small><b>128</b></div>
+                  <div class="stat"><small>TVA tracked</small><b>2,140 EUR</b></div>
+                </div>
+                <div class="invoice-sheet">
+                  <div class="sheet-head"><div><div class="sheet-title">FACTURE BATIMENT</div><span class="pill">Signature + stamp ready</span></div><strong>0.00 EUR</strong></div>
+                  <div class="sheet-grid"><div class="sheet-box"><div class="line short"></div><div class="line"></div><div class="line"></div></div><div class="sheet-box"><div class="line short"></div><div class="line"></div><div class="line"></div></div></div>
+                  <div class="table"><div class="row head"><span></span><span></span><span></span></div><div class="row"><span></span><span></span><span></span></div><div class="row"><span></span><span></span><span></span></div></div>
+                  <div class="total"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="logos shell">
+      <strong>INVOICE TOOLS FOR WORLDWIDE SMALL BUSINESS</strong>
+      <div class="logo-row">
+        <div class="logo-chip">Batiment</div><div class="logo-chip">Automobile</div><div class="logo-chip">Freelance</div><div class="logo-chip">Amazon</div><div class="logo-chip">eBay</div><div class="logo-chip">Etsy</div>
+      </div>
+    </div>
+
+    <section class="light section">
+      <div class="shell">
+        <div class="center"><span class="kicker">The Problem</span><h2>Your paperwork deserves better</h2><p class="muted">Manual invoice creation wastes time, creates errors and makes client history hard to track.</p></div>
+        <div class="problem-grid">
+          <article class="white-card"><div class="icon">01</div><h3>Repeated company details</h3><p class="muted">Users should not rewrite the same SIRET, address, logo, stamp and signature for every document.</p></article>
+          <article class="white-card"><div class="icon">02</div><h3>Wrong currency or tax</h3><p class="muted">France needs EUR and TVA, UK needs GBP, USA needs USD, and each market needs clean labels.</p></article>
+          <article class="white-card"><div class="icon">03</div><h3>Lost invoice history</h3><p class="muted">A proper account dashboard keeps invoices, clients, products and totals saved safely.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="light section" id="features">
+      <div class="shell split">
+        <div>
+          <span class="kicker">Features</span>
+          <h2>Everything needed to invoice faster</h2>
+          <p class="muted">A Base44-style SaaS landing page, converted for ProFacture AI and your invoice product.</p>
+          <div class="tabs">
+            <button class="tab on" data-tab="ai">AI Assistant</button>
+            <button class="tab" data-tab="pdf">PDF Studio</button>
+            <button class="tab" data-tab="cloud">Cloud Dashboard</button>
+          </div>
+        </div>
+        <div class="feature-panel">
+          <div class="feature-content" id="feature-copy">
+            <span class="pill">Saves admin time</span>
+            <h3>Smart invoice drafting</h3>
+            <p class="muted" style="color:#c9d6e7;">Turn a short job description into editable invoice lines, quantities, unit prices, TVA and totals.</p>
+            <div class="ai-card"><strong>AI Suggestion</strong><p class="suggestion">Add chantier address, client SIRET and payment terms before PDF export.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="light section" id="how">
+      <div class="shell">
+        <div class="center"><span class="kicker">How It Works</span><h2>From client to PDF in minutes</h2><p class="muted">The workflow stays simple for mobile and desktop users.</p></div>
+        <div class="flow">
+          <article class="white-card"><div class="step-num">01</div><h3>Choose document</h3><p class="muted">Facture batiment, devis batiment, facture automobile, devis automobile or marketplace invoice.</p></article>
+          <article class="white-card"><div class="step-num">02</div><h3>Add client and lines</h3><p class="muted">Use saved clients/products, AI suggestions, TVA, currency and country format.</p></article>
+          <article class="white-card"><div class="step-num">03</div><h3>Download or save</h3><p class="muted">Export A4 PDF, email later, save history and track monthly totals.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section pricing" id="pricing">
+      <div class="shell">
+        <div class="center"><span class="kicker">Pricing</span><h2>Simple, transparent pricing</h2><p class="muted">Free plan stays active. Premium plans can be enabled later without redesigning the page.</p></div>
+        <div class="price-grid">
+          <article class="price-card"><h3>Free</h3><p class="muted">For small businesses starting today.</p><div class="price">0 <small>EUR/month</small></div><a class="btn btn-primary" href="#login">Get Started Free</a><ul><li>Unlimited quotes</li><li>Basic invoices</li><li>PDF download</li><li>Customer management</li><li>Product library</li><li>Basic dashboard</li></ul></article>
+          <article class="price-card pop"><span class="ribbon">Coming Soon</span><h3>Pro</h3><p class="muted">For growing businesses.</p><div class="price">Soon</div><button class="btn" disabled>Coming Soon</button><ul><li>Recurring invoices</li><li>AI Assistant</li><li>Advanced analytics</li><li>Email reminders</li><li>Custom branding</li><li>Multi-currency</li></ul></article>
+          <article class="price-card"><span class="ribbon">Coming Soon</span><h3>Business</h3><p class="muted">For teams and accountants.</p><div class="price">Soon</div><button class="btn" disabled>Coming Soon</button><ul><li>Everything in Pro</li><li>Team members</li><li>Accountant access</li><li>Customer portal</li><li>Advanced reports</li><li>Priority support</li></ul></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="light section" id="testimonials">
+      <div class="shell">
+        <div class="center"><span class="kicker">Testimonials</span><h2>Built for people who send real invoices</h2><p class="muted">Preview copy only. These cards can later be replaced with real user feedback.</p></div>
+        <div class="testimonials">
+          <article class="white-card quote"><p>"Cleaner than my old spreadsheet."</p><p class="muted">The dashboard keeps clients, products and PDF history in one place.</p><div class="avatar">AB</div></article>
+          <article class="white-card quote"><p>"Perfect for chantier invoices."</p><p class="muted">Client address and chantier address are separated, with TVA and totals clear.</p><div class="avatar">BT</div></article>
+          <article class="white-card quote"><p>"Good for marketplace sellers."</p><p class="muted">Order ID, SKU, platform notes and multi-currency invoice flow feels natural.</p><div class="avatar">MS</div></article>
+          <article class="white-card quote"><p>"Mobile feels less crowded."</p><p class="muted">The preview keeps navigation clear and moves heavy tools into the dashboard.</p><div class="avatar">UX</div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="light section" id="faq">
+      <div class="cta">
+        <span class="kicker">Ready to Upgrade the Look?</span>
+        <h2>Make ProFacture AI feel premium.</h2>
+        <p class="lead" style="margin:0 auto 1.4rem;">This file is preview-only. After approval, the same direction can be merged into the live facturergratuit.com homepage without changing Firebase, Google verification or AdSense codes.</p>
+        <a class="btn btn-primary" href="#features">Review Preview</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell foot">
+      <div><a class="brand" href="#"><span class="mark">PF</span><span>ProFacture AI</span></a><p>Facturergratuit.com domain, ProFacture AI product branding. Preview file only.</p></div>
+      <div><h3>Product</h3><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div>
+      <div><h3>Legal</h3><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Cookies</a></div>
+      <div><h3>Contact</h3><a href="mailto:contact@facturergratuit.com">contact@facturergratuit.com</a><a href="#">Security</a></div>
+    </div>
+  </footer>
+  <div class="preview-note">Preview only - not merged to live website</div>
+
+  <script>
+    const copy = {
+      ai: {
+        badge: "Saves admin time",
+        title: "Smart invoice drafting",
+        body: "Turn a short job description into editable invoice lines, quantities, unit prices, TVA and totals.",
+        note: "Add chantier address, client SIRET and payment terms before PDF export."
+      },
+      pdf: {
+        badge: "A4 export ready",
+        title: "PDF studio with logo and stamp",
+        body: "Upload logo, stamp and signature once, then reuse them on every facture and devis.",
+        note: "Keep facture due date optional and show client name in bold."
+      },
+      cloud: {
+        badge: "Account workspace",
+        title: "Cloud dashboard for saved data",
+        body: "Clients, products, invoices, quotes, tasks and files can be preserved after login and upgrades.",
+        note: "Monthly HT, TVA and TTC totals stay easy to track."
+      }
+    };
+    document.querySelectorAll("[data-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-tab]").forEach((b) => b.classList.toggle("on", b === btn));
+        const item = copy[btn.dataset.tab];
+        document.getElementById("feature-copy").innerHTML =
+          '<span class="pill">' + item.badge + '</span>' +
+          '<h3>' + item.title + '</h3>' +
+          '<p class="muted" style="color:#c9d6e7;">' + item.body + '</p>' +
+          '<div class="ai-card"><strong>AI Suggestion</strong><p class="suggestion">' + item.note + '</p></div>';
+      });
+    });
+  </script>
+</body>
+</html>

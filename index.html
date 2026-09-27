@@ -710,12 +710,7 @@
   .account-menu a:hover, .account-menu button:hover { background: hsl(var(--muted)); }
   .lang-select { font-size: 0.78rem; font-weight: 600; padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid hsl(var(--border)); background: hsl(var(--surface)); color: hsl(var(--fg)); cursor: pointer; }
   .m-lang-select { margin-left: 0.4rem; }
-  .ad-strip { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; align-items: center; margin: 1rem 0; padding: 0.6rem; background: hsl(var(--surface)); border: 1px dashed hsl(var(--border)); border-radius: var(--radius-lg); }
-  .ad-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; min-height: 90px; background: hsl(var(--muted) / 0.5); border: 1px dashed hsl(var(--border)); border-radius: var(--radius-md); color: hsl(var(--muted-fg)); font-size: 0.7rem; font-weight: 600; flex-shrink: 0; box-sizing: border-box; overflow:hidden; }
-  .ad-slot iframe { width:100%; max-width:728px; height:90px; border:0; overflow:hidden; display:block; background:transparent; }
-  .ad-slot .ad-lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
   @media (max-width: 900px) {
-    .ad-strip, .ad-slot, [data-adsterra-live] { display: none !important; }
     .acp-brand-grid { grid-template-columns: 1fr !important; }
   }
   #print-area { display: none; }
@@ -1846,7 +1841,7 @@
         </div>
         <div class="card legal-card">
           <h2>Analytics and advertising</h2>
-          <p>The site may use Google Analytics, Google AdSense, Adsterra or similar advertising/measurement partners. These services can use cookies or similar technologies to measure traffic, prevent abuse, personalize ads where consent allows it, and improve the service.</p>
+          <p>The site may use Google Analytics and Google AdSense. These services can use cookies or similar technologies to measure traffic, prevent abuse, personalize ads where consent allows it, and improve the service.</p>
         </div>
         <div class="card legal-card">
           <h2>Your rights</h2>
@@ -1881,7 +1876,7 @@
       <div class="legal-stack">
         <div class="card legal-card"><h2>Essential cookies</h2><p>Essential cookies and local storage may be used to keep the app working, remember language, theme, consent choices and account session state.</p></div>
         <div class="card legal-card"><h2>Analytics cookies</h2><p>Analytics tools help understand traffic, pages visited, browser performance and errors. This helps improve invoice generation, PDF export and dashboard usability.</p></div>
-        <div class="card legal-card"><h2>Advertising cookies</h2><p>Advertising partners such as Google AdSense or Adsterra may use cookies, scripts or similar identifiers to show ads, measure ad performance and prevent fraud, depending on your consent and regional rules.</p></div>
+        <div class="card legal-card"><h2>Advertising cookies</h2><p>Google AdSense may use cookies, scripts or similar identifiers to show ads, measure ad performance and prevent fraud, depending on your consent and regional rules.</p></div>
         <div class="card legal-card"><h2>Manage consent</h2><p>You can change browser cookie permissions in your browser settings. If the consent banner is available, you may reopen or update preferences from the banner controls provided by the consent partner.</p><button class="btn btn-outline" id="cookie-reset-btn" type="button">Reset local cookie consent</button></div>
       </div>
       <aside class="card legal-card">
@@ -5445,148 +5440,6 @@
 	    }
     populateStaticLangSelects();
 
-    // ---- Live Adsterra banners: mount the approved 728x90 banner zone on every banner placeholder. ----
-    var AD_SLOT_SIZES = [
-      { w: 728, h: 90 },
-    ];
-    var ADSTERRA_728_KEY = "d1bc43d9c361497fe84f0149e51b36ae";
-    var ADSTERRA_728_INVOKE = "https://www.highperformanceformat.com/" + ADSTERRA_728_KEY + "/invoke.js";
-    var MOBILE_ADS_DISABLED = window.matchMedia("(max-width: 900px)").matches;
-    var PUBLIC_AD_VIEWS = ["landing", "pricing", "blog", "blog-post", "help", "resources", "tools", "tool", "country", "landing-example"];
-    var adSlotCounter = 0;
-    function optionalAdsAllowed() {
-      try { return !MOBILE_ADS_DISABLED && localStorage.getItem("facturepro-cookie-consent") === "accepted"; }
-      catch (error) { return false; }
-    }
-    function isPublicAdSlot(slot) {
-      var view = slot && slot.closest(".view");
-      return !view || PUBLIC_AD_VIEWS.indexOf(String(view.id || "").replace(/^view-/, "")) !== -1;
-    }
-    function renderAdSlotsHtml(sizes) {
-      return sizes.map(function (s) {
-        adSlotCounter++;
-        return (
-          '<div class="ad-slot" data-ad-slot="profacture-ad-' + adSlotCounter + '" data-adsterra-live="1" data-adsterra-width="' + s.w + '" data-adsterra-height="' + s.h + '" style="width:' + s.w + 'px;height:' + s.h + 'px;max-width:100%;">' +
-          '<span class="ad-lbl">Adsterra · ' + t("lbl_advertisement") + " · " + s.w + " × " + s.h + "</span></div>"
-        );
-      }).join("");
-    }
-    function mountAdsterraSlot(slot) {
-      if (!slot || slot.dataset.adsterraMounted === "1") return;
-      if (!optionalAdsAllowed() || !isPublicAdSlot(slot)) {
-        slot.dataset.adsterraMounted = MOBILE_ADS_DISABLED ? "blocked-mobile" : "blocked-consent";
-        slot.hidden = true;
-        return;
-      }
-      slot.hidden = false;
-      slot.dataset.adsterraMounted = "1";
-      var w = parseInt(slot.getAttribute("data-adsterra-width") || "728", 10);
-      var h = parseInt(slot.getAttribute("data-adsterra-height") || "90", 10);
-      slot.setAttribute("data-adsterra-live", "1");
-      slot.setAttribute("data-ad-network", "adsterra");
-      slot.style.width = w + "px";
-      slot.style.height = h + "px";
-      slot.style.maxWidth = "100%";
-      slot.innerHTML = "";
-      // Run third-party ads in an opaque sandbox. Without popup or top-navigation
-      // permissions the creative cannot redirect the app or open a new tab.
-      var frame = document.createElement("iframe");
-      frame.title = t("lbl_advertisement");
-      frame.setAttribute("sandbox", "allow-scripts");
-      frame.setAttribute("referrerpolicy", "no-referrer");
-      frame.setAttribute("loading", "lazy");
-      frame.setAttribute("scrolling", "no");
-      frame.style.width = w + "px";
-      frame.style.height = h + "px";
-      frame.style.maxWidth = "100%";
-      frame.style.border = "0";
-      frame.srcdoc = "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;padding:0;overflow:hidden;background:transparent}</style></head><body><script>atOptions={key:'" + ADSTERRA_728_KEY + "',format:'iframe',height:" + h + ",width:" + w + ",params:{}};<\\/script><script async src='" + ADSTERRA_728_INVOKE + "'><\\/script></body></html>";
-      var label = document.createElement("span");
-      label.className = "ad-lbl";
-      label.textContent = "Adsterra · " + t("lbl_advertisement") + " · " + w + " × " + h;
-      slot.appendChild(frame);
-      slot.appendChild(label);
-    }
-    function isAdsterraSlotVisible(slot) {
-      return Boolean(slot && !slot.closest(".view:not(.active)") && slot.offsetParent !== null);
-    }
-    function prepareAdsterraSlot(slot) {
-      if (!slot || slot.dataset.adsterraMounted === "1") return;
-      if (!isAdsterraSlotVisible(slot)) return;
-      if (!slot.getAttribute("data-adsterra-width")) slot.setAttribute("data-adsterra-width", "728");
-      if (!slot.getAttribute("data-adsterra-height")) slot.setAttribute("data-adsterra-height", "90");
-      mountAdsterraSlot(slot);
-    }
-    function mountAllAdsterraSlots(root) {
-      var scope = root || document;
-      if (scope.matches && scope.matches(".ad-slot")) prepareAdsterraSlot(scope);
-      scope.querySelectorAll && scope.querySelectorAll(".ad-slot, [data-adsterra-live]").forEach(prepareAdsterraSlot);
-    }
-    function fillAdStrip(el) {
-      if (el.querySelector(".ad-slot")) {
-        mountAllAdsterraSlots(el);
-        return;
-      }
-      var idxs = (el.getAttribute("data-ad-sizes") || "0").split(",").map(function (n) { return parseInt(n, 10); });
-      el.innerHTML = renderAdSlotsHtml(idxs.map(function (i) { return AD_SLOT_SIZES[i]; }).filter(Boolean));
-      mountAllAdsterraSlots(el);
-    }
-    function populateAdStrips() {
-      document.querySelectorAll(".ad-strip").forEach(fillAdStrip);
-      mountAllAdsterraSlots(document.querySelector(".view.active") || document);
-    }
-    function placeAdStrips() {
-      if (!optionalAdsAllowed()) return;
-      document.querySelectorAll(".view").forEach(function (view) {
-        if (PUBLIC_AD_VIEWS.indexOf(String(view.id || "").replace(/^view-/, "")) === -1) return;
-        if (view.dataset.adsPlaced) return;
-        view.dataset.adsPlaced = "1";
-        var container = view.querySelector(".app-content") || view.querySelector(".auth-wrap") || view;
-        var children = Array.prototype.slice.call(container.children);
-        if (!children.length) return;
-        function makeStrip(sizes, pos) {
-          var d = document.createElement("div");
-          d.className = "ad-strip";
-          d.setAttribute("data-ad-sizes", sizes);
-          d.setAttribute("data-ad-position", pos);
-          d.setAttribute("data-ad-network", "adsterra");
-          return d;
-        }
-        var topAnchor = children[Math.min(1, children.length - 1)];
-        var middleAnchor = children[Math.max(0, Math.floor(children.length / 2))];
-        var topStrip = makeStrip("0", "top");
-        var middleStrip = makeStrip("0", "middle");
-        var bottomStrip = makeStrip("0", "bottom");
-        if (topAnchor && topAnchor.nextSibling) container.insertBefore(topStrip, topAnchor.nextSibling);
-        else container.appendChild(topStrip);
-        if (middleAnchor && middleAnchor.nextSibling) container.insertBefore(middleStrip, middleAnchor.nextSibling);
-        else container.appendChild(middleStrip);
-        container.appendChild(bottomStrip);
-      });
-      populateAdStrips();
-    }
-    if ("requestIdleCallback" in window) {
-      requestIdleCallback(placeAdStrips, { timeout: 1500 });
-    } else {
-      setTimeout(placeAdStrips, 400);
-    }
-    mountAllAdsterraSlots(document.querySelector(".view.active") || document);
-    document.addEventListener("profacture:adsconsented", function () {
-      document.querySelectorAll('[data-adsterra-mounted="blocked-consent"]').forEach(function (slot) { delete slot.dataset.adsterraMounted; slot.hidden = false; });
-      placeAdStrips();
-      mountAllAdsterraSlots(document.querySelector(".view.active") || document);
-    });
-    if ("MutationObserver" in window) {
-      var adObserver = new MutationObserver(function (mutations) {
-        mutations.forEach(function (mutation) {
-          mutation.addedNodes && mutation.addedNodes.forEach(function (node) {
-            if (node && node.nodeType === 1) mountAllAdsterraSlots(node);
-          });
-        });
-      });
-      adObserver.observe(document.documentElement, { childList: true, subtree: true });
-    }
-
     function refreshAllChrome() {
       var avatarSnapshot = null;
       var existingAvatar = document.querySelector("[data-auth-avatar]");
@@ -6122,12 +5975,6 @@
             ring.style.strokeDashoffset = String(c * (1 - pct / 100));
           });
         });
-      }
-      if (target && typeof placeAdStrips === "function") {
-        setTimeout(function () {
-          placeAdStrips();
-          mountAllAdsterraSlots(target);
-        }, 60);
       }
       var gfab = document.getElementById("gfab-wrap");
       if (gfab) gfab.classList.toggle("show", appViews.indexOf(id) !== -1);

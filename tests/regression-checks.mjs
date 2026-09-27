@@ -4,6 +4,7 @@ import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const consentAds = fs.readFileSync(path.join(root, "consent-ads.js"), "utf8");
 const functionsSource = fs.readFileSync(path.join(root, "functions", "index.js"), "utf8");
 const firestoreRules = fs.readFileSync(path.join(root, "firestore.rules"), "utf8");
 
@@ -18,8 +19,7 @@ const requiredProductionMarkers = [
   "ca-pub-4956341710070686",
   'apiKey: "AIzaSyAXl39CYI1yWH_CNeS0psgmUfNMBvKLKy0"',
   'projectId: "facturergratuit"',
-  'measurementId: "G-JJCNL9THWD"',
-  "d1bc43d9c361497fe84f0149e51b36ae"
+  'measurementId: "G-JJCNL9THWD"'
 ];
 requiredProductionMarkers.forEach(marker => assert(index.includes(marker), `Missing production marker: ${marker}`));
 assert(!index.includes('__FIREBASE_API_KEY__'), "Static GitHub Pages build must not contain an unresolved Firebase API key placeholder");
@@ -146,9 +146,9 @@ assert(functionsSource.includes('exports.listPublicReviews = onCall'), "Moderate
 assert(functionsSource.includes("where('status', '==', 'approved')"), "Unapproved reviews must never be returned publicly");
 assert(firestoreRules.includes('match /publicFeedback/{feedbackId}') && firestoreRules.includes('allow read, create, update, delete: if false;'), "Public feedback must remain callable-only");
 
-assert(index.includes('var MOBILE_ADS_DISABLED = window.matchMedia("(max-width: 900px)").matches;'), "Mobile ad runtime must remain disabled");
-assert(index.includes('frame.setAttribute("sandbox", "allow-scripts")'), "Third-party banners must run in an opaque sandbox");
-assert(!index.includes('frame.setAttribute("sandbox", "allow-scripts allow-same-origin")'), "Ad iframe sandbox must not allow same-origin access");
+assert(consentAds.includes('window.gtag("consent", "default"') && consentAds.includes('ad_storage: "denied"'), "Google consent defaults must deny optional storage");
+assert(consentAds.includes("pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="), "Consent-aware AdSense loader is missing");
+assert(!index.includes("highperformanceformat.com") && !index.includes("data-adsterra"), "Third-party ad network code must not return during AdSense review");
 assert(!index.includes("commendtwisted.com") && !index.includes("soleniva.net"), "Redirect/popunder domains must not be present");
 
 assert(index.includes("@media print"), "Print stylesheet is missing");
@@ -184,7 +184,7 @@ htmlFiles.forEach(name => {
   assert(!html.includes('sandbox="allow-scripts allow-same-origin"'), `${name}: advertising iframe has unsafe sandbox permissions`);
   assert(!/\ssrcdoc="[^"]*highperformanceformat\.com/i.test(html), `${name}: advertising iframe loads before consent`);
   assert(!html.includes("pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"), `${name}: AdSense loads before consent`);
-  if (html.includes("highperformanceformat.com") || html.includes("google-adsense-account")) {
+  if (html.includes("google-adsense-account")) {
     assert(html.includes('/consent-ads.js'), `${name}: shared consent loader is missing`);
   }
 
