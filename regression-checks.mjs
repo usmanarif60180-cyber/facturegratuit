@@ -91,13 +91,16 @@ assert(index.includes('id="settings-panel-data"') && index.includes('id="backup-
 assert(index.includes('navigator.locks.request("profacture-cloud-sync-"'), "Cross-tab cloud sync lock is missing");
 assert(index.includes('function readAllCloudDocs(user, collectionName)'), "Cloud collection pagination is missing");
 assert(index.includes('integrity="sha384-'), "Pinned CDN integrity metadata is missing");
-assert(index.includes('id="ai-history-clear"') && index.includes('id="ai-usage"'), "AI history and usage controls are missing");
+assert(index.includes('id="ai-history-clear"') && index.includes('id="ai-popup-usage"') && index.includes('id="ai-page-usage"'), "AI history and usage controls are missing");
 assert(index.includes('Review & apply · '), "AI document actions must show a review step");
 assert(functionsSource.includes('exports.aiDocumentScan = onCall') && index.includes('id="ae-scan-receipt"'), "Secure receipt OCR review is missing");
 assert(index.includes('id="ai-cost-panel"') && index.includes('id="ai-memory-notes"'), "AI company memory and cost controls are missing");
 assert(index.includes('id="ai-automation-rules"') && index.includes('function evaluateAutomationRules()'), "Review-only automations are missing");
 assert(index.includes('id="cashflow-forecast-grid"') && index.includes('function renderCashflowForecast()'), "Cash-flow forecast is missing");
 assert(index.includes('id="crm-intelligence-list"') && index.includes('function renderCrmIntelligence()'), "CRM intelligence is missing");
+assert(index.includes('function reportInvoices() { return activeCompanyItems(INVOICES); }'), "Reports must remain isolated to the active company");
+assert(index.includes('var companyTasks = activeCompanyItems(TASKS);'), "Task statistics must remain isolated to the active company");
+assert(index.includes('Secure AI receipt scanning') && !index.includes('OCR scanning — Coming soon'), "Receipt scanner status copy is stale");
 assert(index.includes('aria-modal="true"') && index.includes('role="log"'), "AI dialog accessibility contract changed");
 assert(functionsSource.includes('Never save, send, email, delete, or charge anything'), "AI backend must forbid destructive autonomous actions");
 
