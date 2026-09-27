@@ -1798,7 +1798,7 @@
         </div>
         <div class="card legal-card">
           <h2>Send a message</h2>
-          <form class="contact-form" action="mailto:contact@facturergratuit.com" method="post" enctype="text/plain">
+          <form class="contact-form" id="contact-email-form">
             <div class="grid2">
               <div><label class="field-label">Name</label><input class="field" name="name" placeholder="Your name" /></div>
               <div><label class="field-label">Email</label><input class="field" name="email" type="email" placeholder="you@example.com" /></div>
@@ -1806,6 +1806,7 @@
             <div><label class="field-label">Subject</label><input class="field" name="subject" placeholder="Support, privacy, legal, partnership..." /></div>
             <div><label class="field-label">Message</label><textarea class="field" name="message" rows="6" placeholder="Write your message here"></textarea></div>
             <button class="btn btn-primary" type="submit">Send email</button>
+            <p id="contact-email-status" role="status" aria-live="polite"></p>
           </form>
         </div>
       </div>
@@ -4854,6 +4855,10 @@
                 </div>
                 <div id="pd-notes"></div>
               </div>
+              <div class="card" style="padding:1rem;">
+                <div style="font-size:0.78rem;font-weight:700;margin-bottom:0.7rem;">Linked tasks</div>
+                <div id="pd-tasks"></div>
+              </div>
             </div>
             <div>
                <div class="card card-pad">
@@ -7549,7 +7554,12 @@
       document.querySelectorAll(".wt-toast").forEach(function (t) { t.remove(); });
       var toast = document.createElement("div");
       toast.className = "card glass-panel wt-toast";
-      toast.innerHTML = '<span class="ic">✓</span><span>' + message + "</span>";
+      var icon = document.createElement("span");
+      icon.className = "ic";
+      icon.textContent = "✓";
+      var label = document.createElement("span");
+      label.textContent = String(message || "");
+      toast.append(icon, label);
       document.body.appendChild(toast);
       setTimeout(function () { toast.remove(); }, 3200);
     }
@@ -8226,6 +8236,8 @@
       populateQuoteNewClientSelect();
       renderExpensesAll();
       renderAIInsights("dash-ai-insights-list", 3);
+      renderDashboardStats();
+      renderDashboardWidgets();
     }
     function renderClientsTable(filterText) {
       var tbody = document.querySelector("#clients-table tbody");
@@ -8271,11 +8283,11 @@
     }
     var cdActiveClientId = null;
     function renderClientDetail(id) {
-      var c = CLIENTS.filter(function (x) { return x.id === id; })[0];
-      if (!c) return;
+      var c = CLIENTS.filter(function (x) { return x.id === id && belongsToActiveCompany(x); })[0];
+      if (!c) return false;
       cdActiveClientId = id;
       document.getElementById("cd-name").textContent = c.name;
-      document.getElementById("cd-meta").innerHTML = c.company + ' · <span class="badge ' + clientStatusBadgeClass(c.status) + '">' + c.status + "</span>";
+      document.getElementById("cd-meta").innerHTML = escapeHtml(c.company) + ' · <span class="badge ' + clientStatusBadgeClass(c.status) + '">' + escapeHtml(c.status) + "</span>";
       document.getElementById("cd-stat-grid").innerHTML =
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_lifetime_value") + '</div><div class="val tnum">' + currency(clientLifetimeValue(c)) + '</div></div><div class="ic">💰</div></div>' +
         '<div class="card stat-card"><div><div class="lbl">' + t("stat_client_since") + '</div><div class="val" style="font-size:1.1rem;">' + new Date(c.since + "T00:00:00").toLocaleDateString("en", { month: "short", year: "numeric" }) + '</div></div><div class="ic">📅</div></div>' +
@@ -8290,27 +8302,27 @@
         c.address ? htmlLines(c.address) : "", c.siteAddress ? "<strong>" + escapeHtml(t("lbl_jobsite")) + ":</strong><br>" + htmlLines(c.siteAddress) : "",
         c.email ? escapeHtml(c.email) : "", c.phone ? escapeHtml(c.phone) : ""
       ].filter(Boolean).join("<br>");
-      document.getElementById("cd-tags").innerHTML = clientTags(c).length ? clientTags(c).map(function (t) { return '<span class="chip on">' + t + "</span>"; }).join("") : '<p class="widget-empty">No tags yet.</p>';
+      document.getElementById("cd-tags").innerHTML = clientTags(c).length ? clientTags(c).map(function (t) { return '<span class="chip on">' + escapeHtml(t) + "</span>"; }).join("") : '<p class="widget-empty">No tags yet.</p>';
       document.getElementById("cd-contacts").innerHTML = clientContacts(c).length ? clientContacts(c).map(function (p) {
-        return '<div class="activity-row"><div><div class="num">' + p.name + '</div><div class="meta">' + p.role + '</div></div><div style="text-align:right;font-size:0.78rem;color:hsl(var(--muted-fg));">' + p.email + "<br>" + p.phone + "</div></div>";
+        return '<div class="activity-row"><div><div class="num">' + escapeHtml(p.name) + '</div><div class="meta">' + escapeHtml(p.role) + '</div></div><div style="text-align:right;font-size:0.78rem;color:hsl(var(--muted-fg));">' + escapeHtml(p.email) + "<br>" + escapeHtml(p.phone) + "</div></div>";
       }).join("") : '<p class="widget-empty">No contact persons yet.</p>';
       var clientFiles = (typeof FILES !== "undefined" ? FILES : []).filter(function (f) { return f.clientId === c.id; });
       document.getElementById("cd-attachments").innerHTML = clientFiles.length ? clientFiles.map(function (f) {
-        return '<div class="widget-row"><span>' + (FILE_ICONS[f.type] || "📁") + " " + f.name + '</span><span style="color:hsl(var(--muted-fg));font-size:0.75rem;">' + f.size + "</span></div>";
+        return '<div class="widget-row"><span>' + (FILE_ICONS[f.type] || "📁") + " " + escapeHtml(f.name) + '</span><span style="color:hsl(var(--muted-fg));font-size:0.75rem;">' + escapeHtml(f.size) + "</span></div>";
       }).join("") : '<p class="widget-empty">No files linked to this client yet.</p>';
       var timeline = clientTimeline(c).slice().sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
       document.getElementById("cd-timeline").innerHTML = timeline.map(function (t) {
         return (
           '<div class="activity-row"><div style="display:flex;gap:0.6rem;align-items:flex-start;"><span>' + (ACTIVITY_ICONS[t.type] || "•") + '</span>' +
-          '<div><div class="num" style="font-weight:600;">' + t.text + '</div><div class="meta">' + new Date(t.date + "T00:00:00").toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" }) + "</div></div></div></div>"
+          '<div><div class="num" style="font-weight:600;">' + escapeHtml(t.text) + '</div><div class="meta">' + new Date(t.date + "T00:00:00").toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" }) + "</div></div></div></div>"
         );
       }).join("");
+      return true;
     }
     document.body.addEventListener("click", function (e) {
       var openBtn = e.target.closest("[data-client-open]");
       if (!openBtn) return;
-      renderClientDetail(openBtn.getAttribute("data-client-open"));
-      showView("client-detail");
+      if (renderClientDetail(openBtn.getAttribute("data-client-open"))) showView("client-detail");
     });
 
     // add-client modal
@@ -8785,7 +8797,7 @@
       tbody.innerHTML = rows.length ? rows.map(function (p) {
         var progress = projectProgress(p);
         return (
-          '<tr><td class="link-strong" data-project-open="' + p.id + '" style="cursor:pointer;">' + p.name + "</td><td>" + projectClientName(p.clientId) + "</td>" +
+          '<tr><td class="link-strong" data-project-open="' + escapeHtml(p.id) + '" style="cursor:pointer;">' + escapeHtml(p.name) + "</td><td>" + escapeHtml(projectClientName(p.clientId)) + "</td>" +
           '<td><span class="badge ' + projStatusBadgeClass(p.status) + '">' + projStatusLabel(p.status) + "</span></td>" +
           '<td class="tnum" style="text-align:right;font-weight:700;">' + currency(p.budget || 0) + "</td>" +
           "<td>" + (p.deadline ? fmtDate(p.deadline) : "—") + "</td>" +
@@ -8814,7 +8826,7 @@
       if (!sel) return;
       var companyClients = activeCompanyItems(CLIENTS);
       sel.innerHTML = companyClients.length
-        ? companyClients.map(function (c) { return '<option value="' + c.id + '">' + c.company + " — " + c.name + "</option>"; }).join("")
+        ? companyClients.map(function (c) { return '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.company) + " — " + escapeHtml(c.name) + "</option>"; }).join("")
         : '<option value="">No clients yet — add one first</option>';
     }
     function populateTaskProjectSelect() {
@@ -8822,7 +8834,7 @@
       if (!sel) return;
       var current = sel.value;
       var companyProjects = activeCompanyItems(PROJECTS);
-      sel.innerHTML = '<option value="">' + t("opt_none") + "</option>" + companyProjects.map(function (p) { return '<option value="' + p.id + '">' + p.name + "</option>"; }).join("");
+      sel.innerHTML = '<option value="">' + escapeHtml(t("opt_none")) + "</option>" + companyProjects.map(function (p) { return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.name) + "</option>"; }).join("");
       if (companyProjects.some(function (p) { return p.id === current; })) sel.value = current;
     }
 
@@ -8924,12 +8936,12 @@
       var closeProjectButton = document.getElementById("pd-close-project-btn");
       if (closeProjectButton) closeProjectButton.style.display = p.status === "completed" || p.status === "cancelled" ? "none" : "";
       document.getElementById("pd-notes").innerHTML = p.notes.length
-        ? p.notes.map(function (n) { return '<div class="activity-row"><div><div class="num" style="font-weight:600;">' + n.text + '</div><div class="meta">' + n.date + "</div></div></div>"; }).join("")
+        ? p.notes.map(function (n) { return '<div class="activity-row"><div><div class="num" style="font-weight:600;">' + escapeHtml(n.text) + '</div><div class="meta">' + escapeHtml(n.date) + "</div></div></div>"; }).join("")
         : '<p class="widget-empty">No notes yet.</p>';
       document.getElementById("pd-tasks").innerHTML = tasks.length
         ? tasks.map(function (task) {
             var done = task.status === "done";
-            return '<div class="activity-row"><div><div class="num" style="' + (done ? "text-decoration:line-through;color:hsl(var(--muted-fg));" : "font-weight:600;") + '">' + (done ? "✓ " : "◯ ") + task.title + '</div><div class="meta"><span class="badge ' + taskPriorityBadgeClass(task.priority) + '">' + task.priority + "</span></div></div></div>";
+            return '<div class="activity-row"><div><div class="num" style="' + (done ? "text-decoration:line-through;color:hsl(var(--muted-fg));" : "font-weight:600;") + '">' + (done ? "✓ " : "◯ ") + escapeHtml(task.title) + '</div><div class="meta"><span class="badge ' + taskPriorityBadgeClass(task.priority) + '">' + escapeHtml(task.priority) + "</span></div></div></div>";
           }).join("")
         : '<p class="widget-empty">No tasks linked to this project yet.</p>';
     }
@@ -11606,15 +11618,19 @@
       var grid = document.getElementById("dash-stat-grid");
       if (!grid) return;
       var vals = grid.querySelectorAll(".val");
+      var dashboardInvoices = activeCompanyItems(INVOICES);
+      var dashboardQuotes = activeCompanyItems(QUOTES);
+      var dashboardClients = activeCompanyItems(CLIENTS);
+      var dashboardExpenses = activeCompanyItems(EXPENSES);
       var revenue = 0, outstanding = 0, expensesTotal = 0;
-      INVOICES.forEach(function (inv) {
+      dashboardInvoices.forEach(function (inv) {
         var paid = invoicePaidTotal(inv);
         revenue += paid;
         outstanding += Math.max(0, inv.total - paid);
       });
-      EXPENSES.forEach(function (e) { expensesTotal += e.amount; });
+      dashboardExpenses.forEach(function (e) { expensesTotal += e.amount; });
       var profit = revenue - expensesTotal;
-      var stats = [revenue, profit, expensesTotal, profit, outstanding, INVOICES.length, QUOTES.length, CLIENTS.length];
+      var stats = [revenue, profit, expensesTotal, profit, outstanding, dashboardInvoices.length, dashboardQuotes.length, dashboardClients.length];
       vals.forEach(function (el, i) {
         el.setAttribute("data-count", String(Math.round(stats[i])));
         if (i < 5) {
@@ -11630,6 +11646,12 @@
       });
     }
     function renderDashboardWidgets() {
+      var dashboardInvoices = activeCompanyItems(INVOICES);
+      var dashboardQuotes = activeCompanyItems(QUOTES);
+      var dashboardClients = activeCompanyItems(CLIENTS);
+      var dashboardProducts = activeCompanyItems(PRODUCTS);
+      var dashboardTasks = activeCompanyItems(TASKS);
+      var dashboardEvents = activeCompanyItems(CAL_EVENTS);
       var chartWrap = document.getElementById("dash-revenue-chart");
       if (chartWrap) {
         var months = [];
@@ -11637,7 +11659,7 @@
         for (var i = 5; i >= 0; i--) months.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
         var totals = months.map(function (m) {
           var sum = 0;
-          INVOICES.forEach(function (inv) {
+          dashboardInvoices.forEach(function (inv) {
             invoicePayments(inv).forEach(function (p) {
               var d = new Date(p.date);
               if (d.getFullYear() === m.getFullYear() && d.getMonth() === m.getMonth()) sum += p.amount;
@@ -11673,43 +11695,43 @@
       }
       var activityWrap = document.getElementById("dash-recent-activity");
       if (activityWrap) {
-        var recent = INVOICES.slice().sort(function (a, b) { return new Date(b.issue) - new Date(a.issue); }).slice(0, 4);
+        var recent = dashboardInvoices.slice().sort(function (a, b) { return new Date(b.issue) - new Date(a.issue); }).slice(0, 4);
         activityWrap.innerHTML = recent.length ? recent.map(function (inv) {
           return (
-            '<div class="activity-row"><div><div class="num">' + inv.id + '</div><div class="meta">' +
+            '<div class="activity-row"><div><div class="num">' + escapeHtml(inv.id) + '</div><div class="meta">' +
             new Date(inv.issue + "T00:00:00").toLocaleDateString("en", { month: "short", day: "2-digit", year: "numeric" }) +
             '</div></div><div style="text-align:right;"><div class="tnum" style="font-weight:700;">' + currency(inv.total) +
-            '</div><span class="badge ' + invoiceStatusBadgeClass(inv.status) + '">' + inv.status + "</span></div></div>"
+            '</div><span class="badge ' + invoiceStatusBadgeClass(inv.status) + '">' + escapeHtml(inv.status) + "</span></div></div>"
           );
         }).join("") : '<p class="widget-empty">No recent activity yet.</p>';
       }
       var tasksWrap = document.getElementById("dash-tasks-widget");
       if (tasksWrap) {
-        var dueTasks = TASKS.filter(function (t) { return t.status !== "done"; }).sort(function (a, b) { return new Date(a.due || "9999-12-31") - new Date(b.due || "9999-12-31"); }).slice(0, 3);
+        var dueTasks = dashboardTasks.filter(function (t) { return t.status !== "done"; }).sort(function (a, b) { return new Date(a.due || "9999-12-31") - new Date(b.due || "9999-12-31"); }).slice(0, 3);
         tasksWrap.innerHTML = dueTasks.length ? dueTasks.map(function (t) {
-          return '<div class="widget-row"><span>' + t.title + '</span><span class="badge ' + (isOverdue(t) ? "badge-danger" : "badge-default") + '">' + (isOverdue(t) ? "Overdue" : (t.due ? taskDueLabel(t) : "No due date")) + "</span></div>";
+          return '<div class="widget-row"><span>' + escapeHtml(t.title) + '</span><span class="badge ' + (isOverdue(t) ? "badge-danger" : "badge-default") + '">' + escapeHtml(isOverdue(t) ? "Overdue" : (t.due ? taskDueLabel(t) : "No due date")) + "</span></div>";
         }).join("") : '<p class="widget-empty">No tasks due.</p>';
       }
       var calWrap = document.getElementById("dash-calendar-widget");
       if (calWrap) {
         var todayDate = new Date().getDate();
-        var upcoming = CAL_EVENTS.filter(function (ev) { return ev.day >= todayDate; }).sort(function (a, b) { return a.day - b.day; }).slice(0, 2);
+        var upcoming = dashboardEvents.filter(function (ev) { return ev.day >= todayDate; }).sort(function (a, b) { return a.day - b.day; }).slice(0, 2);
         calWrap.innerHTML = upcoming.length ? upcoming.map(function (ev) {
-          return '<div class="widget-row"><span>' + ev.title + '</span><span style="color:hsl(var(--muted-fg));font-size:0.75rem;">Day ' + ev.day + "</span></div>";
+          return '<div class="widget-row"><span>' + escapeHtml(ev.title) + '</span><span style="color:hsl(var(--muted-fg));font-size:0.75rem;">Day ' + escapeHtml(ev.day) + "</span></div>";
         }).join("") : '<p class="widget-empty">No upcoming events.</p>';
       }
       var invWrap = document.getElementById("dash-inventory-widget");
       if (invWrap) {
-        var lowStock = PRODUCTS.filter(function (p) { return p.stock <= p.minStock; });
+        var lowStock = dashboardProducts.filter(function (p) { return p.stock <= p.minStock; });
         invWrap.innerHTML = lowStock.length ? lowStock.slice(0, 3).map(function (p) {
-          return '<div class="widget-row"><span>' + p.name + '</span><span style="color:hsl(var(--danger));font-size:0.75rem;font-weight:600;">⚠ ' + (p.stock <= 0 ? "Out of stock" : p.stock + " " + p.unit + " left") + "</span></div>";
+          return '<div class="widget-row"><span>' + escapeHtml(p.name) + '</span><span style="color:hsl(var(--danger));font-size:0.75rem;font-weight:600;">⚠ ' + escapeHtml(p.stock <= 0 ? "Out of stock" : p.stock + " " + p.unit + " left") + "</span></div>";
         }).join("") : '<div class="widget-empty">All stock levels look healthy.</div>';
       }
       var notifWrap = document.getElementById("dash-notifications-widget");
       if (notifWrap) {
         var recentNotifs = NOTIFICATIONS.slice(0, 3);
         notifWrap.innerHTML = recentNotifs.length ? recentNotifs.map(function (n) {
-          return '<div class="widget-row"><span>' + n.icon + " " + n.text + "</span></div>";
+          return '<div class="widget-row"><span>' + escapeHtml(n.icon) + " " + escapeHtml(n.text) + "</span></div>";
         }).join("") : '<div class="widget-empty">You\'re all caught up — no notifications yet.</div>';
       }
       var setupWrap = document.getElementById("dash-setup-checklist");
@@ -11721,9 +11743,9 @@
         var setupItems = [
           { done: hasSeenOnboarding(), title: "Finish product tour", sub: "Replay it anytime from the bottom action button.", goto: "dashboard" },
           { done: hasCompany, title: "Save company details", sub: "Name, SIRET/SIREN, address, logo and payment details.", goto: "companies" },
-          { done: CLIENTS.length > 0, title: "Add first client", sub: "Client records make every invoice faster.", goto: "clients" },
-          { done: PRODUCTS.length > 0, title: "Build product library", sub: "Save repeat products and services for quick line items.", goto: "inventory" },
-          { done: INVOICES.length > 0 || QUOTES.length > 0, title: "Create first document", sub: "Start with an invoice, quote or marketplace invoice.", goto: "invoice-new" }
+          { done: dashboardClients.length > 0, title: "Add first client", sub: "Client records make every invoice faster.", goto: "clients" },
+          { done: dashboardProducts.length > 0, title: "Build product library", sub: "Save repeat products and services for quick line items.", goto: "inventory" },
+          { done: dashboardInvoices.length > 0 || dashboardQuotes.length > 0, title: "Create first document", sub: "Start with an invoice, quote or marketplace invoice.", goto: "invoice-new" }
         ];
         setupWrap.innerHTML = '<div class="setup-list">' + setupItems.map(function (item) {
           return '<a href="#" class="setup-item ' + (item.done ? "done" : "") + '" data-goto="' + item.goto + '">' +
@@ -12489,15 +12511,15 @@
           if (label) idx.push({ group: group, icon: icon, label: label, sub: sub, goto: gotoId });
         });
       }
-      INVOICES.forEach(function (inv) { idx.push({ group: "Invoices", icon: "📄", label: inv.id, sub: inv.client, goto: "invoices" }); });
-      QUOTES.forEach(function (q) { idx.push({ group: "Quotes", icon: "🧾", label: q.id, sub: q.client, goto: "quotes" }); });
-      CLIENTS.forEach(function (c) { idx.push({ group: "Clients", icon: "👥", label: c.name, sub: c.company, goto: "client-detail", openClient: c.id }); });
-      LEADS.forEach(function (l) { idx.push({ group: "Leads", icon: "💼", label: l.name, sub: l.company, goto: "leads" }); });
+      activeCompanyItems(INVOICES).forEach(function (inv) { idx.push({ group: "Invoices", icon: "📄", label: inv.id, sub: inv.client, goto: "invoices" }); });
+      activeCompanyItems(QUOTES).forEach(function (q) { idx.push({ group: "Quotes", icon: "🧾", label: q.id, sub: q.client, goto: "quotes" }); });
+      activeCompanyItems(CLIENTS).forEach(function (c) { idx.push({ group: "Clients", icon: "👥", label: c.name, sub: c.company, goto: "client-detail", openClient: c.id }); });
+      activeCompanyItems(LEADS).forEach(function (l) { idx.push({ group: "Leads", icon: "💼", label: l.name, sub: l.company, goto: "leads" }); });
       addFromTable("companies-table", "Companies", "🏢", "companies", 0, 1);
-      EXPENSES.forEach(function (e) { idx.push({ group: "Expenses", icon: "💳", label: e.title, sub: e.category, goto: "expenses" }); });
-      PRODUCTS.forEach(function (p) { idx.push({ group: "Inventory", icon: p.type === "service" ? "🧰" : "📦", label: p.name, sub: p.sku, goto: "inventory" }); });
-      TASKS.forEach(function (t) { idx.push({ group: "Tasks", icon: "✅", label: t.title, sub: t.priority, goto: "tasks" }); });
-      FILES.forEach(function (f) { idx.push({ group: "Files", icon: "🗂️", label: f.name, sub: f.folder, goto: "files" }); });
+      activeCompanyItems(EXPENSES).forEach(function (e) { idx.push({ group: "Expenses", icon: "💳", label: e.title, sub: e.category, goto: "expenses" }); });
+      activeCompanyItems(PRODUCTS).forEach(function (p) { idx.push({ group: "Inventory", icon: p.type === "service" ? "🧰" : "📦", label: p.name, sub: p.sku, goto: "inventory" }); });
+      activeCompanyItems(TASKS).forEach(function (t) { idx.push({ group: "Tasks", icon: "✅", label: t.title, sub: t.priority, goto: "tasks" }); });
+      activeCompanyItems(FILES).forEach(function (f) { idx.push({ group: "Files", icon: "🗂️", label: f.name, sub: f.folder, goto: "files" }); });
       TEAM_MEMBERS.forEach(function (m) { idx.push({ group: "Team", icon: "🧑", label: m.name, sub: m.role, goto: "team" }); });
       CompliancePluginOrder.filter(function (c) { return !CompliancePlugins[c].isFutureSlot; }).forEach(function (c) {
         var p = CompliancePlugins[c];
@@ -12534,7 +12556,7 @@
       cmdkResults = cmdkFilter(buildSearchIndex(), cmdkQuery);
       var list = document.getElementById("cmdk-list");
       if (!cmdkResults.length) {
-        list.innerHTML = '<div class="cmdk-empty">No results for "' + cmdkQuery + '"</div>';
+        list.innerHTML = '<div class="cmdk-empty">No results for "' + escapeHtml(cmdkQuery) + '"</div>';
         return;
       }
       var groups = [];
@@ -12542,14 +12564,14 @@
       var html = "";
       var flatIndex = 0;
       groups.forEach(function (g) {
-        html += '<div class="cmdk-group-label">' + g + "</div>";
+        html += '<div class="cmdk-group-label">' + escapeHtml(g) + "</div>";
         cmdkResults.forEach(function (item) {
           if (item.group !== g) return;
           var i = flatIndex++;
           html +=
-            '<button class="cmdk-item' + (i === cmdkActiveIndex ? " active" : "") + '" data-cmdk-index="' + i + '" data-goto="' + item.goto + '"' + (item.openClient ? ' data-open-client="' + item.openClient + '"' : "") + '>' +
-            '<span class="ic">' + item.icon + "</span>" +
-            '<span class="meta"><span class="n">' + item.label + "</span>" + (item.sub ? '<span class="t">' + item.sub + "</span>" : "") + "</span>" +
+            '<button class="cmdk-item' + (i === cmdkActiveIndex ? " active" : "") + '" data-cmdk-index="' + i + '" data-goto="' + escapeHtml(item.goto) + '"' + (item.openClient ? ' data-open-client="' + escapeHtml(item.openClient) + '"' : "") + '>' +
+            '<span class="ic">' + escapeHtml(item.icon) + "</span>" +
+            '<span class="meta"><span class="n">' + escapeHtml(item.label) + "</span>" + (item.sub ? '<span class="t">' + escapeHtml(item.sub) + "</span>" : "") + "</span>" +
             "</button>";
         });
       });
@@ -13850,6 +13872,26 @@
   });
 </script>
 <script>
+const contactEmailForm = document.getElementById('contact-email-form');
+if (contactEmailForm) {
+  contactEmailForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const data = new FormData(contactEmailForm);
+    const name = String(data.get('name') || '').trim();
+    const email = String(data.get('email') || '').trim();
+    const subject = String(data.get('subject') || 'ProFacture AI support').trim();
+    const message = String(data.get('message') || '').trim();
+    const status = document.getElementById('contact-email-status');
+    if (!email || !message) {
+      if (status) status.textContent = 'Please add your email and message.';
+      return;
+    }
+    const body = [message, '', 'Name: ' + (name || 'Not provided'), 'Reply email: ' + email].join('\n');
+    if (status) status.textContent = 'Opening your email application...';
+    window.location.href = 'mailto:contact@facturergratuit.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  });
+}
+
 if ('serviceWorker' in navigator) {
   // A controller already present at load time (not this visitor's first ever
   // service-worker install) means any later 'controllerchange' is a genuine

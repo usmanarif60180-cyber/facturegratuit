@@ -65,6 +65,15 @@ assert(index.includes("PHONE_OTP_COOLDOWN_MS = 60 * 1000"), "Phone OTP resend co
 ].forEach(marker => assert(index.includes(marker), `Missing multi-company isolation marker: ${marker}`));
 assert(index.includes('number: editingInvoiceId || nextDocumentId("INV-", INVOICES)'), "Invoice preview must show its next number instead of Draft");
 assert(index.includes('number: editingQuoteId || nextDocumentId("QUO-", QUOTES)'), "Quote preview must show its next number instead of Draft");
+assert(index.includes('id="pd-tasks"'), "Project detail linked-tasks panel is missing");
+assert(index.includes('x.id === id && belongsToActiveCompany(x)'), "Client detail must remain scoped to the active company");
+assert(index.includes('var dashboardInvoices = activeCompanyItems(INVOICES);'), "Dashboard invoice totals must remain company scoped");
+assert(index.includes('var dashboardExpenses = activeCompanyItems(EXPENSES);'), "Dashboard expense totals must remain company scoped");
+assert(index.includes('activeCompanyItems(CLIENTS).forEach'), "Global search must not expose another company client");
+assert(index.includes('escapeHtml(cmdkQuery)'), "Global search query output must be HTML escaped");
+assert(index.includes('escapeHtml(n.text)') && index.includes('escapeHtml(task.title)'), "Project notes and task titles must be HTML escaped");
+assert(index.includes('label.textContent = String(message || "")'), "Toast messages must not render user-controlled HTML");
+assert(index.includes('id="contact-email-form"') && !index.includes('form class="contact-form" action="mailto:'), "Contact form must not submit to an insecure mailto action");
 
 [
   'id="ai-fab-btn"',
