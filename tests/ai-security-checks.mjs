@@ -36,6 +36,7 @@ const sandbox = {
 sandbox.exports = sandbox.module.exports;
 vm.runInNewContext(source, sandbox, { filename: "functions/index.js" });
 const { normalizeAiAction, cleanAiContext, AI_LIMITS } = sandbox.module.exports.__policy;
+assert.equal(normalizeAiAction({ type: 'create_invoice', draft: { items: [] } }, { company: { currency: 'EUR' }, clients: [] }).type, 'none');
 
 const context = { company: { currency: "USD" }, clients: [{ id: "client-safe" }] };
 const hostile = normalizeAiAction({

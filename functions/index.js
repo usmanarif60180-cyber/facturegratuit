@@ -26,7 +26,7 @@ const ROLES = ['viewer', 'employee', 'accountant', 'manager', 'admin', 'owner'];
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const SITE_URL = 'https://facturergratuit.com';
 const AI_API_KEY = defineSecret('PROFACTURE_AI_API_KEY');
-const AI_MODELS = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'];
+const AI_MODELS = ['gemini-3.5-flash-lite'];
 const AI_LIMITS = Object.freeze({
   perMinute: 5,
   perDay: 30,
@@ -44,6 +44,7 @@ const AI_LIMITS = Object.freeze({
 });
 const AI_FEATURE_CREDITS = Object.freeze({ assistant: 1, document_scan: 3 });
 const AI_PRICING_PER_MILLION = Object.freeze({
+  'gemini-3.5-flash-lite': { input: 0.30, output: 2.50 },
   'gemini-2.5-flash-lite': { input: 0.10, output: 0.40 },
   'gemini-2.5-flash': { input: 0.30, output: 2.50 }
 });
@@ -296,6 +297,7 @@ function normalizeAiAction(value, context) {
     })).filter((item) => item.description)
   };
   if (!AI_CURRENCIES.has(normalized.draft.currency)) normalized.draft.currency = 'EUR';
+  if (!normalized.draft.items.length) return { type: 'none', label: '' };
   return normalized;
 }
 
@@ -519,7 +521,7 @@ const OCR_RESPONSE_SCHEMA = {
 };
 
 // Authenticated business assistant. The provider key never reaches the browser.
-exports.aiAssistant = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, memory: '256MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
+exports.aiAssistant = onCall({ secrets: [AI_API_KEY], invoker: 'public', timeoutSeconds: 45, memory: '256MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const message = cleanAiText(request.data?.message, AI_LIMITS.messageChars);
   if (!message) throw new HttpsError('invalid-argument', 'Message requis.');
@@ -785,7 +787,7 @@ exports.aiHistory = onCall({ timeoutSeconds: 15, memory: '128MiB', enforceAppChe
   })) };
 });
 
-exports.aiUsage = onCall({ timeoutSeconds: 20, memory: '128MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
+exports.aiUsage = onCall({ timeoutSeconds: 20, memory: '256MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const companyId = cleanAiText(request.data?.companyId || 'default', 160);
   const userUsage = await db.doc(`users/${auth.uid}/private/aiUsage`).get();
