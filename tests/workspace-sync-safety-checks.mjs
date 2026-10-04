@@ -60,4 +60,19 @@ callbacks.forEach(fn => fn());
 assert(storage.has('profacture_invoice_builder_draft_company-A'));
 assert(storage.has('profacture_quote_builder_draft_company-A'));
 assert(!storage.has('profacture_invoice_builder_draft_company-B'));
-console.log('Sync safety passed: explicit deletions only, account snapshot, concurrent tombstones, company draft snapshots.');
+
+const companyContext = {
+  COMPANIES: [{ id: 'placeholder', name: 'Your Business', isPlaceholder: true }],
+  wsActiveId: 'saved-company',
+  localStorage: { setItem: (key, value) => storage.set(key, value) },
+  wsRenderAll() {}, populateDocumentCompanySelects() {}, renderCompaniesTable() {}, renderCompanyScopedViews() {},
+  window: { CUSTOMER_COMPANIES: [] }
+};
+vm.createContext(companyContext);
+vm.runInContext(html.slice(html.indexOf('function managedCompanyWorkspaces()'), html.indexOf('function wsInitials(')), companyContext);
+companyContext.normalizeCompanyWorkspaces();
+assert.equal(companyContext.wsActiveId, 'saved-company', 'A placeholder must not replace the selected company before hydration');
+companyContext.COMPANIES.push({ id: 'saved-company', name: 'Saved company', sourceCompanyId: 'company-1' });
+companyContext.ensureActiveCompany();
+assert.equal(companyContext.wsActiveId, 'saved-company', 'The restored company should remain selected');
+console.log('Sync safety passed: explicit deletions only, account snapshot, concurrent tombstones, company draft snapshots, saved company hydration.');
