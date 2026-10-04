@@ -5388,6 +5388,9 @@
               <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Restore JSON<input type="file" accept="application/json,.json" id="backup-import-input" style="display:none;" /></label>
             </div>
             <p id="backup-status" style="font-size:.75rem;color:hsl(var(--muted-fg));margin-top:.65rem;"></p>
+            <button class="btn btn-outline btn-sm" id="workspace-sync-retry">Retry cloud sync</button>
+            <p id="workspace-sync-error" role="status"></p>
+            <details id="workspace-trash"><summary>Deleted records (this browser)</summary><div id="workspace-trash-list"></div></details>
           </div>
           <div class="card card-pad" id="ai-owner-usage-card" hidden>
             <div class="card-title">AI cost control</div>
@@ -5995,7 +5998,25 @@
       layout.dataset.mobileWizardReady = "1";
     }
 
+    var documentEditorDirty = false;
+    document.addEventListener("input", function (event) {
+      if (event.target.closest("#view-invoice-new, #view-quote-new")) documentEditorDirty = true;
+    });
+    document.addEventListener("change", function (event) {
+      if (event.target.closest("#view-invoice-new, #view-quote-new")) documentEditorDirty = true;
+    });
+    window.addEventListener("beforeunload", function (event) {
+      if (documentEditorDirty) { event.preventDefault(); event.returnValue = ""; }
+    });
+    function confirmDocumentNavigation() {
+      if (!documentEditorDirty) return true;
+      if (!confirm(currentLang === "fr" ? "Modifications non enregistrées. Quitter cet éditeur ?" : "You have unsaved changes. Leave this editor?")) return false;
+      documentEditorDirty = false;
+      return true;
+    }
     function showView(id) {
+      var openEditor = document.querySelector("#view-invoice-new.active, #view-quote-new.active");
+      if (openEditor && openEditor.id !== "view-" + id && !confirmDocumentNavigation()) return;
       document.querySelectorAll(".view").forEach(function (v) { v.classList.remove("active"); });
       var target = document.getElementById("view-" + id);
       if (target) target.classList.add("active");
@@ -6418,7 +6439,7 @@
       });
       expenses.forEach(function (expense) { group(expense).expenses += amount(expense.amount); });
       Object.values(groups).forEach(function (g) { Object.keys(g).forEach(function (key) { if (typeof g[key] === "number") g[key] = Math.round(g[key] * 100) / 100; }); });
-      function documentRef(doc) { return { id: String(doc.id || "").slice(0, 60), client: String(doc.client || doc.clientId || "").slice(0, 80), currency: doc.currency || "UNKNOWN", total: amount(doc.total), due: doc.due || doc.validUntil || "", status: doc.status || "" }; }
+      function documentRef(doc) { return { id: String(doc.id || "").slice(0, 60), documentNumber: String(doc.documentNumber || doc.id || "").slice(0, 64), client: String(doc.client || doc.clientId || "").slice(0, 80), currency: doc.currency || "UNKNOWN", total: amount(doc.total), due: doc.due || doc.validUntil || "", status: doc.status || "" }; }
       var unpaid = invoices.filter(function (inv) { return inv.status !== "Draft" && inv.status !== "Cancelled" && invoiceBalance(inv) > 0; }).sort(function (a, b) { return (Date.parse(a.due) || Infinity) - (Date.parse(b.due) || Infinity); });
       var pending = quotes.filter(function (quote) { return quote.status === "Sent"; });
       return {
@@ -7862,6 +7883,7 @@
         var id = switchBtn.getAttribute("data-ws-switch");
         document.querySelectorAll(".ws-menu.open").forEach(function (m) { m.classList.remove("open"); });
         if (id !== wsActiveId) {
+          if (!confirmDocumentNavigation()) return;
           wsActiveId = id;
           rememberActiveCompany();
           wsRenderAll();
@@ -8105,6 +8127,7 @@
         client: clientDisplayName(client),
         clientAddress: document.getElementById("inv-new-client-address").value.trim(),
         siteAddress: document.getElementById("inv-new-site-address").value.trim(),
+        workSubject: document.getElementById("inv-new-work-subject").value.trim(),
         siret: document.getElementById("inv-new-siret").value.trim(),
         clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
@@ -8127,7 +8150,6 @@
       return s ? s.name : "—";
     }
     function invBarcodeHtml(code) {
-        workSubject: document.getElementById("inv-new-work-subject").value.trim(),
       if (!code) return "";
       var bars = code.split("").map(function (ch) {
         return '<span style="width:' + ((ch.charCodeAt(0) % 3) + 1) + 'px;"></span>';
@@ -9867,6 +9889,7 @@
       ].filter(Boolean).map(function (entry) {
         return '<div class="print-doc-optional"><strong>' + escapeHtml(entry[0]) + '</strong><br>' + htmlLines(entry[1]) + '</div>';
       }).join("");
+      var workSubjectBlock = opts.workSubject ? '<div class="print-doc-subject"><strong>' + ((opts.country || currentDefaultCountry) === "FR" ? "Objet des travaux" : "Work subject") + '</strong>' + htmlLines(opts.workSubject) + '</div>' : "";
       return (
         '<div class="print-doc" data-layout="' + docLayout + '" style="' + docStyle + "font-family:" + docFont + ';">' +
         '<div class="print-doc-head" style="background:' + headBg + ';color:' + headColor + ';border-bottom-color:' + headBorder + ';">' +
@@ -9885,11 +9908,11 @@
         '<div class="print-doc-party"><strong>' + escapeHtml(t("fld_company_name")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(company.name) + "</strong>" + (company.siret ? "<br>SIRET: " + escapeHtml(company.siret) : "") + (company.vat ? "<br>" + escapeHtml(copy.taxNumber) + ": " + escapeHtml(company.vat) : "") + (company.address ? "<br>" + htmlLines(company.address) : "") + (company.email ? "<br>" + escapeHtml(company.email) : "") + (company.phone ? " · " + escapeHtml(company.phone) : "") + "</div>" +
         '<div class="print-doc-party"><strong>' + escapeHtml(t("lbl_billed_to")) + "</strong><br><strong style=\"font-size:1.04rem;\">" + escapeHtml(opts.client) + "</strong>" + (opts.clientContact && opts.clientContact !== opts.client ? "<br>Contact: " + escapeHtml(opts.clientContact) : "") + (opts.siret ? "<br>SIRET: " + escapeHtml(opts.siret) : "") + (opts.clientVat ? "<br>" + escapeHtml(copy.taxNumber) + ": " + escapeHtml(opts.clientVat) : "") + (opts.clientAddress ? "<br>" + htmlLines(opts.clientAddress) : "") + (opts.clientEmail ? "<br>" + escapeHtml(opts.clientEmail) : "") + (opts.clientPhone ? " · " + escapeHtml(opts.clientPhone) : "") + (opts.siteAddress ? '<div class="print-doc-site"><b>' + escapeHtml(t("lbl_jobsite")) + "</b>" + htmlLines(opts.siteAddress) + "</div>" : "") + "</div>" +
         "</div>" +
+        workSubjectBlock +
         '<table class="print-doc-table"><thead style="background:' + tableBg + ';"><tr><th>' + t("fld_description") + '</th><th style="text-align:right;">' + t("fld_qty") + '</th><th style="text-align:right;">' + t("fld_unit_price") + '</th><th style="text-align:right;">' + escapeHtml(copy.tax) + '</th><th style="text-align:right;">' + t("fld_amount") + " HT</th></tr></thead><tbody>" + itemsRows + "</tbody></table>" +
         totalSummary + noTaxNote + legalBlock + optionalBlock +
         (design.sections.signature && (stamp || sig) ? '<div class="print-doc-sig"><div style="font-size:0.78rem;color:#555;">' + escapeHtml(t("fld_company_stamp")) + " / " + escapeHtml(t("fld_signature")) + '</div><div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:0.9rem;flex-wrap:wrap;">' + (stamp ? '<img src="' + stamp + '" alt="" style="max-height:4.6rem;max-width:8rem;object-fit:contain;" />' : "") + (sig ? '<img src="' + sig + '" alt="" />' : "") + "</div></div>" : "") +
         "</div>"
-      var workSubjectBlock = opts.workSubject ? '<div class="print-doc-subject"><strong>' + ((opts.country || currentDefaultCountry) === "FR" ? "Objet des travaux" : "Work subject") + '</strong>' + htmlLines(opts.workSubject) + '</div>' : "";
       );
     }
     function downloadDocPdf(html) {
@@ -9908,7 +9931,6 @@
       var records = kind === 'invoice' ? INVOICES : QUOTES;
       var editingId = kind === 'invoice' ? editingInvoiceId : editingQuoteId;
       var field = document.getElementById(kind === 'invoice' ? 'inv-new-number' : 'q-new-number');
-        workSubjectBlock +
       if (!value || value.length > 64 || /[\x00-\x1f\x7f]/.test(value)) {
         showToast(currentLang === 'fr' ? 'Saisissez un numéro valide (64 caractères maximum).' : 'Enter a valid number (maximum 64 characters).'); field.focus(); return '';
       }
@@ -10308,6 +10330,7 @@
         paymentDisplay: document.getElementById("inv-new-payment-label").value,
         clientAddress: document.getElementById("inv-new-client-address").value,
         siteAddress: document.getElementById("inv-new-site-address").value,
+        workSubject: document.getElementById("inv-new-work-subject").value,
         siret: document.getElementById("inv-new-siret").value,
         currency: document.getElementById("inv-new-currency").value,
         country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
@@ -10317,8 +10340,10 @@
     function scheduleInvoiceDraftSave() {
       if (editingInvoiceId) return;
       clearTimeout(invoiceDraftTimer);
+      var draftKey = "profacture_invoice_builder_draft_" + wsActiveId;
+      var draftJson = JSON.stringify(invoiceDraftData());
       invoiceDraftTimer = setTimeout(function () {
-        try { localStorage.setItem("profacture_invoice_builder_draft_" + wsActiveId, JSON.stringify(invoiceDraftData())); } catch (e) { /* ignore */ }
+        try { localStorage.setItem(draftKey, draftJson); } catch (e) { /* ignore */ }
       }, 350);
     }
     function restoreInvoiceBuilderDraft() {
@@ -10330,12 +10355,12 @@
       if (draft.documentNumber) document.getElementById("inv-new-number").value = draft.documentNumber;
       document.getElementById("inv-new-project").value = draft.projectId || "";
       document.getElementById("inv-new-type").value = draft.invoiceType || "standard";
-        workSubject: document.getElementById("inv-new-work-subject").value,
       document.getElementById("inv-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
       document.getElementById("inv-new-due").value = draft.due || "";
       document.getElementById("inv-new-payment-label").value = draft.paymentDisplay || "";
       document.getElementById("inv-new-client-address").value = draft.clientAddress || "";
       document.getElementById("inv-new-site-address").value = draft.siteAddress || "";
+      document.getElementById("inv-new-work-subject").value = draft.workSubject || "";
       document.getElementById("inv-new-siret").value = draft.siret || "";
       document.getElementById("inv-new-currency").value = draft.currency || currentCurrency || "USD";
       var draftCountry = document.getElementById("inv-compliance-country");
@@ -10360,7 +10385,6 @@
       if (draftBtn) draftBtn.style.display = editing ? "none" : "";
       if (pendingBtn) pendingBtn.textContent = editing ? t("btn_save_changes") : t("btn_save_pending");
 
-      document.getElementById("inv-new-work-subject").value = draft.workSubject || "";
       liBody.innerHTML = "";
       if (editing) {
         var clientMatch = CLIENTS.filter(function (c) { return c.company === editing.client; })[0];
@@ -10372,6 +10396,7 @@
         document.getElementById("inv-new-payment-label").value = editing.paymentDisplay || "";
         document.getElementById("inv-new-client-address").value = editing.clientAddress || "";
         document.getElementById("inv-new-site-address").value = editing.siteAddress || "";
+        document.getElementById("inv-new-work-subject").value = editing.workSubject || "";
         document.getElementById("inv-new-siret").value = editing.siret || "";
         document.getElementById("inv-new-currency").value = editing.currency || "USD";
         var editingCountry = document.getElementById("inv-compliance-country");
@@ -10387,6 +10412,7 @@
         document.getElementById("inv-new-payment-label").value = "";
         var siteEl = document.getElementById("inv-new-site-address");
         if (siteEl) siteEl.value = "";
+        document.getElementById("inv-new-work-subject").value = "";
         var siretEl = document.getElementById("inv-new-siret");
         if (siretEl) siretEl.value = ccGet("FR", "siret") || "";
         document.getElementById("inv-new-currency").value = currentCurrency || "USD";
@@ -10396,7 +10422,6 @@
       renderInvoicePreview();
     }
     function renderInvoicePreview() {
-        document.getElementById("inv-new-work-subject").value = editing.workSubject || "";
       var preview = document.getElementById("inv-new-preview");
       if (!preview) return;
       var clientSel = document.getElementById("inv-new-client");
@@ -10408,11 +10433,11 @@
         client: clientDisplayName(client),
         clientAddress: document.getElementById("inv-new-client-address").value.trim(),
         siteAddress: document.getElementById("inv-new-site-address").value.trim(),
+        workSubject: document.getElementById("inv-new-work-subject").value.trim(),
         siret: document.getElementById("inv-new-siret").value.trim(),
         clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
-        document.getElementById("inv-new-work-subject").value = "";
         documentType: "invoice", country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
         paymentDisplay: document.getElementById("inv-new-payment-label").value,
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
@@ -10433,7 +10458,6 @@
       if (!file) return;
       var reader = new FileReader();
       reader.onload = function () { setCompanyAsset("signature", "profacture_company_signature", reader.result); renderInvoicePreview(); showToast("Signature saved"); };
-        workSubject: document.getElementById("inv-new-work-subject").value.trim(),
       reader.readAsDataURL(file);
     });
     document.querySelectorAll("#view-invoice-new .card input, #view-invoice-new .card textarea, #view-invoice-new .card select").forEach(function (field) {
@@ -10455,6 +10479,7 @@
       var total = exactTotals.total;
       var clientAddress = document.getElementById("inv-new-client-address").value.trim();
       var siteAddress = document.getElementById("inv-new-site-address").value.trim();
+      var workSubject = document.getElementById("inv-new-work-subject").value.trim();
       var siret = document.getElementById("inv-new-siret").value.trim();
       var currencyCode = document.getElementById("inv-new-currency").value;
 
@@ -10465,6 +10490,7 @@
           existing.client = clientDisplayName(client);
           existing.clientAddress = clientAddress;
           existing.siteAddress = siteAddress;
+          existing.workSubject = workSubject;
           existing.siret = siret;
           existing.clientVat = client.vat || "";
           existing.clientContact = client.name;
@@ -10479,7 +10505,6 @@
           existing.stamp = getCompanyStamp();
           existing.signature = getCompanySignature();
           existing.design = captureDocumentDesign();
-      var workSubject = document.getElementById("inv-new-work-subject").value.trim();
           existing.issue = issue;
           existing.due = due;
           existing.paymentDisplay = document.getElementById("inv-new-payment-label").value;
@@ -10490,7 +10515,6 @@
           existing.taxMinor = exactTotals.taxMinor;
           existing.payableMinor = exactTotals.totalMinor;
           existing.items = items;
-          existing.workSubject = workSubject;
           existing.currency = currencyCode;
           existing.country = document.getElementById("inv-compliance-country").value || currentDefaultCountry;
           existing.updatedAt = new Date().toISOString();
@@ -10506,6 +10530,7 @@
           client: clientDisplayName(client),
           clientAddress: clientAddress,
           siteAddress: siteAddress,
+          workSubject: workSubject,
           siret: siret,
           clientVat: client.vat || "",
           clientContact: client.name,
@@ -10530,12 +10555,13 @@
           items: items,
           currency: currencyCode,
           country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
-          workSubject: workSubject,
           payments: [], updatedAt: new Date().toISOString()
         });
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "pending"));
       }
       renderInvoicesAll();
+      clearTimeout(invoiceDraftTimer);
+      documentEditorDirty = false;
       try { localStorage.removeItem("profacture_invoice_builder_draft_" + wsActiveId); localStorage.removeItem("profacture_invoice_builder_draft"); } catch (e) { /* ignore */ }
       if (window.profactureTrack) window.profactureTrack("invoice_saved", { status: status, currency: currencyCode, value: total });
       if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
@@ -10706,7 +10732,7 @@
     }
     function docSharePayload(doc, kind) {
       var label = kind === "quote" ? "quote" : "invoice";
-      var number = doc.id || doc.number || "";
+      var number = doc.documentNumber || doc.number || doc.id || "";
       var total = formatCurrency(doc.total || 0, doc.currency || currentCurrency || "USD");
       var clientName = doc.client || "your company";
       return {
@@ -11009,6 +11035,7 @@
         client: clientDisplayName(client),
         clientAddress: document.getElementById("q-new-client-address").value.trim(),
         siteAddress: document.getElementById("q-new-site-address").value.trim(),
+        workSubject: document.getElementById("q-new-work-subject").value.trim(),
         siret: document.getElementById("q-new-siret").value.trim(),
         clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("q-new-issue").value || new Date().toISOString().slice(0, 10)),
@@ -11035,7 +11062,6 @@
     });
     document.querySelectorAll("#view-quote-new .card input, #view-quote-new .card textarea, #view-quote-new .card select").forEach(function (field) {
       if (field.type === "file") return;
-        workSubject: document.getElementById("q-new-work-subject").value.trim(),
       field.addEventListener("input", renderQuotePreview);
       field.addEventListener("change", renderQuotePreview);
     });
@@ -11052,6 +11078,7 @@
         validUntil: document.getElementById("q-new-valid").value,
         clientAddress: document.getElementById("q-new-client-address").value,
         siteAddress: document.getElementById("q-new-site-address").value,
+        workSubject: document.getElementById("q-new-work-subject").value,
         siret: document.getElementById("q-new-siret").value,
         currency: document.getElementById("q-new-currency").value,
         companyId: wsActiveId, items: getQuoteLineItemsData(), design: captureDocumentDesign(), updatedAt: new Date().toISOString()
@@ -11060,8 +11087,10 @@
     function scheduleQuoteDraftSave() {
       if (editingQuoteId) return;
       clearTimeout(quoteDraftTimer);
+      var draftKey = "profacture_quote_builder_draft_" + wsActiveId;
+      var draftJson = JSON.stringify(quoteDraftData());
       quoteDraftTimer = setTimeout(function () {
-        try { localStorage.setItem("profacture_quote_builder_draft_" + wsActiveId, JSON.stringify(quoteDraftData())); } catch (e) { /* ignore */ }
+        try { localStorage.setItem(draftKey, draftJson); } catch (e) { /* ignore */ }
       }, 350);
     }
     function restoreQuoteBuilderDraft() {
@@ -11077,8 +11106,8 @@
       document.getElementById("q-new-valid").value = draft.validUntil || "";
       document.getElementById("q-new-client-address").value = draft.clientAddress || "";
       document.getElementById("q-new-site-address").value = draft.siteAddress || "";
+      document.getElementById("q-new-work-subject").value = draft.workSubject || "";
       document.getElementById("q-new-siret").value = draft.siret || "";
-        workSubject: document.getElementById("q-new-work-subject").value,
       document.getElementById("q-new-currency").value = draft.currency || currentCurrency || "USD";
       qLiBody.innerHTML = "";
       (draft.items && draft.items.length ? draft.items : [{ desc: "", qty: 1, price: 0, tax: "none" }]).forEach(function (it) { qAddRow(it.desc, it.qty, it.price, it.tax); });
@@ -11106,11 +11135,11 @@
         document.getElementById("q-new-client").value = editing.clientId || (clientMatch ? clientMatch.id : "");
         document.getElementById("q-new-project").value = editing.projectId || editing.project || "";
         document.getElementById("q-new-type").value = editing.quoteType || "initial";
-      document.getElementById("q-new-work-subject").value = draft.workSubject || "";
         document.getElementById("q-new-issue").value = editing.issue;
         document.getElementById("q-new-valid").value = editing.validUntil;
         document.getElementById("q-new-client-address").value = editing.clientAddress || "";
         document.getElementById("q-new-site-address").value = editing.siteAddress || "";
+        document.getElementById("q-new-work-subject").value = editing.workSubject || "";
         document.getElementById("q-new-siret").value = editing.siret || "";
         document.getElementById("q-new-currency").value = editing.currency || "USD";
         if (editing.items && editing.items.length) editing.items.forEach(function (it) { qAddRow(it.desc, it.qty, it.price, it.tax); });
@@ -11121,6 +11150,7 @@
         document.getElementById("q-new-issue").value = today.toISOString().slice(0, 10);
         document.getElementById("q-new-valid").value = inMonth.toISOString().slice(0, 10);
         document.getElementById("q-new-site-address").value = "";
+        document.getElementById("q-new-work-subject").value = "";
         document.getElementById("q-new-siret").value = ccGet("FR", "siret") || "";
         document.getElementById("q-new-currency").value = currentCurrency || "USD";
         document.getElementById("q-new-type").value = "initial";
@@ -11136,10 +11166,10 @@
       if (!client) { showToast("Add a client before saving a quote"); return; }
       var clientAddress = document.getElementById("q-new-client-address").value.trim();
       var siteAddress = document.getElementById("q-new-site-address").value.trim();
+      var workSubject = document.getElementById("q-new-work-subject").value.trim();
       var siret = document.getElementById("q-new-siret").value.trim();
       var issue = document.getElementById("q-new-issue").value || new Date().toISOString().slice(0, 10);
       var validUntil = document.getElementById("q-new-valid").value || new Date().toISOString().slice(0, 10);
-        document.getElementById("q-new-work-subject").value = editing.workSubject || "";
       var items = getQuoteLineItemsData();
       var exactTotals = calculateDocumentTotals(items);
       var total = exactTotals.total;
@@ -11150,9 +11180,9 @@
         if (existing) {
           existing.documentNumber = number;
           existing.client = clientDisplayName(client);
-        document.getElementById("q-new-work-subject").value = "";
           existing.clientAddress = clientAddress;
           existing.siteAddress = siteAddress;
+          existing.workSubject = workSubject;
           existing.siret = siret;
           existing.clientVat = client.vat || "";
           existing.clientContact = client.name;
@@ -11166,7 +11196,6 @@
           existing.logo = getCompanyLogo();
           existing.stamp = getCompanyStamp();
           existing.signature = getCompanySignature();
-      var workSubject = document.getElementById("q-new-work-subject").value.trim();
           existing.design = captureDocumentDesign();
           existing.issue = issue;
           existing.validUntil = validUntil;
@@ -11182,7 +11211,6 @@
           showToast(existing.id + " updated");
         }
         editingQuoteId = null;
-          existing.workSubject = workSubject;
       } else {
         quoteSeq++;
         var newId = nextDocumentId("QUO-", QUOTES);
@@ -11195,6 +11223,8 @@
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "sent"));
       }
       renderQuotesTable();
+      clearTimeout(quoteDraftTimer);
+      documentEditorDirty = false;
       try { localStorage.removeItem("profacture_quote_builder_draft_" + wsActiveId); localStorage.removeItem("profacture_quote_builder_draft"); } catch (e) { /* ignore */ }
       if (window.profactureTrack) window.profactureTrack("quote_saved", { status: status, currency: currencyCode, value: total });
       if (window.profacturePersistWorkspaceLocal) window.profacturePersistWorkspaceLocal();
@@ -11228,6 +11258,7 @@
         client: clientDisplayName(client),
         clientAddress: document.getElementById("q-new-client-address").value.trim(),
         siteAddress: document.getElementById("q-new-site-address").value.trim(),
+        workSubject: document.getElementById("q-new-work-subject").value.trim(),
         siret: document.getElementById("q-new-siret").value.trim(),
         clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("q-new-issue").value || new Date().toISOString().slice(0, 10)),
@@ -11258,7 +11289,6 @@
           if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
           showToast(quoteToAccept.id + " accepted and locked");
         };
-        workSubject: document.getElementById("q-new-work-subject").value.trim(),
         if (window.profactureAcceptQuote) {
           qAcceptBtn.disabled = true;
           window.profactureAcceptQuote({ companyId: quoteToAccept.companyId || wsActiveId, quoteId: quoteToAccept.id })
@@ -12020,7 +12050,7 @@
         var recent = dashboardInvoices.slice().sort(function (a, b) { return new Date(b.issue) - new Date(a.issue); }).slice(0, 4);
         activityWrap.innerHTML = recent.length ? recent.map(function (inv) {
           return (
-            '<div class="activity-row"><div><div class="num">' + escapeHtml(inv.id) + '</div><div class="meta">' +
+            '<div class="activity-row"><div><div class="num">' + escapeHtml(documentNumber(inv)) + '</div><div class="meta">' +
             new Date(inv.issue + "T00:00:00").toLocaleDateString("en", { month: "short", day: "2-digit", year: "numeric" }) +
             '</div></div><div style="text-align:right;"><div class="tnum" style="font-weight:700;">' + currency(inv.total) +
             '</div><span class="badge ' + invoiceStatusBadgeClass(inv.status) + '">' + escapeHtml(inv.status) + "</span></div></div>"
@@ -12866,8 +12896,8 @@
           if (label) idx.push({ group: group, icon: icon, label: label, sub: sub, goto: gotoId });
         });
       }
-      activeCompanyItems(INVOICES).forEach(function (inv) { idx.push({ group: "Invoices", icon: "📄", label: inv.id, sub: inv.client, goto: "invoices" }); });
-      activeCompanyItems(QUOTES).forEach(function (q) { idx.push({ group: "Quotes", icon: "🧾", label: q.id, sub: q.client, goto: "quotes" }); });
+      activeCompanyItems(INVOICES).forEach(function (inv) { idx.push({ group: "Invoices", icon: "📄", label: documentNumber(inv), sub: inv.client, goto: "invoices" }); });
+      activeCompanyItems(QUOTES).forEach(function (q) { idx.push({ group: "Quotes", icon: "🧾", label: documentNumber(q), sub: q.client, goto: "quotes" }); });
       activeCompanyItems(CLIENTS).forEach(function (c) { idx.push({ group: "Clients", icon: "👥", label: c.name, sub: c.company, goto: "client-detail", openClient: c.id }); });
       activeCompanyItems(LEADS).forEach(function (l) { idx.push({ group: "Leads", icon: "💼", label: l.name, sub: l.company, goto: "leads" }); });
       addFromTable("companies-table", "Companies", "🏢", "companies", 0, 1);
@@ -13079,7 +13109,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, orderBy, documentId, startAfter, limit as firestoreLimit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, deleteDoc, runTransaction, collection, getDocs, query, orderBy, documentId, startAfter, limit as firestoreLimit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
   import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
   import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app-check.js";
 
@@ -13505,11 +13535,57 @@
 	  function markCloudDeleted(collectionName, item) {
 	    const uid = currentUser && currentUser.uid ? currentUser.uid : "guest";
 	    const id = cloudDocId(item || {}, 0);
+	    if (["history", "quotes", "clients"].includes(collectionName)) {
+	      const key = accountStorageKeyFor(uid, "recovery_trash");
+	      const trash = JSON.parse(localStorage.getItem(key) || "[]");
+	      trash.push({ collectionName, id, item, deletedAt: new Date().toISOString() });
+	      // A failed recovery write aborts deletion rather than discarding the only copy.
+	      localStorage.setItem(key, JSON.stringify(trash));
+	    }
 	    const ids = new Set(readCloudTombstones(uid, collectionName));
 	    ids.add(id);
 	    localStorage.setItem(cloudTombstoneKey(uid, collectionName), JSON.stringify(Array.from(ids).slice(-1000)));
 	  }
 	  window.profactureMarkCloudDeleted = markCloudDeleted;
+	  function renderRecoveryTrash() {
+	    const container = document.getElementById("workspace-trash-list");
+	    container.replaceChildren();
+	    if (!currentUser) { container.textContent = "Sign in to view deleted records."; return; }
+	    const uid = currentUser.uid;
+	    const key = accountStorageKeyFor(uid, "recovery_trash");
+	    let trash;
+	    try { trash = JSON.parse(localStorage.getItem(key) || "[]"); }
+	    catch (error) { container.textContent = "Recovery data could not be read. Export a backup before continuing."; return; }
+	    if (!trash.length) container.textContent = "No deleted records in this browser.";
+	    trash.forEach((entry, index) => {
+	      const row = document.createElement("div");
+	      const label = document.createElement("span");
+	      label.textContent = entry.collectionName + ": " + (entry.item.documentNumber || entry.item.name || entry.item.id) + " ";
+	      const button = document.createElement("button");
+	      button.className = "btn btn-outline btn-sm"; button.textContent = "Restore";
+	      button.addEventListener("click", () => {
+	        if (!currentUser || currentUser.uid !== uid) return;
+	        const cfg = WORKSPACE_COLLECTIONS.find(config => config.collection === entry.collectionName);
+	        if (!cfg) return;
+	        const rows = readGlobalArray(cfg.windowName);
+	        if (rows.some(item => cloudDocId(item, 0) === entry.id || (entry.item.documentNumber && item.companyId === entry.item.companyId && (item.documentNumber || item.id) === entry.item.documentNumber))) {
+	          container.textContent = "A record with this ID or number already exists. Nothing was replaced."; return;
+	        }
+	        const currentTrash = JSON.parse(localStorage.getItem(key) || "[]");
+	        if (JSON.stringify(currentTrash[index]) !== JSON.stringify(entry)) { renderRecoveryTrash(); return; }
+	        localStorage.setItem(cloudTombstoneKey(uid, entry.collectionName), JSON.stringify(readCloudTombstones(uid, entry.collectionName).filter(id => id !== entry.id)));
+	        rows.push(entry.item);
+	        persistWorkspaceLocally(currentUser);
+	        currentTrash.splice(index, 1);
+	        localStorage.setItem(key, JSON.stringify(currentTrash));
+	        scheduleWorkspaceCloudSync(100);
+	        renderRecoveryTrash();
+	      });
+	      row.append(label, button); container.append(row);
+	    });
+	  }
+	  document.getElementById("workspace-trash").addEventListener("toggle", renderRecoveryTrash);
+	  document.getElementById("workspace-sync-retry").addEventListener("click", () => scheduleWorkspaceCloudSync(0));
 	  async function readAllCloudDocs(user, collectionName) {
 	    const items = [];
 	    let cursor = null;
@@ -13523,14 +13599,21 @@
 	    return items;
 	  }
 	  let cloudHydratedUid = "";
+	  const cloudRecordBaselines = new Map();
+	  function recordFingerprint(value) {
+	    if (Array.isArray(value)) return "[" + value.map(recordFingerprint).join(",") + "]";
+	    if (value && typeof value === "object") return "{" + Object.keys(value).filter(key => key !== "updatedAtClient").sort().map(key => JSON.stringify(key) + ":" + recordFingerprint(value[key])).join(",") + "}";
+	    return JSON.stringify(value);
+	  }
 	  async function loadCloudCollection(user, collectionName, windowName) {
 	    const target = readGlobalArray(windowName);
 	    try {
 	      const cloudDocs = await readAllCloudDocs(user, collectionName);
+	      cloudDocs.forEach(entry => cloudRecordBaselines.set(user.uid + "/" + collectionName + "/" + entry.id, recordFingerprint(entry.data)));
 	      const tombstones = new Set(readCloudTombstones(user.uid, collectionName));
 	      const items = cloudDocs.filter(entry => !tombstones.has(entry.id)).map(entry => entry.data).filter(Boolean);
 	      const emailKey = user && user.email ? user.email.toLowerCase() : "";
-	      const merged = mergeWorkspaceArrays(target, mergeWorkspaceArrays(readLocalCollection(user.uid, collectionName), mergeWorkspaceArrays(emailKey ? readLocalCollection(emailKey, collectionName) : [], items)));
+	      const merged = mergeWorkspaceArrays(target, mergeWorkspaceArrays(readLocalCollection(user.uid, collectionName), mergeWorkspaceArrays(emailKey ? readLocalCollection(emailKey, collectionName) : [], items))).filter((item, index) => !tombstones.has(cloudDocId(item, index)));
 	      if (Array.isArray(window[windowName]) && (merged.length || target.length || items.length)) {
 	        window[windowName].splice(0, window[windowName].length, ...merged);
 	        writeLocalCollection(user.uid, collectionName, merged);
@@ -13544,27 +13627,50 @@
 	  }
 	  async function syncCollectionSnapshot(collectionName, windowName) {
 	    if (!currentUser) return;
+	    const syncUid = currentUser.uid;
 	    const items = readGlobalArray(windowName);
+	    const pendingDeletes = new Set(readCloudTombstones(syncUid, collectionName));
 	    const localIds = new Set(items.map((item, index) => cloudDocId(item, index)));
 	    const writes = await Promise.allSettled(items.map((item, index) => {
 	      const payload = Object.assign({}, cleanCloudValue(item || {}), {
 	        updatedAtClient: new Date().toISOString()
 	      });
-	      return setDoc(doc(db, "users", currentUser.uid, collectionName, cloudDocId(item, index)), payload, { merge: true });
+	      const id = cloudDocId(item, index);
+	      const key = syncUid + "/" + collectionName + "/" + id;
+	      const fingerprint = recordFingerprint(payload);
+	      if (cloudRecordBaselines.get(key) === fingerprint) return Promise.resolve();
+	      const ref = doc(db, "users", syncUid, collectionName, id);
+	      return runTransaction(db, async transaction => {
+	        const snapshot = await transaction.get(ref);
+	        const remote = snapshot.exists() ? recordFingerprint(snapshot.data()) : undefined;
+	        if (remote !== fingerprint && remote !== cloudRecordBaselines.get(key)) throw new Error("Another device changed this record. Export your local backup before reloading.");
+	        transaction.set(ref, payload);
+	      }).then(() => cloudRecordBaselines.set(key, fingerprint));
 	    }));
 	    const failed = writes.filter(result => result.status === "rejected");
 	    if (failed.length) throw failed[0].reason || new Error("Cloud write failed");
-	    if (cloudHydratedUid === currentUser.uid) {
-	      const remoteDocs = await readAllCloudDocs(currentUser, collectionName);
-	      const deletions = remoteDocs.filter(entry => !localIds.has(entry.id)).map(entry => deleteDoc(doc(db, "users", currentUser.uid, collectionName, entry.id)));
+	    if (cloudHydratedUid === syncUid) {
+	      // Absence on this device is not permission to delete another device's records.
+	      const deletionIds = Array.from(pendingDeletes).filter(id => !localIds.has(id));
+	      const deletions = deletionIds.map(id => {
+	        const key = syncUid + "/" + collectionName + "/" + id;
+	        const ref = doc(db, "users", syncUid, collectionName, id);
+	        return runTransaction(db, async transaction => {
+	          const snapshot = await transaction.get(ref);
+	          if (snapshot.exists() && recordFingerprint(snapshot.data()) !== cloudRecordBaselines.get(key)) throw new Error("Another device changed the deleted record. Export your local backup before reloading.");
+	          transaction.delete(ref);
+	        }).then(() => cloudRecordBaselines.delete(key));
+	      });
 	      const deleted = await Promise.allSettled(deletions);
 	      const deleteFailed = deleted.filter(result => result.status === "rejected");
 	      if (deleteFailed.length) throw deleteFailed[0].reason || new Error("Cloud delete failed");
-	      localStorage.removeItem(cloudTombstoneKey(currentUser.uid, collectionName));
+	      const remaining = readCloudTombstones(syncUid, collectionName).filter(id => !deletionIds.includes(id));
+	      localStorage.setItem(cloudTombstoneKey(syncUid, collectionName), JSON.stringify(remaining));
 	    }
 	  }
 	  let workspaceCloudSyncTimer = null;
 	  let workspaceSyncInFlight = null;
+	  let workspaceSyncRequestedAgain = false;
 	  async function runWorkspaceSync() {
 	    if (!currentUser) return false;
 	    if (!navigator.onLine) { setWorkspaceSyncState("offline"); return false; }
@@ -13576,15 +13682,23 @@
 	    });
 	    const results = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => syncCollectionSnapshot(cfg.collection, cfg.windowName)));
 	    const ok = accountSaved && results.every(result => result.status === "fulfilled");
+	    const failure = results.find(result => result.status === "rejected");
+	    document.getElementById("workspace-sync-error").textContent = ok ? "" : (failure && failure.reason && failure.reason.message) || "Cloud save failed. Keep this page open, export a backup and retry.";
 	    setWorkspaceSyncState(ok ? "saved" : "error");
 	    return ok;
 	  }
 	  async function syncWorkspaceSnapshot() {
-	    if (workspaceSyncInFlight) return workspaceSyncInFlight;
+	    if (workspaceSyncInFlight) { workspaceSyncRequestedAgain = true; return workspaceSyncInFlight; }
 	    const execute = () => runWorkspaceSync();
 	    workspaceSyncInFlight = (navigator.locks && currentUser
 	      ? navigator.locks.request("profacture-cloud-sync-" + currentUser.uid, execute)
-	      : execute()).finally(() => { workspaceSyncInFlight = null; });
+	      : execute()).finally(() => {
+	        workspaceSyncInFlight = null;
+	        if (workspaceSyncRequestedAgain) {
+	          workspaceSyncRequestedAgain = false;
+	          scheduleWorkspaceCloudSync(100);
+	        }
+	      });
 	    return workspaceSyncInFlight;
 	  }
 	  function scheduleWorkspaceCloudSync(delay = 900) {
