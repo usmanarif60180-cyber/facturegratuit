@@ -5385,8 +5385,10 @@
             <div style="display:flex;gap:.55rem;flex-wrap:wrap;">
               <button class="btn btn-primary btn-sm" id="backup-export-btn">Download JSON backup</button>
               <button class="btn btn-outline btn-sm" id="backup-cloud-btn">Create cloud backup</button>
+              <button class="btn btn-outline btn-sm" id="backup-cloud-list-btn">Restore cloud backup</button>
               <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Restore JSON<input type="file" accept="application/json,.json" id="backup-import-input" style="display:none;" /></label>
             </div>
+            <div id="backup-cloud-list" style="margin-top:.65rem;display:flex;gap:.5rem;flex-wrap:wrap;"></div>
             <p id="backup-status" style="font-size:.75rem;color:hsl(var(--muted-fg));margin-top:.65rem;"></p>
             <button class="btn btn-outline btn-sm" id="workspace-sync-retry">Retry cloud sync</button>
             <p id="workspace-sync-error" role="status"></p>
@@ -5988,6 +5990,7 @@
           btn.classList.toggle("on", on);
           btn.setAttribute("aria-selected", on ? "true" : "false");
         });
+        if (stepId === "preview") requestAnimationFrame(function () { fitDocPreview(preview.querySelector(".doc-preview-frame")); });
       }
       bar.addEventListener("click", function (e) {
         var btn = e.target.closest("[data-doc-step]");
@@ -6830,6 +6833,19 @@
           : code.indexOf("failed-precondition") !== -1 ? "L'assistant est en configuration. Réessayez bientôt."
           : "L'assistant est temporairement indisponible. Vos données et vos brouillons restent enregistrés.";
         typing.textContent = errorText;
+        if (requestCompanyId === wsActiveId) {
+          var retry = document.createElement("button");
+          retry.type = "button";
+          retry.className = "btn btn-outline btn-sm";
+          retry.textContent = currentLang === "fr" ? "Réessayer" : "Retry";
+          retry.addEventListener("click", function () {
+            if (button.disabled || requestCompanyId !== wsActiveId) return;
+            input.value = text;
+            retry.remove();
+            sendAiMessage(input, chat, button, editSource);
+          });
+          typing.append(document.createElement("br"), retry);
+        }
       } finally {
         button.disabled = false;
         button.removeAttribute("aria-busy");
@@ -9970,8 +9986,8 @@
       var doc = preview.querySelector(".print-doc");
       if (!stage || !doc) return;
       var naturalWidth = 794;
-      var available = Math.max(280, preview.clientWidth - 24);
-      var scale = Math.min(1, Math.max(0.42, available / naturalWidth));
+      var available = Math.max(1, preview.clientWidth - 24);
+      var scale = Math.min(1, available / naturalWidth);
       doc.style.transform = "scale(" + scale + ")";
       doc.style.left = Math.max(12, (preview.clientWidth - naturalWidth * scale) / 2) + "px";
       var naturalHeight = Math.max(1123, doc.offsetHeight || 1123);
@@ -13681,6 +13697,7 @@
 	  let workspaceCloudSyncTimer = null;
 	  let workspaceSyncInFlight = null;
 	  let workspaceSyncRequestedAgain = false;
+	  let manualBackupInProgress = false;
 	  async function runWorkspaceSync() {
 	    if (!currentUser) return false;
 	    const syncUser = currentUser;
@@ -13699,7 +13716,7 @@
 	    const failure = results.find(result => result.status === "rejected");
 	    document.getElementById("workspace-sync-error").textContent = ok ? "" : (failure && failure.reason && failure.reason.message) || "Cloud save failed. Keep this page open, export a backup and retry.";
 	    setWorkspaceSyncState(ok ? "saved" : "error");
-	    if (ok && cloudHydratedUid === syncUser.uid) {
+	    if (ok && !manualBackupInProgress && cloudHydratedUid === syncUser.uid) {
 	      const today = new Date().toISOString().slice(0, 10);
 	      const backupKey = accountStorageKeyFor(syncUser.uid, "last_auto_backup");
 	      if (localStorage.getItem(backupKey) !== today) {
@@ -13732,7 +13749,7 @@
 	  function workspaceBackupPayload() {
 	    const collections = {};
 	    WORKSPACE_COLLECTIONS.forEach(cfg => { collections[cfg.collection] = cleanCloudValue(readGlobalArray(cfg.windowName)); });
-	    return { version: 1, exportedAt: new Date().toISOString(), companyProfile: collectCompanyProfileBundle(), collections };
+    return { version: 1, exportedAt: new Date().toISOString(), ownerUid: currentUser ? currentUser.uid : "", companyProfile: collectCompanyProfileBundle(), collections };
 	  }
 	  function downloadWorkspaceBackup() {
 	    const blob = new Blob([JSON.stringify(workspaceBackupPayload(), null, 2)], { type: "application/json" });
@@ -13743,8 +13760,9 @@
 	    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 	  }
 	  function restoreWorkspaceBackup(payload) {
-	    if (!currentUser) throw new Error("Sign in before importing a workspace backup.");
-	    if (!payload || payload.version !== 1 || !payload.collections) throw new Error("Invalid ProFacture backup file.");
+    if (!currentUser) throw new Error("Sign in before importing a workspace backup.");
+    if (!payload || payload.version !== 1 || !payload.collections) throw new Error("Invalid ProFacture backup file.");
+    if (payload.ownerUid && payload.ownerUid !== currentUser.uid) throw new Error("This backup belongs to another account.");
 	    WORKSPACE_COLLECTIONS.forEach(cfg => {
 	      const items = payload.collections[cfg.collection];
 	      if (items !== undefined && (!Array.isArray(items) || items.some(item => !item || typeof item !== "object" || Array.isArray(item)))) throw new Error("Invalid backup collection: " + cfg.collection);
@@ -13787,14 +13805,65 @@
 	  const backupExportBtn = document.getElementById("backup-export-btn");
 	  if (backupExportBtn) backupExportBtn.addEventListener("click", downloadWorkspaceBackup);
 	  const backupCloudBtn = document.getElementById("backup-cloud-btn");
-	  if (backupCloudBtn) backupCloudBtn.addEventListener("click", async () => {
+  if (backupCloudBtn) backupCloudBtn.addEventListener("click", async () => {
 	    const status = document.getElementById("backup-status");
-	    if (!currentUser) { if (status) status.textContent = "Sign in first."; return; }
-	    backupCloudBtn.disabled = true;
-	    try { await workspaceBackupCallable({ operation: "create" }); if (status) status.textContent = "Cloud backup created successfully."; }
-	    catch (error) { if (status) status.textContent = "Cloud backup could not be created."; }
-	    finally { backupCloudBtn.disabled = false; }
-	  });
+    if (!currentUser) { if (status) status.textContent = "Sign in first."; return; }
+    backupCloudBtn.disabled = true;
+    manualBackupInProgress = true;
+    try {
+      if (!await syncWorkspaceSnapshot()) throw new Error("Cloud sync failed. Export JSON and retry before creating a cloud backup.");
+      const result = await workspaceBackupCallable({ operation: "create" });
+      if (status) status.textContent = result.data && result.data.created === false ? "Today's cloud backup already exists." : "Cloud backup created successfully.";
+    }
+    catch (error) { if (status) status.textContent = error.message || "Cloud backup could not be created."; }
+    finally { manualBackupInProgress = false; backupCloudBtn.disabled = false; }
+  });
+  const backupCloudListBtn = document.getElementById("backup-cloud-list-btn");
+  if (backupCloudListBtn) backupCloudListBtn.addEventListener("click", async () => {
+    const status = document.getElementById("backup-status");
+    const list = document.getElementById("backup-cloud-list");
+    if (!currentUser) { if (status) status.textContent = "Sign in first."; return; }
+    backupCloudListBtn.disabled = true;
+    if (list) list.replaceChildren();
+    try {
+      const ownerUid = currentUser.uid;
+      const response = await workspaceBackupCallable({ operation: "list" });
+      if (!currentUser || currentUser.uid !== ownerUid) throw new Error("Account changed. Open backups again.");
+      const backups = response.data && response.data.backups || [];
+      if (status) status.textContent = backups.length ? "Choose a backup to merge into this workspace." : "No cloud backups found.";
+      backups.forEach(backup => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-outline btn-sm";
+        button.textContent = backup.id;
+        button.addEventListener("click", async () => {
+          if (!currentUser || currentUser.uid !== ownerUid) return;
+          if (!confirm("Merge cloud backup " + backup.id + " into your current workspace? Existing records will be kept.")) return;
+          button.disabled = true;
+          try {
+            const loaded = await workspaceBackupCallable({ operation: "load", backupId: backup.id });
+            if (!currentUser || currentUser.uid !== ownerUid) throw new Error("Account changed. Restore cancelled.");
+            const data = loaded.data && loaded.data.backup;
+            if (!data || !data.collections) throw new Error("Cloud backup is incomplete.");
+            const collections = {};
+            WORKSPACE_COLLECTIONS.forEach(cfg => {
+              const rows = data.collections[cfg.collection];
+              if (rows !== undefined) {
+                if (!Array.isArray(rows) || rows.some(row => !row || !row.data || typeof row.data !== "object" || Array.isArray(row.data))) throw new Error("Invalid cloud backup collection: " + cfg.collection);
+                collections[cfg.collection] = rows.map(row => row.data);
+              }
+            });
+            downloadWorkspaceBackup();
+            restoreWorkspaceBackup({ version: 1, ownerUid, companyProfile: data.account && data.account.companyProfile || {}, collections });
+            if (status) status.textContent = "Cloud backup merged. A JSON copy of the previous workspace was downloaded first.";
+          } catch (error) { if (status) status.textContent = error.message || "Cloud restore failed."; }
+          finally { button.disabled = false; }
+        });
+        if (list) list.append(button);
+      });
+    } catch (error) { if (status) status.textContent = error.message || "Cloud backups could not be loaded."; }
+    finally { backupCloudListBtn.disabled = false; }
+  });
 	  const backupImportInput = document.getElementById("backup-import-input");
 	  if (backupImportInput) backupImportInput.addEventListener("change", async event => {
 	    const status = document.getElementById("backup-status");

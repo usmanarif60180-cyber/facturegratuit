@@ -48,5 +48,8 @@ vm.runInContext(html.slice(html.indexOf('function restoreWorkspaceBackup(payload
 backupContext.restoreWorkspaceBackup({ version: 1, collections: { clients: [{ id: 'imported', name: 'Imported' }] } });
 assert.deepEqual(backupContext.window.CLIENTS.map(item => item.id).sort(), ['current', 'imported']);
 assert.deepEqual(JSON.parse(storage.get('profacture_account_account-B_deleted_clients')), ['unrelated']);
+assert.throws(() => backupContext.restoreWorkspaceBackup({ version: 1, ownerUid: 'account-A', collections: { clients: [] } }), /another account/);
 assert.throws(() => backupContext.restoreWorkspaceBackup({ version: 1, collections: { clients: 'invalid' } }), /Invalid backup collection/);
-console.log('Workspace recovery passed: account isolation, full cloud values, merge import, targeted tombstones.');
+assert.match(html, /workspaceBackupCallable\(\{ operation: "load", backupId: backup\.id \}\)/);
+assert.match(html, /if \(!await syncWorkspaceSnapshot\(\)\) throw new Error/);
+console.log('Workspace recovery passed: account isolation, full cloud values, merge import, cloud restore, targeted tombstones.');

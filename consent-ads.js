@@ -68,6 +68,34 @@
     window.gtag("event", name, Object.assign({ app_version: "2026.09" }, params || {}));
   };
 
+  if ("PerformanceObserver" in window) {
+    var vitals = { lcp: 0, cls: 0, inp: 0 };
+    var observers = [];
+    var vitalsReported = false;
+    function observe(type, callback, options) {
+      try {
+        var observer = new PerformanceObserver(function (list) { list.getEntries().forEach(callback); });
+        observer.observe(Object.assign({ type: type, buffered: true }, options || {}));
+        observers.push(observer);
+      } catch (error) { /* Unsupported metric on this browser. */ }
+    }
+    observe("largest-contentful-paint", function (entry) { vitals.lcp = entry.startTime; });
+    observe("layout-shift", function (entry) { if (!entry.hadRecentInput) vitals.cls += entry.value; });
+    observe("event", function (entry) { vitals.inp = Math.max(vitals.inp, entry.duration || 0); }, { durationThreshold: 40 });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "hidden" || vitalsReported) return;
+      vitalsReported = true;
+      observers.forEach(function (observer) { observer.takeRecords().forEach(function (entry) {
+        if (entry.entryType === "largest-contentful-paint") vitals.lcp = entry.startTime;
+        if (entry.entryType === "layout-shift" && !entry.hadRecentInput) vitals.cls += entry.value;
+        if (entry.entryType === "event") vitals.inp = Math.max(vitals.inp, entry.duration || 0);
+      }); });
+      if (vitals.lcp) window.profactureTrack("web_vital_lcp", { value: Math.round(vitals.lcp), metric_unit: "ms" });
+      if (vitals.cls) window.profactureTrack("web_vital_cls", { value: Math.round(vitals.cls * 1000), metric_unit: "score_x1000" });
+      if (vitals.inp) window.profactureTrack("web_vital_interaction_max", { value: Math.round(vitals.inp), metric_unit: "ms" });
+    });
+  }
+
   function init() {
     loadOptionalServices();
     showBanner();
