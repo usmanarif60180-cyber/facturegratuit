@@ -723,6 +723,8 @@
   .print-doc-party strong:first-child { display: inline-block; margin-bottom: 0.28rem; font-size: 0.72rem; text-transform: uppercase; color: #64748b; }
   .print-doc-site { margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px solid #dbe3ee; color: #334155; }
   .print-doc-site b { display: block; margin-bottom: 0.15rem; font-size: 0.7rem; text-transform: uppercase; color: #64748b; }
+  .print-doc-subject { margin: 0 0 1.15rem; padding: 0.7rem 0.85rem; border-left: 3px solid #cbd5e1; background: #f8fafc; color: #111; font-size: 0.84rem; overflow-wrap: anywhere; break-inside: avoid; }
+  .print-doc-subject strong { display: block; margin-bottom: 0.2rem; font-size: 0.7rem; text-transform: uppercase; color: #64748b; }
   .print-doc-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0.25rem 0 1.5rem; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
   .print-doc-table th, .print-doc-table td { border-bottom: 1px solid #e5e7eb; padding: 0.78rem 0.72rem; font-size: 0.85rem; text-align: left; color: #111; }
   .print-doc-table th { font-size: 0.72rem; text-transform: uppercase; }
@@ -3944,6 +3946,7 @@
                 <div><label class="field-label" data-i18n="fld_site_address">Chantier / jobsite address</label><textarea class="field" id="inv-new-site-address" rows="2" placeholder="Leave blank if same as client address"></textarea></div>
                 <div><label class="field-label" data-i18n="fld_siret">SIRET number</label><input class="field" id="inv-new-siret" placeholder="123 456 789 00012" /></div>
               </div>
+              <div style="margin-top:1rem;"><label class="field-label" for="inv-new-work-subject">Objet des travaux (facultatif)</label><textarea class="field" id="inv-new-work-subject" rows="2" maxlength="1000" placeholder="Ex. Rénovation de la salle de bains"></textarea></div>
               <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1rem;">
                 <label class="btn btn-outline btn-sm" style="cursor:pointer;">🖼 <span data-i18n="btn_add_logo">Add logo</span><input type="file" accept="image/*" id="inv-new-logo-file" style="display:none;" /></label>
                 <label class="btn btn-outline btn-sm" style="cursor:pointer;">🖋 <span data-i18n="btn_add_signature">Add stamp/signature</span><input type="file" accept="image/*" id="inv-new-sig-file" style="display:none;" /></label>
@@ -4010,6 +4013,7 @@
                 <div><label class="field-label" data-i18n="fld_site_address">Chantier / jobsite address</label><textarea class="field" id="q-new-site-address" rows="2" placeholder="Leave blank if same as client address"></textarea></div>
                 <div><label class="field-label" data-i18n="fld_siret">SIRET number</label><input class="field" id="q-new-siret" placeholder="123 456 789 00012" /></div>
               </div>
+              <div style="margin-top:1rem;"><label class="field-label" for="q-new-work-subject">Objet des travaux (facultatif)</label><textarea class="field" id="q-new-work-subject" rows="2" maxlength="1000" placeholder="Ex. Rénovation de la salle de bains"></textarea></div>
               <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1rem;">
                 <label class="btn btn-outline btn-sm" style="cursor:pointer;">🖼 <span data-i18n="btn_add_logo">Add logo</span><input type="file" accept="image/*" id="q-new-logo-file" style="display:none;" /></label>
                 <label class="btn btn-outline btn-sm" style="cursor:pointer;">🖋 <span data-i18n="btn_add_signature">Add stamp/signature</span><input type="file" accept="image/*" id="q-new-sig-file" style="display:none;" /></label>
@@ -8123,6 +8127,7 @@
       return s ? s.name : "—";
     }
     function invBarcodeHtml(code) {
+        workSubject: document.getElementById("inv-new-work-subject").value.trim(),
       if (!code) return "";
       var bars = code.split("").map(function (ch) {
         return '<span style="width:' + ((ch.charCodeAt(0) % 3) + 1) + 'px;"></span>';
@@ -9884,6 +9889,7 @@
         totalSummary + noTaxNote + legalBlock + optionalBlock +
         (design.sections.signature && (stamp || sig) ? '<div class="print-doc-sig"><div style="font-size:0.78rem;color:#555;">' + escapeHtml(t("fld_company_stamp")) + " / " + escapeHtml(t("fld_signature")) + '</div><div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:0.9rem;flex-wrap:wrap;">' + (stamp ? '<img src="' + stamp + '" alt="" style="max-height:4.6rem;max-width:8rem;object-fit:contain;" />' : "") + (sig ? '<img src="' + sig + '" alt="" />' : "") + "</div></div>" : "") +
         "</div>"
+      var workSubjectBlock = opts.workSubject ? '<div class="print-doc-subject"><strong>' + ((opts.country || currentDefaultCountry) === "FR" ? "Objet des travaux" : "Work subject") + '</strong>' + htmlLines(opts.workSubject) + '</div>' : "";
       );
     }
     function downloadDocPdf(html) {
@@ -9902,6 +9908,7 @@
       var records = kind === 'invoice' ? INVOICES : QUOTES;
       var editingId = kind === 'invoice' ? editingInvoiceId : editingQuoteId;
       var field = document.getElementById(kind === 'invoice' ? 'inv-new-number' : 'q-new-number');
+        workSubjectBlock +
       if (!value || value.length > 64 || /[\x00-\x1f\x7f]/.test(value)) {
         showToast(currentLang === 'fr' ? 'Saisissez un numéro valide (64 caractères maximum).' : 'Enter a valid number (maximum 64 characters).'); field.focus(); return '';
       }
@@ -9913,7 +9920,7 @@
     function downloadInvoicePdf(inv) {
       if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "invoice", document_id: inv.id || "draft", currency: inv.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
-        title: t("doc_invoice"), number: documentNumber(inv), client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress,
+        title: t("doc_invoice"), number: documentNumber(inv), client: inv.client, clientAddress: inv.clientAddress, siteAddress: inv.siteAddress, workSubject: inv.workSubject,
         siret: inv.siret, clientContact: inv.clientContact, clientVat: inv.clientVat, clientEmail: inv.clientEmail, clientPhone: inv.clientPhone, companyProfile: inv.companyProfile, logo: inv.logo, stamp: inv.stamp, signature: inv.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(inv.issue), dueLabel: t("fld_due_date"), dueDate: fmtDate(inv.due),
         documentType: "invoice", country: inv.country || currentDefaultCountry, paymentDisplay: inv.paymentDisplay || "", items: inv.items, total: inv.total, status: inv.status, currencyCode: inv.currency, design: inv.design || LEGACY_DOCUMENT_DESIGN,
@@ -9922,7 +9929,7 @@
     function downloadQuotePdf(q) {
       if (window.profactureTrack) window.profactureTrack("pdf_download", { document_type: "quote", document_id: q.id || "draft", currency: q.currency || currentCurrency || "USD" });
       downloadDocPdf(buildDocPrintHtml({
-        title: t("doc_quote"), number: documentNumber(q), client: q.client, clientAddress: q.clientAddress, siteAddress: q.siteAddress,
+        title: t("doc_quote"), number: documentNumber(q), client: q.client, clientAddress: q.clientAddress, siteAddress: q.siteAddress, workSubject: q.workSubject,
         siret: q.siret, clientContact: q.clientContact, clientVat: q.clientVat, clientEmail: q.clientEmail, clientPhone: q.clientPhone, companyProfile: q.companyProfile, logo: q.logo, stamp: q.stamp, signature: q.signature,
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(q.issue), dueLabel: t("fld_valid_until"), dueDate: fmtDate(q.validUntil),
         items: q.items, total: q.total, status: q.status, currencyCode: q.currency, design: q.design || LEGACY_DOCUMENT_DESIGN,
@@ -10323,6 +10330,7 @@
       if (draft.documentNumber) document.getElementById("inv-new-number").value = draft.documentNumber;
       document.getElementById("inv-new-project").value = draft.projectId || "";
       document.getElementById("inv-new-type").value = draft.invoiceType || "standard";
+        workSubject: document.getElementById("inv-new-work-subject").value,
       document.getElementById("inv-new-issue").value = draft.issue || new Date().toISOString().slice(0, 10);
       document.getElementById("inv-new-due").value = draft.due || "";
       document.getElementById("inv-new-payment-label").value = draft.paymentDisplay || "";
@@ -10352,6 +10360,7 @@
       if (draftBtn) draftBtn.style.display = editing ? "none" : "";
       if (pendingBtn) pendingBtn.textContent = editing ? t("btn_save_changes") : t("btn_save_pending");
 
+      document.getElementById("inv-new-work-subject").value = draft.workSubject || "";
       liBody.innerHTML = "";
       if (editing) {
         var clientMatch = CLIENTS.filter(function (c) { return c.company === editing.client; })[0];
@@ -10387,6 +10396,7 @@
       renderInvoicePreview();
     }
     function renderInvoicePreview() {
+        document.getElementById("inv-new-work-subject").value = editing.workSubject || "";
       var preview = document.getElementById("inv-new-preview");
       if (!preview) return;
       var clientSel = document.getElementById("inv-new-client");
@@ -10402,6 +10412,7 @@
         clientContact: client ? client.name : "", clientVat: client ? (client.vat || "") : "", clientEmail: client ? (client.email || "") : "", clientPhone: client ? (client.phone || "") : "",
         issueLabel: t("fld_issue_date"), issueDate: fmtDate(document.getElementById("inv-new-issue").value || new Date().toISOString().slice(0, 10)),
         dueLabel: t("fld_due_date"), dueDate: fmtDate(document.getElementById("inv-new-due").value),
+        document.getElementById("inv-new-work-subject").value = "";
         documentType: "invoice", country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
         paymentDisplay: document.getElementById("inv-new-payment-label").value,
         items: getLineItemsData(), total: total, currencyCode: document.getElementById("inv-new-currency").value,
@@ -10422,6 +10433,7 @@
       if (!file) return;
       var reader = new FileReader();
       reader.onload = function () { setCompanyAsset("signature", "profacture_company_signature", reader.result); renderInvoicePreview(); showToast("Signature saved"); };
+        workSubject: document.getElementById("inv-new-work-subject").value.trim(),
       reader.readAsDataURL(file);
     });
     document.querySelectorAll("#view-invoice-new .card input, #view-invoice-new .card textarea, #view-invoice-new .card select").forEach(function (field) {
@@ -10467,6 +10479,7 @@
           existing.stamp = getCompanyStamp();
           existing.signature = getCompanySignature();
           existing.design = captureDocumentDesign();
+      var workSubject = document.getElementById("inv-new-work-subject").value.trim();
           existing.issue = issue;
           existing.due = due;
           existing.paymentDisplay = document.getElementById("inv-new-payment-label").value;
@@ -10477,6 +10490,7 @@
           existing.taxMinor = exactTotals.taxMinor;
           existing.payableMinor = exactTotals.totalMinor;
           existing.items = items;
+          existing.workSubject = workSubject;
           existing.currency = currencyCode;
           existing.country = document.getElementById("inv-compliance-country").value || currentDefaultCountry;
           existing.updatedAt = new Date().toISOString();
@@ -10516,6 +10530,7 @@
           items: items,
           currency: currencyCode,
           country: document.getElementById("inv-compliance-country").value || currentDefaultCountry,
+          workSubject: workSubject,
           payments: [], updatedAt: new Date().toISOString()
         });
         showToast(newId + " saved as " + (status === "Draft" ? "draft" : "pending"));
@@ -11020,6 +11035,7 @@
     });
     document.querySelectorAll("#view-quote-new .card input, #view-quote-new .card textarea, #view-quote-new .card select").forEach(function (field) {
       if (field.type === "file") return;
+        workSubject: document.getElementById("q-new-work-subject").value.trim(),
       field.addEventListener("input", renderQuotePreview);
       field.addEventListener("change", renderQuotePreview);
     });
@@ -11062,6 +11078,7 @@
       document.getElementById("q-new-client-address").value = draft.clientAddress || "";
       document.getElementById("q-new-site-address").value = draft.siteAddress || "";
       document.getElementById("q-new-siret").value = draft.siret || "";
+        workSubject: document.getElementById("q-new-work-subject").value,
       document.getElementById("q-new-currency").value = draft.currency || currentCurrency || "USD";
       qLiBody.innerHTML = "";
       (draft.items && draft.items.length ? draft.items : [{ desc: "", qty: 1, price: 0, tax: "none" }]).forEach(function (it) { qAddRow(it.desc, it.qty, it.price, it.tax); });
@@ -11089,6 +11106,7 @@
         document.getElementById("q-new-client").value = editing.clientId || (clientMatch ? clientMatch.id : "");
         document.getElementById("q-new-project").value = editing.projectId || editing.project || "";
         document.getElementById("q-new-type").value = editing.quoteType || "initial";
+      document.getElementById("q-new-work-subject").value = draft.workSubject || "";
         document.getElementById("q-new-issue").value = editing.issue;
         document.getElementById("q-new-valid").value = editing.validUntil;
         document.getElementById("q-new-client-address").value = editing.clientAddress || "";
@@ -11121,6 +11139,7 @@
       var siret = document.getElementById("q-new-siret").value.trim();
       var issue = document.getElementById("q-new-issue").value || new Date().toISOString().slice(0, 10);
       var validUntil = document.getElementById("q-new-valid").value || new Date().toISOString().slice(0, 10);
+        document.getElementById("q-new-work-subject").value = editing.workSubject || "";
       var items = getQuoteLineItemsData();
       var exactTotals = calculateDocumentTotals(items);
       var total = exactTotals.total;
@@ -11131,6 +11150,7 @@
         if (existing) {
           existing.documentNumber = number;
           existing.client = clientDisplayName(client);
+        document.getElementById("q-new-work-subject").value = "";
           existing.clientAddress = clientAddress;
           existing.siteAddress = siteAddress;
           existing.siret = siret;
@@ -11146,6 +11166,7 @@
           existing.logo = getCompanyLogo();
           existing.stamp = getCompanyStamp();
           existing.signature = getCompanySignature();
+      var workSubject = document.getElementById("q-new-work-subject").value.trim();
           existing.design = captureDocumentDesign();
           existing.issue = issue;
           existing.validUntil = validUntil;
@@ -11161,11 +11182,12 @@
           showToast(existing.id + " updated");
         }
         editingQuoteId = null;
+          existing.workSubject = workSubject;
       } else {
         quoteSeq++;
         var newId = nextDocumentId("QUO-", QUOTES);
         QUOTES.push({
-          id: newId, documentNumber: number, client: clientDisplayName(client), clientAddress: clientAddress, siteAddress: siteAddress,
+          id: newId, documentNumber: number, client: clientDisplayName(client), clientAddress: clientAddress, siteAddress: siteAddress, workSubject: workSubject,
           siret: siret, clientContact: client.name, clientVat: client.vat || "", clientEmail: client.email || "", clientPhone: client.phone || "", clientId: client.id,
           projectId: document.getElementById("q-new-project").value, quoteType: document.getElementById("q-new-type").value,
           companyId: wsActiveId, companyProfile: Object.assign({}, currentCompanyProfile()), logo: getCompanyLogo(), stamp: getCompanyStamp(), signature: getCompanySignature(), design: captureDocumentDesign(), issue: issue, validUntil: validUntil, status: status, total: total, subtotal: exactTotals.subtotal, taxTotal: exactTotals.taxTotal, htMinor: exactTotals.subtotalMinor, taxMinor: exactTotals.taxMinor, totalMinor: exactTotals.totalMinor, items: items, currency: currencyCode, updatedAt: new Date().toISOString()
@@ -11236,6 +11258,7 @@
           if (window.profactureSyncWorkspaceCloud) window.profactureSyncWorkspaceCloud(250);
           showToast(quoteToAccept.id + " accepted and locked");
         };
+        workSubject: document.getElementById("q-new-work-subject").value.trim(),
         if (window.profactureAcceptQuote) {
           qAcceptBtn.disabled = true;
           window.profactureAcceptQuote({ companyId: quoteToAccept.companyId || wsActiveId, quoteId: quoteToAccept.id })
@@ -11269,7 +11292,7 @@
         if (quoteToConvert.status !== "Accepted") { showToast("Accept the quote before converting it to an invoice."); return; }
         var convertedInvoice = {
           id: nextDocumentId("INV-", INVOICES), client: quoteToConvert.client, clientAddress: quoteToConvert.clientAddress || "",
-          siteAddress: quoteToConvert.siteAddress || "", siret: quoteToConvert.siret || "", issue: new Date().toISOString().slice(0, 10), due: "",
+          siteAddress: quoteToConvert.siteAddress || "", workSubject: quoteToConvert.workSubject || "", siret: quoteToConvert.siret || "", issue: new Date().toISOString().slice(0, 10), due: "",
           status: "Draft", total: quoteToConvert.total || 0, items: (quoteToConvert.items || []).map(function (item) { return Object.assign({}, item); }),
           currency: quoteToConvert.currency || currentCurrency || "USD", companyId: quoteToConvert.companyId || wsActiveId, projectId: quoteToConvert.projectId || "", invoiceType: "standard", companyProfile: quoteToConvert.companyProfile, logo: quoteToConvert.logo, stamp: quoteToConvert.stamp, signature: quoteToConvert.signature, payments: [], sourceQuoteId: quoteToConvert.id, subtotal: quoteToConvert.subtotal, taxTotal: quoteToConvert.taxTotal, htMinor: quoteToConvert.htMinor, taxMinor: quoteToConvert.taxMinor, payableMinor: quoteToConvert.totalMinor, updatedAt: new Date().toISOString()
         };

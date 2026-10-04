@@ -58,6 +58,16 @@ assert.equal(context.safeDocumentDesign({ primary: 'red;position:absolute', font
 assert.ok(source.includes('design: captureDocumentDesign()'));
 assert.ok(source.includes('design: inv.design || LEGACY_DOCUMENT_DESIGN'));
 assert.ok(source.includes('design: q.design || LEGACY_DOCUMENT_DESIGN'));
+for (const prefix of ['inv', 'q']) {
+  assert.ok(source.includes(`id="${prefix}-new-work-subject"`));
+  assert.ok(source.includes(`document.getElementById("${prefix}-new-work-subject").value = editing.workSubject || ""`));
+}
+assert.ok(source.includes('workSubject: quoteToConvert.workSubject || ""'));
+const subjectHtml = context.buildDocPrintHtml({ documentType: 'invoice', country: 'FR', workSubject: 'Rénovation\n<script>unsafe</script>' });
+assert.ok(subjectHtml.includes('Objet des travaux'));
+assert.ok(subjectHtml.includes('Rénovation<br>&lt;script&gt;unsafe&lt;/script&gt;'));
+assert.ok(!subjectHtml.includes('<script>unsafe</script>'));
+assert.ok(!context.buildDocPrintHtml({ documentType: 'invoice' }).includes('print-doc-subject'));
 context.dsState.primary = '#2563EB';
 assert.equal((source.match(/window\.renderClientFinancials\(c\)/g) || []).length, 1);
 for (const type of ['invoice', 'quote']) {
