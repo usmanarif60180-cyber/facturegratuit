@@ -7780,10 +7780,18 @@
       { id: "c1", name: "Your Business", type: "General business", currency: "USD", country: "United States", isPlaceholder: true },
     ];
     window.COMPANIES = COMPANIES;
-    var wsActiveId = localStorage.getItem("profacture_active_company_id") || "c1";
+    var wsActiveId = "c1";
     window.profactureGetActiveCompanyId = function () { return wsActiveId; };
     window.profactureGetCurrentCurrency = function () { return currentCurrency; };
-    function rememberActiveCompany() { localStorage.setItem("profacture_active_company_id", wsActiveId); }
+    function rememberActiveCompany() {
+      localStorage.setItem("profacture_active_company_id_" + (window.profactureAuthUid || "guest"), wsActiveId);
+    }
+    window.profactureResetCompanyWorkspace = function (uid, previousUid) {
+      COMPANIES.splice(0, COMPANIES.length, { id: "c1", name: "Your Business", type: "General business", currency: "USD", country: "United States", isPlaceholder: true });
+      var scoped = localStorage.getItem("profacture_active_company_id_" + uid);
+      var legacy = previousUid === uid ? localStorage.getItem("profacture_active_company_id") : "";
+      wsActiveId = scoped || legacy || "c1";
+    };
     function managedCompanyWorkspaces() {
       var list = Array.isArray(COMPANIES) ? COMPANIES : [];
       var live = list.filter(function (company) { return company && !company.deletedAt; });
@@ -13173,6 +13181,7 @@
 	};
 	  const protectedViews = new Set(["dashboard", "crm", "leads", "companies", "invoices", "invoice-new", "quotes", "quote-new", "design-studio", "clients", "client-detail", "client-portal", "inventory", "expenses", "projects", "project-detail", "tasks", "calendar", "team", "files", "settings", "profile", "reports", "ai"]);
 	let currentUser = null;
+	let authGeneration = 0;
 	window.profactureAcceptQuote = async payload => {
 	  if (!currentUser) throw new Error("Sign in before accepting a quote.");
 	  const result = await acceptQuoteCallable(payload || {});
@@ -13420,26 +13429,31 @@
 	    const uid = user && user.uid ? user.uid : "guest";
 	    const emailKey = user && user.email ? user.email.toLowerCase() : "";
 	    WORKSPACE_COLLECTIONS.forEach(cfg => {
-	      const target = readGlobalArray(cfg.windowName);
+	      const target = user ? [] : readGlobalArray(cfg.windowName);
 	      const userItems = readLocalCollection(uid, cfg.collection);
 	      const emailItems = emailKey ? readLocalCollection(emailKey, cfg.collection) : [];
-	      const guestItems = uid !== "guest" ? readLocalCollection("guest", cfg.collection) : [];
-	      const merged = mergeWorkspaceArrays(target, mergeWorkspaceArrays(userItems, mergeWorkspaceArrays(emailItems, guestItems)));
-	      if (Array.isArray(window[cfg.windowName]) && (merged.length || target.length || userItems.length || emailItems.length || guestItems.length)) {
+	      const merged = mergeWorkspaceArrays(target, mergeWorkspaceArrays(userItems, emailItems));
+	      if (Array.isArray(window[cfg.windowName])) {
 	        window[cfg.windowName].splice(0, window[cfg.windowName].length, ...merged);
-	        writeLocalCollection(uid, cfg.collection, merged);
-	        if (emailKey) writeLocalCollection(emailKey, cfg.collection, merged);
+	        if (merged.length) {
+	          writeLocalCollection(uid, cfg.collection, merged);
+	          if (emailKey) writeLocalCollection(emailKey, cfg.collection, merged);
+	        }
 	      }
 	    });
 	    if (user && user.uid) {
 	      ["profile", "billing", "payment", "companyProfile"].forEach(name => {
-	        const merged = mergeAccountObject(
-	          mergeAccountObject(readAccountStorageFor(user.uid, name, {}), emailKey ? readAccountStorageFor(emailKey, name, {}) : {}),
-	          readAccountStorageFor("guest", name, {})
-	        );
+	        const merged = mergeAccountObject(readAccountStorageFor(user.uid, name, {}), emailKey ? readAccountStorageFor(emailKey, name, {}) : {});
 	        if (!isEmptyAccountObject(merged)) writeAccountStorageFor(user.uid, name, merged);
 	      });
 	    }
+	  }
+	  function resetWorkspaceForAuth(uid, previousUid) {
+	    WORKSPACE_COLLECTIONS.forEach(cfg => {
+	      if (Array.isArray(window[cfg.windowName])) window[cfg.windowName].splice(0);
+	    });
+	    ["profacture_company_profile", "profacture_company_logo", "profacture_company_stamp", "profacture_company_signature"].forEach(key => localStorage.removeItem(key));
+	    if (typeof window.profactureResetCompanyWorkspace === "function") window.profactureResetCompanyWorkspace(uid, previousUid);
 	  }
 	  function persistWorkspaceLocally(user) {
 	    const uid = user && user.uid ? user.uid : (currentUser && currentUser.uid ? currentUser.uid : "guest");
@@ -13476,11 +13490,12 @@
 	      return false;
 	    }
 	  }
-	  async function loadCloudAccountDoc(user) {
+	  async function loadCloudAccountDoc(user, generation) {
 	    if (!user) return;
 	    setWorkspaceSyncState(navigator.onLine ? "saving" : "offline");
 	    try {
 	      const snap = await getDoc(doc(db, "users", user.uid));
+	      if (generation !== authGeneration) return;
 	      if (snap.exists()) {
 	        const data = snap.data() || {};
 	        ["profile", "billing", "payment", "companyProfile"].forEach(name => {
@@ -13492,12 +13507,10 @@
 	    } catch (error) {
 	      console.warn("Cloud account load skipped:", error && error.code ? error.code : error);
 	    }
-	    const hydrationResults = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => loadCloudCollection(user, cfg.collection, cfg.windowName)));
+	    if (generation !== authGeneration) return;
+	    const hydrationResults = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => loadCloudCollection(user, cfg.collection, cfg.windowName, generation)));
+	    if (generation !== authGeneration) return;
 	    cloudHydratedUid = hydrationResults.every(result => result.status === "fulfilled" && result.value === true) ? user.uid : "";
-	    const today = new Date().toISOString().slice(0, 10);
-	    if (localStorage.getItem(accountStorageKeyFor(user.uid, "last_auto_backup")) !== today) {
-	      workspaceBackupCallable({ operation: "create" }).then(() => localStorage.setItem(accountStorageKeyFor(user.uid, "last_auto_backup"), today)).catch(() => {});
-	    }
 	    if (typeof window.profactureEnsureActiveCompany === "function") window.profactureEnsureActiveCompany();
 	    persistWorkspaceLocally(user);
 	    setWorkspaceSyncState(navigator.onLine ? "saved" : "offline");
@@ -13507,14 +13520,11 @@
 	    return Array.isArray(value) ? value : [];
 	  }
 	  function cleanCloudValue(value, depth = 0) {
-	    if (depth > 8) return null;
+	    if (depth > 20) throw new Error("Cloud record nesting is too deep to sync safely.");
 	    if (value === undefined || typeof value === "function") return null;
-	    if (typeof value === "string") {
-		      if (/^data:image\//i.test(value) && value.length > 300000) return "";
-	      return value;
-	    }
+	    if (typeof value === "string") return value;
 	    if (value === null || typeof value !== "object") return value;
-	    if (Array.isArray(value)) return value.slice(0, 200).map(item => cleanCloudValue(item, depth + 1)).filter(item => item !== null);
+	    if (Array.isArray(value)) return value.map(item => cleanCloudValue(item, depth + 1));
 	    const out = {};
 	    Object.keys(value).forEach(key => {
 	      const clean = cleanCloudValue(value[key], depth + 1);
@@ -13604,10 +13614,11 @@
 	    if (value && typeof value === "object") return "{" + Object.keys(value).filter(key => key !== "updatedAtClient").sort().map(key => JSON.stringify(key) + ":" + recordFingerprint(value[key])).join(",") + "}";
 	    return JSON.stringify(value);
 	  }
-	  async function loadCloudCollection(user, collectionName, windowName) {
+	  async function loadCloudCollection(user, collectionName, windowName, generation) {
 	    const target = readGlobalArray(windowName);
 	    try {
 	      const cloudDocs = await readAllCloudDocs(user, collectionName);
+	      if (generation !== authGeneration) return false;
 	      cloudDocs.forEach(entry => cloudRecordBaselines.set(user.uid + "/" + collectionName + "/" + entry.id, recordFingerprint(entry.data)));
 	      const tombstones = new Set(readCloudTombstones(user.uid, collectionName));
 	      const items = cloudDocs.filter(entry => !tombstones.has(entry.id)).map(entry => entry.data).filter(Boolean);
@@ -13672,18 +13683,29 @@
 	  let workspaceSyncRequestedAgain = false;
 	  async function runWorkspaceSync() {
 	    if (!currentUser) return false;
+	    const syncUser = currentUser;
+	    const generation = authGeneration;
 	    if (!navigator.onLine) { setWorkspaceSyncState("offline"); return false; }
 	    setWorkspaceSyncState("saving");
-	    persistWorkspaceLocally(currentUser);
+	    persistWorkspaceLocally(syncUser);
 	    const accountSaved = await syncAccountDoc({
 	      storageVersion: "2026.08-cloud-subcollections",
 	      companyProfile: collectCompanyProfileBundle()
 	    });
+	    if (generation !== authGeneration) return false;
 	    const results = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => syncCollectionSnapshot(cfg.collection, cfg.windowName)));
+	    if (generation !== authGeneration) return false;
 	    const ok = accountSaved && results.every(result => result.status === "fulfilled");
 	    const failure = results.find(result => result.status === "rejected");
 	    document.getElementById("workspace-sync-error").textContent = ok ? "" : (failure && failure.reason && failure.reason.message) || "Cloud save failed. Keep this page open, export a backup and retry.";
 	    setWorkspaceSyncState(ok ? "saved" : "error");
+	    if (ok && cloudHydratedUid === syncUser.uid) {
+	      const today = new Date().toISOString().slice(0, 10);
+	      const backupKey = accountStorageKeyFor(syncUser.uid, "last_auto_backup");
+	      if (localStorage.getItem(backupKey) !== today) {
+	        workspaceBackupCallable({ operation: "create" }).then(() => localStorage.setItem(backupKey, today)).catch(() => {});
+	      }
+	    }
 	    return ok;
 	  }
 	  async function syncWorkspaceSnapshot() {
@@ -13721,13 +13743,21 @@
 	    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 	  }
 	  function restoreWorkspaceBackup(payload) {
+	    if (!currentUser) throw new Error("Sign in before importing a workspace backup.");
 	    if (!payload || payload.version !== 1 || !payload.collections) throw new Error("Invalid ProFacture backup file.");
 	    WORKSPACE_COLLECTIONS.forEach(cfg => {
 	      const items = payload.collections[cfg.collection];
-	      if (Array.isArray(items) && Array.isArray(window[cfg.windowName])) window[cfg.windowName].splice(0, window[cfg.windowName].length, ...items.slice(0, 5000));
+	      if (items !== undefined && (!Array.isArray(items) || items.some(item => !item || typeof item !== "object" || Array.isArray(item)))) throw new Error("Invalid backup collection: " + cfg.collection);
 	    });
-	    restoreCompanyProfileBundle(payload.companyProfile || {});
-	    WORKSPACE_COLLECTIONS.forEach(cfg => localStorage.removeItem(cloudTombstoneKey(currentUser.uid, cfg.collection)));
+	    WORKSPACE_COLLECTIONS.forEach(cfg => {
+	      const items = payload.collections[cfg.collection];
+	      if (!Array.isArray(items) || !Array.isArray(window[cfg.windowName])) return;
+	      const merged = mergeWorkspaceArrays(readGlobalArray(cfg.windowName), items);
+	      window[cfg.windowName].splice(0, window[cfg.windowName].length, ...merged);
+	      const restoredIds = new Set(items.map((item, index) => cloudDocId(item, index)));
+	      localStorage.setItem(cloudTombstoneKey(currentUser.uid, cfg.collection), JSON.stringify(readCloudTombstones(currentUser.uid, cfg.collection).filter(id => !restoredIds.has(id))));
+	    });
+	    restoreCompanyProfileBundle(mergeAccountObject(collectCompanyProfileBundle(), payload.companyProfile || {}));
 	    persistWorkspaceLocally(currentUser);
 	    scheduleWorkspaceCloudSync(0);
 	    refreshActiveWorkspaceView();
@@ -14324,6 +14354,15 @@
   }, true);
 
   onAuthStateChanged(auth, async user => {
+    const previousUid = currentUser?.uid || localStorage.getItem("profacture_last_auth_uid") || "guest";
+    const nextUid = user?.uid || "guest";
+    const generation = ++authGeneration;
+    clearTimeout(workspaceCloudSyncTimer);
+    cloudHydratedUid = "";
+    if (previousUid !== nextUid) resetWorkspaceForAuth(nextUid, previousUid);
+    else if (!currentUser && typeof window.profactureResetCompanyWorkspace === "function") window.profactureResetCompanyWorkspace(nextUid, previousUid);
+    window.profactureAuthUid = nextUid;
+    localStorage.setItem("profacture_last_auth_uid", nextUid);
     currentUser = user;
 	    const reviewNameInput = document.getElementById("review-public-name");
 	    const reviewSubmitButton = document.getElementById("review-submit");
@@ -14332,7 +14371,8 @@
 	    setWorkspaceSyncState(user ? (navigator.onLine ? "saving" : "offline") : "offline");
 	    if (user) {
 	      hydrateWorkspaceFromLocal(user);
-	      await loadCloudAccountDoc(user);
+	      await loadCloudAccountDoc(user, generation);
+	      if (generation !== authGeneration) return;
 	      refreshActiveWorkspaceView();
 	    } else {
 	      hydrateWorkspaceFromLocal(null);
@@ -14342,7 +14382,7 @@
 	    renderAuthAvatars(user);
 	    renderAccountProfile();
 	    document.querySelectorAll("[data-auth-logout]").forEach(el => { el.hidden = !user; });
-	    if (user) scheduleWorkspaceCloudSync(1800);
+	    if (user && generation === authGeneration) scheduleWorkspaceCloudSync(1800);
     const activeView = document.querySelector(".view.active");
     if (!user && activeView && protectedViews.has(activeView.id.replace("view-", ""))) window.profactureShowView("login");
   });

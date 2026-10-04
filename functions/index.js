@@ -892,22 +892,41 @@ exports.workspaceBackup = onCall({ timeoutSeconds: 60, memory: '256MiB', enforce
   const backups = db.collection(`users/${auth.uid}/backups`);
   if (operation === 'list') {
     const snap = await backups.orderBy('createdAt', 'desc').limit(7).get();
-    return { backups: snap.docs.map(doc => ({ id: doc.id, createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || '' })) };
+    return { backups: snap.docs.filter(doc => doc.data().status !== 'writing').map(doc => ({ id: doc.id, createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || '' })) };
   }
   if (operation === 'load') {
     const id = cleanAiText(request.data?.backupId, 32);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(id)) throw new HttpsError('invalid-argument', 'Sauvegarde invalide.');
     const snap = await backups.doc(id).get();
-    if (!snap.exists) throw new HttpsError('not-found', 'Sauvegarde introuvable.');
+    if (!snap.exists || snap.data().status === 'writing') throw new HttpsError('not-found', 'Sauvegarde introuvable.');
     const [compressed] = await admin.storage().bucket().file(`users/${auth.uid}/backups/${id}.json.gz`).download();
     return { backup: JSON.parse(zlib.gunzipSync(compressed).toString('utf8')) };
   }
   const id = new Date().toISOString().slice(0, 10);
-  const payload = await readUserBackupData(auth.uid);
-  const compressed = zlib.gzipSync(Buffer.from(JSON.stringify(payload)));
-  if (compressed.length > 20 * 1024 * 1024) throw new HttpsError('resource-exhausted', 'La sauvegarde compressée dépasse 20 Mo.');
-  await admin.storage().bucket().file(`users/${auth.uid}/backups/${id}.json.gz`).save(compressed, { resumable: false, metadata: { contentType: 'application/gzip', metadata: { owner: auth.uid, kind: 'workspace-backup' } } });
-  await backups.doc(id).set({ size: compressed.length, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+  const backupRef = backups.doc(id);
+  const existing = await backupRef.get();
+  if (existing.exists) {
+    if (existing.data().status === 'writing') throw new HttpsError('unavailable', 'Sauvegarde en cours. Réessayez bientôt.');
+    return { id, created: false };
+  }
+  try {
+    await backupRef.create({ status: 'writing', createdAt: admin.firestore.FieldValue.serverTimestamp() });
+  } catch (error) {
+    if (error.code === 6 || error.code === 'already-exists') throw new HttpsError('unavailable', 'Sauvegarde en cours. Réessayez bientôt.');
+    throw error;
+  }
+  let backupFileSaved = false;
+  try {
+    const payload = await readUserBackupData(auth.uid);
+    const compressed = zlib.gzipSync(Buffer.from(JSON.stringify(payload)));
+    if (compressed.length > 20 * 1024 * 1024) throw new HttpsError('resource-exhausted', 'La sauvegarde compressée dépasse 20 Mo.');
+    await admin.storage().bucket().file(`users/${auth.uid}/backups/${id}.json.gz`).save(compressed, { resumable: false, metadata: { contentType: 'application/gzip', metadata: { owner: auth.uid, kind: 'workspace-backup' } } });
+    backupFileSaved = true;
+    await backupRef.update({ size: compressed.length, status: 'ready' });
+  } catch (error) {
+    if (!backupFileSaved) await backupRef.delete();
+    throw error;
+  }
   const old = await backups.orderBy('createdAt', 'desc').offset(7).limit(30).get();
   if (!old.empty) {
     const batch = db.batch();
