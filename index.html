@@ -6823,14 +6823,13 @@
         appendAiAction(chat, response.action);
         renderAiActivity(aiConversation);
       } catch (error) {
-        var fallback = aiFindReply(text);
         var code = String(error && (error.code || error.message) || "");
         var errorText = code.indexOf("SIGN_IN_REQUIRED") !== -1 || code.indexOf("unauthenticated") !== -1 ? "Connectez-vous pour utiliser ProFacture AI."
           : code.indexOf("resource-exhausted") !== -1 ? "La limite IA est atteinte pour le moment. Vos données restent enregistrées; réessayez plus tard."
           : code.indexOf("already-exists") !== -1 ? "Cette demande est déjà en cours."
           : code.indexOf("failed-precondition") !== -1 ? "L'assistant est en configuration. Réessayez bientôt."
           : "L'assistant est temporairement indisponible. Vos données et vos brouillons restent enregistrés.";
-        typing.textContent = fallback ? fallback.replace(/<br>/g, "\n").replace(/<[^>]+>/g, "") : errorText;
+        typing.textContent = errorText;
       } finally {
         button.disabled = false;
         button.removeAttribute("aria-busy");
@@ -6914,6 +6913,7 @@
         clearTimeout(timer);
       }
     }
+    window.profactureRefreshAiUsage = loadAiUsagePanel;
     function automationRules() {
       var workspace = aiActiveWorkspace();
       if (!Array.isArray(workspace.automationRules)) workspace.automationRules = AI_AUTOMATION_DEFAULTS.map(function (rule) { return Object.assign({}, rule); });
@@ -14381,6 +14381,7 @@
 	    if (window.profactureRefreshAccountMenus) window.profactureRefreshAccountMenus(!!user);
 	    renderAuthAvatars(user);
 	    renderAccountProfile();
+	    if (document.getElementById("view-ai")?.classList.contains("active") && window.profactureRefreshAiUsage) window.profactureRefreshAiUsage();
 	    document.querySelectorAll("[data-auth-logout]").forEach(el => { el.hidden = !user; });
 	    if (user && generation === authGeneration) scheduleWorkspaceCloudSync(1800);
     const activeView = document.querySelector(".view.active");
