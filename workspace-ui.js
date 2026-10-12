@@ -1,8 +1,8 @@
 (function () {
   const groups = [
-    ['Vue d’ensemble', ['dashboard', 'ai', 'reports']],
+    ['Mon espace', ['dashboard', 'ai', 'reports']],
     ['Facturation', ['invoices', 'quotes', 'clients', 'companies', 'design-studio']],
-    ['Gestion', ['crm', 'leads', 'projects', 'tasks', 'calendar', 'inventory', 'expenses', 'team', 'files']],
+    ['Gestion', ['crm', 'leads', 'projects', 'tasks', 'calendar', 'inventory', 'expenses', 'team', 'files', 'settings']],
     ['Ressources', ['tools', 'resources', 'country']]
   ];
   function closeMenus() {
@@ -67,5 +67,13 @@
     if (event.key === 'Escape') closeMenus();
   });
   polish();
-  new MutationObserver(polish).observe(document.body, { childList: true, subtree: true });
+  let polishQueued = false;
+  new MutationObserver(() => {
+    if (polishQueued) return;
+    polishQueued = true;
+    requestAnimationFrame(() => {
+      polishQueued = false;
+      polish();
+    });
+  }).observe(document.body, { childList: true, subtree: true });
 })();

@@ -122,7 +122,7 @@ service cloud.firestore {
 
     match /companies/{companyId} {
       allow read: if isActiveMember(companyId);
-      allow create: if signedIn();
+      allow create: if false; // createCompany callable creates owner membership atomically
       allow update: if hasMinRole(companyId, 'admin');
       allow delete: if hasMinRole(companyId, 'owner');
 

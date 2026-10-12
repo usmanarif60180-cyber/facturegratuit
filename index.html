@@ -2320,6 +2320,7 @@
     { id: "files", i18nKey: "nav_files", ic: "🗂️" },
     { id: "reports", i18nKey: "nav_reports", ic: "📊" },
     { id: "ai", i18nKey: "nav_ai", ic: "✨" },
+    { id: "settings", i18nKey: "nav_settings", ic: "⚙" },
   ];
   function renderSidebar(active) {
     var nav = APP_NAV.map(function (item) {
@@ -2328,9 +2329,8 @@
 	    return (
 	      '<aside class="app-sidebar"><div class="logo"><span class="logo-mark">PA</span>ProFacture AI</div>' +
 	      '<nav class="app-nav">' + nav + "</nav>" +
-	      '<div class="app-nav-footer">' +
+	      '<div class="app-nav-footer"><div class="nav-group">Mon compte</div>' +
 	      '<a href="#" data-goto="profile" class="' + (active === "profile" ? "current" : "") + '">👤 ' + t("nav_profile") + "</a>" +
-	      '<a href="#" data-goto="settings" class="' + (active === "settings" ? "current" : "") + '">⚙ ' + t("nav_settings") + "</a>" +
 	      '<button type="button" data-auth-logout hidden>↪ ' + t("topbar_signout") + "</button>" +
 	      "</div></aside>"
 	    );
@@ -5096,6 +5096,7 @@
       <div id="topbar-team"></div>
       <div class="app-content">
         <div class="page-head"><div><h2 data-i18n="page_team_title">Team</h2><p data-i18n="page_team_sub">Manage members, invitations and role-based permissions.</p></div></div>
+        <p class="callout" role="status">Collaboration setup is not connected to this workspace yet. Invitations and role changes are unavailable until shared-company data is connected. Your existing business records remain private to your account.</p>
 
         <div class="ds-tabs" id="team-tabs">
           <button class="on" data-team-tab="members" data-i18n="tab_members">Members</button>
@@ -5116,7 +5117,7 @@
             <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:0.7rem;align-items:end;">
               <div><label class="field-label" data-i18n="fld_email_address">Email address</label><input class="field" id="invite-email" placeholder="name@company.com" type="email" /></div>
               <div><label class="field-label" data-i18n="th_role">Role</label><select class="field" id="invite-role"></select></div>
-              <button class="btn btn-primary" id="invite-send-btn" data-i18n="btn_send_invite">Send invite</button>
+              <button class="btn btn-primary" id="invite-send-btn" disabled title="Shared-company setup required" data-i18n="btn_send_invite">Send invite</button>
             </div>
           </div>
           <div class="table-wrap"><table class="data-table" id="team-invites-table">
@@ -5126,13 +5127,8 @@
         </div>
 
         <div class="ds-panel" id="team-panel-roles">
-          <p style="font-size:0.85rem;color:hsl(var(--muted-fg));margin-bottom:0.9rem;" data-i18n="txt_toggle_module_access">Toggle module access per role. Owner always has full access.</p>
+          <p style="font-size:0.85rem;color:hsl(var(--muted-fg));margin-bottom:0.9rem;">Role reference only. Module permissions cannot be edited until they are enforced by the shared-company backend.</p>
           <div class="table-wrap"><table class="data-table" id="perm-matrix-table"></table></div>
-          <div class="card card-pad" style="margin-top:1.1rem;">
-            <div class="card-title">🧭 <span data-i18n="card_future_architecture">Future-ready architecture</span></div>
-            <p style="font-size:0.85rem;color:hsl(var(--muted-fg));margin-bottom:0.8rem;" data-i18n="txt_permission_model_note">This permission model is scoped per module, so new modules slot into the same matrix as they ship.</p>
-            <div class="feature-grid" id="roadmap-grid" style="padding:0;grid-template-columns:repeat(4,1fr);"></div>
-          </div>
         </div>
       </div>
     </div>
@@ -8463,12 +8459,11 @@
     function clientDisplayName(client) { return client && client.company && client.company !== "—" ? client.company : (client ? client.name : "—"); }
     function belongsToActiveCompany(item) {
       if (!item) return false;
-      if (!item.companyId) {
-        var savedName = item.companyProfile && item.companyProfile.name ? String(item.companyProfile.name).trim().toLowerCase() : "";
-        var matched = savedName ? managedCompanyWorkspaces().filter(function (company) { return String(company.name || "").trim().toLowerCase() === savedName; })[0] : null;
-        item.companyId = matched ? matched.id : wsActiveId;
-      }
-      return item.companyId === wsActiveId;
+      if (item.companyId) return item.companyId === wsActiveId;
+      var savedName = item.companyProfile && item.companyProfile.name ? String(item.companyProfile.name).trim().toLowerCase() : "";
+      var matches = savedName ? managedCompanyWorkspaces().filter(function (company) { return String(company.name || "").trim().toLowerCase() === savedName; }) : [];
+      if (matches.length === 1) return matches[0].id === wsActiveId;
+      return managedCompanyWorkspaces().length === 1 && managedCompanyWorkspaces()[0].id === wsActiveId;
     }
     function activeCompanyItems(items) { return (Array.isArray(items) ? items : []).filter(belongsToActiveCompany); }
     function renderCompanyScopedViews() {
@@ -10626,7 +10621,7 @@
         });
         return matches;
       }, []);
-      return inv.payments.concat(allocated);
+      return inv.payments.filter(function (payment) { return payment && !payment.voided && payment.status !== "Cancelled"; }).concat(allocated);
     }
     function invoicePaidTotal(inv) {
       var paidMinor = invoicePayments(inv).reduce(function (sum, payment) {
@@ -11641,6 +11636,7 @@
         amountHT: window.ProFactureFinancial.fromMinor(htMinor),
         taxAmount: window.ProFactureFinancial.fromMinor(taxMinor),
         amountTTC: window.ProFactureFinancial.fromMinor(ttcMinor),
+        currency: currentCurrency,
         htMinor: htMinor, taxMinor: taxMinor, amountMinor: ttcMinor,
         approval: "Pending",
         recurring: document.getElementById("ae-recurring").checked,
@@ -11997,15 +11993,25 @@
       var dashboardQuotes = activeCompanyItems(QUOTES);
       var dashboardClients = activeCompanyItems(CLIENTS);
       var dashboardExpenses = activeCompanyItems(EXPENSES);
-      var revenue = 0, outstanding = 0, expensesTotal = 0;
+      var revenue = 0, received = 0, outstanding = 0, expensesHt = 0, expensesTtc = 0;
       dashboardInvoices.forEach(function (inv) {
-        var paid = invoicePaidTotal(inv);
-        revenue += paid;
-        outstanding += Math.max(0, inv.total - paid);
+        if ((inv.currency || currentCurrency) !== currentCurrency || ["Draft", "Cancelled", "Refunded"].indexOf(inv.status) !== -1) return;
+        var ht = Number.isSafeInteger(inv.htMinor) ? window.ProFactureFinancial.fromMinor(inv.htMinor) : (Number(inv.subtotal) || Number(inv.total) || 0);
+        revenue += ["avoir", "credit note", "credit_note"].indexOf(String(inv.invoiceType || inv.type || "").toLowerCase()) !== -1 ? -Math.abs(ht) : ht;
+        received += invoicePaidTotal(inv);
+        outstanding += Math.max(0, invoiceBalance(inv));
       });
-      dashboardExpenses.forEach(function (e) { expensesTotal += e.amount; });
-      var profit = revenue - expensesTotal;
-      var stats = [revenue, profit, expensesTotal, profit, outstanding, dashboardInvoices.length, dashboardQuotes.length, dashboardClients.length];
+      dashboardExpenses.forEach(function (e) {
+        if ((e.currency || currentCurrency) !== currentCurrency) return;
+        expensesHt += Number.isFinite(Number(e.amountHT)) ? Number(e.amountHT) : Number(e.amount) || 0;
+        expensesTtc += Number(e.amountTTC) || Number(e.amount) || 0;
+      });
+      var profit = revenue - expensesHt;
+      var stats = [revenue, profit, expensesHt, received - expensesTtc, outstanding, dashboardInvoices.length, dashboardQuotes.length, dashboardClients.length];
+      ["Issued revenue, excluding tax", "Gross margin after recorded expenses, excluding tax", "Recorded expenses, excluding tax", "Payments received less recorded expenses, including tax", "Unpaid issued invoices, including tax"].forEach(function (label, index) {
+        var card = grid.querySelectorAll(".stat-card")[index];
+        if (card) card.title = label + " (" + currentCurrency + ")";
+      });
       vals.forEach(function (el, i) {
         el.setAttribute("data-count", String(Math.round(stats[i])));
         if (i < 5) {
@@ -12021,7 +12027,9 @@
       });
     }
     function renderDashboardWidgets() {
-      var dashboardInvoices = activeCompanyItems(INVOICES);
+      var dashboardInvoices = activeCompanyItems(INVOICES).filter(function (inv) {
+        return (inv.currency || currentCurrency) === currentCurrency && ["Draft", "Cancelled", "Refunded"].indexOf(inv.status) === -1;
+      });
       var dashboardQuotes = activeCompanyItems(QUOTES);
       var dashboardClients = activeCompanyItems(CLIENTS);
       var dashboardProducts = activeCompanyItems(PRODUCTS);
@@ -12560,10 +12568,8 @@
     if (taskAddBtnEl) taskAddBtnEl.addEventListener("click", atOpen);
 
     // ---- Team Management + Roles & Permissions ----
-    var ROLE_LIST = ["Owner", "Admin", "Manager", "Accountant", "Sales", "Employee", "Viewer"];
-    var TEAM_MEMBERS = [
-      { id: "m1", name: "You", email: "you@yourcompany.com", role: "Owner", status: "Active" },
-    ];
+    var ROLE_LIST = ["Owner", "Admin", "Manager", "Accountant", "Employee", "Viewer"];
+    var TEAM_MEMBERS = [];
     var PENDING_INVITES = [];
     var MODULE_LIST = ["Dashboard", "Invoices", "Quotes", "Clients", "CRM", "Inventory", "Expenses", "Reports", "Settings", "Company Profiles"];
     var PERMISSIONS = {};
@@ -12574,7 +12580,6 @@
         if (role === "Owner" || role === "Admin") val = true;
         else if (role === "Manager") val = mod !== "Settings" && mod !== "Company Profiles";
         else if (role === "Accountant") val = ["Dashboard", "Invoices", "Expenses", "Reports"].indexOf(mod) !== -1;
-        else if (role === "Sales") val = ["Dashboard", "Quotes", "Clients", "CRM"].indexOf(mod) !== -1;
         else if (role === "Employee") val = mod === "Dashboard";
         else val = mod === "Dashboard";
         PERMISSIONS[mod][role] = val;
@@ -12587,18 +12592,18 @@
         var statusCls = m.status === "Active" ? "badge-success" : m.status === "Suspended" ? "badge-danger" : "badge-default";
         var roleOptions = ROLE_LIST.map(function (r) { return "<option" + (r === m.role ? " selected" : "") + ">" + r + "</option>"; }).join("");
         return (
-          '<tr><td style="font-weight:700;">' + m.name + "</td><td>" + m.email + "</td>" +
+          '<tr><td style="font-weight:700;">' + escapeHtml(m.name) + "</td><td>" + escapeHtml(m.email) + "</td>" +
           '<td><select class="field" style="height:2rem;width:9.5rem;" data-member-role="' + m.id + '"' + (m.role === "Owner" ? " disabled" : "") + ">" + roleOptions + "</select></td>" +
           '<td><span class="badge ' + statusCls + '">' + m.status + "</span></td></tr>"
         );
-      }).join("");
+      }).join("") || '<tr><td colspan="4" class="widget-empty" style="text-align:center;padding:2rem;">No shared team is connected to this workspace.</td></tr>';
     }
     function renderInvites() {
       var tbody = document.querySelector("#team-invites-table tbody");
       if (!tbody) return;
       tbody.innerHTML = PENDING_INVITES.length ? PENDING_INVITES.map(function (inv, i) {
         return (
-          "<tr><td>" + inv.email + '</td><td><span class="badge badge-default">' + inv.role + "</span></td><td>" + inv.sent + '</td><td><span class="badge badge-warning">' + inv.status + "</span></td>" +
+          "<tr><td>" + escapeHtml(inv.email) + '</td><td><span class="badge badge-default">' + escapeHtml(inv.role) + "</span></td><td>" + escapeHtml(inv.sent) + '</td><td><span class="badge badge-warning">' + escapeHtml(inv.status) + "</span></td>" +
           '<td><button class="btn btn-ghost btn-sm" data-revoke-invite="' + i + '">Revoke</button></td></tr>'
         );
       }).join("") : '<tr><td colspan="5" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No pending invitations.</td></tr>';
@@ -12616,22 +12621,10 @@
         return "<tr><td style=\"font-weight:700;\">" + mod + "</td>" + ROLE_LIST.map(function (role) {
           var locked = role === "Owner";
           var checked = PERMISSIONS[mod][role];
-          return '<td style="text-align:center;"><input type="checkbox" ' + (checked ? "checked" : "") + (locked ? " disabled" : "") + ' data-perm-module="' + mod + '" data-perm-role="' + role + '" style="width:1.05rem;height:1.05rem;" /></td>';
+          return '<td style="text-align:center;"><input type="checkbox" ' + (checked ? "checked" : "") + ' disabled data-perm-module="' + mod + '" data-perm-role="' + role + '" style="width:1.05rem;height:1.05rem;" /></td>';
         }).join("") + "</tr>";
       }).join("") + "</tbody>";
       table.innerHTML = thead + tbody;
-    }
-    function renderRoadmapGrid() {
-      var grid = document.getElementById("roadmap-grid");
-      if (!grid) return;
-      var items = [
-        { ic: "📁", t: "Projects" }, { ic: "🤖", t: "CRM Automation" }, { ic: "💰", t: "Payroll" }, { ic: "🧑‍💼", t: "HR" },
-        { ic: "🌐", t: "Client Portal" }, { ic: "🚚", t: "Vendor Portal" }, { ic: "📝", t: "Purchase Orders" }, { ic: "🏭", t: "Warehouse" },
-        { ic: "⚙️", t: "Manufacturing" }, { ic: "🔌", t: "Public API" }, { ic: "🛒", t: "Marketplace" }, { ic: "🔗", t: "Integrations" },
-      ];
-      grid.innerHTML = items.map(function (i) {
-        return '<div class="card feature-card" style="padding:1rem;"><div class="feature-icon" style="margin-bottom:0.5rem;">' + i.ic + '</div><h3 style="font-size:0.85rem;">' + i.t + ' <span class="badge badge-default">Soon</span></h3></div>';
-      }).join("");
     }
     var teamInitDone = false;
     function renderTeamInit() {
@@ -12641,7 +12634,6 @@
       renderInvites();
       populateInviteRoleSelect();
       renderPermMatrix();
-      renderRoadmapGrid();
     }
     var teamTabsEl = document.getElementById("team-tabs");
     if (teamTabsEl) teamTabsEl.addEventListener("click", function (e) {
@@ -12653,13 +12645,9 @@
     });
     document.body.addEventListener("change", function (e) {
       var sel = e.target.closest("[data-member-role]");
-      if (sel) {
-        var m = TEAM_MEMBERS.filter(function (x) { return x.id === sel.getAttribute("data-member-role"); })[0];
-        if (m) { m.role = sel.value; showToast(m.name + "'s role changed to " + m.role); }
-        return;
-      }
+      if (sel) return;
       var chk = e.target.closest("[data-perm-module]");
-      if (chk) PERMISSIONS[chk.getAttribute("data-perm-module")][chk.getAttribute("data-perm-role")] = chk.checked;
+      if (chk) chk.checked = PERMISSIONS[chk.getAttribute("data-perm-module")][chk.getAttribute("data-perm-role")];
     });
     document.body.addEventListener("click", function (e) {
       var revoke = e.target.closest("[data-revoke-invite]");
@@ -12671,17 +12659,7 @@
       showToast("Invitation to " + inv.email + " revoked");
     });
     var inviteSendBtnEl = document.getElementById("invite-send-btn");
-    if (inviteSendBtnEl) inviteSendBtnEl.addEventListener("click", function () {
-      var emailEl = document.getElementById("invite-email");
-      var roleEl = document.getElementById("invite-role");
-      var email = emailEl.value.trim();
-      if (!email || email.indexOf("@") === -1) { emailEl.focus(); return; }
-      PENDING_INVITES.push({ email: email, role: roleEl.value, sent: new Date().toLocaleDateString("en", { month: "short", day: "2-digit", year: "numeric" }), status: "Pending" });
-      emailEl.value = "";
-      renderInvites();
-      showToast("Invitation sent to " + email);
-      playSound("success");
-    });
+    if (inviteSendBtnEl) inviteSendBtnEl.disabled = true;
 
     // ---- File Manager ----
     var FILE_FOLDERS = ["All", "Invoices", "Quotes", "Contracts", "Receipts", "Documents"];
