@@ -26,7 +26,7 @@ const ROLES = ['viewer', 'employee', 'accountant', 'manager', 'admin', 'owner'];
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const SITE_URL = 'https://facturergratuit.com';
 const AI_API_KEY = defineSecret('PROFACTURE_AI_API_KEY');
-const AI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
+const AI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'];
 const AI_LIMITS = Object.freeze({
   perMinute: 5,
   perDay: 30,
@@ -49,6 +49,19 @@ const AI_PRICING_PER_MILLION = Object.freeze({
   'gemini-2.5-flash-lite': { input: 0.10, output: 0.40 },
   'gemini-2.5-flash': { input: 0.30, output: 2.50 }
 });
+const AI_TRANSIENT_RETRIES = 2;
+const AI_RETRY_BASE_DELAY_MS = 500;
+
+async function fetchAiWithRetry(url, options) {
+  let response;
+  for (let attempt = 0; attempt <= AI_TRANSIENT_RETRIES; attempt++) {
+    response = await fetch(url, options);
+    if (response.status !== 503 || attempt === AI_TRANSIENT_RETRIES) return response;
+    const jitter = Math.floor(Math.random() * AI_RETRY_BASE_DELAY_MS);
+    await new Promise((resolve) => setTimeout(resolve, AI_RETRY_BASE_DELAY_MS * (2 ** attempt) + jitter));
+  }
+  return response;
+}
 const AI_NAV_DESTINATIONS = new Set(['dashboard', 'invoices', 'invoice-new', 'quotes', 'quote-new', 'clients', 'companies', 'inventory', 'expenses', 'projects', 'tasks', 'calendar', 'team', 'files', 'reports', 'settings']);
 const AI_CURRENCIES = new Set(['EUR', 'USD', 'GBP', 'CHF', 'CAD', 'AUD', 'NZD', 'JPY', 'CNY', 'INR', 'PKR', 'AED', 'SAR', 'MAD', 'DZD', 'TND', 'TRY', 'BRL', 'MXN', 'ZAR', 'SEK', 'NOK', 'DKK', 'PLN']);
 const AI_TAX_CODES = new Set(['none', 'vat20', 'vat10', 'vat55', 'vat21', 'gst10', 'sales8']);
@@ -549,7 +562,7 @@ exports.aiAssistant = onCall({ secrets: [AI_API_KEY], invoker: 'public', timeout
   try {
     const runtimeModels = [budget.runtime.model].concat(AI_MODELS.filter((model) => model !== budget.runtime.model));
     for (const model of runtimeModels) {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      const response = await fetchAiWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
@@ -561,7 +574,7 @@ exports.aiAssistant = onCall({ secrets: [AI_API_KEY], invoker: 'public', timeout
       if (!response.ok) {
         upstreamStatus = response.status;
         lastError = new Error(`AI upstream ${response.status}`);
-        if (response.status === 404) continue;
+        if (response.status === 404 || response.status === 429 || response.status >= 500) continue;
         break;
       }
       const payload = await response.json();
@@ -604,7 +617,7 @@ exports.aiDocumentScan = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, mem
   try {
     const runtimeModels = [budget.runtime.model].concat(AI_MODELS.filter((model) => model !== budget.runtime.model));
     for (const model of runtimeModels) {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      const response = await fetchAiWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
@@ -618,7 +631,7 @@ exports.aiDocumentScan = onCall({ secrets: [AI_API_KEY], timeoutSeconds: 45, mem
       if (!response.ok) {
         upstreamStatus = response.status;
         lastError = new Error(`OCR upstream ${response.status}`);
-        if (response.status === 404) continue;
+        if (response.status === 404 || response.status === 429 || response.status >= 500) continue;
         break;
       }
       const payload = await response.json();

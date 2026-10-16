@@ -6,7 +6,7 @@ const backend = fs.readFileSync(new URL('../functions/index.js', import.meta.url
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const models = vm.runInNewContext(backend.slice(backend.indexOf('const AI_MODELS ='), backend.indexOf('const AI_LIMITS =')) + '; AI_MODELS');
 const prices = vm.runInNewContext(backend.slice(backend.indexOf('const AI_PRICING_PER_MILLION ='), backend.indexOf('const AI_NAV_DESTINATIONS =')) + '; AI_PRICING_PER_MILLION');
-assert.deepEqual(Array.from(models), ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']);
+assert.deepEqual(Array.from(models), ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite']);
 assert(prices['gemini-3.1-flash-lite'].output > 0);
 assert(!html.slice(html.indexOf('async function sendAiMessage('), html.indexOf('var AI_AUTOMATION_DEFAULTS')).includes('fallback ? fallback.replace'));
 
@@ -25,6 +25,7 @@ const sandbox = {
   normalizeAiAction: action => action,
   finishAiRequest: async () => {}, saveAiConversation: async () => {},
   failAiRequest: async () => { failed++; },
+  setTimeout: callback => { callback(); return 0; },
   HttpsError: class extends Error { constructor(code, message) { super(message); this.code = code; } },
   fetch: async (url, options) => {
     calls.push({ url, body: JSON.parse(options.body) });
@@ -36,6 +37,7 @@ const sandbox = {
   console: { error() {} }
 };
 vm.createContext(sandbox);
+vm.runInContext(backend.slice(backend.indexOf('const AI_TRANSIENT_RETRIES'), backend.indexOf('const AI_NAV_DESTINATIONS')), sandbox);
 vm.runInContext(backend.slice(backend.indexOf('exports.aiAssistant ='), backend.indexOf('// Receipt/supplier-invoice OCR.')), sandbox);
 const request = { auth: { uid: 'user-1' }, data: { message: 'Bonjour', context: { company: { id: 'company-1' } } } };
 const result = await sandbox.exports.aiAssistant(request);
@@ -45,7 +47,21 @@ assert(calls[1].url.includes('gemini-3.1-flash-lite'));
 assert.equal(calls[0].body.generationConfig.maxOutputTokens, 2048);
 assert.equal(failed, 0);
 
-upstreamStatuses = [429];
+upstreamStatuses = [429, 429, 429];
 await assert.rejects(sandbox.exports.aiAssistant(request), error => error.code === 'resource-exhausted');
 assert.equal(failed, 1);
-console.log('AI service fallback passed: model 404 fallback, larger draft budget, clear 429 status.');
+assert.equal(calls.length, 5);
+
+upstreamStatuses = [503, 503, 503, 503, 503, 503, 200];
+const recovered = await sandbox.exports.aiAssistant(request);
+assert.equal(recovered.reply, 'Bonjour');
+assert.equal(calls.length, 12);
+assert(calls[5].url.includes('gemini-3.5-flash-lite'));
+assert(calls[6].url.includes('gemini-3.5-flash-lite'));
+assert(calls[7].url.includes('gemini-3.5-flash-lite'));
+assert(calls[8].url.includes('gemini-3.1-flash-lite'));
+assert(calls[9].url.includes('gemini-3.1-flash-lite'));
+assert(calls[10].url.includes('gemini-3.1-flash-lite'));
+assert(calls[11].url.includes('gemini-2.5-flash-lite'));
+assert.equal(failed, 1);
+console.log('AI service fallback passed: model fallback, transient 503 retries, transient 429 handling, and clear exhausted status.');
