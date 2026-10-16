@@ -1137,7 +1137,7 @@ exports.acceptInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken:
   if (!companyId || !invitationId || !token) throw new HttpsError('invalid-argument', 'Paramètres requis.');
 
   const inviteRef = db.doc(`companies/${companyId}/invitations/${invitationId}`);
-  const role = await db.runTransaction(async (tx) => {
+  const acceptance = await db.runTransaction(async (tx) => {
     const inviteSnap = await tx.get(inviteRef);
     if (!inviteSnap.exists) throw new HttpsError('not-found', 'Invitation introuvable.');
     const invite = inviteSnap.data();
@@ -1146,7 +1146,7 @@ exports.acceptInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken:
     if (invite.token !== token) throw new HttpsError('permission-denied', 'Lien invalide.');
     if (invite.expiresAt && invite.expiresAt.toMillis() < Date.now()) {
       tx.update(inviteRef, { status: 'expired' });
-      throw new HttpsError('deadline-exceeded', 'Cette invitation a expiré. Demandez-en une nouvelle.');
+      return { expired: true };
     }
     const callerEmail = String(auth.token.email || '').toLowerCase();
     if (callerEmail !== invite.email) {
@@ -1165,9 +1165,14 @@ exports.acceptInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken:
       invitedBy: invite.invitedBy
     });
     tx.update(inviteRef, { status: 'accepted', acceptedAt: now, acceptedBy: auth.uid });
-    return invite.role;
+    return { role: invite.role, expired: false };
   });
 
+  if (acceptance.expired) {
+    throw new HttpsError('deadline-exceeded', 'Cette invitation a expiré. Demandez-en une nouvelle.');
+  }
+
+  const role = acceptance.role;
   await setIndexRole(auth.uid, companyId, role);
   return { ok: true, role };
 });

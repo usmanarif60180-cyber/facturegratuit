@@ -108,7 +108,9 @@ assert(index.includes('id="crm-intelligence-list"') && index.includes('function 
 assert(index.includes('aria-modal="true"') && index.includes('role="log"'), "AI dialog accessibility contract changed");
 assert(functionsSource.includes('Never save, send, email, delete, or charge anything'), "AI backend must forbid destructive autonomous actions");
 assert(functionsSource.includes('exports.acceptQuote = onCall'), "Accepted quote locking callable is missing");
+assert(functionsSource.includes("return { expired: true };") && functionsSource.includes("if (acceptance.expired)"), "Expired invitations must persist their expired state before returning an error");
 assert(functionsSource.includes('acceptedVersionId') && firestoreRules.includes('quoteUpdateAllowed()'), "Accepted quote immutability contract is missing");
+assert(firestoreRules.includes("request.resource.data.authorUid == resource.data.authorUid") && firestoreRules.includes("request.resource.data.createdAt == resource.data.createdAt"), "Project comment edits must preserve author and creation metadata");
 assert(index.includes('id="dash-project-period"') && index.includes('periodActivity('), "Chantier period reporting is missing");
 assert(index.includes('allocations: [{ invoiceId: inv.id'), "Separate payment allocation records are missing");
 assert(index.includes('receiptFingerprint') && index.includes('receiptPath'), "Receipt preservation and duplicate warning metadata are missing");
