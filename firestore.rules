@@ -208,6 +208,24 @@ service cloud.firestore {
         allow delete: if hasMinRole(companyId, 'manager');
       }
 
+      match /customerCompanies/{customerCompanyId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'employee');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /tasks/{taskId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'employee');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
+      match /files/{fileId} {
+        allow read: if isActiveMember(companyId);
+        allow create, update: if hasMinRole(companyId, 'employee');
+        allow delete: if hasMinRole(companyId, 'manager');
+      }
+
       match /suppliers/{supplierId} {
         allow read: if isActiveMember(companyId);
         allow create, update: if hasMinRole(companyId, 'employee');

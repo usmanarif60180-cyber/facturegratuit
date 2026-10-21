@@ -23,9 +23,31 @@ assert.equal(legacy.companyId, undefined);
 context.managedCompanyWorkspaces = () => [{ id: "company-a", name: "Beta" }, { id: "company-b", name: "Beta" }];
 assert.equal(context.belongsToActiveCompany(legacy), false, "Ambiguous names must not expose a record");
 
-assert.match(html, /id="invite-send-btn"[^>]*disabled/);
+assert.match(html, /id="team-connect-company"/);
+assert.match(html, /window\.profactureInviteTeamMember/);
+assert.match(html, /window\.profactureTeamFunctions\.sendInvitation/);
 assert.match(html, /No shared team is connected to this workspace/);
-assert.doesNotMatch(html, /PENDING_INVITES\.push\(/);
+assert.match(rules, /match \/customerCompanies\/\{customerCompanyId\}/);
+assert.match(rules, /match \/tasks\/\{taskId\}/);
+assert.match(rules, /match \/files\/\{fileId\}/);
+assert.match(html, /function privateWorkspaceRows\(items\)/);
+assert.match(html, /const workspaceId = "shared-" \+ companyId/);
+assert.match(html, /const canWrite = \(weights\[role\] \|\| 0\) >= weights\[requiredRole\]/);
+
+const sharingStart = html.indexOf("function linkedCompanyWorkspaces()");
+const sharingEnd = html.indexOf("function mapSharedCompanyRecord", sharingStart);
+const sharingContext = {
+  window: { COMPANIES: [{ id: "company-a", collaborationCompanyId: "server-a" }] }
+};
+vm.createContext(sharingContext);
+vm.runInContext(html.slice(sharingStart, sharingEnd), sharingContext);
+const scopedRows = sharingContext.privateWorkspaceRows([
+  { id: "shared", companyId: "company-a", _sharedCompanyId: "server-a" },
+  { id: "legacy-company-copy", companyId: "company-a" },
+  { id: "other-company", companyId: "company-b" },
+  { id: "personal", companyId: "personal" }
+]);
+assert.deepEqual(scopedRows.map(row => row.id), ["other-company", "personal"]);
 assert.match(rules, /match \/companies\/\{companyId\} \{\s*allow read: if isActiveMember\(companyId\);\s*allow create: if false/);
 
 const values = Array.from({ length: 8 }, () => ({ textContent: "", setAttribute() {}, removeAttribute() {} }));

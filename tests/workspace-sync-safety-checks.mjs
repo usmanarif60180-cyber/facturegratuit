@@ -7,6 +7,7 @@ const writes = [], deletes = [], storage = new Map();
 let tombstones = ['explicit-delete'];
 const context = {
   currentUser: { uid: 'account-A' }, cloudHydratedUid: 'account-A',
+  privateWorkspaceRows: items => items,
   cloudRecordBaselines: new Map(), recordFingerprint: value => JSON.stringify(value, Object.keys(value).filter(key => key !== 'updatedAtClient').sort()),
   readGlobalArray: () => [{ id: 'kept' }],
   readCloudTombstones: () => tombstones,

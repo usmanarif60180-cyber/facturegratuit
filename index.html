@@ -5096,7 +5096,8 @@
       <div id="topbar-team"></div>
       <div class="app-content">
         <div class="page-head"><div><h2 data-i18n="page_team_title">Team</h2><p data-i18n="page_team_sub">Manage members, invitations and role-based permissions.</p></div></div>
-        <p class="callout" role="status">Collaboration setup is not connected to this workspace yet. Invitations and role changes are unavailable until shared-company data is connected. Your existing business records remain private to your account.</p>
+        <div class="callout" id="team-collab-status" role="status">Loading collaboration status…</div>
+        <button class="btn btn-primary" id="team-connect-company" type="button">Connect this company for collaboration</button>
 
         <div class="ds-tabs" id="team-tabs">
           <button class="on" data-team-tab="members" data-i18n="tab_members">Members</button>
@@ -5117,7 +5118,7 @@
             <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:0.7rem;align-items:end;">
               <div><label class="field-label" data-i18n="fld_email_address">Email address</label><input class="field" id="invite-email" placeholder="name@company.com" type="email" /></div>
               <div><label class="field-label" data-i18n="th_role">Role</label><select class="field" id="invite-role"></select></div>
-              <button class="btn btn-primary" id="invite-send-btn" disabled title="Shared-company setup required" data-i18n="btn_send_invite">Send invite</button>
+              <button class="btn btn-primary" id="invite-send-btn" data-i18n="btn_send_invite">Send invite</button>
             </div>
           </div>
           <div class="table-wrap"><table class="data-table" id="team-invites-table">
@@ -6041,7 +6042,10 @@
       if (id === "calendar") renderCalendarInit();
       if (id === "inventory") renderInventoryInit();
       if (id === "tasks") renderTasksInit();
-      if (id === "team") renderTeamInit();
+      if (id === "team") {
+        renderTeamInit();
+        if (window.profactureRefreshTeamPanel) window.profactureRefreshTeamPanel().catch(error => console.warn("Team panel unavailable", error));
+      }
       if (id === "files") renderFilesInit();
       if (id === "settings") renderSettingsInit();
       if (id === "invoice-new") { initInvoiceNewForm(); renderInvoiceComplianceBanner(); initMobileDocWizard("invoice-new"); }
@@ -7851,6 +7855,14 @@
       renderCompanyScopedViews();
     }
     window.profactureEnsureActiveCompany = ensureActiveCompany;
+    window.profactureSelectWorkspace = function (id) {
+      if (!COMPANIES.some(function (company) { return !company.deletedAt && company.id === id; })) return false;
+      wsActiveId = id;
+      rememberActiveCompany();
+      ensureActiveCompany();
+      if (window.profactureRefreshSharedWorkspace) window.profactureRefreshSharedWorkspace();
+      return true;
+    };
 
     function wsInitials(name) {
       return name.split(" ").filter(Boolean).map(function (w) { return w[0]; }).slice(0, 2).join("").toUpperCase();
@@ -7916,6 +7928,8 @@
           renderCompanyScopedViews();
           renderInvoicePreview();
           renderQuotePreview();
+          if (window.profactureRefreshSharedWorkspace) window.profactureRefreshSharedWorkspace();
+          if (document.getElementById("view-team")?.classList.contains("active") && window.profactureRefreshTeamPanel) window.profactureRefreshTeamPanel().catch(function () {});
           showToast("Switched to " + c.name);
           playSound("click");
         }
@@ -9800,6 +9814,8 @@
         tags: (active && active.tags) || "",
       };
     }
+    window.profactureGetActiveWorkspace = activeCompanyWorkspace;
+    window.profactureGetCurrentCompanyProfile = currentCompanyProfile;
     function currentWorkspaceName() {
       return currentCompanyProfile().name;
     }
@@ -12571,6 +12587,7 @@
     var ROLE_LIST = ["Owner", "Admin", "Manager", "Accountant", "Employee", "Viewer"];
     var TEAM_MEMBERS = [];
     var PENDING_INVITES = [];
+    var teamCanManage = false;
     var MODULE_LIST = ["Dashboard", "Invoices", "Quotes", "Clients", "CRM", "Inventory", "Expenses", "Reports", "Settings", "Company Profiles"];
     var PERMISSIONS = {};
     MODULE_LIST.forEach(function (mod) {
@@ -12593,7 +12610,7 @@
         var roleOptions = ROLE_LIST.map(function (r) { return "<option" + (r === m.role ? " selected" : "") + ">" + r + "</option>"; }).join("");
         return (
           '<tr><td style="font-weight:700;">' + escapeHtml(m.name) + "</td><td>" + escapeHtml(m.email) + "</td>" +
-          '<td><select class="field" style="height:2rem;width:9.5rem;" data-member-role="' + m.id + '"' + (m.role === "Owner" ? " disabled" : "") + ">" + roleOptions + "</select></td>" +
+          '<td><select class="field" style="height:2rem;width:9.5rem;" data-member-role="' + m.id + '"' + (m.role === "Owner" || !teamCanManage ? " disabled" : "") + ">" + roleOptions + "</select></td>" +
           '<td><span class="badge ' + statusCls + '">' + m.status + "</span></td></tr>"
         );
       }).join("") || '<tr><td colspan="4" class="widget-empty" style="text-align:center;padding:2rem;">No shared team is connected to this workspace.</td></tr>';
@@ -12604,7 +12621,7 @@
       tbody.innerHTML = PENDING_INVITES.length ? PENDING_INVITES.map(function (inv, i) {
         return (
           "<tr><td>" + escapeHtml(inv.email) + '</td><td><span class="badge badge-default">' + escapeHtml(inv.role) + "</span></td><td>" + escapeHtml(inv.sent) + '</td><td><span class="badge badge-warning">' + escapeHtml(inv.status) + "</span></td>" +
-          '<td><button class="btn btn-ghost btn-sm" data-revoke-invite="' + i + '">Revoke</button></td></tr>'
+          '<td>' + (teamCanManage ? '<button class="btn btn-ghost btn-sm" data-revoke-invite="' + i + '">Revoke</button>' : '') + '</td></tr>'
         );
       }).join("") : '<tr><td colspan="5" style="text-align:center;color:hsl(var(--muted-fg));padding:2rem 0;">No pending invitations.</td></tr>';
     }
@@ -12635,6 +12652,19 @@
       populateInviteRoleSelect();
       renderPermMatrix();
     }
+    window.profactureUpdateTeamPanel = function (members, invitations, message, canManage) {
+      TEAM_MEMBERS.splice(0, TEAM_MEMBERS.length, ...(members || []));
+      PENDING_INVITES.splice(0, PENDING_INVITES.length, ...(invitations || []));
+      teamCanManage = Boolean(canManage);
+      renderTeamMembers();
+      renderInvites();
+      var status = document.getElementById("team-collab-status");
+      var connect = document.getElementById("team-connect-company");
+      var invite = document.getElementById("invite-send-btn");
+      if (status) status.textContent = message || "Team collaboration is connected to the selected company.";
+      if (connect) connect.hidden = Boolean(message && message.indexOf("not connected") === -1);
+      if (invite) invite.disabled = !teamCanManage;
+    };
     var teamTabsEl = document.getElementById("team-tabs");
     if (teamTabsEl) teamTabsEl.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-team-tab]");
@@ -12654,12 +12684,32 @@
       if (!revoke) return;
       var i = Number(revoke.getAttribute("data-revoke-invite"));
       var inv = PENDING_INVITES[i];
-      PENDING_INVITES.splice(i, 1);
-      renderInvites();
-      showToast("Invitation to " + inv.email + " revoked");
+      if (!inv || !inv.invitationId || !window.profactureCancelTeamInvite) { showToast("Invitation could not be cancelled."); return; }
+      window.profactureCancelTeamInvite(inv.invitationId).catch(function (error) { showToast(error && error.message || "Invitation could not be cancelled."); });
     });
     var inviteSendBtnEl = document.getElementById("invite-send-btn");
-    if (inviteSendBtnEl) inviteSendBtnEl.disabled = true;
+    if (inviteSendBtnEl) inviteSendBtnEl.addEventListener("click", async function () {
+      var email = (document.getElementById("invite-email").value || "").trim();
+      var role = document.getElementById("invite-role").value || "Employee";
+      if (!email) { showToast("Enter the team member email first."); return; }
+      inviteSendBtnEl.disabled = true;
+      try { await window.profactureInviteTeamMember(email, role); document.getElementById("invite-email").value = ""; }
+      catch (error) { showToast(error && error.message || "Invitation failed."); }
+      finally { inviteSendBtnEl.disabled = false; }
+    });
+    var connectTeamBtn = document.getElementById("team-connect-company");
+    if (connectTeamBtn) connectTeamBtn.addEventListener("click", async function () {
+      connectTeamBtn.disabled = true;
+      try { await window.profactureEnableTeamWorkspace(); }
+      catch (error) { showToast(error && error.message || "Could not connect this company."); }
+      finally { connectTeamBtn.disabled = false; }
+    });
+    document.body.addEventListener("change", async function (event) {
+      var roleSelect = event.target.closest("[data-member-role]");
+      if (!roleSelect) return;
+      try { await window.profactureUpdateTeamMemberRole(roleSelect.getAttribute("data-member-role"), roleSelect.value); }
+      catch (error) { showToast(error && error.message || "Role update failed."); }
+    });
 
     // ---- File Manager ----
     var FILE_FOLDERS = ["All", "Invoices", "Quotes", "Contracts", "Receipts", "Documents"];
@@ -13110,7 +13160,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, deleteDoc, runTransaction, collection, getDocs, query, orderBy, documentId, startAfter, limit as firestoreLimit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, deleteDoc, runTransaction, collection, getDocs, query, orderBy, documentId, startAfter, limit as firestoreLimit, serverTimestamp, writeBatch, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
   import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
   import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app-check.js";
 
@@ -13148,6 +13198,12 @@
 	const acceptQuoteCallable = httpsCallable(functions, "acceptQuote", { limitedUseAppCheckTokens: true });
 	const chantierFinancialSummaryCallable = httpsCallable(functions, "chantierFinancialSummary", { limitedUseAppCheckTokens: true });
 	const reservePhoneOtpCallable = httpsCallable(functions, "reservePhoneOtp", { limitedUseAppCheckTokens: true });
+	const teamCallables = Object.fromEntries(["createCompany", "sendInvitation", "resendInvitation", "cancelInvitation", "acceptInvitation", "declineInvitation", "updateMemberRole", "toggleMemberStatus", "removeMember", "leaveCompany"].map(name => [name, httpsCallable(functions, name, { limitedUseAppCheckTokens: true })]));
+	window.profactureTeamFunctions = Object.fromEntries(Object.entries(teamCallables).map(([name, callable]) => [name, async payload => {
+	  if (!currentUser) throw new Error("Sign in required");
+	  const result = await callable(payload || {});
+	  return result.data || {};
+	}]));
 	window.profactureAskAi = async payload => {
 	  if (!currentUser) throw new Error("SIGN_IN_REQUIRED");
 	  const result = await askAiCallable(Object.assign({}, payload, { requestId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) }));
@@ -13391,6 +13447,266 @@
 	    { collection: "files", windowName: "FILES" },
 	    { collection: "workspaces", windowName: "COMPANIES" }, { collection: "payments", windowName: "PAYMENTS" }, { collection: "labor", windowName: "LABOR_ENTRIES" }, { collection: "avenants", windowName: "AVENANTS" }, { collection: "documents", windowName: "DOCUMENTS" }
 	  ];
+	  const sharedRecordBaselines = new Map();
+	  const sharedCompanyRoles = new Map();
+	  let sharedCompanyUnsubscribers = [];
+	  function linkedCompanyWorkspaces() {
+	    return (Array.isArray(window.COMPANIES) ? window.COMPANIES : []).filter(company => company && !company.deletedAt && company.collaborationCompanyId && company.id);
+	  }
+	  function sharedRecordKey(serverCompanyId, collectionName, id) { return serverCompanyId + "/" + collectionName + "/" + id; }
+	  function isLinkedSharedRecord(item) {
+	    if (!item) return false;
+	    return linkedCompanyWorkspaces().some(company => company.id === item.companyId && (!item._sharedCompanyId || item._sharedCompanyId === company.collaborationCompanyId));
+	  }
+	  function privateWorkspaceRows(items) {
+	    return (Array.isArray(items) ? items : []).filter(item => !isLinkedSharedRecord(item));
+	  }
+	  function mapSharedCompanyRecord(data, workspace) {
+	    return Object.assign({}, data || {}, { id: (data && data.id) || "", companyId: workspace.id, _sharedCompanyId: workspace.collaborationCompanyId });
+	  }
+	  function applySharedCompanyRecords(workspace, collectionName, windowName, docs, refreshViews = false) {
+	    const target = readGlobalArray(windowName);
+	    const rows = docs.map(entry => Object.assign(mapSharedCompanyRecord(entry.data(), workspace), { id: entry.data()?.id || entry.id }));
+	    const otherCompanies = target.filter(item => item.companyId !== workspace.id || (item._sharedCompanyId && item._sharedCompanyId !== workspace.collaborationCompanyId));
+	    const merged = mergeWorkspaceArrays(otherCompanies, rows);
+	    target.splice(0, target.length, ...merged);
+	    if (currentUser) {
+	      const privateRows = merged.filter(item => !item._sharedCompanyId);
+	      writeLocalCollection(currentUser.uid, collectionName, privateRows);
+	      if (currentUser.email) writeLocalCollection(currentUser.email.toLowerCase(), collectionName, privateRows);
+	    }
+	    if (refreshViews && typeof window.profactureEnsureActiveCompany === "function") window.profactureEnsureActiveCompany();
+	  }
+	  async function loadSharedCompanyCollections(user, generation) {
+	    const workspaces = linkedCompanyWorkspaces();
+	    for (const workspace of workspaces) {
+	      for (const config of WORKSPACE_COLLECTIONS) {
+	        if (config.collection === "workspaces") continue;
+	        const snapshot = await getDocs(collection(db, "companies", workspace.collaborationCompanyId, config.collection));
+	        if (generation !== authGeneration) return false;
+	        snapshot.docs.forEach(record => sharedRecordBaselines.set(sharedRecordKey(workspace.collaborationCompanyId, config.collection, record.id), recordFingerprint(record.data())));
+	        applySharedCompanyRecords(workspace, config.collection, config.windowName, snapshot.docs);
+	      }
+	    }
+	    return true;
+	  }
+	  function subscribeActiveSharedWorkspace() {
+	    sharedCompanyUnsubscribers.splice(0).forEach(unsubscribe => { try { unsubscribe(); } catch (error) {} });
+	    const workspace = typeof window.profactureGetActiveCompanyId === "function"
+	      ? linkedCompanyWorkspaces().find(company => company.id === window.profactureGetActiveCompanyId())
+	      : null;
+	    if (!currentUser || !workspace) return;
+	    WORKSPACE_COLLECTIONS.forEach(config => {
+	      if (config.collection === "workspaces") return;
+	      const path = collection(db, "companies", workspace.collaborationCompanyId, config.collection);
+	      const unsubscribe = onSnapshot(path, snapshot => {
+	        snapshot.docs.forEach(record => sharedRecordBaselines.set(sharedRecordKey(workspace.collaborationCompanyId, config.collection, record.id), recordFingerprint(record.data())));
+	        applySharedCompanyRecords(workspace, config.collection, config.windowName, snapshot.docs, true);
+	      }, error => {
+	        console.warn("Shared company subscription failed:", config.collection, error && error.code ? error.code : error);
+	        const target = readGlobalArray(config.windowName);
+	        target.splice(0, target.length, ...target.filter(item => item.companyId !== workspace.id || item._sharedCompanyId !== workspace.collaborationCompanyId));
+	        persistWorkspaceLocally(currentUser);
+	        if (typeof window.profactureEnsureActiveCompany === "function") window.profactureEnsureActiveCompany();
+	      });
+	      sharedCompanyUnsubscribers.push(unsubscribe);
+	    });
+	  }
+	  window.profactureRefreshSharedWorkspace = subscribeActiveSharedWorkspace;
+	  async function syncSharedCompanyCollection(config) {
+	    const linked = linkedCompanyWorkspaces();
+	    const items = readGlobalArray(config.windowName);
+	    for (const workspace of linked) {
+	      let role = sharedCompanyRoles.get(workspace.collaborationCompanyId);
+	      if (!role) {
+	        const memberSnap = await getDoc(doc(db, "companies", workspace.collaborationCompanyId, "members", currentUser.uid));
+	        role = memberSnap.exists() && memberSnap.data().status === "active" ? teamRoleKey(memberSnap.data().role) : "viewer";
+	        sharedCompanyRoles.set(workspace.collaborationCompanyId, role);
+	      }
+	      const weights = { viewer: 0, employee: 1, accountant: 2, manager: 3, admin: 4, owner: 5 };
+	      const requiredRole = ({ history: "accountant", quotes: "accountant", payments: "accountant", avenants: "accountant", departments: "admin" })[config.collection] || "employee";
+	      const canWrite = (weights[role] || 0) >= weights[requiredRole];
+	      const canDelete = (weights[role] || 0) >= weights.manager;
+	      const tombstonesKey = "profacture_shared_deleted_" + (currentUser?.uid || "guest") + "_" + workspace.collaborationCompanyId + "_" + config.collection;
+	      let tombstones = [];
+	      try { tombstones = JSON.parse(localStorage.getItem(tombstonesKey) || "[]"); } catch (error) { tombstones = []; }
+	      for (const id of (canDelete ? tombstones : [])) {
+	        const ref = doc(db, "companies", workspace.collaborationCompanyId, config.collection, id);
+	        const key = sharedRecordKey(workspace.collaborationCompanyId, config.collection, id);
+	        await runTransaction(db, async transaction => {
+	          const snapshot = await transaction.get(ref);
+	          const baseline = sharedRecordBaselines.get(key);
+	          if (snapshot.exists() && recordFingerprint(snapshot.data()) !== baseline) throw new Error("Shared record changed on another device. Reload before deleting it.");
+	          if (snapshot.exists()) transaction.delete(ref);
+	        });
+	        sharedRecordBaselines.delete(key);
+	      }
+	      if (canDelete && tombstones.length) localStorage.removeItem(tombstonesKey);
+	      if (!canWrite) continue;
+	      const rows = items.filter(item => item && item.companyId === workspace.id && !tombstones.includes(cloudDocId(item, 0)));
+	      for (const item of rows) {
+	        item._sharedCompanyId = workspace.collaborationCompanyId;
+	        const id = cloudDocId(item, 0);
+	        const ref = doc(db, "companies", workspace.collaborationCompanyId, config.collection, id);
+	        const key = sharedRecordKey(workspace.collaborationCompanyId, config.collection, id);
+	        const payload = cleanCloudValue(item || {});
+	        const fingerprint = recordFingerprint(payload);
+	        if (sharedRecordBaselines.get(key) === fingerprint) continue;
+	        await runTransaction(db, async transaction => {
+	          const snapshot = await transaction.get(ref);
+	          const remote = snapshot.exists() ? recordFingerprint(snapshot.data()) : undefined;
+	          const baseline = sharedRecordBaselines.get(key);
+	          if (remote !== baseline && remote !== fingerprint) throw new Error("Shared data changed on another device. Reload the workspace, then retry.");
+	          transaction.set(ref, payload);
+	        });
+	        sharedRecordBaselines.set(key, fingerprint);
+	      }
+	    }
+	  }
+	  function teamRoleKey(role) { return String(role || "employee").toLowerCase().replace(/[^a-z]/g, ""); }
+	  function collaborationProfile(workspace) {
+	    const profile = typeof window.profactureGetCurrentCompanyProfile === "function" ? window.profactureGetCurrentCompanyProfile() : workspace;
+	    return { name: profile.name || workspace.name || "Company", siret: profile.siret || "", address: profile.address || "", email: profile.email || "", phone: profile.phone || "", vat: profile.vat || "", country: workspace.country || "", currency: workspace.currency || "EUR", industry: workspace.industry || workspace.type || "" };
+	  }
+	  async function seedCompanyRecords(workspace) {
+	    for (const config of WORKSPACE_COLLECTIONS) {
+	      if (config.collection === "workspaces") continue;
+	      const rows = readGlobalArray(config.windowName).filter(item => item && item.companyId === workspace.id);
+	      rows.forEach(item => { item._sharedCompanyId = workspace.collaborationCompanyId; });
+	      for (let offset = 0; offset < rows.length; offset += 350) {
+	        const part = rows.slice(offset, offset + 350);
+	        const refs = part.map((item, index) => {
+	          const id = cloudDocId(item, offset + index);
+	          return { item, id, ref: doc(db, "companies", workspace.collaborationCompanyId, config.collection, id) };
+	        });
+	        const snapshots = await Promise.all(refs.map(entry => getDoc(entry.ref)));
+	        const batch = writeBatch(db);
+	        let pending = false;
+	        refs.forEach((entry, index) => {
+	          if (snapshots[index].exists()) return;
+	          batch.set(entry.ref, cleanCloudValue(Object.assign({}, entry.item, { _sharedCompanyId: workspace.collaborationCompanyId })));
+	          entry.item._sharedCompanyId = workspace.collaborationCompanyId;
+	          pending = true;
+	        });
+	        if (pending) await batch.commit();
+	      }
+	    }
+	  }
+	  async function enableTeamWorkspace() {
+	    if (!currentUser) throw new Error("Sign in before connecting a shared company.");
+	    const workspace = typeof window.profactureGetActiveWorkspace === "function" ? window.profactureGetActiveWorkspace() : null;
+	    if (!workspace || workspace.isPlaceholder) throw new Error("Create or select a company before enabling team collaboration.");
+	    if (!confirm("Connect “" + (workspace.name || "this company") + "” and copy its existing company records to the shared team space? Your personal cloud copies will remain intact.")) return;
+	    if (!workspace.collaborationCompanyId) {
+	      const created = await window.profactureTeamFunctions.createCompany({ name: workspace.name || "Company" });
+	      workspace.collaborationCompanyId = created.companyId;
+	      workspace.ownerUid = currentUser.uid;
+	      if (typeof window.profacturePersistWorkspaceLocal === "function") window.profacturePersistWorkspaceLocal();
+	    }
+	    const sharedProfile = collaborationProfile(workspace);
+	    await setDoc(doc(db, "companies", workspace.collaborationCompanyId), {
+	      workspaceId: workspace.id,
+	      name: workspace.name || sharedProfile.name,
+	      workspaceType: workspace.type || workspace.industry || "General business",
+	      currency: workspace.currency || "EUR",
+	      country: workspace.country || "",
+	      profile: sharedProfile,
+	      updatedAt: new Date().toISOString()
+	    }, { merge: true });
+	    await seedCompanyRecords(workspace);
+	    await loadSharedCompanyCollections(currentUser, authGeneration);
+	    subscribeActiveSharedWorkspace();
+	    if (typeof window.profacturePersistWorkspaceLocal === "function") window.profacturePersistWorkspaceLocal();
+	    scheduleWorkspaceCloudSync(0);
+	    await refreshTeamWorkspace();
+	    if (typeof window.profactureSetSyncState === "function") window.profactureSetSyncState("saved");
+	  }
+	  async function refreshTeamWorkspace() {
+	    const workspace = typeof window.profactureGetActiveWorkspace === "function" ? window.profactureGetActiveWorkspace() : null;
+	    if (!workspace) return;
+	    if (!workspace.collaborationCompanyId) {
+	      if (window.profactureUpdateTeamPanel) window.profactureUpdateTeamPanel([], [], "This company is not connected to a shared team yet. Connect it to share company records and invite members.");
+	      return;
+	    }
+	    try {
+	      const companyId = workspace.collaborationCompanyId;
+	      const membersSnap = await getDocs(collection(db, "companies", companyId, "members"));
+	      const members = membersSnap.docs.map(member => {
+	        const data = member.data();
+	        return { id: member.id, uid: member.id, name: data.name || data.email || "Member", email: data.email || "", role: data.role || "viewer", status: data.status === "active" ? "Active" : "Suspended" };
+	      });
+	      const myMember = members.find(member => member.uid === currentUser?.uid);
+	      const canManage = ["owner", "admin"].includes(myMember?.role);
+	      sharedCompanyRoles.set(companyId, myMember && myMember.status === "Active" ? teamRoleKey(myMember.role) : "viewer");
+	      let invitations = [];
+	      if (["owner", "admin"].includes(myMember?.role)) {
+	        const invitesSnap = await getDocs(collection(db, "companies", companyId, "invitations"));
+	        invitations = invitesSnap.docs.map(invite => ({ id: invite.id, invitationId: invite.id, email: invite.data().email, role: invite.data().role, sent: invite.data().invitedAt?.toDate?.().toLocaleDateString?.() || "", status: invite.data().status === "pending" ? "Pending" : invite.data().status })).filter(invite => invite.status === "Pending");
+	      }
+	      const labels = { owner: "Owner", admin: "Admin", manager: "Manager", accountant: "Accountant", employee: "Employee", viewer: "Viewer" };
+	      members.forEach(member => { member.role = labels[member.role] || "Viewer"; });
+	      if (window.profactureUpdateTeamPanel) window.profactureUpdateTeamPanel(members, invitations, "Shared company: " + (workspace.name || "Company") + ". Existing records and future changes are shared according to team roles.", canManage);
+	    } catch (error) {
+	      if (window.profactureUpdateTeamPanel) window.profactureUpdateTeamPanel([], [], "Team data could not be loaded. Check your membership and try again.");
+	      throw error;
+	    }
+	  }
+	  window.profactureRefreshTeamPanel = refreshTeamWorkspace;
+	  window.profactureEnableTeamWorkspace = enableTeamWorkspace;
+	  window.profactureInviteTeamMember = async (email, role) => {
+	    const workspace = window.profactureGetActiveWorkspace?.();
+	    if (!workspace?.collaborationCompanyId) throw new Error("Connect this company before inviting a member.");
+	    await window.profactureTeamFunctions.sendInvitation({ companyId: workspace.collaborationCompanyId, email, role: teamRoleKey(role) });
+	    await refreshTeamWorkspace();
+	  };
+	  window.profactureUpdateTeamMemberRole = async (memberUid, role) => {
+	    const workspace = window.profactureGetActiveWorkspace?.();
+	    if (!workspace?.collaborationCompanyId) throw new Error("No shared company is selected.");
+	    await window.profactureTeamFunctions.updateMemberRole({ companyId: workspace.collaborationCompanyId, memberUid, role: teamRoleKey(role) });
+	    await refreshTeamWorkspace();
+	  };
+	  window.profactureCancelTeamInvite = async invitationId => {
+	    const workspace = window.profactureGetActiveWorkspace?.();
+	    if (!workspace?.collaborationCompanyId) throw new Error("No shared company is selected.");
+	    await window.profactureTeamFunctions.cancelInvitation({ companyId: workspace.collaborationCompanyId, invitationId });
+	    await refreshTeamWorkspace();
+	  };
+	  async function processTeamInvitationUrl(user) {
+	    const params = new URLSearchParams(window.location.search);
+	    const invitationId = params.get("invite");
+	    const companyId = params.get("company");
+	    const token = params.get("token");
+	    if (!user || !invitationId || !companyId || !token) return false;
+	    if (!confirm("Accept the invitation to join a shared company workspace?")) return false;
+	    await window.profactureTeamFunctions.acceptInvitation({ companyId, invitationId, token });
+	    window.history.replaceState({}, "", window.location.pathname + window.location.hash);
+	    const companySnap = await getDoc(doc(db, "companies", companyId));
+	    if (!companySnap.exists()) throw new Error("The company workspace could not be found.");
+	    const company = companySnap.data() || {};
+	    const workspaceId = "shared-" + companyId;
+	    const workspace = Object.assign({}, company.profile || {}, {
+	      id: workspaceId,
+	      name: company.name || (company.profile && company.profile.name) || "Shared company",
+	      type: company.workspaceType || "General business",
+	      currency: company.currency || "EUR",
+	      country: company.country || "",
+	      sourceCompanyId: companyId,
+	      collaborationCompanyId: companyId,
+	      sharedWorkspace: true,
+	      isPlaceholder: false
+	    });
+	    const companies = Array.isArray(window.COMPANIES) ? window.COMPANIES : [];
+	    const existing = companies.find(item => item.id === workspaceId);
+	    if (existing) Object.assign(existing, workspace);
+	    else companies.push(workspace);
+	    window.profactureSelectWorkspace?.(workspaceId);
+	    await loadSharedCompanyCollections(user, authGeneration);
+	    subscribeActiveSharedWorkspace();
+	    persistWorkspaceLocally(user);
+	    scheduleWorkspaceCloudSync(0);
+	    await refreshTeamWorkspace();
+	    return true;
+	  }
 	  function identityForItem(item, index) {
 	    return String((item && (item.id || item.number || item.invoiceId || item.quoteId || item.email || item.sku || item.name)) || ("item-" + index));
 	  }
@@ -13426,7 +13742,7 @@
 	      const target = user ? [] : readGlobalArray(cfg.windowName);
 	      const userItems = readLocalCollection(uid, cfg.collection);
 	      const emailItems = emailKey ? readLocalCollection(emailKey, cfg.collection) : [];
-	      const merged = mergeWorkspaceArrays(target, mergeWorkspaceArrays(userItems, emailItems));
+	      const merged = privateWorkspaceRows(mergeWorkspaceArrays(target, mergeWorkspaceArrays(userItems, emailItems)));
 	      if (Array.isArray(window[cfg.windowName])) {
 	        window[cfg.windowName].splice(0, window[cfg.windowName].length, ...merged);
 	        if (merged.length) {
@@ -13453,7 +13769,7 @@
 	    const uid = user && user.uid ? user.uid : (currentUser && currentUser.uid ? currentUser.uid : "guest");
 	    const emailKey = user && user.email ? user.email.toLowerCase() : (currentUser && currentUser.email ? currentUser.email.toLowerCase() : "");
 	    WORKSPACE_COLLECTIONS.forEach(cfg => {
-	      const items = readGlobalArray(cfg.windowName);
+	      const items = privateWorkspaceRows(readGlobalArray(cfg.windowName));
 	      writeLocalCollection(uid, cfg.collection, items);
 	      if (emailKey) writeLocalCollection(emailKey, cfg.collection, items);
 	    });
@@ -13502,10 +13818,22 @@
 	      console.warn("Cloud account load skipped:", error && error.code ? error.code : error);
 	    }
 	    if (generation !== authGeneration) return;
-	    const hydrationResults = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => loadCloudCollection(user, cfg.collection, cfg.windowName, generation)));
+	    const workspaceConfig = WORKSPACE_COLLECTIONS.find(cfg => cfg.collection === "workspaces");
+	    const orderedConfigs = [workspaceConfig, ...WORKSPACE_COLLECTIONS.filter(cfg => cfg !== workspaceConfig)].filter(Boolean);
+	    const hydrationResults = [];
+	    for (const cfg of orderedConfigs) {
+	      const [result] = await Promise.allSettled([loadCloudCollection(user, cfg.collection, cfg.windowName, generation)]);
+	      hydrationResults.push(result);
+	      if (generation !== authGeneration) return;
+	    }
 	    if (generation !== authGeneration) return;
-	    cloudHydratedUid = hydrationResults.every(result => result.status === "fulfilled" && result.value === true) ? user.uid : "";
+	    let sharedLoaded = true;
+	    try { sharedLoaded = await loadSharedCompanyCollections(user, generation); }
+	    catch (error) { sharedLoaded = false; console.warn("Shared company records could not be loaded:", error && error.code ? error.code : error); }
+	    if (generation !== authGeneration) return;
+	    cloudHydratedUid = hydrationResults.every(result => result.status === "fulfilled" && result.value === true) && sharedLoaded ? user.uid : "";
 	    if (typeof window.profactureEnsureActiveCompany === "function") window.profactureEnsureActiveCompany();
+	    subscribeActiveSharedWorkspace();
 	    persistWorkspaceLocally(user);
 	    setWorkspaceSyncState(navigator.onLine ? "saved" : "offline");
 	  }
@@ -13538,16 +13866,25 @@
 	  function markCloudDeleted(collectionName, item) {
 	    const uid = currentUser && currentUser.uid ? currentUser.uid : "guest";
 	    const id = cloudDocId(item || {}, 0);
-	    if (["history", "quotes", "clients"].includes(collectionName)) {
+	    const sharedWorkspace = linkedCompanyWorkspaces().find(company => company.id === item?.companyId && (!item?._sharedCompanyId || item._sharedCompanyId === company.collaborationCompanyId));
+	    if (!sharedWorkspace && ["history", "quotes", "clients"].includes(collectionName)) {
 	      const key = accountStorageKeyFor(uid, "recovery_trash");
 	      const trash = JSON.parse(localStorage.getItem(key) || "[]");
 	      trash.push({ collectionName, id, item, deletedAt: new Date().toISOString() });
 	      // A failed recovery write aborts deletion rather than discarding the only copy.
 	      localStorage.setItem(key, JSON.stringify(trash));
 	    }
-	    const ids = new Set(readCloudTombstones(uid, collectionName));
-	    ids.add(id);
-	    localStorage.setItem(cloudTombstoneKey(uid, collectionName), JSON.stringify(Array.from(ids).slice(-1000)));
+	    if (sharedWorkspace) {
+	      const sharedKey = "profacture_shared_deleted_" + uid + "_" + sharedWorkspace.collaborationCompanyId + "_" + collectionName;
+	      let sharedIds = [];
+	      try { sharedIds = JSON.parse(localStorage.getItem(sharedKey) || "[]"); } catch (error) { sharedIds = []; }
+	      sharedIds = Array.from(new Set([...sharedIds, id])).slice(-1000);
+	      localStorage.setItem(sharedKey, JSON.stringify(sharedIds));
+	    } else {
+	      const ids = new Set(readCloudTombstones(uid, collectionName));
+	      ids.add(id);
+	      localStorage.setItem(cloudTombstoneKey(uid, collectionName), JSON.stringify(Array.from(ids).slice(-1000)));
+	    }
 	  }
 	  window.profactureMarkCloudDeleted = markCloudDeleted;
 	  function renderRecoveryTrash() {
@@ -13617,7 +13954,7 @@
 	      const tombstones = new Set(readCloudTombstones(user.uid, collectionName));
 	      const items = cloudDocs.filter(entry => !tombstones.has(entry.id)).map(entry => entry.data).filter(Boolean);
 	      const emailKey = user && user.email ? user.email.toLowerCase() : "";
-	      const merged = mergeWorkspaceArrays(target, mergeWorkspaceArrays(readLocalCollection(user.uid, collectionName), mergeWorkspaceArrays(emailKey ? readLocalCollection(emailKey, collectionName) : [], items))).filter((item, index) => !tombstones.has(cloudDocId(item, index)));
+	      const merged = mergeWorkspaceArrays(privateWorkspaceRows(target), mergeWorkspaceArrays(privateWorkspaceRows(readLocalCollection(user.uid, collectionName)), mergeWorkspaceArrays(privateWorkspaceRows(emailKey ? readLocalCollection(emailKey, collectionName) : []), privateWorkspaceRows(items)))).filter((item, index) => !tombstones.has(cloudDocId(item, index)));
 	      if (Array.isArray(window[windowName]) && (merged.length || target.length || items.length)) {
 	        window[windowName].splice(0, window[windowName].length, ...merged);
 	        writeLocalCollection(user.uid, collectionName, merged);
@@ -13632,7 +13969,7 @@
 	  async function syncCollectionSnapshot(collectionName, windowName) {
 	    if (!currentUser) return;
 	    const syncUid = currentUser.uid;
-	    const items = readGlobalArray(windowName);
+	    const items = privateWorkspaceRows(readGlobalArray(windowName));
 	    const pendingDeletes = new Set(readCloudTombstones(syncUid, collectionName));
 	    const localIds = new Set(items.map((item, index) => cloudDocId(item, index)));
 	    const writes = await Promise.allSettled(items.map((item, index) => {
@@ -13690,8 +14027,10 @@
 	    if (generation !== authGeneration) return false;
 	    const results = await Promise.allSettled(WORKSPACE_COLLECTIONS.map(cfg => syncCollectionSnapshot(cfg.collection, cfg.windowName)));
 	    if (generation !== authGeneration) return false;
-	    const ok = accountSaved && results.every(result => result.status === "fulfilled");
-	    const failure = results.find(result => result.status === "rejected");
+	    const sharedResults = await Promise.allSettled(WORKSPACE_COLLECTIONS.filter(cfg => cfg.collection !== "workspaces").map(syncSharedCompanyCollection));
+	    if (generation !== authGeneration) return false;
+	    const ok = accountSaved && results.every(result => result.status === "fulfilled") && sharedResults.every(result => result.status === "fulfilled");
+	    const failure = results.concat(sharedResults).find(result => result.status === "rejected");
 	    document.getElementById("workspace-sync-error").textContent = ok ? "" : (failure && failure.reason && failure.reason.message) || "Cloud save failed. Keep this page open, export a backup and retry.";
 	    setWorkspaceSyncState(ok ? "saved" : "error");
 	    if (ok && !manualBackupInProgress && cloudHydratedUid === syncUser.uid) {
@@ -14419,6 +14758,9 @@
 	    if (user) {
 	      hydrateWorkspaceFromLocal(user);
 	      await loadCloudAccountDoc(user, generation);
+	      if (generation !== authGeneration) return;
+	      try { await processTeamInvitationUrl(user); }
+	      catch (error) { console.warn("Team invitation could not be accepted:", error && error.code ? error.code : error); showToast(error && error.message || "Invitation could not be accepted."); }
 	      if (generation !== authGeneration) return;
 	      refreshActiveWorkspaceView();
 	    } else {
