@@ -13530,6 +13530,13 @@
 	      const tombstonesKey = "profacture_shared_deleted_" + (currentUser?.uid || "guest") + "_" + workspace.collaborationCompanyId + "_" + config.collection;
 	      let tombstones = [];
 	      try { tombstones = JSON.parse(localStorage.getItem(tombstonesKey) || "[]"); } catch (error) { tombstones = []; }
+	      if (tombstones.length && !canDelete) {
+	        const snapshot = await getDocs(collection(db, "companies", workspace.collaborationCompanyId, config.collection));
+	        snapshot.docs.forEach(record => sharedRecordBaselines.set(sharedRecordKey(workspace.collaborationCompanyId, config.collection, record.id), recordFingerprint(record.data())));
+	        applySharedCompanyRecords(workspace, config.collection, config.windowName, snapshot.docs, true);
+	        localStorage.removeItem(tombstonesKey);
+	        throw new Error("Your team role does not allow deleting shared records. Ask a manager.");
+	      }
 	      for (const id of (canDelete ? tombstones : [])) {
 	        const ref = doc(db, "companies", workspace.collaborationCompanyId, config.collection, id);
 	        const key = sharedRecordKey(workspace.collaborationCompanyId, config.collection, id);
@@ -13542,7 +13549,19 @@
 	        sharedRecordBaselines.delete(key);
 	      }
 	      if (canDelete && tombstones.length) localStorage.removeItem(tombstonesKey);
-	      if (!canWrite) continue;
+	      if (!canWrite) {
+	        const changedRows = items.filter(item => item && item.companyId === workspace.id).filter(item => {
+	          const key = sharedRecordKey(workspace.collaborationCompanyId, config.collection, cloudDocId(item, 0));
+	          return sharedRecordBaselines.get(key) !== recordFingerprint(cleanCloudValue(item));
+	        });
+	        if (changedRows.length) {
+	          const snapshot = await getDocs(collection(db, "companies", workspace.collaborationCompanyId, config.collection));
+	          snapshot.docs.forEach(record => sharedRecordBaselines.set(sharedRecordKey(workspace.collaborationCompanyId, config.collection, record.id), recordFingerprint(record.data())));
+	          applySharedCompanyRecords(workspace, config.collection, config.windowName, snapshot.docs, true);
+	          throw new Error("Your team role does not allow editing these shared records.");
+	        }
+	        continue;
+	      }
 	      const rows = items.filter(item => item && item.companyId === workspace.id && !tombstones.includes(cloudDocId(item, 0)));
 	      for (const item of rows) {
 	        item._sharedCompanyId = workspace.collaborationCompanyId;

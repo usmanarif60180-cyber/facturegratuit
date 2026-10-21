@@ -33,6 +33,8 @@ assert.match(rules, /match \/files\/\{fileId\}/);
 assert.match(html, /function privateWorkspaceRows\(items\)/);
 assert.match(html, /const workspaceId = "shared-" \+ companyId/);
 assert.match(html, /const canWrite = \(weights\[role\] \|\| 0\) >= weights\[requiredRole\]/);
+assert.match(html, /does not allow deleting shared records/);
+assert.match(html, /does not allow editing these shared records/);
 
 const sharingStart = html.indexOf("function linkedCompanyWorkspaces()");
 const sharingEnd = html.indexOf("function mapSharedCompanyRecord", sharingStart);
