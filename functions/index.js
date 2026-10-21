@@ -1194,7 +1194,7 @@ exports.acceptInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken:
 // declineInvitation
 // ═══════════════════════════════════════════════
 exports.declineInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
-  requireAuth(request);
+  const auth = requireAuth(request);
   const { companyId, invitationId, token } = request.data || {};
   if (!companyId || !invitationId || !token) throw new HttpsError('invalid-argument', 'Paramètres requis.');
 
@@ -1204,6 +1204,10 @@ exports.declineInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken
   const invite = inviteSnap.data();
   if (invite.token !== token) throw new HttpsError('permission-denied', 'Lien invalide.');
   if (invite.status !== 'pending') throw new HttpsError('failed-precondition', "Cette invitation n'est plus en attente.");
+  const callerEmail = String(auth.token.email || '').trim().toLowerCase();
+  if (!callerEmail || callerEmail !== String(invite.email || '').trim().toLowerCase()) {
+    throw new HttpsError('permission-denied', 'Cette invitation est destinée à une autre adresse email. Connectez-vous avec le bon compte.');
+  }
 
   await inviteRef.update({ status: 'declined', declinedAt: admin.firestore.FieldValue.serverTimestamp() });
   return { ok: true };

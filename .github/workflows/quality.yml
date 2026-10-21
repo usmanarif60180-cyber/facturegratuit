@@ -16,9 +16,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run regression suites
-        run: |
-          for test in tests/*.mjs; do
-            echo "Running $test"
-            node "$test"
-          done
+      - name: Run build validation and regression suites
+        run: npm run build
