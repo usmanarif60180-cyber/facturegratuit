@@ -743,6 +743,27 @@ function cleanStoragePath(value) {
   return path;
 }
 
+async function acquireStorageMutation(uid) {
+  const ref = db.doc(`users/${uid}/private/storageMutation`);
+  const operationId = crypto.randomUUID();
+  const leaseUntil = Date.now() + 70000;
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (snap.exists && Number(snap.data().leaseUntilMs || 0) > Date.now()) {
+      throw new HttpsError('aborted', 'Un autre changement de fichier est en cours. Réessayez dans quelques secondes.');
+    }
+    tx.set(ref, { operationId, leaseUntilMs: leaseUntil, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  });
+  return { ref, operationId };
+}
+
+async function releaseStorageMutation(lock) {
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(lock.ref);
+    if (snap.exists && snap.data().operationId === lock.operationId) tx.delete(lock.ref);
+  });
+}
+
 exports.storageManager = onCall({ timeoutSeconds: 60, memory: '256MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const operation = ['status', 'upload', 'delete'].includes(request.data?.operation) ? request.data.operation : 'status';
@@ -755,36 +776,41 @@ exports.storageManager = onCall({ timeoutSeconds: 60, memory: '256MiB', enforceA
   const objectPath = `users/${auth.uid}/${relativePath}`;
   const bucket = admin.storage().bucket();
   const file = bucket.file(objectPath);
-  if (operation === 'delete') {
-    const [metadata] = await file.getMetadata().catch(() => [null]);
-    const existingSize = Math.max(0, Number(metadata?.size || 0));
-    await file.delete({ ignoreNotFound: true });
-    if (existingSize) await usageRef.set({ usedBytes: admin.firestore.FieldValue.increment(-existingSize), updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-    return { usedBytesDelta: -existingSize, limitBytes: USER_STORAGE_LIMIT_BYTES };
-  }
-  const upload = parseUploadDataUrl(request.data?.dataUrl);
-  const [oldMetadata] = await file.getMetadata().catch(() => [null]);
-  const oldSize = Math.max(0, Number(oldMetadata?.size || 0));
-  const delta = upload.buffer.length - oldSize;
-  await db.runTransaction(async (tx) => {
-    const snap = await tx.get(usageRef);
-    const usedBytes = Math.max(0, Number(snap.data()?.usedBytes || 0));
-    if (usedBytes + delta > USER_STORAGE_LIMIT_BYTES) throw new HttpsError('resource-exhausted', 'Votre espace cloud de 500 Mo est plein.');
-    tx.set(usageRef, { usedBytes: Math.max(0, usedBytes + delta), limitBytes: USER_STORAGE_LIMIT_BYTES, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-  });
-  const token = crypto.randomUUID();
+  const lock = await acquireStorageMutation(auth.uid);
   try {
-    await file.save(upload.buffer, { resumable: false, metadata: { contentType: upload.contentType, metadata: { firebaseStorageDownloadTokens: token, owner: auth.uid } } });
-  } catch (error) {
-    await usageRef.set({ usedBytes: admin.firestore.FieldValue.increment(-delta), updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-    throw new HttpsError('unavailable', "L'envoi du fichier a échoué.");
+    if (operation === 'delete') {
+      const [metadata] = await file.getMetadata().catch(() => [null]);
+      const existingSize = Math.max(0, Number(metadata?.size || 0));
+      await file.delete({ ignoreNotFound: true });
+      if (existingSize) await usageRef.set({ usedBytes: admin.firestore.FieldValue.increment(-existingSize), updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      return { usedBytesDelta: -existingSize, limitBytes: USER_STORAGE_LIMIT_BYTES };
+    }
+    const upload = parseUploadDataUrl(request.data?.dataUrl);
+    const [oldMetadata] = await file.getMetadata().catch(() => [null]);
+    const oldSize = Math.max(0, Number(oldMetadata?.size || 0));
+    const delta = upload.buffer.length - oldSize;
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(usageRef);
+      const usedBytes = Math.max(0, Number(snap.data()?.usedBytes || 0));
+      if (usedBytes + delta > USER_STORAGE_LIMIT_BYTES) throw new HttpsError('resource-exhausted', 'Votre espace cloud de 500 Mo est plein.');
+      tx.set(usageRef, { usedBytes: Math.max(0, usedBytes + delta), limitBytes: USER_STORAGE_LIMIT_BYTES, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    });
+    const token = crypto.randomUUID();
+    try {
+      await file.save(upload.buffer, { resumable: false, metadata: { contentType: upload.contentType, metadata: { firebaseStorageDownloadTokens: token, owner: auth.uid } } });
+    } catch (error) {
+      await usageRef.set({ usedBytes: admin.firestore.FieldValue.increment(-delta), updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      throw new HttpsError('unavailable', "L'envoi du fichier a échoué.");
+    }
+    return {
+      path: objectPath,
+      url: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(objectPath)}?alt=media&token=${token}`,
+      size: upload.buffer.length,
+      limitBytes: USER_STORAGE_LIMIT_BYTES
+    };
+  } finally {
+    await releaseStorageMutation(lock).catch((error) => console.error('Storage mutation lock release failed', error));
   }
-  return {
-    path: objectPath,
-    url: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(objectPath)}?alt=media&token=${token}`,
-    size: upload.buffer.length,
-    limitBytes: USER_STORAGE_LIMIT_BYTES
-  };
 });
 
 // Company-scoped AI history. It is only available to the signed-in owner and
@@ -1002,6 +1028,11 @@ async function clearIndexRole(uid, companyId) {
     .catch(() => {});
 }
 
+function invitationEmailLock(companyId, email) {
+  const key = crypto.createHash('sha256').update(email).digest('hex');
+  return db.doc(`companies/${companyId}/invitationEmailLocks/${key}`);
+}
+
 // ═══════════════════════════════════════════════
 // createCompany
 // ═══════════════════════════════════════════════
@@ -1046,17 +1077,6 @@ exports.sendInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken: t
   }
   const inviter = await requireMinRole(companyId, auth.uid, 'admin');
 
-  const existingMembers = await db.collection(`companies/${companyId}/members`)
-    .where('email', '==', cleanEmail).limit(1).get();
-  if (!existingMembers.empty) {
-    throw new HttpsError('already-exists', 'Cette personne est déjà membre de la société.');
-  }
-  const existingInvites = await db.collection(`companies/${companyId}/invitations`)
-    .where('email', '==', cleanEmail).where('status', '==', 'pending').limit(1).get();
-  if (!existingInvites.empty) {
-    throw new HttpsError('already-exists', 'Une invitation est déjà en attente pour cet email.');
-  }
-
   const token = crypto.randomBytes(24).toString('hex');
   const now = admin.firestore.FieldValue.serverTimestamp();
   const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + INVITE_TTL_MS);
@@ -1064,15 +1084,37 @@ exports.sendInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken: t
   const companyName = companySnap.data()?.name || 'FacturePro';
 
   const inviteRef = db.collection(`companies/${companyId}/invitations`).doc();
-  await inviteRef.set({
-    email: cleanEmail,
-    role,
-    token,
-    status: 'pending',
-    invitedBy: auth.uid,
-    invitedByName: inviter.name || auth.token.email || '',
-    invitedAt: now,
-    expiresAt
+  const emailLockRef = invitationEmailLock(companyId, cleanEmail);
+  await db.runTransaction(async (tx) => {
+    const lockSnap = await tx.get(emailLockRef);
+    if (lockSnap.exists && lockSnap.data().status === 'pending' && lockSnap.data().invitationId) {
+      const priorInvite = await tx.get(db.doc(`companies/${companyId}/invitations/${lockSnap.data().invitationId}`));
+      if (priorInvite.exists && priorInvite.data().status === 'pending') {
+        throw new HttpsError('already-exists', 'Une invitation est déjà en attente pour cet email.');
+      }
+    }
+
+    const existingMembers = await tx.get(db.collection(`companies/${companyId}/members`).where('email', '==', cleanEmail).limit(1));
+    if (!existingMembers.empty) {
+      throw new HttpsError('already-exists', 'Cette personne est déjà membre de la société.');
+    }
+    const existingInvites = await tx.get(db.collection(`companies/${companyId}/invitations`)
+      .where('email', '==', cleanEmail).where('status', '==', 'pending').limit(1));
+    if (!existingInvites.empty) {
+      throw new HttpsError('already-exists', 'Une invitation est déjà en attente pour cet email.');
+    }
+
+    tx.create(inviteRef, {
+      email: cleanEmail,
+      role,
+      token,
+      status: 'pending',
+      invitedBy: auth.uid,
+      invitedByName: inviter.name || auth.token.email || '',
+      invitedAt: now,
+      expiresAt
+    });
+    tx.set(emailLockRef, { email: cleanEmail, invitationId: inviteRef.id, status: 'pending', updatedAt: now });
   });
 
   await sendInviteEmail({ companyId, inviteId: inviteRef.id, token, email: cleanEmail, companyName, role, inviterName: inviter.name });
