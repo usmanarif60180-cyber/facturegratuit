@@ -767,16 +767,52 @@ async function releaseStorageMutation(lock) {
 exports.storageManager = onCall({ timeoutSeconds: 60, memory: '256MiB', enforceAppCheck: true, consumeAppCheckToken: true }, async (request) => {
   const auth = requireAuth(request);
   const operation = ['status', 'upload', 'delete'].includes(request.data?.operation) ? request.data.operation : 'status';
-  const usageRef = db.doc(`users/${auth.uid}/private/storageUsage`);
+  let storageOwnerUid = auth.uid;
+  let sharedCompanyId = '';
+  let sharedFileId = '';
+  let relativePath = '';
+  if (operation !== 'status') {
+    const requestedPath = cleanStoragePath(request.data?.path || 'files/upload');
+    const pathMatch = operation === 'delete' ? /^users\/([A-Za-z0-9_-]{1,128})\/(.+)$/.exec(requestedPath) : null;
+    if (pathMatch) {
+      storageOwnerUid = pathMatch[1];
+      relativePath = cleanStoragePath(pathMatch[2]);
+    } else {
+      relativePath = requestedPath;
+    }
+    if (operation === 'delete' && storageOwnerUid !== auth.uid) {
+      sharedCompanyId = String(request.data?.companyId || '');
+      sharedFileId = String(request.data?.fileId || '');
+      if (!/^[A-Za-z0-9_-]{1,160}$/.test(sharedCompanyId) || !/^[A-Za-z0-9_-]{1,160}$/.test(sharedFileId)) {
+        throw new HttpsError('permission-denied', 'La suppression de ce fichier partagé doit être autorisée par sa société.');
+      }
+      await requireMinRole(sharedCompanyId, auth.uid, 'manager');
+      const sharedFile = await db.doc(`companies/${sharedCompanyId}/files/${sharedFileId}`).get();
+      if (!sharedFile.exists || sharedFile.data()?.storagePath !== requestedPath) {
+        throw new HttpsError('not-found', 'Le fichier partagé ne correspond plus à cet enregistrement.');
+      }
+    } else if (operation === 'delete' && request.data?.companyId) {
+      sharedCompanyId = String(request.data.companyId);
+      sharedFileId = String(request.data.fileId || '');
+      if (!/^[A-Za-z0-9_-]{1,160}$/.test(sharedCompanyId) || !/^[A-Za-z0-9_-]{1,160}$/.test(sharedFileId)) {
+        throw new HttpsError('invalid-argument', 'La référence du fichier partagé est invalide.');
+      }
+      await requireMinRole(sharedCompanyId, auth.uid, 'manager');
+      const sharedFile = await db.doc(`companies/${sharedCompanyId}/files/${sharedFileId}`).get();
+      if (!sharedFile.exists || sharedFile.data()?.storagePath !== requestedPath) {
+        throw new HttpsError('not-found', 'Le fichier partagé ne correspond plus à cet enregistrement.');
+      }
+    }
+  }
+  const usageRef = db.doc(`users/${storageOwnerUid}/private/storageUsage`);
   if (operation === 'status') {
     const snap = await usageRef.get();
     return { usedBytes: Math.max(0, Number(snap.data()?.usedBytes || 0)), limitBytes: USER_STORAGE_LIMIT_BYTES };
   }
-  const relativePath = cleanStoragePath(request.data?.path || 'files/upload');
-  const objectPath = `users/${auth.uid}/${relativePath}`;
+  const objectPath = `users/${storageOwnerUid}/${relativePath}`;
   const bucket = admin.storage().bucket();
   const file = bucket.file(objectPath);
-  const lock = await acquireStorageMutation(auth.uid);
+  const lock = await acquireStorageMutation(storageOwnerUid);
   try {
     if (operation === 'delete') {
       const [metadata] = await file.getMetadata().catch(() => [null]);
@@ -797,7 +833,7 @@ exports.storageManager = onCall({ timeoutSeconds: 60, memory: '256MiB', enforceA
     });
     const token = crypto.randomUUID();
     try {
-      await file.save(upload.buffer, { resumable: false, metadata: { contentType: upload.contentType, metadata: { firebaseStorageDownloadTokens: token, owner: auth.uid } } });
+      await file.save(upload.buffer, { resumable: false, metadata: { contentType: upload.contentType, metadata: { firebaseStorageDownloadTokens: token, owner: storageOwnerUid } } });
     } catch (error) {
       await usageRef.set({ usedBytes: admin.firestore.FieldValue.increment(-delta), updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       throw new HttpsError('unavailable', "L'envoi du fichier a échoué.");
@@ -1197,8 +1233,15 @@ exports.acceptInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken:
     if (!inviteSnap.exists) throw new HttpsError('not-found', 'Invitation introuvable.');
     const invite = inviteSnap.data();
 
-    if (invite.status !== 'pending') throw new HttpsError('failed-precondition', "Cette invitation n'est plus valide.");
     if (invite.token !== token) throw new HttpsError('permission-denied', 'Lien invalide.');
+    const memberRef = db.doc(`companies/${companyId}/members/${auth.uid}`);
+    if (invite.status === 'accepted' && invite.acceptedBy === auth.uid) {
+      const memberSnap = await tx.get(memberRef);
+      if (memberSnap.exists && memberSnap.data().status === 'active') {
+        return { role: memberSnap.data().role, expired: false, alreadyAccepted: true };
+      }
+    }
+    if (invite.status !== 'pending') throw new HttpsError('failed-precondition', "Cette invitation n'est plus valide.");
     if (invite.expiresAt && invite.expiresAt.toMillis() < Date.now()) {
       tx.update(inviteRef, { status: 'expired' });
       return { expired: true };
@@ -1208,7 +1251,6 @@ exports.acceptInvitation = onCall({ enforceAppCheck: true, consumeAppCheckToken:
       throw new HttpsError('permission-denied', 'Cette invitation est destinée à une autre adresse email. Connectez-vous avec le bon compte.');
     }
 
-    const memberRef = db.doc(`companies/${companyId}/members/${auth.uid}`);
     const now = admin.firestore.FieldValue.serverTimestamp();
     tx.set(memberRef, {
       uid: auth.uid,

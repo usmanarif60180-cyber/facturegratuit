@@ -8,7 +8,7 @@ const storageManager = source.slice(source.indexOf('exports.storageManager ='), 
 assert.match(lockHelpers, /db\.runTransaction\(async \(tx\) =>/);
 assert.match(lockHelpers, /leaseUntilMs/);
 assert.match(lockHelpers, /new HttpsError\('aborted'/);
-assert.match(storageManager, /const lock = await acquireStorageMutation\(auth\.uid\)/);
+assert.match(storageManager, /const lock = await acquireStorageMutation\(storageOwnerUid\)/);
 assert.match(storageManager, /finally \{\s*await releaseStorageMutation\(lock\)/);
 assert.ok(storageManager.indexOf('acquireStorageMutation') < storageManager.indexOf('file.getMetadata'));
 console.log('Storage concurrency passed: quota-affecting operations are serialized per account.');
