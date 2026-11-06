@@ -1454,15 +1454,28 @@ function getHistoryAmount(item, key) {
   return Number(item?.[key]) || 0;
 }
 
-function getHistoryStatus(item) {
+function getHistoryPaidAmount(item, referenceDate = new Date()) {
+  const total = Math.max(0, getHistoryAmount(item, 'total'));
+  if (Number(item?.paidAmount) > 0) return Math.min(total, Number(item.paidAmount));
+  const payments = Array.isArray(item?.payments) ? item.payments : [];
+  const recorded = payments.reduce((sum, payment) => sum + Math.max(0, Number(payment?.amount ?? payment?.amountMajor ?? 0) || 0), 0);
+  return Math.min(total, recorded || (getHistoryStatus(item, referenceDate) === 'paid' ? total : 0));
+}
+
+function getHistoryBalance(item, referenceDate = new Date()) {
+  return Math.max(0, getHistoryAmount(item, 'total') - getHistoryPaidAmount(item, referenceDate));
+}
+
+function getHistoryStatus(item, referenceDate = new Date()) {
   const raw = String(item?.paymentStatus || item?.status || '').toLowerCase();
-  const dueDate = item?.dueDate || item?.expiryDate || item?.validUntil || '';
-  if (raw.includes('paid') || raw.includes('payé') || raw.includes('paye')) return 'paid';
-  if (raw.includes('partial') || raw.includes('partiel')) return 'partial';
+  const isQuote = String(item?.docType || '').toLowerCase() === 'devis';
+  const dueDate = item?.dueDate || (!isQuote ? item?.expiryDate || item?.validUntil : '') || '';
   if (raw.includes('draft') || raw.includes('brouillon')) return 'draft';
   if (raw.includes('cancel')) return 'cancelled';
   if (raw.includes('overdue') || raw.includes('retard')) return 'overdue';
-  if (dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate) && dueDate < new Date().toISOString().slice(0,10)) return 'overdue';
+  if (dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate) && dueDate < referenceDate.toISOString().slice(0,10)) return 'overdue';
+  if (raw.includes('partial') || raw.includes('partiel')) return 'partial';
+  if (raw.includes('paid') || raw.includes('payé') || raw.includes('paye')) return 'paid';
   return 'sent';
 }
 
@@ -1493,15 +1506,15 @@ function setHistoryStatus(id, status) {
   showNotif('Statut mis à jour', 'success');
 }
 
-function buildAccountAnalytics(history=[]) {
-  const now = new Date();
+function buildAccountAnalytics(history=[], { now = new Date() } = {}) {
   const todayKey = now.toISOString().slice(0,10);
   const monthKey = todayKey.slice(0,7);
   const yearKey = todayKey.slice(0,4);
   const empty = {
     today:0, month:0, year:0, ht:0, tva:0, total:0,
     paid:0, unpaid:0, overdue:0, draft:0, quotes:0, invoices:0,
-    monthly:[], topClients:[], currencyBreakdown:[], currencies:[], conversionRate:0, avgPaymentDelay:0
+    monthly:[], topClients:[], currencyBreakdown:[], currencies:[], conversionRate:0, avgPaymentDelay:0,
+    mixedCurrencies:false, hasFinancialData:false
   };
   if (!history.length) return empty;
 
@@ -1511,22 +1524,29 @@ function buildAccountAnalytics(history=[]) {
   let paidDelayTotal = 0;
   let paidDelayCount = 0;
 
-  const totals = history.reduce((sum, item) => {
+  const invoices = history.filter(item => String(item.docType || '').toLowerCase() !== 'devis');
+  const quotes = history.filter(item => String(item.docType || '').toLowerCase() === 'devis');
+  const issuedInvoices = invoices.filter(item => !['draft','cancelled'].includes(getHistoryStatus(item, now)));
+  const invoiceCurrencies = new Set(issuedInvoices.map(item => item.currency || S.currency || getCountryProfile().currency));
+  const mixedCurrencies = invoiceCurrencies.size > 1;
+  const totals = issuedInvoices.reduce((sum, item) => {
     const date = String(item.date || item.updatedAt || '').slice(0,10);
     const month = item.month || date.slice(0,7) || 'Sans date';
     const total = getHistoryAmount(item, 'total');
     const subtotal = getHistoryAmount(item, 'subtotal');
     const tva = getHistoryAmount(item, 'tva');
-    const status = getHistoryStatus(item);
-    const isQuote = String(item.docType || '').toLowerCase() === 'devis';
+    const status = getHistoryStatus(item, now);
     const client = item.clientName || 'Client';
     const currencyCode = item.currency || S.currency || getCountryProfile().currency;
+    const paidAmount = getHistoryPaidAmount(item, now);
+    const balance = getHistoryBalance(item, now);
 
-    monthlyMap[month] ||= { month, subtotal:0, tva:0, total:0, count:0 };
-    monthlyMap[month].subtotal += subtotal;
-    monthlyMap[month].tva += tva;
-    monthlyMap[month].total += total;
-    monthlyMap[month].count += 1;
+    const monthlyKey = `${currencyCode}::${month}`;
+    monthlyMap[monthlyKey] ||= { month, currency:currencyCode, subtotal:0, tva:0, total:0, count:0 };
+    monthlyMap[monthlyKey].subtotal += subtotal;
+    monthlyMap[monthlyKey].tva += tva;
+    monthlyMap[monthlyKey].total += total;
+    monthlyMap[monthlyKey].count += 1;
 
     currencyMap[currencyCode] ||= { code: currencyCode, subtotal:0, tva:0, total:0, count:0 };
     currencyMap[currencyCode].subtotal += subtotal;
@@ -1534,9 +1554,10 @@ function buildAccountAnalytics(history=[]) {
     currencyMap[currencyCode].total += total;
     currencyMap[currencyCode].count += 1;
 
-    clientMap[client] ||= { name: client, total:0, count:0 };
-    clientMap[client].total += total;
-    clientMap[client].count += 1;
+    const clientKey = `${currencyCode}::${client}`;
+    clientMap[clientKey] ||= { name: client, currency:currencyCode, total:0, count:0 };
+    clientMap[clientKey].total += total;
+    clientMap[clientKey].count += 1;
 
     if (status === 'paid' && item.paidAt && date) {
       const start = new Date(date);
@@ -1555,38 +1576,52 @@ function buildAccountAnalytics(history=[]) {
       ht: sum.ht + subtotal,
       tva: sum.tva + tva,
       total: sum.total + total,
-      paid: sum.paid + (status === 'paid' ? total : 0),
-      unpaid: sum.unpaid + (!['paid','cancelled','draft'].includes(status) ? total : 0),
-      overdue: sum.overdue + (status === 'overdue' ? total : 0),
-      draft: sum.draft + (status === 'draft' ? 1 : 0),
-      quotes: sum.quotes + (isQuote ? 1 : 0),
-      invoices: sum.invoices + (!isQuote ? 1 : 0)
+      paid: sum.paid + paidAmount,
+      unpaid: sum.unpaid + balance,
+      overdue: sum.overdue + (status === 'overdue' ? balance : 0),
+      draft: sum.draft,
+      quotes: sum.quotes,
+      invoices: sum.invoices + 1
     };
   }, empty);
 
+  const draftCount = invoices.filter(item => getHistoryStatus(item, now) === 'draft').length;
+  const invoiceQuoteIds = new Set(issuedInvoices.map(item => item.sourceQuoteId).filter(Boolean));
+  const convertedQuotes = quotes.filter(item => item.convertedToId || invoiceQuoteIds.has(item.id) || ['converted','converti','converted_to_invoice'].includes(String(item.status || '').toLowerCase())).length;
+
   const monthly = Object.values(monthlyMap)
-    .sort((a,b) => String(a.month).localeCompare(String(b.month)))
+    .sort((a,b) => String(a.month).localeCompare(String(b.month)) || a.currency.localeCompare(b.currency))
     .slice(-6);
-  const topClients = Object.values(clientMap)
-    .sort((a,b) => b.total - a.total)
-    .slice(0,5);
+  const topClients = mixedCurrencies ? [] : Object.values(clientMap).sort((a,b) => b.total - a.total).slice(0,5);
   const currencyBreakdown = Object.values(currencyMap).sort((a,b) => b.total - a.total);
+  const aggregate = value => mixedCurrencies ? null : value;
 
   return {
     ...totals,
+    today:aggregate(totals.today), month:aggregate(totals.month), year:aggregate(totals.year),
+    ht:aggregate(totals.ht), tva:aggregate(totals.tva), total:aggregate(totals.total),
+    paid:aggregate(totals.paid), unpaid:aggregate(totals.unpaid), overdue:aggregate(totals.overdue),
+    draft:draftCount, quotes:quotes.length,
     monthly,
     topClients,
     currencyBreakdown,
     currencies: currencyBreakdown.map(c => c.code),
-    conversionRate: totals.quotes ? Math.round((totals.invoices / (totals.invoices + totals.quotes)) * 100) : (totals.invoices ? 100 : 0),
+    conversionRate: quotes.length ? Math.round((convertedQuotes / quotes.length) * 100) : 0,
     avgPaymentDelay: paidDelayCount ? Math.round(paidDelayTotal / paidDelayCount) : 0,
-    paidDelayCount
+    paidDelayCount,
+    mixedCurrencies,
+    hasFinancialData:issuedInvoices.length > 0
   };
 }
 
+function formatAnalyticsMoney(amount, analytics) {
+  return analytics.mixedCurrencies ? 'Plusieurs devises' : fmtCurrencyAmount(amount || 0, analytics.currencies[0] || S.currency || getCountryProfile().currency);
+}
+
 function computeBusinessHealthScore(analytics) {
+  if (analytics.mixedCurrencies) return { score:null, factors:[], risks:[], opportunities:[], mixedCurrencies:true };
   const factors = [];
-  const totalVolume = analytics.paid + analytics.unpaid + analytics.overdue;
+  const totalVolume = analytics.paid + analytics.unpaid;
 
   if (totalVolume > 0) {
     factors.push({
@@ -1664,7 +1699,8 @@ function computeBusinessHealthScore(analytics) {
   return { score, factors, risks, opportunities };
 }
 
-function renderMiniBarChart(monthly=[]) {
+function renderMiniBarChart(monthly=[], mixedCurrencies=false) {
+  if (mixedCurrencies) return `<div class="analytics-empty">Les devises sont séparées. Un graphique global serait trompeur sans taux de conversion vérifié.</div>`;
   if (!monthly.length) {
     return `<div class="analytics-empty">Aucune donnée pour le moment. Sauvegardez des factures pour activer les graphiques.</div>`;
   }
@@ -1676,16 +1712,17 @@ function renderMiniBarChart(monthly=[]) {
       return `<div class="analytics-bar-col">
         <div class="analytics-bar-track"><span style="height:${pct}%"></span></div>
         <small>${escHtml(label)}</small>
-        <b>${fmtEur(item.total)}</b>
+        <b>${fmtCurrencyAmount(item.total, item.currency)}</b>
       </div>`;
     }).join('')}
   </div>`;
 }
 
 function renderStatusSplitChart(analytics) {
+  if (analytics.mixedCurrencies) return `<div class="analytics-empty">Les montants de paiement ne sont pas additionnés entre devises. Consultez la répartition par devise.</div>`;
   const paid = analytics.paid;
-  const unpaid = analytics.unpaid;
-  const overdue = analytics.overdue;
+  const overdue = Math.min(analytics.overdue, analytics.unpaid);
+  const unpaid = Math.max(0, analytics.unpaid - overdue);
   const total = Math.max(paid + unpaid + overdue, 1);
   const paidPct = Math.round((paid / total) * 100);
   const unpaidPct = Math.round((unpaid / total) * 100);
@@ -1697,9 +1734,9 @@ function renderStatusSplitChart(analytics) {
       <span class="overdue" style="width:${overduePct}%"></span>
     </div>
     <div class="status-legend">
-      <span><i class="paid"></i> Payées ${fmtEur(paid)}</span>
-      <span><i class="unpaid"></i> Impayées ${fmtEur(unpaid)}</span>
-      <span><i class="overdue"></i> En retard ${fmtEur(overdue)}</span>
+      <span><i class="paid"></i> Payées ${formatAnalyticsMoney(paid, analytics)}</span>
+      <span><i class="unpaid"></i> Impayées ${formatAnalyticsMoney(unpaid, analytics)}</span>
+      <span><i class="overdue"></i> En retard ${formatAnalyticsMoney(overdue, analytics)}</span>
     </div>
   </div>`;
 }
@@ -1711,7 +1748,7 @@ function renderTopClientsList(clients=[]) {
   return `<div class="top-client-list">
     ${clients.map(client => `<div class="top-client-row">
       <span>${escHtml(client.name)}</span>
-      <strong>${fmtEur(client.total)}</strong>
+      <strong>${fmtCurrencyAmount(client.total, client.currency)}</strong>
       <small>${client.count} document${client.count > 1 ? 's' : ''}</small>
     </div>`).join('')}
   </div>`;
@@ -1730,7 +1767,7 @@ function renderAccountAdvancedAnalytics(history, analytics) {
     <div class="analytics-grid">
       <div class="analytics-panel wide">
         <div class="analytics-panel-head"><span>Revenu mensuel</span><small>HT + TVA + TTC, source: historique</small></div>
-        ${renderMiniBarChart(analytics.monthly)}
+        ${renderMiniBarChart(analytics.monthly, analytics.mixedCurrencies)}
       </div>
       <div class="analytics-panel">
         <div class="analytics-panel-head"><span>Répartition des paiements</span><small>Statuts sauvegardés</small></div>
@@ -1738,7 +1775,7 @@ function renderAccountAdvancedAnalytics(history, analytics) {
       </div>
       <div class="analytics-panel">
         <div class="analytics-panel-head"><span>Meilleurs clients</span><small>Par chiffre d'affaires</small></div>
-        ${renderTopClientsList(analytics.topClients)}
+        ${analytics.mixedCurrencies ? '<div class="analytics-empty">Classement masqué pour éviter de comparer des chiffres dans des devises différentes.</div>' : renderTopClientsList(analytics.topClients)}
       </div>
       <div class="analytics-panel">
         <div class="analytics-panel-head"><span>Conversion devis</span><small>Devis vers facture</small></div>
@@ -1762,9 +1799,12 @@ function renderDeltaBadge(pctChange) {
 
 function renderBusinessHealthScore(health) {
   if (health.score === null) {
+    const note = health.mixedCurrencies
+      ? 'Les indicateurs de santé sont masqués car les factures utilisent plusieurs devises. Consultez la répartition par devise pour comparer des montants équivalents.'
+      : 'Sauvegardez au moins une facture avec un statut (payée, en retard...) pour calculer votre score de santé business.';
     return `<div class="health-score-card empty">
       <div class="health-score-head"><i class="fa fa-heart-pulse"></i> Business Health Score</div>
-      <p>Sauvegardez au moins une facture avec un statut (payée, en retard...) pour calculer votre score de santé business, basé uniquement sur vos vraies données.</p>
+      <p>${note}</p>
     </div>`;
   }
   const tier = health.score >= 75 ? 'good' : health.score >= 50 ? 'mid' : 'bad';
@@ -1812,17 +1852,17 @@ function renderAccountOverview() {
       <div style="grid-column:1 / -1">${renderProfileCompletionWidget()}</div>
       <div style="grid-column:1 / -1">${renderBusinessHealthScore(health)}</div>
       <div class="dashboard-section-label" style="grid-column:1 / -1">Vue d'ensemble</div>
-      <div class="dashboard-card"><i class="fa fa-sun"></i><strong>${fmtEur(totals.today)}</strong><span>Revenu aujourd'hui</span></div>
-      <div class="dashboard-card"><i class="fa fa-calendar-days"></i><strong>${fmtEur(totals.month)}</strong>${renderDeltaBadge(growthFactor?.pctChange)}<span>Total ce mois</span></div>
-      <div class="dashboard-card"><i class="fa fa-chart-line"></i><strong>${fmtEur(totals.year)}</strong><span>Revenu cette année</span></div>
-      <div class="dashboard-card"><i class="fa fa-file-invoice-dollar"></i><strong>${fmtEur(totals.total)}</strong><span>Total facturé</span></div>
-      <div class="dashboard-card"><i class="fa fa-circle-check"></i><strong>${fmtEur(totals.paid)}</strong><span>Factures payées</span></div>
-      <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-triangle-exclamation"></i><strong>${fmtEur(totals.unpaid)}</strong><span>Factures impayées</span></div>
-      <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-clock"></i><strong>${fmtEur(totals.overdue)}</strong><span>Factures en retard</span></div>
+      <div class="dashboard-card"><i class="fa fa-sun"></i><strong>${formatAnalyticsMoney(totals.today, totals)}</strong><span>Revenu aujourd'hui</span></div>
+      <div class="dashboard-card"><i class="fa fa-calendar-days"></i><strong>${formatAnalyticsMoney(totals.month, totals)}</strong>${renderDeltaBadge(growthFactor?.pctChange)}<span>Total ce mois</span></div>
+      <div class="dashboard-card"><i class="fa fa-chart-line"></i><strong>${formatAnalyticsMoney(totals.year, totals)}</strong><span>Revenu cette année</span></div>
+      <div class="dashboard-card"><i class="fa fa-file-invoice-dollar"></i><strong>${formatAnalyticsMoney(totals.total, totals)}</strong><span>Total facturé</span></div>
+      <div class="dashboard-card"><i class="fa fa-circle-check"></i><strong>${formatAnalyticsMoney(totals.paid, totals)}</strong><span>Factures payées</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-triangle-exclamation"></i><strong>${formatAnalyticsMoney(totals.unpaid, totals)}</strong><span>Factures impayées</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-clock"></i><strong>${formatAnalyticsMoney(totals.overdue, totals)}</strong><span>Factures en retard</span></div>
       <div class="dashboard-card"><i class="fa fa-file-pen"></i><strong>${totals.draft}</strong><span>Factures brouillon</span></div>
       <div class="dashboard-section-label" style="grid-column:1 / -1">Comptabilité</div>
-      <div class="dashboard-card"><i class="fa fa-layer-group"></i><strong>${fmtEur(totals.ht)}</strong><span>Total HT</span></div>
-      <div class="dashboard-card"><i class="fa fa-percent"></i><strong>${fmtEur(totals.tva)}</strong><span>Total TVA</span></div>
+      <div class="dashboard-card"><i class="fa fa-layer-group"></i><strong>${formatAnalyticsMoney(totals.ht, totals)}</strong><span>Total HT</span></div>
+      <div class="dashboard-card"><i class="fa fa-percent"></i><strong>${formatAnalyticsMoney(totals.tva, totals)}</strong><span>Total TVA</span></div>
       <div class="dashboard-card"><i class="fa fa-cloud"></i><strong>${formatBytes(storageUsed)}</strong><span>Stockage utilisé</span></div>
       ${totals.currencies.length > 1 ? `
       <div class="dashboard-section-label" style="grid-column:1 / -1">Répartition par devise</div>
@@ -1831,7 +1871,7 @@ function renderAccountOverview() {
       <div class="dashboard-card clickable" onclick="showAccountPanel('projects')"><i class="fa fa-folder-open"></i><strong>${projects.length}</strong><span>Projets sauvegardés</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('clients')"><i class="fa fa-address-book"></i><strong>${clients.length}</strong><span>Clients enregistrés</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('products')"><i class="fa fa-box"></i><strong>${products.length}</strong><span>Produits/services</span></div>
-      <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Factures historique</span></div>
+      <div class="dashboard-card clickable" onclick="showAccountPanel('history')"><i class="fa fa-receipt"></i><strong>${history.length}</strong><span>Documents sauvegardés</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('leads')"><i class="fa fa-bullhorn"></i><strong>${openLeads.length}</strong><span>Leads en cours</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('leads')"><i class="fa fa-sack-dollar"></i><strong>${fmtEur(pipelineValue)}</strong><span>Valeur pipeline</span></div>
       <div class="dashboard-card clickable" onclick="showAccountPanel('team')"><i class="fa fa-users"></i><strong>${teamMembers.length}</strong><span>Membres équipe</span></div>
@@ -3173,14 +3213,15 @@ function buildBusinessContext() {
   const products = loadAccountList('products');
   const analytics = buildAccountAnalytics(history);
   const overdueInvoices = history
-    .filter(item => getHistoryStatus(item) === 'overdue')
+    .filter(item => String(item.docType || '').toLowerCase() !== 'devis' && getHistoryStatus(item) === 'overdue' && getHistoryBalance(item) > 0)
     .map(item => ({
       client: item.clientName || 'Client',
       docNum: item.docNum || '',
-      total: getHistoryAmount(item, 'total'),
-      dueDate: item.dueDate || item.expiryDate || item.validUntil || ''
+      balance: getHistoryBalance(item),
+      currency: item.currency || S.currency || getCountryProfile().currency,
+      dueDate: item.dueDate || ''
     }))
-    .sort((a, b) => b.total - a.total)
+    .sort((a, b) => b.balance - a.balance)
     .slice(0, 10);
   const recentDocuments = history
     .slice()
@@ -3198,6 +3239,8 @@ function buildBusinessContext() {
     today: new Date().toISOString().slice(0, 10),
     currentPage: getAiContext().page,
     currency: S.currency || getCountryProfile().currency,
+    currencies: analytics.currencies,
+    mixedCurrencies: analytics.mixedCurrencies,
     summary: {
       revenueToday: analytics.today,
       revenueThisMonth: analytics.month,
