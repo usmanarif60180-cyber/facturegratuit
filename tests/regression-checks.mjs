@@ -97,7 +97,8 @@ assert(functionsSource.includes('exports.aiUsage = onCall'), "Private AI usage d
 assert(index.includes('id="settings-panel-data"') && index.includes('id="backup-export-btn"'), "Data and backup settings UI is missing");
 assert(index.includes('navigator.locks.request("profacture-cloud-sync-"'), "Cross-tab cloud sync lock is missing");
 assert(index.includes('function readAllCloudDocs(user, collectionName)'), "Cloud collection pagination is missing");
-assert(index.includes('integrity="sha384-'), "Pinned CDN integrity metadata is missing");
+assert(!/https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/(?:html2pdf|html2canvas|jspdf)/i.test(index), "Unused PDF libraries must not load on the initial page");
+assert(index.includes('<script defer src="/financial-engine.js"></script>'), "Financial engine must not block initial HTML parsing");
 assert(index.includes('id="ai-history-clear"') && index.includes('id="ai-popup-usage"') && index.includes('id="ai-page-usage"'), "AI history and usage controls are missing");
 assert(index.includes('Review & apply · '), "AI document actions must show a review step");
 assert(functionsSource.includes('exports.aiDocumentScan = onCall') && index.includes('id="ae-scan-receipt"'), "Secure receipt OCR review is missing");
