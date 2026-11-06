@@ -9,7 +9,15 @@ const functionsSource = fs.readFileSync(path.join(root, "functions", "index.js")
 const firestoreRules = fs.readFileSync(path.join(root, "firestore.rules"), "utf8");
 
 assert.equal((index.match(/<h1\b/gi) || []).length, 1, "Homepage must expose one clear primary H1");
-assert(index.includes("Facture Gratuite en Ligne &amp; Devis PDF") || index.includes("Facture Gratuite en Ligne & Devis PDF"), "Homepage title no longer targets the primary invoice intent");
+assert(index.includes("Facture gratuite en ligne et devis PDF | ProFacture AI"), "Homepage title no longer targets its primary French invoice and quote intent");
+assert(index.includes("Facture gratuite en ligne et <span class=\"grad\">devis PDF</span>"), "Homepage heading must clearly describe the invoice and quote tool");
+assert(!/<meta\s+name=["']keywords["']/i.test(index), "Google-ignored meta keywords should not be used as an SEO strategy");
+[
+  'href="/facture-france.html">Facture France</a>',
+  'href="/facture-freelance.html">Facture freelance</a>',
+  'href="/facture-batiment.html">Facture bâtiment</a>',
+  'href="/devis-batiment.html">Devis travaux</a>'
+].forEach(marker => assert(index.includes(marker), `Homepage is missing a crawlable contextual link: ${marker}`));
 assert(index.includes('"@id": "https://facturergratuit.com/#organization"'), "Organization structured data is missing");
 assert(index.includes('contact@facturergratuit.com') && index.includes('"contactType": "customer support"'), "Organization contact metadata is incomplete");
 assert(index.includes('rel="sitemap" type="application/xml"'), "Sitemap discovery link is missing");
