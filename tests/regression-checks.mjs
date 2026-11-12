@@ -22,6 +22,28 @@ assert(index.includes('"@id": "https://facturergratuit.com/#organization"'), "Or
 assert(index.includes('contact@facturergratuit.com') && index.includes('"contactType": "customer support"'), "Organization contact metadata is incomplete");
 assert(index.includes('rel="sitemap" type="application/xml"'), "Sitemap discovery link is missing");
 
+const seoPages = {
+  "facture-france.html": ["Facture auto-entrepreneur avec ou sans TVA", "/blog-tva-facture-guide.html"],
+  "blog-tva-facture-guide.html": ["calculer la TVA sur une facture HT", "dateModified"],
+  "blog-creer-facture-professionnelle.html": ["Modèle de facture professionnelle gratuit"],
+  "devis-batiment.html": ["Modèle de devis travaux PDF"],
+  "blog-relance-facture-impayee.html": ["Modèle d'e-mail de relance", "2026-11-12"],
+  "blog-devis-ou-facture.html": ["Quelle est la différence entre un devis et une facture ?"],
+  "blog-mentions-legales-facture.html": ["auto-entrepreneur", "Questions fréquentes"],
+  "facture-freelance.html": ["Modèle de facture freelance", "Facturation freelance"]
+};
+Object.entries(seoPages).forEach(([name, markers]) => {
+  const html = fs.readFileSync(path.join(root, name), "utf8");
+  markers.forEach(marker => assert(html.includes(marker), `${name}: missing targeted SEO content: ${marker}`));
+  assert(!/<meta\s+name=["']keywords["']/i.test(html), `${name}: remove ignored meta keywords instead of relying on it for rankings`);
+});
+assert(!blogMentionsHasBrokenCallout(), "Invoice legal-mentions callout markup must be correctly closed");
+
+function blogMentionsHasBrokenCallout() {
+  const html = fs.readFileSync(path.join(root, "blog-mentions-legales-facture.html"), "utf8");
+  return /<div class="callout">[\s\S]*?<\/p>\s*<h2>Questions fréquentes/i.test(html);
+}
+
 const requiredProductionMarkers = [
   'content="Ufq2oRt5WVm6xRbTxoe-616vgUL5cyYXySATGhvQsso"',
   "ca-pub-4956341710070686",
